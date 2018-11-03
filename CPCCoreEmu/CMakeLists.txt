@@ -1,47 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(CPCCoreEmu)
 
-set(SRCS
-	CAPSFile.cpp
-	CRC.cpp
-	DiskBuilder.cpp
-	DiskContainer.cpp
-	DiskGen.cpp
-	FileAccess.cpp
-	FormatTypeCTRAW.cpp
-	FormatTypeEDSK.cpp
-	FormatTypeDSK.cpp
-	FormatTypeHFE.cpp
-	FormatTypeIPF.cpp
-	FormatTypeRAW.cpp
-	FormatTypeSCP.cpp
-	IDisk.cpp
-	MediaManager.cpp
+file( GLOB SRCS
+	"*.cpp"
 	)
 
-set(HEADERS
-	CAPSFile.h
-	CRC.h
-	DiskBuilder.h
-	DiskContainer.h
-	DiskGen.h
-	DskTypeManager.h
-	FDC765.h
-	FileAccess.h
-	FormatTypeCTRAW.h
-	FormatTypeEDSK.h
-	FormatTypeDSK.h
-	FormatTypeHFE.h
-	FormatTypeIPF.h
-	FormatTypeRAW.h
-	FormatTypeSCP.h
-	IDisk.h
-	ILoadingProgress.h
-	ILog.h
-	includes.h
-	macro.h
-	MediaManager.h
-	stdafx.h
+file( GLOB HEADERS
+	"*.h"
 )
 
 #Fichier ressource
@@ -49,8 +14,6 @@ set(HEADERS
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 add_library(CPCCoreEmu ${SRCS} ${HEADERS})
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib)
-
-message ("CPCCoreEmu" ${CPCCoreEmu} )
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS
