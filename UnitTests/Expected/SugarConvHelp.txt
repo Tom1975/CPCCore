@@ -1,0 +1,34 @@
+Usage : SugarConvDsk source [destination] [-s=side] [-second=side_2_path][-o=outputformat] [-r] [-f=filter]
+    or  SugarConvDsk -cat=user [-sort] [-l] [-c] source    
+
+    -s=side : Select side of the disk to convert.
+       Side can be 1 or 2
+       If omitted, both side are written (if relevant for the format
+
+    -o=outputformat : Select output format. Can take the following values:
+        EDSK : Extended Dsk format
+        HFE : HFE format
+        IPF : IPF format
+        SCP : Supercard Pro format
+    If this parameter is not used, default output format is IPF
+
+   -second=side_2_path : If source is a single dump, side 1 of side_2_path will be the 2nd side of the output (it will replace any side of the regular output)
+    source : The source file can be in the following format : 
+        CTRAW : CT-RAW format
+        DSK : Dsk format
+        EDSK : Extended Dsk format
+        HFE : HFE format
+        IPF : IPF format
+        SCP : Supercard Pro format
+        KRYOFLUX : Kryoflux RAW file format
+        If the source file is a directory : In this case, every file int the given directory are converted to the 'output' directory
+
+    destination : output file. If source file is a directory, destination is used as an output directory
+
+    -r : If the source file is a directory, convert recursively the given directory.
+    -f=filter : If the source file is a directory, set a filter for the files to convert.
+    -cat=user : List the directory to standard output (no conversion is done if used). 'user' is used, unless ALLUSER is specified
+    -sort : This flag will wort the files in alphabetical order.
+    - l : Add flags H for hidden files, and R for read - only files.List isdisplayed with one file per line.
+    - c : Display file on the same line, separated with semicolumn. No result if used with -l option
+    - col=x,y : specift how to display result : x column, with y space between each column. No result if used with -l or -c option
