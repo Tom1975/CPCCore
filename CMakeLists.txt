@@ -3,7 +3,15 @@ cmake_minimum_required(VERSION 3.0)
 # Nom du projet
 project(CPCCore)
 
-set (gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+IF(MSVC)
+   set (USE_SHARED_CRT OFF CACHE BOOL "Use Shared CRT" FORCE )
+endif()
+
+if (USE_SHARED_CRT)
+   set (gtest_force_shared_crt ON )
+endif()
+
+
 set (CMAKE_INSTALL_PREFIX ${SugarConvDsk_BINARY_DIR}/Install)
 set (SKIP_INSTALL_ALL ON)
 

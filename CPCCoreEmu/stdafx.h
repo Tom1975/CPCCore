@@ -18,6 +18,10 @@ namespace fs = std::experimental::filesystem;
 
 #elif __MORPHOS__
 // fs does not exist there
+
+#elif __circle__
+// fs does not exist there
+
 #else
 
 #include <experimental/filesystem>

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 class CRC
 {
 public:
@@ -15,11 +13,7 @@ public:
    // Other CRC utilities
    static unsigned int ComputeCrc32(unsigned int polynomial, const unsigned char* buffer, unsigned int size);
 
-
 protected:
    unsigned short computed_crc_;
    int count_;
-
-
-   std::vector<unsigned short> crc_stack_;
 };

@@ -24,6 +24,12 @@ set(SRCS
 set(HEADERS
 )
 
+if (USE_SHARED_CRT)
+   foreach(CompilerFlag ${CompilerFlags})
+     string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+   endforeach()
+endif()
+
 add_executable( UnitTests   ${SRCS} ${HEADERS} )
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../CPCCoreEmu ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 
