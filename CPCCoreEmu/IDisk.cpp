@@ -1971,7 +1971,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
       int revolution_to_keep = -1;
       keep_rev_end = -1;
 
-      while (/*indexWrite < side_[side].Tracks[track].Size &&*/ (!end))
+      while (!end)
       {
          // Count only on a byte !
          // Process next byte.
@@ -1981,17 +1981,13 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
          unsigned int index_of_resync = -1;
          for (unsigned int rev = 0; rev < nb_used_revolutions && index_of_resync == -1; rev++)
          {
-            //if (!bRevolutionWrecked[rev])
+            while ((index_for_next_sector < list_sizes[rev].size()) && (list_sizes[rev].at(index_for_next_sector) < index_buffer[rev]))
             {
-               while (index_for_next_sector < list_sizes[rev].size() && list_sizes[rev].at(index_for_next_sector) < index_buffer[rev])
-               {
-                  //pIndexNextSync[rev] = pListSizes[rev].at(indexNextSector);
-                  index_for_next_sector++;
-               }
-               if (index_for_next_sector < list_sizes[rev].size() && list_sizes[rev].at(index_for_next_sector) == index_buffer[rev])
-               {
-                  index_of_resync = index_for_next_sector;
-               }
+               index_for_next_sector++;
+            }
+            if ((index_for_next_sector < list_sizes[rev].size()) && (list_sizes[rev].at(index_for_next_sector) == index_buffer[rev]))
+            {
+               index_of_resync = index_for_next_sector;
             }
          }
          if (index_of_resync != -1)
