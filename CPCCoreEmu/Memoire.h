@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <string.h>
+#include <string>
 #include "IExpansion.h"
 #include "DMAStop.h"
 

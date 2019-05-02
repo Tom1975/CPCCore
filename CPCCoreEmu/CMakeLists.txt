@@ -33,6 +33,7 @@ IF(MSVC)
 ENDIF(MSVC)
 
 if (USE_SHARED_CRT)
+else()
    foreach(CompilerFlag ${CompilerFlags})
      string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
    endforeach()
