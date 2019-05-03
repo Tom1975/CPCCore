@@ -1682,7 +1682,7 @@ void FDC::SenseIntState () // 08
 
       if (!disk_[current_drive_].IsDiskReady((!seek_track_)) && !seek_track_)
       {
-         interrupt_code_ = 0x3;
+         interrupt_code_ = 0x2;
       }
       else
       {
@@ -4331,7 +4331,9 @@ unsigned char FDC::GetStatus3 ()
    // WP
    if (disk_[current_drive_].IsWriteProtected()) st3|= 0x40;
    // FT
+
    // todo : check condition for FT signal !
+   if (disk_[current_drive_].IsDiskPresent() == false) st3 |= 0x80;
 
    return st3;
 }
