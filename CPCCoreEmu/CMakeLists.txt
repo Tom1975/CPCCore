@@ -10,7 +10,6 @@ file( GLOB HEADERS
 )
 
 #Fichier ressource
-
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 add_library(CPCCoreEmu ${SRCS} ${HEADERS})
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib)

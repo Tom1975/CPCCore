@@ -3,6 +3,7 @@
 #include <list>
 #include <thread>
 
+#include "Motherboard.h"
 #include "Z80_Full.h"
 #include "Breakpoint.h"
 #include "Bus.h"
@@ -38,12 +39,6 @@
 #include "MachineSettings.h"
 #include "EmulatorSettings.h"
 
-/*#ifdef CPCCOREEMU_EXPORTS
-#define CPCCOREEMU_API __declspec(dllexport)
-#else
-#define CPCCOREEMU_API __declspec(dllimport)
-#endif
-*/
 #define CPCCOREEMU_API
 
 #define NB_BP_MAX    10
@@ -187,7 +182,6 @@ public:
    void SetLog(ILog* log) { log_ = log; fdc_->SetLog(log); crtc_.SetLog(log_); signals_.SetLog(log_); ppi_.SetLog(log_); }
    void SetNotifier(INotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);if(fdc_!=NULL)fdc_->SetNotifier(notifier); tape_.SetNotifier (notifier);}
 
-   virtual void Demarrer ();
    virtual int RunTimeSlice(bool dbg = false);
    virtual void DoSynchroVbl();
 
@@ -367,8 +361,6 @@ protected:
    INotify* notifier_;
 
    ISupervisor* supervisor_;
-   void DemarrerThread ();
-   static void Run ( void* param);
 
    IDirectories * directories_;
    IConfiguration * configuration_manager_;
@@ -468,8 +460,6 @@ protected:
    SoundMixer sound_mixer_;
 
    BreakpointHandler breakpoint_handler_;
-
-   std::thread emulation_thread_;
 
    void RebuildComponents();
    void ClearComponents();

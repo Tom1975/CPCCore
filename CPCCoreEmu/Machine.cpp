@@ -7,10 +7,6 @@
 
 #include "PrinterDefault.h"
 #include "MediaManager.h"
-//#include "Chunk.h"
-
-//#include "zlib128-dll\include\zlib.h"
-
 
 // MACRO de profilage
 // MACRO
@@ -704,17 +700,6 @@ void EmulatorEngine::LoadConfiguration (const char* config_name, const char* ini
 ///////////////////////////////////////////////////
 // Demarrage et boucle principale
 ///////////////////////////////////////////////////
-void EmulatorEngine::Demarrer ()
-{
-   emulation_thread_ = std::thread(Run, this);
-}
-
-void EmulatorEngine::Stop ()
-{
-   run_ = false;
-
-   emulation_thread_.join();
-}
 
 void EmulatorEngine::Reinit ()
 {
@@ -787,11 +772,6 @@ void EmulatorEngine::Reset ()
    paste_available_ = false;
 }
 
-void EmulatorEngine::Run ( void* param)
-{
-   EmulatorEngine* machine = (EmulatorEngine*)param;
-   machine->DemarrerThread ();
-}
 
 
 
@@ -842,44 +822,6 @@ void EmulatorEngine::RemoveBreakpoint ( unsigned short addr)
 void EmulatorEngine::CleanBreakpoints ()
 {
    breakpoint_index_ = 0;
-}
-
-
-void EmulatorEngine::DemarrerThread ()
-{
-   // lancement de l'emulation
-   Trace ("Demarrage de l'emulation\n");
-
-   // Initialisations
-   memory_->Initialisation ();
-   counter_ = 0;
-   run_ = false;
-
-   bool refresh_stop = false;
-
-   // Attente d'une commande quelconque
-   while (1)
-   {
-      if (run_|step_in_|step_)
-      {
-         refresh_stop = true;
-         run_ = true;
-         //Start ();
-         DebugNew(0);
-      }
-
-      // If a suppervisor is set, tell it that emulation has stopped
-      if ( supervisor_ != NULL && refresh_stop )
-      {
-         supervisor_->EmulationStopped ();
-         refresh_stop  = false;
-      }
-
-
-      //
-      std::this_thread::sleep_for(std::chrono::microseconds(20));
-      //Sleep(20);
-   }
 }
 
 void EmulatorEngine::SetSpeed ( int speedLimit )
