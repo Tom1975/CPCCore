@@ -9,56 +9,6 @@
 extern unsigned int ListeColorsIndex[0x100];
 
 
-MemoryDefinition::MemoryType::MemoryType(std::string name, unsigned int color, unsigned char id) : name_(name), color_(color), id_(id)
-{
-   
-}
-MemoryDefinition::MemoryDefinition() : id_count_(0)
-{
-   
-}
-MemoryDefinition::~MemoryDefinition()
-{
-   
-}
-
-MemoryDefinition::MemoryType* MemoryDefinition::GetMemory(unsigned int id)
-{
-   return (id < memory_type_list_.size())?&memory_type_list_[id]:nullptr;
-}
-
-
-void MemoryDefinition::AddMemoryType(std::string name, unsigned int color)
-{
-   if (id_count_ <= 0xFF)
-      memory_type_list_.push_back(MemoryType(name, color, id_count_++));
-}
-
-MemoryMapping::MemoryMapping(MemoryDefinition& memory_definition, unsigned char* ram_bank):memory_definition_(memory_definition), ram_bank_(ram_bank)
-{
-   memset(ram_info_, 0, sizeof(ram_info_));
-}
-
-MemoryMapping::~MemoryMapping()
-{
-   
-}
-void MemoryMapping::SetRangeType(unsigned short begin, unsigned short end, MemoryDefinition::MemoryType* mem_type)
-{
-   if (end < begin)
-   {
-      unsigned short tmp = end;
-      end = begin;
-      begin = tmp;
-   }
-   memset(&ram_info_[begin], mem_type->GetID(), end - begin);
-}
-
-MemoryDefinition::MemoryType* MemoryMapping::GetType(unsigned short addr)
-{
-   return memory_definition_.GetMemory(ram_info_[addr]);
-}
-
 
 Memory::Memory(Monitor* monitor) : plus_(false), rmr2_(0), last_value_read_(0), monitor_(monitor), lower_rom_available_(false), expansion_(nullptr)
 {

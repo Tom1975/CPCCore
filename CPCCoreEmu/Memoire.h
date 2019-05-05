@@ -1,66 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include "IExpansion.h"
 #include "DMAStop.h"
-
-/*#ifdef CPCCOREEMU_EXPORTS
-#define CPCCOREEMU_API __declspec(dllexport)
-#else
-#define CPCCOREEMU_API __declspec(dllimport)
-#endif
-*/
-#define CPCCOREEMU_API
 
 class Monitor;
 
 
-
-
-class CPCCOREEMU_API MemoryDefinition
-{
-public:
-   class MemoryType
-   {
-   public:
-      MemoryType(std::string name, unsigned int color, unsigned char id);
-      unsigned char GetID() { return id_; }
-
-   protected:
-      std::string name_;
-      unsigned int color_;
-      unsigned char id_;
-   };
-
-   MemoryDefinition();
-   virtual ~MemoryDefinition();
-
-   void AddMemoryType(std::string name, unsigned int color);
-   MemoryType* GetMemory(unsigned int id);
-
-protected:
-
-   std::vector<MemoryType> memory_type_list_;
-   unsigned int id_count_;
-};
-
-class MemoryMapping
-{
-public:
-   MemoryMapping(MemoryDefinition& memory_definition, unsigned char* ram_bank);
-   virtual ~MemoryMapping();
-
-   void SetRangeType(unsigned short begin, unsigned short end, MemoryDefinition::MemoryType* mem_type);
-   MemoryDefinition::MemoryType* GetType(unsigned short addr);
-
-protected:
-   MemoryDefinition& memory_definition_;
-   unsigned char* ram_bank_;
-   unsigned char ram_info_[0x4000];
-};
-
-class CPCCOREEMU_API Memory : public IDmaSTOP
+class Memory : public IDmaSTOP
 {
    friend class EmulatorEngine;
    friend class CSnapshot;
