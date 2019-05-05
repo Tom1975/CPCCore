@@ -1,16 +1,8 @@
 #pragma once
 
 #include "CRC.h"
-#include <vector>
 #include "IComponent.h"
 
-
-/*#ifdef CPCCOREEMU_EXPORTS
-#define CPCCOREEMU_API __declspec(dllexport)
-#else
-#define CPCCOREEMU_API __declspec(dllimport)
-#endif
-*/
 #define CPCCOREEMU_API
 
 #include "ILog.h"

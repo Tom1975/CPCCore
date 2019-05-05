@@ -178,12 +178,14 @@ public:
    void InsertBlankDisk ( unsigned int drive_number, IDisk::DiskType );
    void Eject ( unsigned int drive_number = 0);
 
+#ifndef MINIUM_DEPENDENCIES
    DataContainer* CanLoad(char* file, std::vector<MediaManager::MediaType>list_of_types = { MediaManager::MEDIA_DISK, MediaManager::MEDIA_SNA, MediaManager::MEDIA_SNR, MediaManager::MEDIA_TAPE, MediaManager::MEDIA_BIN,MediaManager::MEDIA_CPR });
    void ReleaseContainer(DataContainer* container);
 
    int LoadMedia(DataContainer* container);
-   int LoadDisk ( const char* file_path, unsigned int drive_number = 0, bool differential_load = true);
    int LoadDisk ( DataContainer* container, unsigned int drive_number = 0, bool differential_load = true);
+#endif
+   int LoadDisk ( const char* file_path, unsigned int drive_number = 0, bool differential_load = true);
    void FlipDisk ( unsigned int drive_number = 0);
 // 0 : Not present;  1 : No; 2 : Read; 3 : Write
    int IsDiskRunning (int drive );

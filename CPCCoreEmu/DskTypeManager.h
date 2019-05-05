@@ -1,9 +1,6 @@
 #pragma once
 
 #include "ILog.h"
-#include "DiskContainer.h"
-
-
 
 class DskTypeManager : public ITypeManager
 {

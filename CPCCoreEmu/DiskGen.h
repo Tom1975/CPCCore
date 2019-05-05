@@ -3,7 +3,6 @@
 #include "IDisk.h"
 #include "ILog.h"
 #include "DiskBuilder.h"
-#include "DiskContainer.h"
 #include "DskTypeManager.h"
 #include "ILoadingProgress.h"
 

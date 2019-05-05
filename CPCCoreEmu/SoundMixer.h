@@ -9,7 +9,6 @@
 #include "ISound.h"
 #include "IComponent.h"
 
-#include <vector>
 #include <atomic>
 #include <thread>
 
