@@ -7,10 +7,15 @@ Motherboard::Motherboard(SoundMixer* sound_mixer):
    psg_(sound_mixer), 
    netlist_int_(&signals_), 
    netlist_nmi_(&signals_.nmi_),
+   plus_(false),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
-   cursor_line_(&play_city_)
-{
+   cursor_line_(&play_city_),
+   generic_breakpoint_(nullptr),
+   supervisor_(nullptr)
 
+{
+   breakpoint_index_ = 0;
+   memset(breakpoint_list_, 0, sizeof(breakpoint_list_));
 }
 
 Motherboard::~Motherboard()
@@ -120,6 +125,22 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    }
 }
 
+void Motherboard::OnOff()
+{
+   asic_.HardReset();
+
+   memory_.Initialisation();
+   memory_.SetRmr2(0);
+
+   psg_.Reset();
+   signals_.Reset();
+
+   for (int i = 0; i < signals_.nb_expansion_; i++)
+   {
+      signals_.exp_list_[i]->Reset();
+   }
+}
+
 void Motherboard::SetPlus(bool plus)
 {
    plus_ = plus;
@@ -197,30 +218,6 @@ void Motherboard::InitStartOptimized()
          component_list_[j]->SetTickForcer(this);
       }
    }
-
-   //
-   // Create dynamic function :
-   // - https://blogs.oracle.com/nike/entry/simple_jit_compiler_for_your
-   // 1- Compute how many cycle we want to do in a single loop :
-   //     - It has to be a multiple of the PPCM of the whole components - call this X time
-   // 2 - Create the code
-   /*if (generated_loop_.y != NULL)
-   {
-      VirtualFreeEx(GetCurrentProcess(), generated_loop_.y, 0, MEM_RELEASE);
-   }
-
-   byte* buf = (byte*)VirtualAllocEx(GetCurrentProcess(), 0, 1 << 16, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-   if (buf == 0) return;
-
-   byte* p = buf;
-
-
-   *p++ = 0xC3; // ret
-
-
-   generated_loop_.y = buf;
-   */
 }
 
 void Motherboard::InitStartOptimizedPlus()
@@ -295,6 +292,44 @@ void Motherboard::InitStartOptimizedPlus()
 
 
    generated_loop_.y = buf;*/
+}
+
+void Motherboard::Resync()
+{
+   // Set the components call file
+   // Get from settings, all components
+   // Place them in the file
+
+   // PSG
+   ForceTick(&psg_, 0);
+
+   // VDU
+   ForceTick(&z80_, 0);
+
+   // CRTC§Asic
+   if (plus_)
+   {
+      ForceTick(&asic_, 11);
+
+      ForceTick(&dma_[0], 11);
+      ForceTick(&dma_[1], 11);
+      ForceTick(&dma_[2], 11);
+   }
+   else
+   {
+      ForceTick(&crtc_, 8);
+
+   }
+
+   // Tape ?
+   ForceTick(&tape_, 1);
+
+   // FDC ?
+   ForceTick(&fdc_, 8);
+
+   // Gate Array
+   ForceTick(&vga_, 2);
+
 }
 
 void Motherboard::ForceTick(IComponent* component, int ticks)
@@ -597,4 +632,48 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       }
    }
    return next_cycle;
+}
+
+void Motherboard::AddBreakpoint(unsigned short addr)
+{
+
+   // Add breakpoint to list
+   if (breakpoint_index_ < NB_BP_MAX)
+   {
+      breakpoint_list_[breakpoint_index_++] = addr;
+   }
+}
+
+void Motherboard::ChangeBreakpoint(unsigned short  oldBP, unsigned short newBP)
+{
+   for (unsigned int i = 0; i < breakpoint_index_; i++)
+   {
+      if (breakpoint_list_[i] == oldBP)
+      {
+         breakpoint_list_[i] = newBP;
+         return;
+      }
+   }
+}
+
+void Motherboard::RemoveBreakpoint(unsigned short addr)
+{
+   for (unsigned int i = 0; i < breakpoint_index_; i++)
+   {
+      if (breakpoint_list_[i] == addr)
+      {
+         breakpoint_list_[i] = 0;
+         for (unsigned int j = i; j < breakpoint_index_ - 1; j++)
+         {
+            breakpoint_list_[j] = breakpoint_list_[j + 1];
+         }
+         breakpoint_index_--;
+         return;
+      }
+   }
+}
+
+void Motherboard::CleanBreakpoints()
+{
+   breakpoint_index_ = 0;
 }

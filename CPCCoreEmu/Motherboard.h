@@ -61,36 +61,77 @@ class Motherboard : public IMachine
 {
 public:
 
+   ///////////////////////////////////////
    // CTor / DTor
    Motherboard(SoundMixer* sound_mixer);
    virtual ~Motherboard();
 
+   ///////////////////////////////////////
    // Init the motherboard & emulation
    void InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* display, IFdcNotify* notifier, IDirectories * directories, IConfiguration * configuration_manager);
    virtual void SetSupervisor(ISupervisor* supervisor) { supervisor_ = supervisor; }
-
+   virtual void SetConfigurationManager(IConfiguration * configuration_manager) {
+      configuration_manager_ = configuration_manager; psg_.SetConfigurationManager(configuration_manager_);
+   }
+   virtual void SetDirectories(IDirectories * dir) {default_printer_.SetDirectories(dir);}
+   void SetLog(ILog* log) { fdc_.SetLog(log); crtc_.SetLog(log); signals_.SetLog(log); ppi_.SetLog(log); }
+   void SetNotifier(IFdcNotify* notifier) { fdc_.SetNotifier(notifier); tape_.SetNotifier(notifier); }
+   
+   ///////////////////////////////////////
+   // Breakpoints 
+   void AddBreakpoint(unsigned short addr);
+   void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
+   void RemoveBreakpoint(unsigned short addr);
+   void CleanBreakpoints();
+   void SetGenericBreakpoint(IBreakpoint* generic_breakpoint) { generic_breakpoint_ = generic_breakpoint;}
    // Configuration
    void SetPlus(bool plus);
    bool IsPLUS() { return plus_; }
 
+   ///////////////////////////////////////
+   // Get machine info
+   Memory* GetMem() { return &memory_; };
+   Asic* GetAsic() { return &asic_; }
+   Ay8912* GetPSG() { return &psg_; };
+   CRTC* GetCRTC() { return &crtc_; }
+   GateArray* GetVGA() { return &vga_; }
+   FDC* GetFDC() { return &fdc_; };
+   CTape* GetTape() { return &tape_; };
+   Monitor* GetMonitor() { return &monitor_; }
+   PPI8255* GetPPI() { return &ppi_; }
+   CSig* GetSig() { return &signals_; }
+   Z80* GetProc() { return &z80_; };
+   IPrinterPort* GetPrinter() { return printer_; };
+   PlayCity* GetPlayCity() { return &play_city_; }
+   DMA* GetDMA(int i) { return &dma_[i]; }
+
+   ///////////////////////////////////////
    // Use the machine
+   void OnOff();
+   void Resync();
    void ForceTick(IComponent* component, int ticks);
    void StartOptimized(unsigned int nb_cycles);
    void StartOptimizedPlus(unsigned int nb_cycles);
    int DebugNew(unsigned int nb_cycles);
    unsigned int GetSpeed() { return speed_percent_; }
 
+   unsigned char* GetCartridge(int index) { return memory_.GetCartridge(index); }
+   void EjectCartridge() {memory_.EjectCartridge(); }
+
+   unsigned char* GetRamBuffer() { return memory_.GetRamBuffer(); }
+
    void UpdateExternalDevices();
    void InitStartOptimized();
    void InitStartOptimizedPlus();
+
+   bool run_;
+   bool step_in_;
+   bool step_;
 
 protected:
 
 
    // Debug & running attributes
-   bool run_;
-   bool step_in_;
-   bool step_;
    unsigned int stop_pc_;
    bool remember_step_;
    unsigned int counter_;
@@ -103,7 +144,9 @@ protected:
    // Max 10 breakpoints
    unsigned short breakpoint_list_[NB_BP_MAX];
    unsigned int breakpoint_index_;
+
    ISupervisor* supervisor_;
+   IConfiguration * configuration_manager_;
 
 
    // Specific configuration

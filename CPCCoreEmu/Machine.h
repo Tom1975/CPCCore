@@ -63,7 +63,7 @@ public :
    virtual int GetCurrentProgress() = 0;
 };
 
-class CPCCOREEMU_API EmulatorEngine : public IMachine, public ILoadingProgree
+class CPCCOREEMU_API EmulatorEngine : public ILoadingProgree
 {
 public:
    typedef enum {
@@ -104,12 +104,12 @@ public:
    }
 
 
-   IKeyboard* GetKeyboardHandler () { return psg_;}
-   virtual void SetSupervisor (ISupervisor* supervisor) {supervisor_ = supervisor;}
+   IKeyboard* GetKeyboardHandler () { return motherboard_.GetPSG();}
+   virtual void SetSupervisor (ISupervisor* supervisor) {motherboard_.SetSupervisor( supervisor);}
    virtual void SetDirectories ( IDirectories * dir ){ directories_ = dir;
-      default_printer_.SetDirectories(dir);   }
+      motherboard_.SetDirectories(dir);   }
    virtual void SetConfigurationManager(IConfiguration * configuration_manager) {
-      configuration_manager_ = configuration_manager; psg_->SetConfigurationManager(configuration_manager_);
+      configuration_manager_ = configuration_manager; motherboard_.SetConfigurationManager(configuration_manager_);
    }
 
    void UpdateComputer(bool no_cart_reload = false);
@@ -127,37 +127,23 @@ public:
    virtual void SaveConfiguration (const char* config_name, const char* ini_file);
    virtual void LoadConfiguration (const char* config_name, const char* ini_file);
 
-   void SetLog(ILog* log) { log_ = log; fdc_->SetLog(log); crtc_.SetLog(log_); signals_.SetLog(log_); ppi_.SetLog(log_); }
-   void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);if(fdc_!=NULL)fdc_->SetNotifier(notifier); tape_.SetNotifier (notifier);}
+   void SetLog(ILog* log) { log_ = log; motherboard_.SetLog(log_); }
+   void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);motherboard_.SetNotifier(notifier);}
 
    virtual int RunTimeSlice(bool dbg = false);
 
-   void BuildEngine();
-
-
-   virtual void ForceTick (IComponent* component, int ticks=0);
-
-   void InitStartOptimized ();
-   void InitStartOptimizedPlus ();
-
    void Resync ();
-   void StartOptimized(unsigned int nb_cycles);
-   void StartOptimizedPlus(unsigned int nb_cycles);
    void StartPrecise(unsigned int nb_cycles);
-   void BuildMachine ();
-   void BuildMachine464 ();
-   void BuildMachine664 ();
-   void BuildMachine6128 ();
-   void BuildMachineCustom ();
    void UpdateExternalDevices();
    void SetMachineType(int type) { type_machine_ = type; };
    int GetMachineType() { return type_machine_; }
    void SetPlus(bool plus);
-   bool IsPLUS() { return plus_; }
+   bool IsPLUS() { return motherboard_.IsPLUS(); }
 
+   void SetStepIn(bool set) { motherboard_.step_in_ = set; }
+   void SetRun(bool set) { motherboard_.run_ = set; }
+   bool IsRunning() { return motherboard_.run_; }
    void Stop ();
-
-   virtual int DebugNew(unsigned int nb_cycles);
 
    void AddBreakpoint ( unsigned short addr);
    void ChangeBreakpoint ( unsigned short  old_bp, unsigned short new_bp );
@@ -168,15 +154,15 @@ public:
    void SetBreakpointHandler ( IBreakpoint* bp );
 
    // Display
-   void SetScanlines (int type){vga_.SetScanlines (type);};
-   int GetScanlines (){return vga_.GetScanlines ();};
+   void SetScanlines (int type){GetVGA()->SetScanlines (type);};
+   int GetScanlines (){return GetVGA()->GetScanlines ();};
 
    // Record
    void BeginRecord();
    void EndRecord ();
    bool IsRecording ();
 
-   void SetFixedSpeed(bool bFixed) { if (bFixed) SetRandomSeed(0x1337);  fdc_->SetFixedSpeed(bFixed); }
+   void SetFixedSpeed(bool bFixed) { if (bFixed) SetRandomSeed(0x1337);  GetFDC()->SetFixedSpeed(bFixed); }
    void SetRandomSeed(unsigned int seed) { srand(seed); };
 
    // Control
@@ -186,7 +172,7 @@ public:
    void OnOff ();
 
 
-   void GunSet(int x, int y, int button) { crtc_.GunSet ( x, y, button); };
+   void GunSet(int x, int y, int button) { GetCRTC()->GunSet ( x, y, button); };
 
    // Disk and tape
    void InsertBlankDisk ( unsigned int drive_number, IDisk::DiskType );
@@ -201,17 +187,17 @@ public:
    void FlipDisk ( unsigned int drive_number = 0);
 // 0 : Not present;  1 : No; 2 : Read; 3 : Write
    int IsDiskRunning (int drive );
-   bool IsDiskModified (int drive){return fdc_->IsDiskModified(drive); };
+   bool IsDiskModified (int drive){return GetFDC()->IsDiskModified(drive); };
    void SaveDisk (int drive);
    void SaveDiskAs (int drive, char* file_path, FormatType* format_type);
    bool IsDiskPresent ( int drive );
 
    int CompareDriveAandB();
 
-   int GetDiskTrack ( int drive){return fdc_->GetCurrentTrack(drive);};
-   int GetDiskSector ( int drive){return fdc_->GetCurrentSector(drive);};
-   int GetDiskSide ( int drive){return fdc_->GetCurrentSide(drive);};
-   int GetCurrentDrive ( ) {return fdc_->GetCurrentDrive ();};
+   int GetDiskTrack ( int drive){return GetFDC()->GetCurrentTrack(drive);};
+   int GetDiskSector ( int drive){return GetFDC()->GetCurrentSector(drive);};
+   int GetDiskSide ( int drive){return GetFDC()->GetCurrentSide(drive);};
+   int GetCurrentDrive ( ) {return GetFDC()->GetCurrentDrive ();};
 
    // Tape
    int LoadTape ( const char* file_path);
@@ -227,24 +213,24 @@ public:
    void MultifaceToggleVisible (){multiface2_.Visible(multiface2_.IsVisible()?false:true);};
    bool IsMultifaceIIVisible () { return multiface2_.IsVisible();};
    // Données
-   IPrinterPort* GetPrinter () { return printer_;};
-   Memory* GetMem () { return memory_;};
-   Asic* GetAsic() { return &asic_; }
+   IPrinterPort* GetPrinter () { return motherboard_.GetPrinter();};
+   Memory* GetMem () { return motherboard_.GetMem();};
+   Asic* GetAsic() { return motherboard_.GetAsic(); }
 
-   IZ80* GetProc () { return &z80_;};
-   Z80* GetProcFull() { return &z80_; };
+   IZ80* GetProc () { return motherboard_.GetProc();};
+   Z80* GetProcFull() { return motherboard_.GetProc();};
 
-   Ay8912* GetPSG() {return psg_;};
-   CRTC* GetCRTC () { return &crtc_;}
-   GateArray* GetVGA() { return &vga_; }
-   FDC* GetFDC () { return fdc_;};
-   CTape* GetTape () { return &tape_;};
-   Monitor* GetMonitor () { return &monitor_;}
-   PPI8255* GetPPI () { return &ppi_;}
-   CSig* GetSig(){return &signals_;}
+   Ay8912* GetPSG() {return motherboard_.GetPSG();};
+   CRTC* GetCRTC () { return motherboard_.GetCRTC();}
+   GateArray* GetVGA() { return motherboard_.GetVGA(); }
+   FDC* GetFDC () { return motherboard_.GetFDC();};
+   CTape* GetTape () { return motherboard_.GetTape();};
+   Monitor* GetMonitor () { return motherboard_.GetMonitor();}
+   PPI8255* GetPPI () { return motherboard_.GetPPI();}
+   CSig* GetSig(){return motherboard_.GetSig();}
    bool GetPAL () { return pal_present_;}
-   void SetPAL ( bool bPAL) { pal_present_ = bPAL; vga_.SetPAL( bPAL);};
-   void SetFDCPlugged ( bool bFDCPlugged) { fdc_present_ = bFDCPlugged;signals_.fdc_present_ = fdc_present_;ppi_.SetExpSignal ( fdc_present_ );};
+   void SetPAL ( bool bPAL) { pal_present_ = bPAL; GetVGA()->SetPAL( bPAL);};
+   void SetFDCPlugged ( bool bFDCPlugged) { fdc_present_ = bFDCPlugged;GetSig()->fdc_present_ = fdc_present_;GetPPI()->SetExpSignal ( fdc_present_ );};
    void ChangeConfig (MachineSettings* current_settings);
    void LimitSpeed (SpeedLimit bLimit){speed_limit_ = bLimit;};
 
@@ -253,10 +239,6 @@ public:
    unsigned int GetSpeed (){return speed_percent_;}
 
    int speed_;
-
-   bool run_;
-   bool step_in_;
-   bool step_;
 
    bool bin_to_load_;
    std::string bin_to_load_path_;
@@ -268,17 +250,13 @@ public:
 
    // Expansion available
    MultifaceII multiface2_;
-   PlayCity * play_city_;
 
    bool multiface_stop_;
-
-   IClockable* GetNMILine() {return &netlist_nmi_;};
-   IClockable* GetINTLine() { return &netlist_int_; };
 
    bool LoadBinInt(unsigned char* buffer, unsigned int size);
    bool LoadBinInt(const char* path_file);
 
-   DMA* GetDMA(int i) { return &dma_[i]; }
+   DMA* GetDMA(int i) { return motherboard_.GetDMA(i); }
 
 protected:
 
@@ -309,51 +287,12 @@ protected:
    ILog* log_;
    IFdcNotify* notifier_;
 
-   ISupervisor* supervisor_;
-
    IDirectories * directories_;
    IConfiguration * configuration_manager_;
-
-   // Max 10 breakpoints
-   unsigned short breakpoint_list_ [NB_BP_MAX];
-   unsigned int breakpoint_index_;
 
    // Breakpoint generic
    IBreakpoint* generic_breakpoint_;
 
-
-   // Signaux divers
-   CSig signals_;
-
-   // Z80
-   Z80 z80_;
-
-   bool plus_;
-
-   // Video Gate Array (video)
-   Asic asic_;
-   DMA dma_[3];
-   GateArray vga_;
-
-   // 6845 CRTC
-   CRTC crtc_;
-
-   // Son
-   // AY-3-8912 (PSG)
-   Ay8912 *psg_;
-
-   // I/O
-   // PPI (interface paralelle) 8255
-   PPI8255 ppi_;
-
-   // CRT Monitor
-   Monitor monitor_;
-
-   // Tape
-   CTape tape_;
-
-   // Floppy - FDC 765
-   FDC *fdc_;
    std::string fd1_path_;
    std::string fd2_path_;
    
@@ -365,29 +304,12 @@ protected:
    int paste_wait_time_;
    unsigned int paste_vkey_ ;
 
-   // Bus : Adresse (16b) et donnes (8b)
-   Bus address_bus_;
-   Bus data_bus_;
-
-   // Overall Memory Map
-   Memory *memory_;
-
    // Settings handler
    MachineSettings * current_settings_;
    EmulatorSettings emulator_settings_;
 
    // Display handler
    IDisplay* display_;
-
-   IPrinterPort* printer_;
-   PrinterDefault default_printer_;
-
-   // Internal component list
-   IComponent * component_list_[10]; // Used to avoid allocation
-   unsigned int component_elapsed_time_ [32];
-
-   int nb_components_ ;
-   int z80_index_;
 
    // Snapshot handler
    CSnapshot sna_handler_;
@@ -397,10 +319,7 @@ protected:
 
    /////////////////////////////////
    // Netlists
-   NetListINT netlist_int_;
-   NetList netlist_nmi_;
 
-   CursorLine* cursor_line_;
    int type_machine_;
    bool do_snapshot_;
    std::string snapshot_file_;
@@ -410,24 +329,6 @@ protected:
 
    BreakpointHandler breakpoint_handler_;
 
-   void RebuildComponents();
-   void ClearComponents();
-
-   struct ComponentList
-   {
-      ComponentList* QueueComponent(IComponent* comp, unsigned int init_time) {
-         next = new ComponentList;
-         next->next = nullptr; 
-         next->component = comp;
-         next->elapsed_time = init_time;
-         elapsed_time = 0;
-         return next;
-      }
-      IComponent * component;
-      ComponentList* next;
-      unsigned int elapsed_time;
-   };
-   ComponentList *head_component_;
 };
 
 class LoadingDisk : public ILoadingMedia
