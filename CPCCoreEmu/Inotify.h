@@ -1,6 +1,6 @@
 #pragma once
 
-class INotify
+class IFdcNotify
 {
 public:
 

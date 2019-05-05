@@ -30,11 +30,11 @@ public:
 
    virtual void SetMachine (EmulatorEngine* machine) {machine_ = machine;}
    virtual void Playback ();
-   void SetNotifier(INotify * notifier) { notifier_ = notifier; }
+   void SetNotifier(IFdcNotify * notifier) { notifier_ = notifier; }
 
 protected:
    EmulatorEngine* machine_;
-   INotify * notifier_;
+   IFdcNotify * notifier_;
 
    void InitRecord ();
    void InitReplay ();

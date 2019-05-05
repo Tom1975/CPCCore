@@ -5,12 +5,12 @@
 
 
 
-class CDskTypeManager : public ITypeManager
+class DskTypeManager : public ITypeManager
 {
 public:
 
-   CDskTypeManager(void);
-   virtual ~CDskTypeManager(void);
+   DskTypeManager(void);
+   virtual ~DskTypeManager(void);
 
    //////////////////////////////////////////////////////////
    // Implementation of ITypeManager

@@ -71,7 +71,7 @@ DiskGen::~DiskGen(void)
    Eject();
 }
 
-void DiskGen::Init(CDskTypeManager* disk_type_manager)
+void DiskGen::Init(DskTypeManager* disk_type_manager)
 {
    disk_type_manager_ = disk_type_manager;
 }

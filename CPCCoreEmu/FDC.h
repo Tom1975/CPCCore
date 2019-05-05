@@ -28,10 +28,10 @@ public:
    FDC(void);
    ~FDC(void);
 
-   void Init (CDskTypeManager * disk_type_manager);
+   void Init (DskTypeManager * disk_type_manager);
    void Reset ();
    void SetLog ( ILog* log) ;
-   void SetNotifier(INotify * notifier) { notifier_ = notifier; }
+   void SetNotifier(IFdcNotify * notifier) { notifier_ = notifier; }
    void Out (unsigned short addr, unsigned char data);
    unsigned char In ( unsigned short addr );
 
@@ -89,7 +89,7 @@ protected:
    unsigned char GetStatus2();
    unsigned char GetStatus3 ();
 
-   INotify* notifier_;
+   IFdcNotify* notifier_;
    ILog* log_ ;
    enum TransfertType
    {

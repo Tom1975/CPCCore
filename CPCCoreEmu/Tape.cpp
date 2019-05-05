@@ -2976,7 +2976,6 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
             {
                // End of tape
                play_ = false;
-               tape_accelerator_->Accelerate ( false );
                //m_bMotor = false;
                ppi8255_->SetDataRecorderR ( false);
                if (time_to_change_motor_state_ == 0)
@@ -3109,11 +3108,6 @@ void CTape::SetMotorOn ( bool bOn )
    {
       if (time_to_change_motor_state_ > 0 && bOn == next_motor_state_) return;
 
-      if ( tape_position_ < nb_inversions_)
-         tape_accelerator_->Accelerate ( bOn );
-      else
-         tape_accelerator_->Accelerate ( false );
-
       LOG (bOn?"K7 Motor On":"K7 Motor Off");
       LOGEOL
 
@@ -3156,14 +3150,12 @@ void CTape::FastForward()
 void CTape::StopEject ()
 {
    play_ = false;
-   tape_accelerator_->Accelerate ( false );
    machine_->ForceTick ( this) ;
 }
 
 void CTape::Pause ()
 {
    play_ = false;
-   tape_accelerator_->Accelerate ( false );
    machine_->ForceTick ( this) ;
 }
 

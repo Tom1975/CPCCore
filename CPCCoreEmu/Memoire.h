@@ -13,7 +13,7 @@
 */
 #define CPCCOREEMU_API
 
-class CMonitor;
+class Monitor;
 
 
 
@@ -77,7 +77,7 @@ public:
    } asic_rw_;
 
 public:
-   Memory(CMonitor* monitor);
+   Memory(Monitor* monitor);
    ~Memory(void);
 
    Memory* CopyMe();
@@ -291,6 +291,6 @@ protected:
    TSpriteInfo sprite_info_[16];
    unsigned char rmr2_;
    unsigned char last_value_read_;  // Last value read (ofr unmapped register)
-   CMonitor* monitor_;
+   Monitor* monitor_;
 };
 

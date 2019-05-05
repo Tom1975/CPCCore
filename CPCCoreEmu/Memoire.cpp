@@ -60,7 +60,7 @@ MemoryDefinition::MemoryType* MemoryMapping::GetType(unsigned short addr)
 }
 
 
-Memory::Memory(CMonitor* monitor) : plus_(false), rmr2_(0), last_value_read_(0), monitor_(monitor), lower_rom_available_(false), expansion_(nullptr)
+Memory::Memory(Monitor* monitor) : plus_(false), rmr2_(0), last_value_read_(0), monitor_(monitor), lower_rom_available_(false), expansion_(nullptr)
 {
    memset(cartridge_, 0, sizeof(cartridge_));
    memset(cart_available_, 0, sizeof(cart_available_));

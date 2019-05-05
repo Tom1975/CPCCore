@@ -5,17 +5,17 @@
 
 
 
-CDskTypeManager::CDskTypeManager(void)
+DskTypeManager::DskTypeManager(void)
 {
 }
 
 
-CDskTypeManager::~CDskTypeManager(void)
+DskTypeManager::~DskTypeManager(void)
 {
 }
 
 
-int CDskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
+int DskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
 {
    if (buffer == nullptr) return 0;
 
@@ -49,7 +49,7 @@ int CDskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
    return 0;
 }
 
-int CDskTypeManager::GetTypeFromFile(std::string str)
+int DskTypeManager::GetTypeFromFile(std::string str)
 {
    //if (PathMatchSpec(str.c_str(), _T("*.rom")) == TRUE)
    if ( MatchTextWithWildcards (str, "*.rom"))
@@ -84,7 +84,7 @@ int CDskTypeManager::GetTypeFromFile(std::string str)
    return 0;
 }
 
-int CDskTypeManager::GetTypeFromMultipleTypes ( int * type_list, int nb_types )
+int DskTypeManager::GetTypeFromMultipleTypes ( int * type_list, int nb_types )
 {
    return 0;
 }

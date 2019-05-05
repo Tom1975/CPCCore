@@ -37,7 +37,7 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
-CMonitor::CMonitor(void) : memory_(0), sync_(nullptr), playback_sync_(false)
+Monitor::Monitor(void) : memory_(0), playback_sync_(false)
 {
    playback_ = nullptr;
    int i, b;
@@ -92,14 +92,14 @@ CMonitor::CMonitor(void) : memory_(0), sync_(nullptr), playback_sync_(false)
    Reset();
 }
 
-void CMonitor::SetVGA(GateArray * vga)
+void Monitor::SetVGA(GateArray * vga)
 {
    gate_array_ = vga;
    memory_ = gate_array_->memory_;
    RecomputeAllColors();
 }
 
-void CMonitor::RecomputeAllColors()
+void Monitor::RecomputeAllColors()
 {
 
    // Look up table mode 0, 1, 2
@@ -122,7 +122,7 @@ void CMonitor::RecomputeAllColors()
    }
 }
 
-void CMonitor::RecomputeColors()
+void Monitor::RecomputeColors()
 {
    gate_array_->buffered_ink_available_ = false;
    int p = gate_array_->pen_r_;
@@ -175,7 +175,7 @@ void CMonitor::RecomputeColors()
    }
 }
 
-void CMonitor::Reset()
+void Monitor::Reset()
 {
    // Nb us per
    res_x_ = 63 * 16;
@@ -230,12 +230,12 @@ void CMonitor::Reset()
 }
 
 
-CMonitor::~CMonitor(void)
+Monitor::~Monitor(void)
 {
 }
 
 
-unsigned int CMonitor::Tick( /*unsigned int nbTicks*/)
+unsigned int Monitor::Tick( /*unsigned int nbTicks*/)
 {
 
    START_CHRONO
@@ -443,11 +443,6 @@ unsigned int CMonitor::Tick( /*unsigned int nbTicks*/)
                      }
 
                      screen_->VSync();
-
-                     if (sync_ != nullptr)
-                     {
-                        sync_->DoSynchroVbl();
-                     }
 
                      playback_sync_ = false;
 

@@ -2,12 +2,12 @@
 #include "IPrinterPort.h"
 #include "IDirectories.h"
 
-class CPrinterDefault :
+class PrinterDefault :
    public IPrinterPort
 {
 public:
-   CPrinterDefault(void);
-   virtual ~CPrinterDefault(void);
+   PrinterDefault(void);
+   virtual ~PrinterDefault(void);
 
    virtual void SetDirectories (IDirectories * diretories){diretories_ = diretories;};
    virtual void Out ( unsigned char );

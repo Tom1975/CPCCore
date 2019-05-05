@@ -3,7 +3,6 @@
 #include "IConfiguration.h"
 #include "IComponent.h"
 #include "ILog.h"
-#include "ITapeAccelerator.h"
 #include "IDirectories.h"
 #include "ISound.h"
 #include "VGA.h"
@@ -64,8 +63,7 @@ public:
    ~CTape(void);
 
    void SetLog ( ILog* log ) {log_ = log;};
-   void SetNotifier ( INotify* notify_tape){tape_notifier_ = notify_tape;}
-   void SetTapeAccelerator ( ITapeAccelerator* accelerator) { tape_accelerator_ = accelerator; }
+   void SetNotifier ( IFdcNotify* notify_tape){tape_notifier_ = notify_tape;}
    void SetVGA ( GateArray* gate_array) { gate_array_ = gate_array; }
    void Reset ();
    void Init(IDirectories* directories, ITapeOut * ppi, IConfiguration * configuration_manager) {
@@ -205,10 +203,9 @@ protected:
    unsigned int tape_buffer_size_;
 
    ITapeOut * ppi8255_;
-   ITapeAccelerator* tape_accelerator_;
    GateArray* gate_array_;
    ILog* log_ ;
-   INotify* tape_notifier_;
+   IFdcNotify* tape_notifier_;
    // Inversion handling
 
    // Internal data

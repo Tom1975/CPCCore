@@ -4,7 +4,7 @@
 
 #define SCR_PATH "\\PRINT\\"
 
-CPrinterDefault::CPrinterDefault(void)
+PrinterDefault::PrinterDefault(void)
 {
    busy_ = false;
    diretories_ = NULL;
@@ -12,7 +12,7 @@ CPrinterDefault::CPrinterDefault(void)
 }
 
 
-CPrinterDefault::~CPrinterDefault(void)
+PrinterDefault::~PrinterDefault(void)
 {
    if (file_ptr_ != NULL)
    {
@@ -20,7 +20,7 @@ CPrinterDefault::~CPrinterDefault(void)
    }
 }
 
-void CPrinterDefault::Out ( unsigned char c)
+void PrinterDefault::Out ( unsigned char c)
 {
    char buff[8] = { 0 };
    sprintf ( buff, "%c", c&0x7F );
@@ -48,7 +48,7 @@ void CPrinterDefault::Out ( unsigned char c)
 
 }
 
-bool CPrinterDefault::Busy ()
+bool PrinterDefault::Busy ()
 {
    bool bRet = busy_ ;
    busy_  = false;
@@ -56,7 +56,7 @@ bool CPrinterDefault::Busy ()
 }
 
 
-bool CPrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
+bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
 {
    if (diretories_ == NULL)
       return false;

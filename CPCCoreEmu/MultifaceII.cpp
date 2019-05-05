@@ -5,7 +5,7 @@
 #include "Multiface Two (Romantic Robot) (8D) (AmsDOS v05)_rom.h"
 
 
-CMultifaceII::CMultifaceII(void) : nmi_enabled_(false)
+MultifaceII::MultifaceII(void) : nmi_enabled_(false)
 {
    sig_ = NULL;
    visible_ = false;
@@ -14,11 +14,11 @@ CMultifaceII::CMultifaceII(void) : nmi_enabled_(false)
 }
 
 
-CMultifaceII::~CMultifaceII(void)
+MultifaceII::~MultifaceII(void)
 {
 }
 
-void CMultifaceII::Init (CSig* sig)
+void MultifaceII::Init (CSig* sig)
 {
    sig_ = sig;
    sig_ ->memory_->expansion_ = this;
@@ -27,13 +27,13 @@ void CMultifaceII::Init (CSig* sig)
    memcpy(rom_ram_, MultiROMV05, sizeof(MultiROMV05));
 }
 
-unsigned int CMultifaceII::Tick ()
+unsigned int MultifaceII::Tick ()
 {
    return 1000000;
 }
 
    // Out
-void CMultifaceII::Out (unsigned short Addr_P, unsigned char Data_P )
+void MultifaceII::Out (unsigned short Addr_P, unsigned char Data_P )
 {
    if (visible_)
    {
@@ -112,16 +112,16 @@ void CMultifaceII::Out (unsigned short Addr_P, unsigned char Data_P )
 }
 
    // In
-void CMultifaceII::In (unsigned char* data, unsigned short address)
+void MultifaceII::In (unsigned char* data, unsigned short address)
 {
 }
 
-unsigned char*  CMultifaceII::GetROM()
+unsigned char*  MultifaceII::GetROM()
 {
    return rom_ram_;
 }
 
-void CMultifaceII::Reset ()
+void MultifaceII::Reset ()
 {
    if ( sig_ != NULL)
    {
@@ -129,7 +129,7 @@ void CMultifaceII::Reset ()
    }
 }
 
-void CMultifaceII::M1 ()
+void MultifaceII::M1 ()
 {
    // NMI ACK => ROMDIS
    if (nmi_enabled_ )
@@ -141,7 +141,7 @@ void CMultifaceII::M1 ()
 
 }
 
-void CMultifaceII::Stop ()
+void MultifaceII::Stop ()
 {
    // NMI
    // Sure ???

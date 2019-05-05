@@ -400,7 +400,16 @@ void Ay8912::CharAction (char c, bool bPressed)
 }
 
 #define SET_KEY_LINE_BIT(val, line, bit)\
-   if ( (action & val) == val ) {if ((keyboard_lines_[line]&(1<<bit))!=0) register_replaced_ = true;keyboard_lines_[line] &= ~(1<<bit);} else {if ((keyboard_lines_[line]&(1<<bit))==0)register_replaced_ = true;keyboard_lines_[line] |= (1<<bit);}
+   if ( (action & val) == val )\
+   {\
+      if ((keyboard_lines_[line]&(1<<bit))!=0) register_replaced_ = true;\
+      keyboard_lines_[line] &= ~(1<<bit);\
+   }\
+   else \
+   { if ((keyboard_lines_[line]&(1<<bit))==0)\
+      register_replaced_ = true;\
+   keyboard_lines_[line] |= (1<<bit);\
+   }\
 
 
 void Ay8912::JoystickAction (unsigned int joy, unsigned int action)
@@ -415,7 +424,8 @@ void Ay8912::JoystickAction (unsigned int joy, unsigned int action)
       SET_KEY_LINE_BIT(joy_but2, 9, 5);
       SET_KEY_LINE_BIT(joy_but3, 9, 4);
    }
-   else
+   // TODO : JOY2 just mess up the keyboard...
+   /*else
    {
       SET_KEY_LINE_BIT(joy_up, 6, 0);
       SET_KEY_LINE_BIT(joy_down, 6, 1);
@@ -424,7 +434,7 @@ void Ay8912::JoystickAction (unsigned int joy, unsigned int action)
       SET_KEY_LINE_BIT(joy_but1, 6, 6);
       SET_KEY_LINE_BIT(joy_but2, 6, 5);
       SET_KEY_LINE_BIT(joy_but3, 6, 4);
-   }
+   }*/
 }
 
 void Ay8912::SendScanCode ( unsigned short scanCode, bool bPressed )

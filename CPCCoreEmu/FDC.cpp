@@ -140,7 +140,7 @@ FDC::FDC(void) : load_progress_(-1)
    current_drive_ = 0;
    Reset ();
 }
-void FDC::Init (CDskTypeManager * disk_type_manager)
+void FDC::Init (DskTypeManager * disk_type_manager)
 {
    for (int i = 0; i < NB_DRIVES; i++)
    {

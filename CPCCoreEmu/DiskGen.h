@@ -82,7 +82,7 @@ public:
    void SetMfm(CodageMfm code) { encode_scheme_ = code; };
 
    void SetLog(ILog* log) { log_ = log; };
-   virtual void Init(CDskTypeManager* disk_type_manager);
+   virtual void Init(DskTypeManager* disk_type_manager);
    virtual void SetWriteProtect(bool on) { write_protection_on_ = on; };
    virtual void Eject();
    virtual void CleanDisk();
@@ -287,5 +287,5 @@ protected:
    int speed_change_counter_;
 
    // Speed of motor : 3 seconds for full speed = 50 round ?
-   CDskTypeManager* disk_type_manager_;
+   DskTypeManager* disk_type_manager_;
 };

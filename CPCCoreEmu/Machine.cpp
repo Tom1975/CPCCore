@@ -42,7 +42,7 @@ const char* CartPath = "\\CART\\";
 EmulatorEngine::EmulatorEngine() :
    address_bus_(16), data_bus_(8), paste_size_(0), paste_count_(0), media_inserted_(&disk_type_manager_),
    netlist_int_(&signals_), netlist_nmi_(&signals_.nmi_), plus_(false), do_snapshot_(false), current_settings_(nullptr),
-   head_component_(nullptr), directories_ (nullptr), display_(nullptr)
+   head_component_(nullptr), directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_)
 {
 
    fdc_present_ = true;
@@ -63,7 +63,6 @@ EmulatorEngine::EmulatorEngine() :
    paste_vkey_ = 0;
    speed_percent_ = 0;
    memory_ = new Memory (&monitor_);
-   monitor_.SetSynchro(this);
    fdc_ = new FDC;
    psg_ = new Ay8912 (&sound_mixer_);
    play_city_ = new PlayCity(&netlist_int_, &netlist_nmi_, &sound_mixer_);
@@ -102,12 +101,10 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 {
    DataContainer::Init();
 
-   // Setting handler
-   //m_SettingsHandler.Init ( this, sound, configuration_manager_);
-
    display_ = display;
    counter_ = 0;
    paste_available_ = false;
+
 
    run_ = false;
    step_in_ = false;
@@ -168,7 +165,6 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
    tape_.SetLog (log_);
 
    sna_handler_.SetMachine ( this );
-   tape_.SetTapeAccelerator (this);
    tape_.SetVGA (&vga_);
    crtc_.SetLog (log_);
 
@@ -219,6 +215,7 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 
 
    BuildMachine ();
+   //motherboard_.InitMotherbard(log_, &sna_handler_, display_, notifier_, directories_, configuration_manager_);
 
    return true;
 }
@@ -1091,10 +1088,6 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
          paste_wait_time_-=1000;*/
    }
    return ret;
-}
-
-void EmulatorEngine::DoSynchroVbl()
-{
 }
 
 void EmulatorEngine::InitStartOptimized()
@@ -2221,7 +2214,7 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
    SetFDCPlugged(current_settings_->FDCPlugged());
 
    // External devices
-   UpdateExternalDevices();
+   motherboard_.UpdateExternalDevices();
 
 
    // PLUS Machine ?todo

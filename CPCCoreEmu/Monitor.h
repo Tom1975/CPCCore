@@ -17,19 +17,12 @@
 
 class GateArray;
 
-class  ISynchro
+class CPCCOREEMU_API Monitor : public IComponent
 {
 public:
-   virtual void DoSynchroVbl() = 0;
-};
+   Monitor(void);
+   virtual ~Monitor(void);
 
-class CPCCOREEMU_API CMonitor : public IComponent
-{
-public:
-   CMonitor(void);
-   virtual ~CMonitor(void);
-
-   void SetSynchro(ISynchro* sync) { sync_ = sync; }
    void SetPlayback (IPlayback* playback) { playback_ = playback;}
    void SetCRTC (CRTC * crtc){crtc_ = crtc;};
    void SetVGA(GateArray * vga);
@@ -53,8 +46,6 @@ public:
       SYNC,
       BACKPORCH
    } MonitorState;
-
-   ISynchro* sync_;
 
    ///////////////////////////
    // Sync attributes

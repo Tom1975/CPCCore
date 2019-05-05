@@ -3,11 +3,11 @@
 #include "Memoire.h"
 
 class CSig;
-class CMultifaceII : public IExpansion
+class MultifaceII : public IExpansion
 {
 public:
-   CMultifaceII(void);
-   virtual ~CMultifaceII(void);
+   MultifaceII(void);
+   virtual ~MultifaceII(void);
 
    void Init (CSig* sig);
 

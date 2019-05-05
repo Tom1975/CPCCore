@@ -29,7 +29,6 @@
 #include "ISound.h"
 #include "PrinterDefault.h"
 #include "IPlayback.h"
-#include "ITapeAccelerator.h"
 #include "Snapshot.h"
 #include "DiskContainer.h"
 #include "MediaManager.h"
@@ -48,57 +47,6 @@
 // Definition de la machine elle-meme.
 
 
-class CursorLine : public IClockable
-{
-public:
-   CursorLine (PlayCity* playcity) : playcity_(playcity)
-   {}
-   virtual unsigned int Tick() { playcity_->GetCtc()->channel_[1].Trg(true); playcity_->GetCtc()->channel_[1].Trg(false); return 1; }
-protected:
-   PlayCity* playcity_;
-};
-
-
-class NetList : public IClockable
-{
-public:
-   NetList( bool* signal) :signal_(signal) {};
-   virtual unsigned int Tick() { if (signal_)*signal_ = true; return 1; }
-
-private:
-   bool* signal_;
-};
-
-class NetListINT : public IClockable
-{
-public:
-   NetListINT(CSig* z80_int) :z80_int_(z80_int) {};
-   virtual unsigned int Tick() { if (z80_int_)z80_int_->req_int_ = true; return 1; }
-
-private:
-   CSig* z80_int_;
-};
-
-
-class NetListNMI : public IClockable
-{
-public:
-   NetListNMI(CSig* z80_int) :z80_int_(z80_int) {};
-   virtual unsigned int Tick() { if(z80_int_)z80_int_->nmi_ = true; return 1; }
-
-private:
-   CSig* z80_int_;
-};
-
-
-
-class ISupervisor
-{
-public:
-   virtual void EmulationStopped () = 0;
-   virtual void SetEfficience (double p) = 0;
-   virtual void RefreshRunningData  () = 0;
-};
 
 
 ////////////////////////////////////
@@ -115,7 +63,7 @@ public :
    virtual int GetCurrentProgress() = 0;
 };
 
-class CPCCOREEMU_API EmulatorEngine : public IMachine, public ITapeAccelerator, public ILoadingProgree, public ISynchro
+class CPCCOREEMU_API EmulatorEngine : public IMachine, public ILoadingProgree
 {
 public:
    typedef enum {
@@ -180,10 +128,9 @@ public:
    virtual void LoadConfiguration (const char* config_name, const char* ini_file);
 
    void SetLog(ILog* log) { log_ = log; fdc_->SetLog(log); crtc_.SetLog(log_); signals_.SetLog(log_); ppi_.SetLog(log_); }
-   void SetNotifier(INotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);if(fdc_!=NULL)fdc_->SetNotifier(notifier); tape_.SetNotifier (notifier);}
+   void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);if(fdc_!=NULL)fdc_->SetNotifier(notifier); tape_.SetNotifier (notifier);}
 
    virtual int RunTimeSlice(bool dbg = false);
-   virtual void DoSynchroVbl();
 
    void BuildEngine();
 
@@ -292,7 +239,7 @@ public:
    GateArray* GetVGA() { return &vga_; }
    FDC* GetFDC () { return fdc_;};
    CTape* GetTape () { return &tape_;};
-   CMonitor* GetMonitor () { return &monitor_;}
+   Monitor* GetMonitor () { return &monitor_;}
    PPI8255* GetPPI () { return &ppi_;}
    CSig* GetSig(){return &signals_;}
    bool GetPAL () { return pal_present_;}
@@ -320,7 +267,7 @@ public:
    unsigned int counter_ ;
 
    // Expansion available
-   CMultifaceII multiface2_;
+   MultifaceII multiface2_;
    PlayCity * play_city_;
 
    bool multiface_stop_;
@@ -338,6 +285,8 @@ protected:
    ///////////////////////////////////////
    // What's in this machine ?
    ///////////////////////////////////////
+   Motherboard motherboard_;
+
    bool pal_present_;
    bool fdc_present_;
 
@@ -358,7 +307,7 @@ protected:
    std::chrono::time_point<std::chrono::steady_clock> time_elapsed_;
 
    ILog* log_;
-   INotify* notifier_;
+   IFdcNotify* notifier_;
 
    ISupervisor* supervisor_;
 
@@ -398,7 +347,7 @@ protected:
    PPI8255 ppi_;
 
    // CRT Monitor
-   CMonitor monitor_;
+   Monitor monitor_;
 
    // Tape
    CTape tape_;
@@ -431,7 +380,7 @@ protected:
    IDisplay* display_;
 
    IPrinterPort* printer_;
-   CPrinterDefault default_printer_;
+   PrinterDefault default_printer_;
 
    // Internal component list
    IComponent * component_list_[10]; // Used to avoid allocation
@@ -444,7 +393,7 @@ protected:
    CSnapshot sna_handler_;
    DataContainer media_inserted_;
 
-   CDskTypeManager disk_type_manager_;
+   DskTypeManager disk_type_manager_;
 
    /////////////////////////////////
    // Netlists

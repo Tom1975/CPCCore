@@ -25,7 +25,7 @@ class DMA;
 class CPCCOREEMU_API GateArray : public IComponent
 {
    friend class EmulatorEngine;
-   friend class CMonitor;
+   friend class Monitor;
    friend class CSnapshot;
 public:
 
@@ -52,7 +52,7 @@ public:
    void SetPAL (bool bPAL) { pal_present_ = bPAL ; }
    void SetPlus(bool plus) { plus_ = plus; }
    // Initialisation et branchement des pins
-   void SetMonitor (CMonitor* monitor){monitor_ = monitor;}
+   void SetMonitor (Monitor* monitor){monitor_ = monitor;}
    void SetBus (Bus* address, Bus* data);
    void SetSig ( CSig* sig ) {sig_handler_ = sig;}
    void SetMemory  (Memory* mem) { memory_ = mem;memory_ram_buffer_ = memory_->ram_buffer_[0];}
@@ -130,7 +130,7 @@ public:
    unsigned char vsync_counter_;
    unsigned char activation_mode_;
 
-   CMonitor* monitor_;
+   Monitor* monitor_;
 
    union 
    {
