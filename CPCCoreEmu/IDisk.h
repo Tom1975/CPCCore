@@ -13,11 +13,8 @@
 #include "ILog.h"
 #include "CRC.h"
 
-#ifdef MINIUM_DEPENDENCIES
-	#include "circle/string.h"
-#else
-	#include <string>
-#endif
+#include "simple_vector.hpp"
+#include "simple_string.h"
 
 ///////////////////////////////////////////////////////////////
 // Generic define for MFM
@@ -72,7 +69,15 @@ public:
    } AutorunType;
 
    // Format support
-   const char* GetCurrentLoadedDisk() { return current_disk_path_.c_str(); };
+   const char* GetCurrentLoadedDisk() { 
+#ifdef MINIMUM_DEPENDENCIES
+      return current_disk_path_;
+#else
+      return current_disk_path_.c_str(); 
+#endif
+   
+   };
+
    virtual IDisk::FaceSelection FilterSide(IDisk::FaceSelection face_selection);
 
    virtual void SetWrite(int side, unsigned int track);
@@ -110,9 +115,8 @@ public:
 
    bool IsDiskModified() const { return disk_modified_; };
 
-#ifndef MINIUM_DEPENDENCIES
    std::vector<std::string>  GetCat(IDisk::AutorunType& autorun_type, int user=0);
-#endif
+
    ///////////////////////////////////////////////////////////////
    // Usefull generic fonctions
    static void FillTrack(unsigned char* track, const unsigned char cylinder, IDisk::DiskType type,
@@ -304,11 +308,8 @@ public:
    //protected:
    int SmartOpen(FILE** file, const char* file_path, const char* file_ext);
 private:
-#ifdef MINIUM_DEPENDENCIES
-	CString current_disk_path_;
-#else
    std::string current_disk_path_;
-#endif
+
 };
 
 

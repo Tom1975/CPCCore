@@ -2,17 +2,16 @@
 #include "Motherboard.h"
 
 Motherboard::Motherboard(SoundMixer* sound_mixer): 
-   address_bus_(16), data_bus_(8), 
+   generic_breakpoint_(nullptr),
+   supervisor_(nullptr),
+   plus_(false),
+   address_bus_(16), data_bus_(8),
    memory_(&monitor_), 
    psg_(sound_mixer), 
    netlist_int_(&signals_), 
    netlist_nmi_(&signals_.nmi_),
-   plus_(false),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
-   cursor_line_(&play_city_),
-   generic_breakpoint_(nullptr),
-   supervisor_(nullptr)
-
+   cursor_line_(&play_city_)
 {
    breakpoint_index_ = 0;
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));
@@ -517,8 +516,6 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       ++elapsed;
    }
 
-   unsigned short old_pc = z80_.GetPC();
-
    // Verifier que c'est un call, sinon, comme stepin
    if (step_)
    {
@@ -562,17 +559,20 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       signals_.Propagate();
       ++next_cycle;
 
-      if (z80_.t_ == 1 &&
-         (z80_.machine_cycle_ == Z80::M_M1_NMI
-            || z80_.machine_cycle_ == Z80::M_M1_INT
-            )
-         || (z80_.machine_cycle_ == Z80::M_FETCH && z80_.t_ == 4 && ((z80_.current_opcode_ & 0xFF00) == 0) && elapsed_time_z80 == next_cycle)
+      if (  (  z80_.t_ == 1 &&
+               (z80_.machine_cycle_ == Z80::M_M1_NMI
+               || z80_.machine_cycle_ == Z80::M_M1_INT)
+             )
+          || (  z80_.machine_cycle_ == Z80::M_FETCH 
+             && z80_.t_ == 4 
+             && ((z80_.current_opcode_ & 0xFF00) == 0) 
+             && elapsed_time_z80 == next_cycle
+             )
          )
       {
          counter_ += (component_elapsed_time_[z80_index_] - old_counter + 1);
          old_counter = component_elapsed_time_[z80_index_];
          {
-            old_pc = z80_.GetPC();
             if (generic_breakpoint_)
             {
                run_ = generic_breakpoint_->IsBreak() ? false : true;

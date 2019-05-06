@@ -178,7 +178,7 @@ public:
    void InsertBlankDisk ( unsigned int drive_number, IDisk::DiskType );
    void Eject ( unsigned int drive_number = 0);
 
-#ifndef MINIUM_DEPENDENCIES
+#ifndef MINIMUM_DEPENDENCIES
    DataContainer* CanLoad(char* file, std::vector<MediaManager::MediaType>list_of_types = { MediaManager::MEDIA_DISK, MediaManager::MEDIA_SNA, MediaManager::MEDIA_SNR, MediaManager::MEDIA_TAPE, MediaManager::MEDIA_BIN,MediaManager::MEDIA_CPR });
    void ReleaseContainer(DataContainer* container);
 

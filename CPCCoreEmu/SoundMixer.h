@@ -9,9 +9,10 @@
 #include "ISound.h"
 #include "IComponent.h"
 
+#ifndef MINIMUM_DEPENDENCIES
 #include <atomic>
 #include <thread>
-
+#endif
 
 
 class SoundBuffer 
@@ -120,8 +121,10 @@ protected:
    ISound* sound_;
    int sample_number_;
 
+#ifndef NO_MULTITHREAD
    std::thread * worker_thread_;
    std::atomic_bool finished_;
+#endif
 
    /////////////////////// Conversion 
    // Convertion of full buffer

@@ -153,27 +153,27 @@ protected:
    bool plus_;
 
    // Inner hardware
+   Bus address_bus_;
+   Bus data_bus_;
+   Memory memory_;
+   Ay8912 psg_;
+   NetListINT netlist_int_;
+   NetList netlist_nmi_;
+   PlayCity play_city_;
+   CursorLine cursor_line_;
+
    Z80 z80_;
    CSig signals_;
    Asic asic_;
    DMA dma_[3];
    GateArray vga_;
    CRTC crtc_;
-   Ay8912 psg_;
    PPI8255 ppi_;
    Monitor monitor_;
    CTape tape_;
    FDC fdc_;
-   Memory memory_;
    MultifaceII multiface2_;
-   PlayCity play_city_;
-   NetListINT netlist_int_;
-   NetList netlist_nmi_;
-   CursorLine cursor_line_; 
    
-   Bus address_bus_;
-   Bus data_bus_;
-
    IPrinterPort* printer_;
    PrinterDefault default_printer_;
 

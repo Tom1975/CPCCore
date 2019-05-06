@@ -4,8 +4,6 @@
 class EmulatorEngine;
 class Memory;
 
-#include <vector>
-
 class IBreakpoint
 {
 public:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "simple_string.h"
+
 #include "ILoadingProgress.h"
 #include "IDisk.h"
 

@@ -36,8 +36,6 @@ static unsigned char P[256];        /* Parity flag */
             else{INC_R;machine_cycle_=M_FETCH;t_ = 4;sig_->iorw_ = false;rw_opcode_=false;\
             current_opcode_ = memory_->Get ( pc_++);nextcycle = 4 - ((counter_+1) & 0x3)+1;counter_+=nextcycle+1;return nextcycle+2;}
 
-static int InstructionCount = 0;
-
 #define NEXT_INSTR         if (sig_->nmi_){SET_NMI;}else if ((sig_->int_) && iff1_) {SET_INT;}else{SET_NOINT;}
 #define NEXT_INSTR_LDAIR   if (sig_->nmi_){carry_set_ = true;SET_NMI;}else if ((sig_->int_) && iff1_) {carry_set_ = true;SET_INT;}else{carry_set_ = false;SET_NOINT;}
 #define NEXT_INSTR_EI      if (sig_->nmi_){SET_NMI;}SET_NOINT;

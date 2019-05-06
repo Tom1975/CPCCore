@@ -10,8 +10,6 @@
 #include "ITapeOut.h"
 #include "ILoadingProgress.h"
 
-#include <vector>
-
 class PPI8255;
 
 class Filter
@@ -213,7 +211,7 @@ protected:
 #pragma pack(push)
    typedef struct
    {
-#ifdef __unix
+#if defined (__unix) || (RASPPI)
     __uint64_t Length;
     __uint64_t Place;
 #else
@@ -290,7 +288,10 @@ protected:
    }BlockList;
 
    IConfiguration * configuration_manager_;
-   std::vector <BlockList> block_list_;
+
+   unsigned int nb_blocks_;
+   unsigned int size_of_blocklist_;
+   BlockList* block_list_;
 
    IDirectories* directories_;
    int load_progress_;

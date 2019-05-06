@@ -76,11 +76,6 @@ public:
    void UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color );
 
    inline void Set ( unsigned short addr, unsigned char data ) {
-
-      if ( addr == 0x8465)
-      {
-         int dbg = 1;
-      }
       last_value_read_ = data;
       if (asic_io_enabled_ && addr >= 0x4000 && addr <= 0x7FFF)
       {

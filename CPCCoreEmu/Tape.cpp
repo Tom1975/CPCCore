@@ -97,7 +97,10 @@ double Round(double d)
 //#define RATIO_FREQ 1
 
 CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_buffer_size_(0), tape_buffer_to_load_(nullptr), pending_tape_(false),
-load_progress_(-1)
+   load_progress_(-1),
+   size_of_blocklist_(0),
+   block_list_(nullptr),
+   nb_blocks_ (0)
 {
    log_ = nullptr;
    nb_inversions_ = 0;
@@ -147,6 +150,7 @@ load_progress_(-1)
 
 CTape::~CTape(void)
 {
+   delete[]block_list_;
    delete []tape_array_;
 }
 
@@ -185,17 +189,17 @@ int CTape::GetLastEjectPosition  ()
 
 int CTape::GetNbBlocks ()
 {
-   return block_list_.size ();
+   return nb_blocks_;
 }
 
 int CTape::GetBlockPosition (int numBlock)
 {
-   return block_list_.at(numBlock).block;
+   return (numBlock<nb_blocks_)? block_list_[numBlock].block:0;
 }
 
 char* CTape::GetTextBlock ( int numBlock)
 {
-   return block_list_.at(numBlock).description;
+   return (numBlock < nb_blocks_) ? block_list_[numBlock].description: nullptr;
 }
 
 void CTape::Eject ()
@@ -231,8 +235,7 @@ void CTape::Eject ()
 }
 void CTape::ClearList ()
 {
-
-   block_list_.clear ();
+   nb_blocks_ = 0;
 }
 
 void CTape::InsertBlankTape ()
@@ -1870,7 +1873,15 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
          block.block = s + (m * 60);
          block.description = NULL;
 
-         block_list_.push_back(block);
+         if (nb_blocks_ + 1 >= size_of_blocklist_)
+         {
+            BlockList* tmp = block_list_;
+            size_of_blocklist_ += 50;
+            block_list_ = new BlockList[size_of_blocklist_];
+            memcpy(block_list_, tmp, sizeof(BlockList) * nb_blocks_);
+         }
+         block_list_[nb_blocks_++] = block;
+         
 
          sprintf(buff_trace, "Block %4.4i : ID : %2.2X - Pos : %2.2im %2.2is : %3.3ims", num, header[0], m, s, ms);
          LOG(buff_trace);
@@ -2400,9 +2411,9 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             }
             memcpy(data_buffer, &buffer[place_in_file], l);
             place_in_file += l;
-            block_list_.back().description = new char[l + 1];
+            block_list_[nb_blocks_-1].description = new char[l + 1];
             size_t converted_chars = 0;
-            strcpy(block_list_.back().description, (const char*)data_buffer);
+            strcpy(block_list_[nb_blocks_ - 1].description, (const char*)data_buffer);
             // Save this for display purpose
             break;
          }
@@ -3197,7 +3208,7 @@ void CTape::SaveAsWav (const char* filepath)
       unsigned int current_inversion = 0;
       // Rewind the tape
       // Play it 
-#ifdef __unix
+#if defined (__unix) || (RASPPI)
       __uint64_t total;
 #else
       unsigned _int64 total = 0;
