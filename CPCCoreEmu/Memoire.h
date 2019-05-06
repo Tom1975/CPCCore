@@ -38,12 +38,8 @@ public:
    void RomDis (bool set);
    void RamDis (bool set);
 
-   bool LoadLogicalROM ( char* rom_name, const char* rom_path, bool lower, int rom_number);
    bool LoadROM (unsigned char rom_number, const char* rom_path );
    bool LoadLowerROM (const char* rom_path );
-
-
-   unsigned char operator [](unsigned short i) ;
 
    unsigned char* GetAsicRegisters() {return asic_io_;}
    unsigned char ReadAsicRegister(unsigned short i);

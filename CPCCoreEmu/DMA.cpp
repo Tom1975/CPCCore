@@ -14,8 +14,20 @@
 #define LOGEOL
 #endif
 
-DMA::DMA() : enable_next_(false), memory_(nullptr), dma_cycle_(NONE), channel_(0), dma_register_(nullptr),
-pause_counter_ (0), repeat_counter_(0), interrupt_on_(false), prescalar_(0)
+DMA::DMA() : 
+   dma_cycle_(NONE),
+   enable_next_(false),
+   dma_register_(nullptr),
+   memory_(nullptr),
+   dma_stop_(nullptr),
+   channel_(0),
+   curent_instr_(0),
+   psg_(nullptr),
+   pause_counter_(0),
+   repeat_counter_(0),
+   repeat_addr_(0),
+   interrupt_on_(false), 
+   prescalar_(0)
 {
 
 }

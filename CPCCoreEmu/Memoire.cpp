@@ -10,7 +10,21 @@ extern unsigned int ListeColorsIndex[0x100];
 
 
 
-Memory::Memory(Monitor* monitor) : plus_(false), rmr2_(0), last_value_read_(0), monitor_(monitor), lower_rom_available_(false), expansion_(nullptr)
+Memory::Memory(Monitor* monitor) : 
+   lower_rom_available_(false), 
+   expansion_(nullptr),
+   ram_dis_(false),
+   rom_dis_(false),
+   connected_bank_(false),
+   inf_rom_connected_(false),
+   sup_rom_connected_(false),
+   extended_pal_(false),
+   rom_number_(0),
+   plus_(false),
+   asic_io_enabled_(false),
+   rmr2_(0), 
+   last_value_read_(0), 
+   monitor_(monitor)
 {
    memset(cartridge_, 0, sizeof(cartridge_));
    memset(cart_available_, 0, sizeof(cart_available_));
@@ -249,10 +263,6 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
 
 unsigned char Memory::ReadAsicRegister(unsigned short i)
 {
-   if (i == 0x4FC0)
-   {
-      int dbg = 1;
-   }
    // Ok access here ?
    if ((asic_io_rw_[i - 0x4000] & R) == R)
    {
@@ -394,11 +404,6 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
 
 void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
 {
-   if (addr == 0x4FC0)
-   {
-      int dbg = 1;
-   }
-
    // Ok access here ?
    if ((asic_io_rw_[addr - 0x4000] & W) == W)
    {
@@ -574,7 +579,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
       // http://cpctech.cpc-live.com/docs/cpcplus.html : See "Sprite Position and magnification information " section
       // Sprite magnification : Read X-Y coord instead
       // todo
-      int dbg = 1;
+      
       // Palette : Same
    }
 }
@@ -621,15 +626,6 @@ void Memory::Initialisation  ()
    SetMemoryMap();
 }
 
-
-
-
-unsigned char Memory::operator [](unsigned short i)
-{
-   // Bank switching ? TODO
-   return NULL;; // TODO
-}
-
 bool Memory::LoadLowerROM (const char* rom_path )
 {
 
@@ -637,40 +633,6 @@ bool Memory::LoadLowerROM (const char* rom_path )
    bool load_ok = LoadROM (rom, rom_path);
    if (load_ok) lower_rom_available_ = true;
    return load_ok;
-}
-
-bool Memory::LoadLogicalROM ( char* rom_name, const char* rom_filepath, bool lower, const int rom_number)
-{
-   fs::path rom_path (rom_filepath);
-
-   char * rom_converted = NULL;
-
-   if ( strcmp (rom_name, "OS6128") == 0) rom_converted = "Rom CPC 6128 (UK) (Rom A) (1985) (OS v3) [UTILITAIRE] [ROM].rom";
-   else if ( strcmp (rom_name, "OS464") == 0) rom_converted = "Rom CPC 464 (UK) (Rom A) (1984) (OS v1) [UTILITAIRE] [ROM].rom";
-   else if ( strcmp (rom_name, "BASIC1-0") == 0) rom_converted = "Rom CPC 464 (UK) (Rom B) (1984) (Basic 1.0) [UTILITAIRE] [ROM].rom";
-   else if ( strcmp (rom_name, "BASIC1-1") == 0) rom_converted = "Rom CPC 6128 (UK) (Rom B) (1985) (Basic 1.1) [UTILITAIRE] [ROM].rom";
-   else if ( strcmp (rom_name, "AMSDOS") == 0) rom_converted = "Cpc 664 and 6128 Amsdos (1985)(Amstrad)(AMSDOS.ROM).rom";
-
-
-   // Not found ? try to load it "as is"
-   if ( rom_converted == NULL)
-   {
-      rom_path /= rom_name;
-   }
-   else
-   {
-      // Otherwise, use the conversion
-      rom_path /= rom_converted;
-   }
-   if (lower)
-   {
-      return LoadLowerROM (rom_path.string().c_str());
-   }
-   else
-   {
-      return LoadROM ( rom_number, rom_path.string().c_str());
-   }
-
 }
 
 bool Memory::LoadROM (unsigned char rom_number, const char* rom_path )
