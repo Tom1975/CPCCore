@@ -38,10 +38,10 @@ case 0x31: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read
 case 0x32: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
            else { current_address_ = current_data_; current_data_ = af_.b.h; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0; }break;// LD SP NN
 case 0x34: if (t_ == 4) {
-   data_; INC_FLAGS(data_); current_data_ = data_; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0;
+   INC_FLAGS(data_); current_data_ = data_; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0;
 }
            else { ++t_; }; break;// INC (HL)
-case 0x35: if (t_ == 4) { data_; DEC_FLAGS(data_); current_data_ = data_; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0; }
+case 0x35: if (t_ == 4) { DEC_FLAGS(data_); current_data_ = data_; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0; }
            else { ++t_; }; break;// DEC (HL)
 case 0x36: ++pc_; t_ = 1; current_address_ = hl_.w; machine_cycle_ = M_MEMORY_W; read_count_ = 0; break;   // LD (HL), n
 case 0x38: ++pc_; TST(CF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WORK; t_ = 5; }

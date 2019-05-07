@@ -4,7 +4,7 @@
 class IZ80
 {
 public:
-
+   virtual ~IZ80() {}
    virtual IZ80 * CopyMe() = 0;
    virtual void DeleteCopy(IZ80*) = 0;
    virtual bool CompareToCopy(IZ80* source)

@@ -9,9 +9,6 @@
 #define W      0x2
 #define RW     0x3
 
-
-//#define _LogCRC
-
 #ifdef _LogCRC
 #define LOG(str) \
    if (log_) log_->WriteLog (str);
@@ -333,15 +330,6 @@ void CRTC::Out (unsigned short address, unsigned char data)
                   if ( registers_list_[adddress_register_] == 0)
                      registers_list_[adddress_register_] = 1;
                }
-
-               // Test for camembert 4 : Cam4 ok, madness ko...
-               /*if ( m_VCC == 0 )
-               {
-                  // -> NOT CORRECT : This would prevent Chany dream 2 from working
-                  bMuxSet = false;
-                  ComputeMux_1 ();
-               }*/
-
                break;
             case 2:
                break;
@@ -362,6 +350,9 @@ void CRTC::Out (unsigned short address, unsigned char data)
                   vertical_sync_width_ = registers_list_ [3] >> 4;
                   if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
                   if (horizontal_sync_width_ == 0) horizontal_sync_width_ = 16;
+                  break;
+               case MAX_CRTC:
+               default:
                   break;
                }
                if (scanline_vbl_ == vertical_sync_width_)
@@ -431,7 +422,6 @@ void CRTC::Out (unsigned short address, unsigned char data)
                }
             case 8:
                {
-                  int todo = 1;
                }
                break;
             }

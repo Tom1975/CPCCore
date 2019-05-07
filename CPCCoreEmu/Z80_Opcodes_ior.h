@@ -26,7 +26,7 @@ case 0xEDAA: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; ; re
 case 0xEDB2: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; ; read_count_ = 0; break; // INIR
 case 0xEDBA: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; ; read_count_ = 0; break; // INDR
 
-case 0xFF02: mem_ptr_.w = ((ir_.b.h << 8) | (data_));  data_; machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; ; read_count_ = 0; break; // Int MODE2
+case 0xFF02: mem_ptr_.w = ((ir_.b.h << 8) | (data_)); machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; ; read_count_ = 0; break; // Int MODE2
 
 default:
 #ifdef _WIN32

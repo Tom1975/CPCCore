@@ -95,7 +95,7 @@ case 0xEDA0:if(t_ == 5)
    if ((btmp&0x8) == 0x8 ) q_ |= 0x8;
    af_.b.l = q_;NEXT_INSTR;
 }else{++t_;}break; // LDI
-case 0xEDA2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + (bc_.b.l + 1) & 0xFF);
+case 0xEDA2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + ((bc_.b.l + 1) & 0xFF));
    q_ = af_.b.l; if (utmp > 0xFF) q_ |= (CF | HF); utmp = ((utmp & 7) ^ bc_.b.h); PARITY_FLAG(utmp);
    if (data_ & 0x80) q_ |= NF; else q_ &= ~NF;
    if (bc_.b.h == 0) q_ |= ZF; else q_ &= ~(ZF); af_.b.l = q_; NEXT_INSTR;
@@ -104,7 +104,7 @@ case 0xEDA2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + (bc_.b
 case 0xEDA8:if (t_ == 5) {
    q_ = af_.b.l& (~(HF | NF | 0x28 | PF)); --de_.w; --hl_.w; --bc_.w; if (bc_.w) q_ |= PF; btmp = current_data_ + af_.b.h; if ((btmp & 0x2) == 0x2) q_ |= YF; if ((btmp & 0x8) == 0x8) q_ |= XF; af_.b.l = q_; NEXT_INSTR ;}
             else { ++t_; }break; // LDD
-case 0xEDAA: {mem_ptr_.w = bc_.w -1; --bc_.b.h; --hl_.w; utmp = (data_ + (bc_.b.l - 1) & 0xFF);
+case 0xEDAA: {mem_ptr_.w = bc_.w -1; --bc_.b.h; --hl_.w; utmp = (data_ + ((bc_.b.l - 1) & 0xFF));
    q_ = af_.b.l; if (utmp > 0xFF) q_ |= (CF | HF); utmp = ((utmp & 7) ^ bc_.b.h); PARITY_FLAG(utmp);
    if (data_ & 0x80) q_ |= NF; else q_ &= ~NF;
    if (bc_.b.h == 0) q_ |= ZF; else q_ &= ~(ZF); af_.b.l = q_; NEXT_INSTR;
@@ -112,7 +112,7 @@ case 0xEDAA: {mem_ptr_.w = bc_.w -1; --bc_.b.h; --hl_.w; utmp = (data_ + (bc_.b.
 case 0xEDB0:if(t_ == 5){++de_.w;++hl_.w;--bc_.w;btmp = current_data_+af_.b.h;q_ = af_.b.l&~(0x28);if ((btmp&0x2) == 0x2 ) q_ |= 0x20;if ((btmp&0x8) == 0x8 ) q_ |= 0x8;
    if ( bc_.w == 0 ){q_ &= ~(HF|PF|NF);af_.b.l = q_;NEXT_INSTR} else{ af_.b.l = q_;pc_ -= 2;mem_ptr_.w = pc_+1;machine_cycle_=M_Z80_WORK;t_=5;}
             }else{++t_;};break; // LDIR
-case 0xEDB2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + (bc_.b.l + 1) & 0xFF);
+case 0xEDB2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + ((bc_.b.l + 1) & 0xFF));
    q_ = af_.b.l; if (utmp > 0xFF) q_ |= (CF | HF); utmp = ((utmp & 7) ^ bc_.b.h); PARITY_FLAG(utmp);
    if (data_ & 0x80) q_ |= NF; else q_ &= ~NF; q_ |= ZF; af_.b.l = q_;
    if (bc_.b.h == 0) { NEXT_INSTR }else { pc_ -= 2; machine_cycle_ = M_Z80_WORK; t_ = 5;};
@@ -121,7 +121,7 @@ case 0xEDB2: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; ++hl_.w; utmp = (data_ + (bc_.b
 case 0xEDB8:if(t_ == 5){--de_.w;--hl_.w;--bc_.w;btmp = data_+af_.b.h;q_ = af_.b.l;q_ &= ~(0x28);if ((btmp&0x2) == 0x2 ) q_ |= 0x20;   if ((btmp&0x8) == 0x8 ) q_ |= 0x8;
    if ( bc_.w == 0 ){q_ &= ~(HF|PF|NF);af_.b.l = q_;NEXT_INSTR} else { af_.b.l = q_;pc_ -= 2;mem_ptr_.w = pc_+1;machine_cycle_=M_Z80_WORK;t_=5;}
             }else{++t_;};break; // LDDR
-case 0xEDBA: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; --hl_.w; utmp = (data_ + (bc_.b.l - 1) & 0xFF);
+case 0xEDBA: {mem_ptr_.w = bc_.w + 1; --bc_.b.h; --hl_.w; utmp = (data_ + ((bc_.b.l - 1) & 0xFF));
    q_ = af_.b.l; if (utmp > 0xFF) q_ |= (CF | HF); utmp = ((utmp & 7) ^ bc_.b.h); PARITY_FLAG(utmp);
    if (bc_.b.h == 0) { af_.b.l = q_; NEXT_INSTR }
    else {if (data_ & 0x80) q_ |= NF; else q_ &= ~NF;q_ |= ZF;af_.b.l = q_; pc_ -= 2; machine_cycle_ = M_Z80_WORK; t_ = 5; };

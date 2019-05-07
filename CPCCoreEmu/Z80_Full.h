@@ -109,7 +109,7 @@ af_.b.l = q_;
 
 #define SUB_FLAG_CARRY(r) \
    res = af_.b.h-(r+(af_.b.l&CF));\
-   q_ = NF | (((res&0xff)==0)?ZF:0) | (res >>8)&CF | (res&0x80) | (af_.b.h^res^r)&HF;\
+   q_ = NF | (((res&0xff)==0)?ZF:0) | ((res >>8)&CF) | (res&0x80) | ((af_.b.h^res^r)&HF);\
    if ( (((af_.b.h&0x80)^(r&0x80)) != 0) && (((af_.b.h&0x80)^(res&0x80))!=0) ) q_|= PF;/*else af_.b.l &= ~(PF);*/\
    af_.b.h=res;q_ |=(res&0x28);af_.b.l = q_;\
 
@@ -146,11 +146,11 @@ af_.b.h = res;
 
 #define OR_FLAGS(r) \
 res = (af_.b.h | r); q_ = (((res&0xff)==0)?ZF:0)|(res&0x80);\
-PARITY_FLAG(res)r;q_ |= (res&0x28);af_.b.l = q_;\
+PARITY_FLAG(res);q_ |= (res&0x28);af_.b.l = q_;\
 af_.b.h = res;
 
 #define XOR_FLAGS(r)  \
-af_.b.h= af_.b.h^r; q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
+af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
 
 
 // Flag tests
@@ -198,7 +198,7 @@ class Z80 : public IZ80 , public IComponent
 {
 public:
    Z80(void);
-   ~Z80(void);
+   virtual ~Z80(void);
 
    virtual IZ80 * CopyMe();
    virtual void DeleteCopy(IZ80*);

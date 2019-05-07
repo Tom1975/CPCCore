@@ -53,7 +53,11 @@ static unsigned char GetBitOpcode(unsigned char b, const char* r)
    }
 
 
-Z80::Z80(void) : rw_opcode_(false), stop_on_fetch_(false), log_(nullptr), count_(0)
+Z80::Z80(void) : 
+   stop_on_fetch_(false), 
+   rw_opcode_(false),
+   log_(nullptr), 
+   count_(0)
 {
 
    InitOpcodeShortcuts();
@@ -244,10 +248,6 @@ unsigned int Z80::Tick()
    //counter_ = (++counter_) & 0x3;
    //cpu_ctrl_.WAIT = counter_ != 0;
    ++counter_;
-   if (ix_.w == 0x506 || iy_.w == 0xc31)
-   {
-      int dbvg = 1;
-   }
 
    switch (machine_cycle_ | t_)
    {
@@ -433,7 +433,6 @@ unsigned int Z80::Tick()
       int val = OpcodeFetch();
       if (pc_ == 0x61D || pc_ == 0x628)
       {
-         int dbg = 1;
       }
       return val;
    }
@@ -1280,7 +1279,6 @@ void Z80::InitOpcodeShortcuts()
 
 void Z80::TraceTape(unsigned short pc, unsigned char value)
 {
-   static int count = 0;
    if (log_ != nullptr
       && (
          pc == 0x28BE  // CAS READ

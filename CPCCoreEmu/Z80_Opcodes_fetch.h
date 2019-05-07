@@ -120,7 +120,7 @@ case 0x72: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; curren
 case 0x73: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; current_data_ = de_.b.l;read_count_ = 0;break; // LD (HL), E
 case 0x74: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; current_data_ = hl_.b.h;read_count_ = 0;break; // LD (HL), H
 case 0x75: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = hl_.w; current_data_ = hl_.b.l;read_count_ = 0;break; // LD (HL), L
-case 0x76: if (sig_->nmi_){SET_INT(M_M1_NMI);}else if (sig_->int_ && iff1_) {SET_INT(M_M1_INT);}else{--pc_;SET_NOINT;}t_ = 1;SYNC_Z80;break;
+case 0x76: if (sig_->nmi_){ SET_NMI;}else if (sig_->int_ && iff1_) {SET_INT;}else{--pc_;SET_NOINT;}t_ = 1;SYNC_Z80;break;
 case 0x77: machine_cycle_ = M_MEMORY_W; TraceTape(pc_, af_.b.h); t_ = 1; current_address_ = hl_.w; current_data_ = af_.b.h; read_count_ = 0; break; // LD (HL), A
 case 0x78: af_.b.h = bc_.b.h;NEXT_INSTR;break;// LD A, B
 case 0x79: af_.b.h = bc_.b.l;NEXT_INSTR;break;// LD A, C

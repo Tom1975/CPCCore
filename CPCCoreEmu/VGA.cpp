@@ -415,11 +415,6 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
       vertical_shift = (memory_->GetSSCR()&0x7F) >> 4;
       horizontal_shift = memory_->GetSSCR() & 0xF;
       extended_border = (memory_->GetSSCR() & 0x80) ? 16 : 0;
-
-      if (horizontal_shift > 0 || vertical_shift > 0)
-      {
-         int dbg = 1;
-      }
    }
 
    // Fill the byte for the memory buffer
@@ -449,12 +444,6 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                if ( plus_)
                {
                   // get color palette number from pixels
-                  //Mode1Lut[m_DisplayShort._word];
-                  // COLOUR : P1, P2, P3, P4
-                  if (display_short_.word != 0)
-                  {
-                     int dbg = 1;
-                  }
                   unsigned short c1 = 0;
                   c1 += byte_to_pixel00_[display_short_.byte.l];
                   c1 <<= 4;
@@ -539,12 +528,6 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                if (plus_)
                {
                   // get color palette number from pixels
-                  //Mode1Lut[m_DisplayShort._word];
-                  // COLOUR : P1, P2, P3, P4
-                  if (display_short_.word != 0)
-                  {
-                     int dbg = 1;
-                  }
                   unsigned short c1 = ((display_short_.byte.l & 0x80) ? 0x80 : 0) + ((display_short_.byte.l & 0x8) ? 0x40 : 0)
                   + ((display_short_.byte.l & 0x40) ? 0x20 : 0) + ((display_short_.byte.l & 0x4) ? 0x10 : 0)
                   + ((display_short_.byte.l & 0x20) ? 0x8 : 0) + ((display_short_.byte.l & 0x2) ? 0x4 : 0)
@@ -627,13 +610,6 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
             {
                if (plus_)
                {
-                  // get color palette number from pixels
-                  //Mode1Lut[m_DisplayShort._word];
-                  // COLOUR : P1, P2, P3, P4
-                  if (display_short_.word != 0)
-                  {
-                     int dbg = 1;
-                  }
                   unsigned short c1 = display_short_.word;
                   c1 = 0;
                   for (int i = 0; i < 8; ++i)
@@ -865,7 +841,6 @@ void GateArray::TickIO ()
       case 0xE0:
          // MMR
          {
-            int dbg = 1;
          }
          break;
 
@@ -882,7 +857,6 @@ void GateArray::TickIO ()
       case 0xC0:  // Memory management
       case 0xE0:  // Memory management
          {
-            int i = 0;
             // Decode 64k page
             unsigned char p = data&0x38;
             p = p>>3;
@@ -895,7 +869,6 @@ void GateArray::TickIO ()
          }
       default:
          {
-         int dbg = 1;
          break;
          }
       }
@@ -928,14 +901,8 @@ void GateArray::DrawSprites(int * buffer_display)
    {
       // Check if sprite "i" should render here something different than 0
       Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
-      //if (magnificationX > 0 && magnificationY > 0)
       if (sprite->displayed)
       {
-
-         if (y == 0)
-         {
-            int dbg = 1;
-         }
          short disp_y = (y - sprite->y);
          short disp_x = (x - sprite->x);
 
