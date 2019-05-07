@@ -79,67 +79,6 @@ void SettingsContainer::SetShortName ( char* txt )
    description_short_ = txt;
 }
 
-void SettingsContainer::UpdateComputer (bool no_cart_reload )
-{
-   fs::path path;
-
-   machine_->GetMem()->InitMemory();
-
-   // Update RAM
-   machine_->GetMem ()->SetRam(ram_cfg_);
-
-   // Update ROM
-   path = rom_path_;
-   path /= lower_rom_;
-
-   machine_->GetMem ()->LoadLowerROM(path.string().c_str());
-   machine_->GetPSG()->LoadKeyboardMap(keyboard_config_.c_str());
-
-   for (int i = 0; i < 256; i++)
-   {
-      if (  upper_roms_list_[i].empty() )
-      {
-         machine_->GetMem ()->LoadROM (i, NULL);
-      }
-      else
-      {
-         path = rom_path_;
-         path /= upper_roms_list_[i];
-         machine_->GetMem ()->LoadROM (i, path.string().c_str());
-      }
-   }
-
-   // Sound
-   machine_->InitSound (GetSound ());
-
-   // Hardware
-   machine_->GetCRTC()->DefinirTypeCRTC (type_crtc_);
-   machine_->SetPAL (pal_present_);
-   machine_->SetFDCPlugged ( fdc_present_ );
-
-   // External devices
-   machine_->UpdateExternalDevices();
-
-
-   // PLUS Machine ?
-   if (  hardware_type_ == PLUS_6128
-      || hardware_type_ == PLUS_464)
-   {
-      machine_->SetMachineType(hardware_type_);
-      machine_->SetPlus(true);
-      if (no_cart_reload == false)
-      {
-         machine_->LoadCpr(default_cartridge_.string().c_str());
-      }
-   }
-   else
-   {
-      machine_->SetPlus(false);
-   }
-
-
-}
-
 void SettingsContainer::SaveAs (char* path )
 {
    conf_path_ = path;

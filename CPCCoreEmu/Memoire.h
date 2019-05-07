@@ -38,8 +38,9 @@ public:
    void RomDis (bool set);
    void RamDis (bool set);
 
-   bool LoadROM (unsigned char rom_number, const char* rom_path );
-   bool LoadLowerROM (const char* rom_path );
+   void ClearRom(int rom_number);
+   bool LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size);
+   bool LoadLowerROM (unsigned char* rom_from, unsigned int size);
 
    unsigned char* GetAsicRegisters() {return asic_io_;}
    unsigned char ReadAsicRegister(unsigned short i);
@@ -201,7 +202,7 @@ protected:
    bool rom_dis_ ;
 
    unsigned char connected_bank_;
-   bool LoadROM (unsigned char* rom_number, const char* rom_path );
+   bool LoadROM(unsigned char* rom, unsigned char* rom_from, unsigned int size);
    bool inf_rom_connected_;
    bool sup_rom_connected_;
 

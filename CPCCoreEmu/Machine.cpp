@@ -1106,6 +1106,33 @@ void EmulatorEngine::UpdateEmulator()
 {
 }
 
+void EmulatorEngine::LoadRom(int rom_number, const char* path)
+{
+   FILE* file_rom = nullptr;
+   if (fopen_s(&file_rom, path, "rb") == 0 && file_rom != nullptr)
+   {
+      fseek(file_rom, 0, SEEK_END);
+      unsigned int lSize = ftell(file_rom);
+      fseek(file_rom, 0, SEEK_SET);
+
+      if (lSize > 0xffff)
+      {
+         Trace("ROM %s tros grosse pour un CPC ... KO !!\n", path);
+         fclose(file_rom);
+      }
+      else
+      {
+         Memory::RamBank rom;
+         fread(rom, 1, lSize, file_rom);
+         fclose(file_rom);
+         if (rom_number==-1)
+            GetMem()->LoadLowerROM(rom, sizeof(rom));
+         else
+            GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+      }
+   }
+}
+
 void EmulatorEngine::UpdateComputer(bool no_cart_reload)
 {
    fs::path path;
@@ -1123,23 +1150,22 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
    path /= ROMPath;
    fs::path rom_path = path;
    path /= current_settings_->GetLowerRom();
+   LoadRom(-1, path.string().c_str());
 
-   GetMem()->LoadLowerROM(path.string().c_str());
    GetPSG()->LoadKeyboardMap(current_settings_->GetKeyboardConfig() );
    
-
    for (int i = 0; i < 256; i++)
    {
       const char* rom_path_str = current_settings_->GetUpperRom(i);
       if (rom_path_str == nullptr)
       {
-         GetMem()->LoadROM(i, NULL);
+         GetMem()->ClearRom(i);
       }
       else
       {
          path = rom_path;
          path /= rom_path_str;
-         GetMem()->LoadROM(i, path.string().c_str());
+         LoadRom(i, path.string().c_str());
       }
    }
    

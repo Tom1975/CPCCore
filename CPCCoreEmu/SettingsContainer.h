@@ -35,7 +35,6 @@ public:
    virtual void Load (char* path);
    virtual void SaveAs (char* path );
    virtual void Save ();
-   virtual void UpdateComputer(bool no_cart_reload = false);
    virtual std::string GetPath() { return conf_path_.string();};
 
    ////////////////////////////////////////////////////////////////

@@ -95,6 +95,7 @@ public:
 
    void SetSettings(EmulatorSettings& emulator_settings);
    void UpdateFromSettings();
+   void LoadRom(int rom_number, const char* path);
 
    MachineSettings* GetSettings(){return current_settings_ ;}
    void ChangeSettings(MachineSettings* new_settings) 

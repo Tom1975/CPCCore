@@ -626,59 +626,30 @@ void Memory::Initialisation  ()
    SetMemoryMap();
 }
 
-bool Memory::LoadLowerROM (const char* rom_path )
+void Memory::ClearRom(int rom_number)
+{
+   if (rom_number < -1 || rom_number > 256) return;
+   unsigned char* rom = (rom_number==-1)?lower_rom_: rom_[rom_number];
+   memset(rom, 0, sizeof(RamBank));
+}
+
+bool Memory::LoadLowerROM (unsigned char* rom_from, unsigned int size)
 {
 
    unsigned char* rom = lower_rom_;
-   bool load_ok = LoadROM (rom, rom_path);
-   if (load_ok) lower_rom_available_ = true;
-   return load_ok;
+   memcpy(rom, rom_from, (sizeof(RamBank) < size) ? sizeof(RamBank) : size);
+   lower_rom_available_ = true;
+   return true;
 }
 
-bool Memory::LoadROM (unsigned char rom_number, const char* rom_path )
+bool Memory::LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size)
 {
    unsigned char* rom = rom_[rom_number];
-   rom_available_[rom_number] = LoadROM (rom, rom_path);
-   return rom_available_[rom_number];
+   memcpy(rom, rom_from, (sizeof(RamBank) < size) ? sizeof(RamBank) : size);
+   rom_available_[rom_number] = true;
+   return true;
 }
 
-bool Memory::LoadROM (unsigned char* rom, const char* rom_path )
-{
-   if ( rom_path == NULL)
-   {
-      memset (rom, 0, sizeof (RamBank));
-      return false;
-   }
-
-   // Chargement de la rom
-   Trace ("Chargement du fichier ROM %s...\n", rom_path);
-
-   FILE* file_rom = nullptr;
-   if ( fopen_s (&file_rom, rom_path, "rb") == 0 && file_rom != nullptr)
-   {
-      fseek (file_rom, 0, SEEK_END);
-      unsigned int lSize = ftell (file_rom);
-      fseek (file_rom, 0, SEEK_SET);
-
-      if ( lSize > 0xffff )
-      {
-         Trace ("ROM tros grosse pour un CPC ... KO !!\n", rom_path);
-         fclose(file_rom);
-         return false;
-      }
-
-
-      fread (rom, 1, lSize, file_rom );
-      fclose ( file_rom );
-      return true;
-   }
-   else
-   {
-      Trace ("Fichier ROM %s non trouvé... KO !!\n", rom_path);
-      return false;
-   }
-
-}
 
 void Memory::RomDis (bool set)
 {
