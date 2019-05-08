@@ -12,6 +12,7 @@
 
 class PPI8255;
 
+#ifndef NOFILTER
 class Filter
 {
 public:
@@ -49,10 +50,13 @@ public:
    virtual void Filtrer(double* array, unsigned int nb_samples);
 
 protected:
+
    Filter hp_filter_;
    Filter lp_filter_;
+
    float gain_;
 };
+#endif
 
 class CTape : public IComponent, public IExternalSource, public ILoadingProgress
 {
@@ -174,24 +178,34 @@ protected:
 
    void AddSample ( unsigned int value,  double frequency , int& lenght);
 
-   void HandleVOCData ( bool first, unsigned char* buffer, unsigned int data_length, unsigned char codec_id, double sample_rate, unsigned char nb_channels, unsigned char bit_per_sample, IGenericFunction* filter);
+   void HandleVOCData ( bool first, unsigned char* buffer, unsigned int data_length, unsigned char codec_id, double sample_rate, unsigned char nb_channels, unsigned char bit_per_sample
+#ifndef NOFILTER
+      , IGenericFunction* filter
+#endif
+   );
    int DecodeCSWBloc  ( unsigned char* buffer, unsigned int length, unsigned int sample_rate, unsigned char compress_type, unsigned int num_pulse );
    void DecodeTapBuffer ( unsigned char* tap_buffer, size_t length, unsigned char used_bit_in_last_byte );
    unsigned int DecodeTapBlock (unsigned char* tap_buffer, unsigned int offset, size_t length );
 
    double GetSampleValue ( unsigned char *chunk, unsigned int *offset, int nb_channels, int bit_per_sample );
    int SampleToPPI ( double val );
-   int ConvertSampleArray(bool first_call, double* value_array, int nb_samples, double frequency, IGenericFunction* filter);//& hp_filter, Filter& lp_filter );
+   int ConvertSampleArray(bool first_call, double* value_array, int nb_samples, double frequency
+#ifndef NOFILTER
+      , IGenericFunction* filter
+#endif
+   );
    static bool IsArraySquareWave(double* value_array, int nb_samples);
    static bool IsArraySquareWave(unsigned char* value_tab, int nb_samples, int nb_channels, int bit_per_sample);
 
+#ifndef NOFILTER
    void RemoveNoise ( double* array, unsigned int nb_samples, double frequency  );
    void HighPass ( double* array, unsigned int nb_samples, double frequency );
+
 
    void InitFilter(int type_of_filter, bool lpf, double fe, double fc, int order);
    void Filtrer  ( double* array, unsigned int nb_samples );
    void FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filter, double fe, double fcb, double fch, int order );
-
+#endif
 
    void TraceSamples ( double *chunk,  int nb_samples, double frequency);
 

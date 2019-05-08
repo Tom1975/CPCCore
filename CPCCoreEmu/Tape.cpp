@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "Tape.h"
 
 #include "simple_math.h"
@@ -8,9 +9,10 @@
 #include "zlib.h"
 #include "PPI.h"
 #include "VGA.h"
-#include "mkfilter.h"
 
-//#include "atlstr.h"
+#ifndef NOFILTER
+//#include "mkfilter.h"
+#endif
 
 #define LOGFDC
 
@@ -285,6 +287,7 @@ void CTape::Gain ( double* array, const unsigned int nb_samples, double multipli
 //////////////////////////////////////////////////
 // Filtres :
 //////////////////////////////////////////////////
+#ifndef NOFILTER
 Filter::Filter(int type_of_filter, bool lpf, double fe, double fc, int order) : order_(order)
 {
    xv_ = new double[order + 1];
@@ -623,6 +626,7 @@ static double valy = 0.9311841169;
       }
    }
 }
+#endif
 
 // So, for your implementation, probably the key thing is to maintain a running average of the last however many input samples
 // and then check for a new sample that's above or below a certain threshold from that and when you detect that drive the output low or high depending on the direction.
@@ -910,7 +914,11 @@ void TriggerSchmitt ( double* value_tab, int nb_samples, double vtp, double vtm,
 
 
 // Convert sample array : From an array with sample in double, between -1 an 1, convert it to a tFluxInversion array.
-int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_samples, double frequency, IGenericFunction* filter) //Filter& hp_filter, Filter& lp_filter)
+int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_samples, double frequency
+#ifndef NOFILTER
+   , IGenericFunction* filter
+#endif
+) //Filter& hp_filter, Filter& lp_filter)
 {
    // Step 1 : Compute average max and min, to determine if it's a quare signal (from PPI sampling / WAV generation)
 
@@ -1000,6 +1008,7 @@ int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_sample
    m_FilterOrderLP = 3;
    m_FilterOrderHP = 3;*/
 
+#ifndef NOFILTER
    if (filter != nullptr)
    {
       filter->Filtrer(value_tab, nb_samples);
@@ -1012,7 +1021,7 @@ int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_sample
       double vtp = 5 * (10.0/57.0);
       double vtm = -5 * (10.0/57.0);
    }
-
+#endif
    // Step 2 : Convert values to this format
    int offset = 0;
    int value = 0;
@@ -1431,7 +1440,11 @@ void CTape::AddSample ( unsigned int value,  double frequency , int& lenght)
 }
 
 void CTape::HandleVOCData ( bool first, unsigned char* voc_buffer, unsigned int data_length, unsigned char codec_id, 
-                           double sample_rate, unsigned char nb_channels, unsigned char bit_per_sample, IGenericFunction* filter)
+                           double sample_rate, unsigned char nb_channels, unsigned char bit_per_sample
+#ifndef NOFILTER
+   , IGenericFunction* filter
+#endif
+)
 {
    unsigned int offset = 0;
 
@@ -1477,7 +1490,11 @@ void CTape::HandleVOCData ( bool first, unsigned char* voc_buffer, unsigned int 
 
          //ConvertSampleArray (square_wave, bFirst, value_array, nb_samples, sampleRate, *hp_filter, *lp_filter);
 
-         ConvertSampleArray( first, value_array, nb_samples, sample_rate, (square_wave==false)? filter :nullptr);
+         ConvertSampleArray( first, value_array, nb_samples, sample_rate
+#ifndef NOFILTER
+            , (square_wave==false)? filter :nullptr
+#endif
+         );
          delete[]value_array;
 
          break;
@@ -1570,7 +1587,9 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
 
    // todo : Frequency 
    //Filter = 
+#ifndef NOFILTER
    StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
+#endif
    //Filter hp_filter(m_TypeOfFilterHP, false, m_Frequency, m_FcHP, m_FilterOrderHP);
    //Filter lp_filter(m_TypeOfFilterLP, false, m_Frequency, m_FcLP, m_FilterOrderLP);
 
@@ -1611,12 +1630,20 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
             extra_info = false;
          }
          // Data
-         HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample, &filter);
+         HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
+#ifndef NOFILTER            
+            , &filter
+#endif
+         );
          first = false;
          break;
       }
       case 0x02:  // Sound data continuation
-         HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample, &filter);
+         HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
+#ifndef NOFILTER            
+            , &filter
+#endif
+         );
          first = false;
          break;
       case 0x03:  // Silence
@@ -1655,7 +1682,11 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
          nb_channels = buffer[5];
          codec_id = GET_WORD((&buffer[6]));
 
-         HandleVOCData(first, (&buffer[12]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample, &filter /*&hp_filter, &lp_filter*/);
+         HandleVOCData(first, (&buffer[12]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
+#ifndef NOFILTER            
+            , &filter
+#endif
+         );
          first = false;
          break;
       }
@@ -2679,11 +2710,11 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
             // One sample = freq hz
             // one sample = 4 Mhz / freq
             unsigned int bit_per_sample = fmt[14] + (fmt[15] << 8);
-
+#ifndef NOFILTER
             StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
             Filter hp_filter (filter_type_hp_, false, frequency_, fc_hp_, filter_order_hp_);
             Filter lp_filter (filter_type_lp_, true, frequency_, fc_lp_, filter_order_lp_);
-
+#endif
             // Other chunks :
             bool not_finished = true;
 
@@ -2759,7 +2790,11 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
                         }
 
                         // Handle this sample array                        
-                        ConvertSampleArray(first, value_array, sample_count, frequency_, square_wave?nullptr:&filter);
+                        ConvertSampleArray(first, value_array, sample_count, frequency_
+#ifndef NOFILTER
+                           , square_wave?nullptr:&filter
+#endif
+                        );
                         first = false;
 
                         // Progress
@@ -3665,7 +3700,7 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
       fclose ( file );
    }
 }
-
+#ifndef NOFILTER
 StandardFilter::StandardFilter(int frequency, int type_of_hp_filter, float fc_hp, int order_hp, int type_of_lp_filter, float fc_lp, int order_lp, float gain)
    : hp_filter_ (type_of_hp_filter, false, frequency, fc_hp, order_hp), 
      lp_filter_ (type_of_lp_filter, true, frequency, fc_lp, order_lp), gain_(gain)
@@ -3687,3 +3722,4 @@ void StandardFilter::Filtrer(double* array, unsigned int nb_samples)
    CTape::Shift (array, nb_samples, -0.5 );
 
 }
+#endif
