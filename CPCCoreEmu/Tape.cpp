@@ -2,8 +2,8 @@
 #include "Tape.h"
 
 #include "simple_math.h"
+#include "simple_regex.h"
 #include <float.h>
-#include <regex>
 
 #include "zlib.h"
 #include "PPI.h"
@@ -1132,7 +1132,6 @@ int CTape::InsertTapeDelayed()
    
    if (fopen_s (&file, current_tape_.c_str(), "rb") == 0)
    {
-      const std::regex my_filter(".*\\.tap");
       unsigned char header [23] = {0};
       // check the 12 first char
       fread ( header , 1, 23, file );
@@ -1159,7 +1158,7 @@ int CTape::InsertTapeDelayed()
       {
          ret = LoadVOC (current_tape_.c_str());
       }
-      else if (regex_match(current_tape_, my_filter))
+      else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
       {
          ret = LoadTap(current_tape_.c_str());
       }
