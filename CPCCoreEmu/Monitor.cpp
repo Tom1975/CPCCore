@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "Monitor.h"
-//#include "macro.h"
 
 #include "VGA.h"
 
-#include <cmath>
+
+#include "simple_math.h"
 
 //#define PROF
 #ifdef PROF
@@ -125,7 +125,7 @@ void Monitor::RecomputeAllColors()
 void Monitor::RecomputeColors()
 {
    gate_array_->buffered_ink_available_ = false;
-   int p = gate_array_->pen_r_;
+   unsigned int p = gate_array_->pen_r_;
    if (gate_array_->ink_list_[p] != gate_array_->buffered_ink_)
    {
       // PLUS : Update the ASIC Palette
@@ -292,7 +292,7 @@ unsigned int Monitor::Tick( /*unsigned int nbTicks*/)
                   }
 
                   // HERE §!!!!!
-                  int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
+                  //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
                   int tot = (expected_hbl_ - hsync_total_);
 
                   if ((expected_hbl_ - hsync_total_ < 2)

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "PSG.h"
 
+#include "simple_filesystem.h"
+
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
@@ -486,7 +488,7 @@ void Ay8912::TickSound ()
    {
       if (channel_a_freq_counter_ == 1 && channel_a_volume_ > 0)
       {
-         int dbg = 1;
+         
       }
       // Inversion !
       chan_a_high_ ^= 1;
