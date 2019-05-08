@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Tape.h"
-//#include "Shlwapi.h"
-#include <cmath>
+
+#include "simple_math.h"
 #include <float.h>
 #include <regex>
 
