@@ -14,6 +14,13 @@ errno_t fopen_s(
    char const* _Mode
 );
 
+unsigned int fwrite(
+   void const* _Buffer,
+   unsigned int _ElementSize,
+   unsigned int _ElementCount,
+   FILE* _Stream
+);
+
 #else
 
 #include <stdio.h>

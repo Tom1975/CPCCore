@@ -17,6 +17,16 @@ errno_t fopen_s(
    else
       return 0;
 }
+unsigned int fwrite(
+   void const* _Buffer,
+   unsigned int _ElementSize,
+   unsigned int _ElementCount,
+   FILE* _Stream
+)
+{
+   unsigned int handle = (unsigned int)_Stream;
+   return (file_system.FileWrite(handle, _Buffer, _ElementSize * _ElementCount)/ _ElementSize);
+}
 
 #else
 
