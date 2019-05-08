@@ -702,7 +702,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       paste_vkey_ = paste_buffer_[paste_count_];
       if (paste_vkey_ != NULL)
       {
-         GetPSG()->CharPressed(paste_vkey_);
+         GetKeyboardHandler()->CharPressed(paste_vkey_);
          paste_wait_time_ = 160000;
       }
       else
@@ -763,7 +763,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
    if (( paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ != NULL))
    {
       // Release the key, and move on
-      GetPSG()->CharReleased(paste_buffer_[paste_count_++]);
+      GetKeyboardHandler()->CharReleased(paste_buffer_[paste_count_++]);
       paste_vkey_ = NULL;
       --paste_size_;
       paste_wait_time_ = 200000;
@@ -1152,7 +1152,7 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
    path /= current_settings_->GetLowerRom();
    LoadRom(-1, path.string().c_str());
 
-   GetPSG()->LoadKeyboardMap(current_settings_->GetKeyboardConfig() );
+   GetKeyboardHandler()->LoadKeyboardMap(current_settings_->GetKeyboardConfig() );
    
    for (int i = 0; i < 256; i++)
    {

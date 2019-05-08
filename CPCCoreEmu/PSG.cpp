@@ -2,7 +2,6 @@
 #include "PSG.h"
 
 #include "simple_filesystem.h"
-
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
@@ -15,13 +14,15 @@ extern const char * SugarboxPath;
 // SIDE = (MEASURE/2) * 0.687;
 // CENTER = (MEASURE/2) * 0.313;
 
-Ay8912::Ay8912( SoundMixer *sound_hub) :sound_source_(sound_hub), sound_hub_(sound_hub), directories_(nullptr)
+Ay8912::Ay8912( SoundMixer *sound_hub, KeyboardHandler* keyboard_handler) :
+   sound_source_(sound_hub), 
+   sound_hub_(sound_hub), 
+   directories_(nullptr), 
+   keyboard_handler_(keyboard_handler)
 {
-   InitKeyboard ();
-
+   keyboard_handler_->Init(&register_replaced_);
    sound_ = nullptr;
 
-   memset ( keyboard_config_, 0, sizeof keyboard_config_);
    Reset();
 }
 
@@ -74,172 +75,6 @@ void Ay8912::Reset ()
 
 
 #define KEY_BUFFER_SIZE 32
-
-void Ay8912::SetKeyValues ( const char* config, Ay8912::Key key, unsigned int line, unsigned int bit )
-{
-   keyboard_map_[line][bit] = key;
-
-   // Get value from config file
-   fs::path exe_path((directories_!=nullptr)?directories_->GetBaseDirectory():".");
-   exe_path /= "CONF";
-   exe_path /= "KeyboardMaps.ini";
-
-   std::string file_name = exe_path.string();
-
-   char key_buffer[KEY_BUFFER_SIZE];
-   char value_buffer[KEY_BUFFER_SIZE];
-   sprintf ( key_buffer, "%i_%i_SC", line, bit);
-   sprintf ( value_buffer, "%i", key.scan_code );
-   configuration_manager_->SetConfiguration( config, key_buffer, value_buffer, file_name.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_SCA", line, bit);
-   sprintf ( value_buffer, "%i", key.scan_code_alt );
-   configuration_manager_->SetConfiguration ( config, key_buffer, value_buffer, file_name.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_char", line, bit);
-   sprintf ( value_buffer, "%c", key.c );
-   configuration_manager_->SetConfiguration ( config, key_buffer, value_buffer, file_name.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_UCHAR", line, bit);
-   sprintf ( value_buffer, "%c", key.c_upper );
-   configuration_manager_->SetConfiguration ( config, key_buffer, value_buffer, file_name.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_charCtrl", line, bit);
-   sprintf ( value_buffer, "%c", key.ctrl_c );
-   configuration_manager_->SetConfiguration ( config, key_buffer, value_buffer, file_name.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_UCHARCTRL", line, bit);
-   sprintf ( value_buffer, "%c", key.ctrl_upper_c );
-   configuration_manager_->SetConfiguration ( config, key_buffer, value_buffer, file_name.c_str() );
-}
-
-Ay8912::Key Ay8912::GetKeyValues ( const char* config, unsigned int line, unsigned int bit )
-{
-   Key key;
-   memset (&key, 0, sizeof  (Key ));
-
-   // Get value from config file
-   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
-   exe_path /= "CONF";
-   exe_path /= "KeyboardMaps.ini";
-   std::string filepath = exe_path.string();
-
-   char key_buffer[BUFFER_SIZE];
-   char char_buffer[2];
-   sprintf ( key_buffer, "%i_%i_SC", line, bit);
-   key.scan_code = configuration_manager_->GetConfigurationInt  ( config, key_buffer, 0, filepath.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_SCA", line, bit);
-   key.scan_code_alt = configuration_manager_->GetConfigurationInt( config, key_buffer, 0, filepath.c_str() );
-
-   sprintf ( key_buffer, "%i_%i_char", line, bit);
-   configuration_manager_->GetConfiguration( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_char_value", line, bit);
-      char_buffer[0] = configuration_manager_->GetConfigurationInt ( config, key_buffer, -1, filepath.c_str() );
-
-   }
-   key.c = char_buffer[0];
-
-   sprintf ( key_buffer, "%i_%i_char_Alt", line, bit);
-   configuration_manager_->GetConfiguration  ( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_char_value_Alt", line, bit);
-      char_buffer[0] = configuration_manager_->GetConfigurationInt ( config, key_buffer, -1, filepath.c_str() );
-
-   }
-   key.c_alt = char_buffer[0];
-
-   sprintf ( key_buffer, "%i_%i_UCHAR", line, bit);
-   configuration_manager_->GetConfiguration  ( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_UCHAR_value", line, bit);
-      char_buffer[0] = (char)configuration_manager_->GetConfigurationInt ( config, key_buffer, 0, filepath.c_str() );
-
-   }
-   key.c_upper = char_buffer[0];
-
-   sprintf ( key_buffer, "%i_%i_UCHAR_Alt", line, bit);
-   configuration_manager_->GetConfiguration  ( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_UCHAR_value_Alt", line, bit);
-      char_buffer[0] = (char)configuration_manager_->GetConfigurationInt ( config, key_buffer, 0, filepath.c_str() );
-
-   }
-   key.c_upper_alt = char_buffer[0];
-
-   sprintf ( key_buffer, "%i_%i_charCtrl", line, bit);
-   configuration_manager_->GetConfiguration  ( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_charCtrl_value", line, bit);
-      char_buffer[0] = (char)configuration_manager_->GetConfigurationInt ( config, key_buffer, 0, filepath.c_str() );
-
-   }
-   key.ctrl_c = char_buffer[0];
-
-   sprintf ( key_buffer, "%i_%i_UCHARCTRL", line, bit);
-   configuration_manager_->GetConfiguration  ( config, key_buffer, "", char_buffer, 2, filepath.c_str() );
-   if ( char_buffer[0] == 0)
-   {
-      // Exception : Read the alternative key
-      sprintf ( key_buffer, "%i_%i_UCHARCTRL_value", line, bit);
-      char_buffer[0] = (char)configuration_manager_->GetConfigurationInt ( config, key_buffer, 0, filepath.c_str() );
-
-   }
-   key.ctrl_upper_c = char_buffer[0];
-
-   //
-
-   return key;
-}
-
-const char* Ay8912::GetKeyboardConfig ()
-{
-   return keyboard_config_;
-}
-
-void Ay8912::SaveKeyboardMap (const char * config)
-{
-   strcpy ( keyboard_config_, config );
-   for (int line = 0; line < 10; line++)
-   {
-      for (int b=7; b >=0; b--)
-      {
-         // Get values from conf
-         SetKeyValues ( config, keyboard_map_[line][b], line, b );
-      }
-   }
-}
-
-void Ay8912::LoadKeyboardMap (const char * config)
-{
-   strcpy ( keyboard_config_, config );
-   for (int line = 0; line < 10; line++)
-   {
-      for (int b=7; b >=0; b--)
-      {
-         memset (&keyboard_map_[line][b], 0, sizeof (Key));
-
-         // Get values from conf
-         keyboard_map_[line][b] = GetKeyValues ( config, line, b );
-      }
-   }
-}
-
-void Ay8912::InitKeyboard ()
-{
-   memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
-}
 
 // BusCTRL : BC2, BDIR, BC1
 void Ay8912::Access(unsigned char *data_bus, const unsigned char bus_ctrl, const unsigned char data)// data = line
@@ -322,14 +157,14 @@ void Ay8912::Access(unsigned char *data_bus, const unsigned char bus_ctrl, const
             if ((mixer_control_register_ & 0x40) == 0)
             {
                // Input
-               *data_bus = ((data < 10) ? keyboard_lines_[data] : 0);
+               *data_bus = ((data < 10) ? keyboard_handler_->GetKeyboardMap(data) : 0);
                register_replaced_ = true;
                break;
             }
             else
             {
                // Output
-               *data_bus = (register_replaced_) ? ((data < 10) ? keyboard_lines_[data] : 0) : register_14_;
+               *data_bus = (register_replaced_) ? ((data < 10) ? keyboard_handler_->GetKeyboardMap(data) : 0) : register_14_;
                break;
             }
 
@@ -358,116 +193,6 @@ void Ay8912::Access(unsigned char *data_bus, const unsigned char bus_ctrl, const
    }
 }
 
-
-void Ay8912::CharPressed (char c)
-{
-   CharAction(c, true);
-}
-
-void Ay8912::CharReleased(char c)
-{
-   CharAction(c, false);
-}
-
-void Ay8912::CharAction (char c, bool bPressed)
-{
-   // Lookup table
-   for (int l = 0; l < 10; l++)
-   {
-      for (int b = 0; b < 8; b++)
-      {
-         if ( keyboard_map_[l][b].c == c
-            ||keyboard_map_[l][b].c_alt == c)
-         {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
-            keyboard_lines_[2] |= (1<<5);
-            register_replaced_ = true;
-            return;
-         }
-         else if (  keyboard_map_[l][b].c_upper == c
-                  ||keyboard_map_[l][b].c_upper_alt == c)
-         {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
-            // Shift
-            if (bPressed) keyboard_lines_[2] &= ~(1<<5);
-               else keyboard_lines_[2] |= (1<<5);
-
-            register_replaced_ = true;
-            return;
-         }
-      }
-   }
-}
-
-#define SET_KEY_LINE_BIT(val, line, bit)\
-   if ( (action & val) == val )\
-   {\
-      if ((keyboard_lines_[line]&(1<<bit))!=0) register_replaced_ = true;\
-      keyboard_lines_[line] &= ~(1<<bit);\
-   }\
-   else \
-   { if ((keyboard_lines_[line]&(1<<bit))==0)\
-      register_replaced_ = true;\
-   keyboard_lines_[line] |= (1<<bit);\
-   }\
-
-
-void Ay8912::JoystickAction (unsigned int joy, unsigned int action)
-{
-   if ( joy == 0)
-   {
-      SET_KEY_LINE_BIT(joy_up, 9, 0);
-      SET_KEY_LINE_BIT(joy_down, 9, 1);
-      SET_KEY_LINE_BIT(joy_left, 9, 2);
-      SET_KEY_LINE_BIT(joy_right, 9, 3);
-      SET_KEY_LINE_BIT(joy_but1, 9, 6);
-      SET_KEY_LINE_BIT(joy_but2, 9, 5);
-      SET_KEY_LINE_BIT(joy_but3, 9, 4);
-   }
-   // TODO : JOY2 just mess up the keyboard...
-   /*else
-   {
-      SET_KEY_LINE_BIT(joy_up, 6, 0);
-      SET_KEY_LINE_BIT(joy_down, 6, 1);
-      SET_KEY_LINE_BIT(joy_left, 6, 2);
-      SET_KEY_LINE_BIT(joy_right, 6, 3);
-      SET_KEY_LINE_BIT(joy_but1, 6, 6);
-      SET_KEY_LINE_BIT(joy_but2, 6, 5);
-      SET_KEY_LINE_BIT(joy_but3, 6, 4);
-   }*/
-}
-
-void Ay8912::SendScanCode ( unsigned short scanCode, bool bPressed )
-{
-   // Look for scan code in the base
-   for (auto line = 0; line < 10; line++)
-   {
-      for (auto b=7; b >=0; b--)
-      {
-         // Get values from conf
-         if ( (keyboard_map_[line][b].scan_code == scanCode)
-            ||(keyboard_map_[line][b].scan_code_alt == scanCode)
-            )
-         {
-            //
-            if (bPressed)
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 0) register_replaced_ = true;
-               keyboard_lines_[line] &= ~(1<<b);
-            }
-            else
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 1) register_replaced_ = true;
-               keyboard_lines_[line] |= (1<<b);
-            }
-         }
-      }
-   }
-}
-
-
 void Ay8912::InitSound (ISound* sound)
 {
    sound_ = sound;
@@ -488,7 +213,7 @@ void Ay8912::TickSound ()
    {
       if (channel_a_freq_counter_ == 1 && channel_a_volume_ > 0)
       {
-         
+         int dbg = 1;
       }
       // Inversion !
       chan_a_high_ ^= 1;

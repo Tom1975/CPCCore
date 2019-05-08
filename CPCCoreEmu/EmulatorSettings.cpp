@@ -20,13 +20,13 @@ JoystickSettings::Shortcut::Shortcut(unsigned int shortcut) : shortcut_(shortcut
 }
 
 JoystickSettings::JoystickShortcut::JoystickShortcut() :
-   left_scancode_(Ay8912::joy_left),
-   right_scancode_(Ay8912::joy_right),
-   top_scancode_(Ay8912::joy_up),
-   bottom_scancode_(Ay8912::joy_down),
-   button_1_scancode_(Ay8912::joy_but1),
-   button_2_scancode_(Ay8912::joy_but2),
-   button_3_scancode_(Ay8912::joy_but3),
+   left_scancode_(KeyboardHandler::joy_left),
+   right_scancode_(KeyboardHandler::joy_right),
+   top_scancode_(KeyboardHandler::joy_up),
+   bottom_scancode_(KeyboardHandler::joy_down),
+   button_1_scancode_(KeyboardHandler::joy_but1),
+   button_2_scancode_(KeyboardHandler::joy_but2),
+   button_3_scancode_(KeyboardHandler::joy_but3),
    action_(0)
 {
 

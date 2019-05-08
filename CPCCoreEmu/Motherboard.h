@@ -71,7 +71,7 @@ public:
    void InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* display, IFdcNotify* notifier, IDirectories * directories, IConfiguration * configuration_manager);
    virtual void SetSupervisor(ISupervisor* supervisor) { supervisor_ = supervisor; }
    virtual void SetConfigurationManager(IConfiguration * configuration_manager) {
-      configuration_manager_ = configuration_manager; psg_.SetConfigurationManager(configuration_manager_);
+      psg_.SetConfigurationManager(configuration_manager);keyboardhandler_.SetConfigurationManager(configuration_manager);
    }
    virtual void SetDirectories(IDirectories * dir) {default_printer_.SetDirectories(dir);}
    void SetLog(ILog* log) { fdc_.SetLog(log); crtc_.SetLog(log); signals_.SetLog(log); ppi_.SetLog(log); }
@@ -104,6 +104,7 @@ public:
    IPrinterPort* GetPrinter() { return printer_; };
    PlayCity* GetPlayCity() { return &play_city_; }
    DMA* GetDMA(int i) { return &dma_[i]; }
+   KeyboardHandler * GetKeyboardHandler() { return &keyboardhandler_; }
 
    ///////////////////////////////////////
    // Use the machine
@@ -130,6 +131,7 @@ public:
 
 protected:
 
+   KeyboardHandler keyboardhandler_;
 
    // Debug & running attributes
    unsigned int stop_pc_;
@@ -146,8 +148,6 @@ protected:
    unsigned int breakpoint_index_;
 
    ISupervisor* supervisor_;
-   IConfiguration * configuration_manager_;
-
 
    // Specific configuration
    bool plus_;

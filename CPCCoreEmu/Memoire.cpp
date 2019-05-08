@@ -692,7 +692,6 @@ void Memory::SetLogicalROM ( unsigned char num )
       }
       else
       {
-         int dbg = 1;
          // todo : Check this !!!
          //if (!rom_available_[rom_number_])
          //   rom_number_ = 0;

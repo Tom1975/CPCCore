@@ -37,6 +37,7 @@
 #include "DMA.h"
 #include "MachineSettings.h"
 #include "EmulatorSettings.h"
+#include "KeyboardHandler.h"
 
 #define CPCCOREEMU_API
 
@@ -105,7 +106,7 @@ public:
    }
 
 
-   IKeyboard* GetKeyboardHandler () { return motherboard_.GetPSG();}
+   KeyboardHandler* GetKeyboardHandler () { return motherboard_.GetKeyboardHandler();}
    virtual void SetSupervisor (ISupervisor* supervisor) {motherboard_.SetSupervisor( supervisor);}
    virtual void SetDirectories ( IDirectories * dir ){ directories_ = dir;
       motherboard_.SetDirectories(dir);   }
@@ -223,6 +224,7 @@ public:
    IZ80* GetProc () { return motherboard_.GetProc();};
    Z80* GetProcFull() { return motherboard_.GetProc();};
 
+   //KeyboardHandler* GetKeyboardHandler() {return motherboard_.GetKeyboardHandler();}
    Ay8912* GetPSG() {return motherboard_.GetPSG();};
    CRTC* GetCRTC () { return motherboard_.GetCRTC();}
    GateArray* GetVGA() { return motherboard_.GetVGA(); }

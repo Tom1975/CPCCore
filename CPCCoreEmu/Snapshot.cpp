@@ -102,7 +102,7 @@ void CSnapshot::Playback ()
             // RTC : TODO
             // Mouse : TODO
          }
-         machine_->GetPSG()->ForceKeyboardState ( key_buffer_ );
+         machine_->GetKeyboardHandler()->ForceKeyboardState ( key_buffer_ );
 
          // Start new frame count
          if (replay_offset_ < replay_size_)
@@ -129,7 +129,7 @@ void CSnapshot::Playback ()
 
       current_frame_to_wait_++;
       // Record the current key state
-      unsigned char* current_state = machine_->GetPSG()->GetKeyboardState ();
+      unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
 
       // Compare with the one already in cache
       last_keystroke_size_ = 0;
@@ -780,7 +780,7 @@ bool CSnapshot::HandleSnr ( FILE* f )
       // Wrong !
       return false;
 
-   machine_->GetPSG()->ForceKeyboardState ( key_buffer_ );
+   machine_->GetKeyboardHandler()->ForceKeyboardState ( key_buffer_ );
 
    // 48 following bytes... Maybe something about RTC or Mouse ?
    unsigned char buffer[0x48];
@@ -934,7 +934,7 @@ void CSnapshot::InitRecord ()
    fwrite  ( "SNR ", 4, 1, record_file_);
 
    // Keyboard state
-   unsigned char* current_state = machine_->GetPSG()->GetKeyboardState ();
+   unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
    memcpy ( key_buffer_, current_state, 10);
 
    fwrite ( key_buffer_, 10, 1, record_file_);
