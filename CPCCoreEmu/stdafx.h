@@ -33,9 +33,12 @@ namespace fs = std::experimental::filesystem;
 
 #endif
 
+#ifdef __circle__
+typedef unsigned int FILE;
+#else
 #include <stdlib.h>
 #include <stdio.h>
-
+#endif
 
 #if defined (__unix) || (__MORPHOS__)
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)

@@ -1,8 +1,7 @@
-#pragma once
 
 #ifdef MINIMUM_DEPENDENCIES
 
-#include "circle/fs/fat/fatfs.h"
+#include "simple_stdio.h"
 
 static CFATFileSystem		file_system;
 
@@ -12,7 +11,7 @@ errno_t fopen_s(
    char const* _Mode
 )
 {
-   *_Stream = static_cast<unsigned int*>(file_system.FileOpen(_FileName));
+   *_Stream = (unsigned int*)file_system.FileOpen(_FileName);
    if (*_Stream == 0)
       return -1;
    else

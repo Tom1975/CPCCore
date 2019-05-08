@@ -1,5 +1,6 @@
 #pragma once
 
+
 #ifdef MINIMUM_DEPENDENCIES
 
 #include "circle/fs/fat/fatfs.h"
