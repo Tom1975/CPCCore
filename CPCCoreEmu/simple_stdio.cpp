@@ -11,7 +11,9 @@ errno_t fopen_s(
    char const* _Mode
 )
 {
-   *_Stream = (unsigned int*)file_system.FileOpen(_FileName);
+   unsigned int* new_handle = new unsigned int;
+   *new_handle = file_system.FileOpen(_FileName);
+   *_Stream = new_handle;
    if (*_Stream == 0)
       return -1;
    else
@@ -24,7 +26,7 @@ unsigned int fwrite(
    FILE* _Stream
 )
 {
-   unsigned int handle = (unsigned int)_Stream;
+   unsigned int handle = *_Stream;
    return (file_system.FileWrite(handle, _Buffer, _ElementSize * _ElementCount)/ _ElementSize);
 }
 

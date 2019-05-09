@@ -2,6 +2,7 @@
 
 #include "Tape.h"
 
+#include "simple_stdio.h"
 #include "simple_math.h"
 #include "simple_regex.h"
 #include <float.h>
@@ -86,11 +87,6 @@ size_t WriteInt ( unsigned int i, FILE * file )
    return fwrite ( buff, 1, 4, file);
 }
 
-
-double Round(double d)
-{
-  return floor(d + 0.5);
-}
 
 #define GET_WORD(b) (b[0]+(b[1]<<8))
 #define GET_DWORD(b) (b[0]+(b[1]<<8)+(b[2]<<16)+(b[3]<<24))

@@ -228,8 +228,8 @@ protected:
    typedef struct
    {
 #if defined (__unix) || (RASPPI)
-    __uint64_t Length;
-    __uint64_t Place;
+    __uint64_t length;
+    __uint64_t place;
 #else
       unsigned _int64 length;
       unsigned _int64 place;
