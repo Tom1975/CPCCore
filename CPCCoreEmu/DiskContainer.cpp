@@ -2,8 +2,9 @@
 
 #include "DiskContainer.h"
 
+#ifndef NOZLIB
 #include "zlib.h"
-
+#endif
 
 #define FILE_ATTRIBUTE_DIRECTORY            0x00000010
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
@@ -159,6 +160,7 @@ NodeFS* NodeFS::InsertFile(std::string node_name, unsigned char* full_buffer)
    return nullptr;
 }
 
+#ifndef NOZLIB
 unsigned char* NodeFS::Extract()
 {
    if (!is_leaf_) return nullptr;
@@ -198,6 +200,7 @@ unsigned char* NodeFS::Extract()
 
    return buffer_;
 }
+#endif
 
 /////////////////////////////////////////////////////////////////
 // SingleFile Implementation
@@ -274,6 +277,7 @@ std::vector<SingleElements> SingleFile::GetInnerElements(int type)
 /////////////////////////////////////////////////////////////////
 // ZippedFile Implementation
 /////////////////////////////////////////////////////////////////
+#ifndef NOZLIB
 ZippedFile::ZippedFile(ITypeManager* type_manager, const std::string& file) : IContainedElement(type_manager),
                                                                               file_name_(file)
 {
@@ -470,6 +474,7 @@ void ZippedFile::InitUnzip()
       delete[]zipped_buffer;
    }
 }
+#endif
 
 /////////////////////////////////////////////////////////////////
 // DirectoryFile Implementation
@@ -563,6 +568,8 @@ void DataContainer::BuildFromFile()
 
 bool DataContainer::BuildFromZippedFile()
 {
+ 
+#ifndef NOZLIB
    bool bRet = false;
    // Open zipped content, then check it
    FILE* f;
@@ -579,6 +586,10 @@ bool DataContainer::BuildFromZippedFile()
       }
    }
    return bRet;
+#else
+   // No handling of zipped file
+   return false;
+#endif
 }
 
 

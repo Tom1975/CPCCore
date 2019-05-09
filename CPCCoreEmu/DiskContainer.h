@@ -120,7 +120,7 @@ protected:
    unsigned char* buffer_;
    int buffer_size_;
 };
-
+#ifndef NOZLIB
 class ZippedFile : public IContainedElement
 {
 public:
@@ -142,7 +142,7 @@ protected:
    std::string file_name_;
    NodeFS zip_file_;
 };
-
+#endif
 
 class DirectoryFile : public IContainedElement
 {
