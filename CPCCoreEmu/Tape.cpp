@@ -6,12 +6,15 @@
 #include "simple_regex.h"
 #include <float.h>
 
+#ifndef NOZLIB
 #include "zlib.h"
+#endif
+
 #include "PPI.h"
 #include "VGA.h"
 
 #ifndef NOFILTER
-//#include "mkfilter.h"
+#include "mkfilter.h"
 #endif
 
 #define LOGFDC
@@ -1373,6 +1376,7 @@ int CTape::DecodeCSWBloc ( unsigned char* buffer, unsigned int length, unsigned 
       }
 
    case 2: // Z-RLE
+#ifndef NOZLIB
       // uncompress the flux to another buffer
       uLongf size_max = num_pulse * 5;
       unsigned char* dest_buffer = new unsigned char [size_max];
@@ -1388,7 +1392,7 @@ int CTape::DecodeCSWBloc ( unsigned char* buffer, unsigned int length, unsigned 
          // TODO
       }
       delete[]dest_buffer;
-
+#endif
       break;
    }
    return 0;
@@ -3530,7 +3534,7 @@ void CTape::SaveAsCdtCSW (const char* filepath)
       fclose ( file );
    }
 }
-
+#ifndef NOZLIB
 void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char version)
 {
    FILE * file;
@@ -3572,6 +3576,7 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
          unsigned char buff[3] = {0};
          fwrite ( buff, 1, 3, file  );
       }
+
       else if ( version == 2 )
       {
          buffer[0x17] = 2;
@@ -3603,6 +3608,7 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
          strcpy ( encoding_app, "Sugarbox v0.23 ");
          fwrite ( encoding_app, 1, 16, file  );
       }
+
       // HDR
 
       // Simple RLE
@@ -3611,6 +3617,7 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
       unsigned int nb_sample_to_record = 0;
 
       unsigned char* data_buffer = NULL;
+
 
       if ( type == 2)
          data_buffer = new unsigned char [nb_inversions_ * 5];
@@ -3700,6 +3707,8 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
       fclose ( file );
    }
 }
+#endif
+
 #ifndef NOFILTER
 StandardFilter::StandardFilter(int frequency, int type_of_hp_filter, float fc_hp, int order_hp, int type_of_lp_filter, float fc_lp, int order_lp, float gain)
    : hp_filter_ (type_of_hp_filter, false, frequency, fc_hp, order_hp), 

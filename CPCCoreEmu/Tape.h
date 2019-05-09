@@ -133,7 +133,9 @@ public:
    bool IsSaveAvailable () {return nb_inversions_ > 0;};
    void SaveAsWav (const char* filepath);
    void SaveAsCdtDrb (const char* filepath);
+#ifndef NOZLIB
    void SaveAsCSW (const char* filepath, unsigned char  type, unsigned char version);
+#endif
    void SaveAsCdtCSW (const char* filepath);
 
    void SetPolarityInversion (bool set){polarity_inversion_ = set;};
