@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "DiskGen.h"
 
-#include "FormatTypeRAW.h"
-//#include "DiskSFWR.h"
 #include "MediaManager.h"
 
 #define LOGFDC
@@ -369,7 +367,7 @@ int DiskGen::GetTypeFromBuffer(unsigned char* buffer, int size)
    return (disk_type_manager_ == nullptr) ? 0 : disk_type_manager_->GetTypeFromBuffer(buffer, size);
 }
 
-int DiskGen::GetTypeFromFile(std::string str)
+int DiskGen::GetTypeFromFile(const char* str)
 {
    return (disk_type_manager_ == nullptr) ? 0 : disk_type_manager_->GetTypeFromFile(str);
 }

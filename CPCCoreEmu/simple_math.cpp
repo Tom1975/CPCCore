@@ -1,4 +1,5 @@
-#pragma once
+
+#include "simple_math.h"
 
 #ifdef MINIMUM_DEPENDENCIES
 

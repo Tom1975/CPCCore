@@ -14,7 +14,7 @@ public:
 
    //////////////////////////////////////////////////////////
    // Implementation of ITypeManager
-   virtual int GetTypeFromFile(std::string str);
+   virtual int GetTypeFromFile(const char* str);
    virtual int GetTypeFromBuffer (unsigned char* buffer, int size);
    virtual int GetTypeFromMultipleTypes ( int * type_list, int nb_types );
 

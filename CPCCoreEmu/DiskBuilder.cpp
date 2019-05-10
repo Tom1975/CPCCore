@@ -5,7 +5,9 @@
 #include "FormatTypeEDSK.h"
 #include "FormatTypeDSK.h"
 #include "FormatTypeHFE.h"
+#ifndef NO_RAW_FORMAT
 #include "FormatTypeRAW.h"
+#endif
 #include "FormatTypeSCP.h"
 #include "FormatTypeIPF.h"
 
@@ -19,7 +21,9 @@ DiskBuilder::DiskBuilder(void)
    format_list_.push_back(new FormatTypeHFE()); // HFE
    format_list_.push_back(new FormatTypeIPF()); // IPF
    format_list_.push_back(new FormatTypeSCP()); // SCP
+#ifndef NO_RAW_FORMAT
    format_list_.push_back(new FormatTypeRAW()); // RAW - Last one : No real means to know if a file can be loaded ...
+#endif
 }
 
 DiskBuilder::~DiskBuilder(void)

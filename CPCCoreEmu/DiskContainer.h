@@ -53,7 +53,7 @@ public:
 class ITypeManager
 {
 public:
-   virtual int GetTypeFromFile(std::string str) = 0;
+   virtual int GetTypeFromFile(const char* str) = 0;
    virtual int GetTypeFromBuffer(unsigned char* buffer, int size) = 0;
    virtual int GetTypeFromMultipleTypes(int* type_list, int nb_types) = 0;
 };

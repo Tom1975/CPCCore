@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "FileAccess.h"
 #include <regex>
+#include "simple_filesystem.h"
 
 #ifdef __MORPHOS__
 #include <proto/dos.h>

@@ -2,10 +2,9 @@
 
 #include "Tape.h"
 
-#include "simple_stdio.h"
 #include "simple_math.h"
 #include "simple_regex.h"
-#include <float.h>
+#include "simple_filesystem.h"
 
 #ifndef NOZLIB
 #include "zlib.h"

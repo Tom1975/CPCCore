@@ -10,7 +10,6 @@ file( GLOB HEADERS
 	"*.h"
 )
 
-
 #Fichier ressource
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 add_library(CPCCoreEmu ${SRCS} ${HEADERS})
@@ -25,6 +24,7 @@ set(CompilerFlags
         CMAKE_C_FLAGS_DEBUG
         CMAKE_C_FLAGS_RELEASE
         )
+
 
 IF(MSVC)
    set_property(TARGET CPCCoreEmu APPEND PROPERTY LINK_FLAGS /DEBUG)

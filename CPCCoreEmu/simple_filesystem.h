@@ -8,20 +8,11 @@ namespace std::filesystem
    class path
    {
    public:
-      path(const char* path)
-      {
-         path_ = path;
-      }
+      path(const char* path);
 
-      path& operator/=(const char*ext) {
-         path_.Append("//");
-         path_.Append(ext);
-         return *this;
-      }
+      path& operator/=(const char*ext);
 
-      std::string string() const { // return path as basic_string<char> native
-         return path_;
-      }
+      std::string string() const;
 
    protected:
       std::string path_;

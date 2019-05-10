@@ -19,7 +19,6 @@
 #include "Screen.h"
 #include "ILog.h"
 #include "Inotify.h"
-#include "SettingsContainer.h"
 #include "Monitor.h"
 #include "IDirectories.h"
 #include "IConfiguration.h"

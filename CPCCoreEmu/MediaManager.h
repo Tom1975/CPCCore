@@ -108,7 +108,7 @@ public:
    virtual int GetType(std::vector<MediaType> wanted_types);
 
    // Interface ITypeManager implementation
-   virtual int GetTypeFromFile(std::string str);
+   virtual int GetTypeFromFile(const char* str);
    virtual int GetTypeFromBuffer(unsigned char* buffer, int size);
    virtual int GetTypeFromMultipleTypes(int* type_list, int nb_types);
 

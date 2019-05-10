@@ -2,6 +2,8 @@
 #include "IDisk.h"
 #include "FDC765.h"
 
+#include "simple_filesystem.h"
+
 #include <vector>
 #include <algorithm>
 

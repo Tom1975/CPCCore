@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "DskTypeManager.h"
-#include "FileAccess.h"
-#include <regex>
+#include "simple_regex.h"
 
 
 
@@ -49,35 +48,25 @@ int DskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
    return 0;
 }
 
-int DskTypeManager::GetTypeFromFile(std::string str)
+int DskTypeManager::GetTypeFromFile(const char* str)
 {
-   //if (PathMatchSpec(str.c_str(), _T("*.rom")) == TRUE)
-   if ( MatchTextWithWildcards (str, "*.rom"))
-   //if (regex_match(str.c_str(), std::regex("*\\.rom")))
+   if (IsExtensionMatch(str, "rom"))
    {
       return 2;
    }
-   else //if (PathMatchSpec(str.c_str(), _T("*.raw")) == TRUE)
-      //if (regex_match(str.c_str(), std::regex("*\\.raw")))
-      if (MatchTextWithWildcards(str, "*.raw"))
+   else if (IsExtensionMatch(str, "raw"))
    {
       return 3;
    }
-   else //if (PathMatchSpec(str.c_str(), _T("*.tap")) == TRUE)
-      //if (regex_match(str.c_str(), std::regex("*\\.tap")))
-      if (MatchTextWithWildcards(str, "*.tap"))
+   else if (IsExtensionMatch(str, "tap"))
    {
       return 4;
    }
-   else //if (PathMatchSpec(str.c_str(), _T("*.bin")) == TRUE)
-      if (MatchTextWithWildcards(str, "*.bin"))
-      //if (regex_match(str.c_str(), std::regex("*\\.bin")))
+   else if (IsExtensionMatch(str, "bin"))
    {
       return 6;
    }
-   else //if (PathMatchSpec(str.c_str(), _T("*.cpr")) == TRUE)
-      if (MatchTextWithWildcards(str, "*.cpr"))
-      //if (regex_match(str.c_str(), std::regex("*\\.cpr")))
+   else if (IsExtensionMatch(str, "cpr"))
    {
       return 7;
    }

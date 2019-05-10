@@ -248,7 +248,7 @@ int SingleFile::GetType()
    // Check from buffer
    int type = type_manager_->GetTypeFromBuffer(buffer_, buffer_size_);
    if (type == 0)
-      return type_manager_->GetTypeFromFile(file_name_);
+      return type_manager_->GetTypeFromFile(file_name_.c_str());
    return type;
 }
 
@@ -444,7 +444,7 @@ void ZippedFile::InitUnzip()
                      added_element->type_ = type_manager_->GetTypeFromBuffer(
                         added_element->Extract(), added_element->size_);
                      if (added_element->type_ == 0)
-                        added_element->type_ = type_manager_->GetTypeFromFile(added_element->name_);
+                        added_element->type_ = type_manager_->GetTypeFromFile(added_element->name_.c_str());
                   }
 
                   // local file header
@@ -696,7 +696,7 @@ int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer
 
                added_element->offset_ = off_local_header;
                // Update file type count
-               int file_type = manager->GetTypeFromFile(added_element->name_);
+               int file_type = manager->GetTypeFromFile(added_element->name_.c_str());
             }
 
             // local file header
@@ -776,7 +776,7 @@ int DataContainer::GetTypeFromFile(ITypeManager* manager)
       // No, check with name
       if (ret == 0)
       {
-         ret = manager->GetTypeFromFile(current_path_);
+         ret = manager->GetTypeFromFile(current_path_.c_str());
       }
 
       delete []header;

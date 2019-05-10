@@ -1,10 +1,7 @@
 #include "stdafx.h"
 #include "MediaManager.h"
 
-#include <regex>
-//#include "Shlwapi.h"
-#include "FormatTypeRAW.h"
-//#include "DiskSFWR.h"
+#include "simple_regex.h"
 
 
 IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* log)
@@ -175,13 +172,13 @@ int MediaManager::GetTypeFromBuffer(unsigned char* buffer, int size)
    else return MEDIA_UNDEF;
 }
 
-int MediaManager::GetTypeFromFile(std::string str)
+int MediaManager::GetTypeFromFile(const char*  str)
 {
    int return_type = MEDIA_UNDEF;
    // Check buffer
    FILE* file;
 
-   if (fopen_s(&file, str.c_str(), "rb") == 0)
+   if (fopen_s(&file, str, "rb") == 0)
    {
       unsigned char buffer [0x100] = {0};
       // check the 22 first char
@@ -194,32 +191,26 @@ int MediaManager::GetTypeFromFile(std::string str)
    if (return_type == MEDIA_UNDEF)
    {
       // Check file extension
-
-      //if (PathMatchSpec(str.c_str(), _T("*.rom")) == TRUE)
-      if (regex_match(str.c_str(), std::regex("*\\.rom")))
+      if (IsExtensionMatch(str, "rom"))
       {
          return_type = MEDIA_ROM;
       }
-      else //if (PathMatchSpec(str.c_str(), _T("*.raw")) == TRUE)
-         if (regex_match(str.c_str(), std::regex("*\\.raw")))
-         {
-            return_type = MEDIA_DISK;
-         }
-         else //if (PathMatchSpec(str.c_str(), _T("*.tap")) == TRUE)
-            if (regex_match(str.c_str(), std::regex("*\\.tap")))
-            {
-               return_type = MEDIA_TAPE;
-            }
-            else //if (PathMatchSpec(str.c_str(), _T("*.bin")) == TRUE)
-               if (regex_match(str.c_str(), std::regex("*\\.bin")))
-               {
-                  return MEDIA_BIN;
-               }
-               else //if (PathMatchSpec(str.c_str(), _T("*.cpr")) == TRUE)
-                  if (regex_match(str.c_str(), std::regex("*\\.cpr")))
-                  {
-                     return MEDIA_CPR;
-                  }
+      else if (IsExtensionMatch(str, "raw"))
+      {
+         return_type = MEDIA_DISK;
+      }
+      else if (IsExtensionMatch(str,"tap"))
+      {
+         return_type = MEDIA_TAPE;
+      }
+      else if (IsExtensionMatch(str,"bin"))
+      {
+         return_type = MEDIA_BIN;
+      }
+      else if (IsExtensionMatch(str,"cpr"))
+      {
+         return_type = MEDIA_CPR;
+      }
    }
 
    return return_type;
