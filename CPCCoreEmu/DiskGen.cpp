@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DiskGen.h"
-
+#include "rand.h"
+#include "simple_vector.hpp"
 #include "MediaManager.h"
 
 #define LOGFDC
@@ -231,7 +232,7 @@ void DiskGen::Tick()
                || ((current_mfm_byte_ & 0x3) == 3)
             )
             {
-               int dbg = 1;
+               
             }
 
             // If sync search on : compare
@@ -592,6 +593,12 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
    public:
       Rule(const char* name, const char* ext, const char* autofile) : name_(name), ext_(ext), autofile_(autofile)
       {
+      }
+      Rule(Rule& rule) 
+      {
+         name_ = rule.name_;
+         ext_ = rule.ext_;
+         autofile_ = rule.autofile_;
       }
 
       const char* name_;

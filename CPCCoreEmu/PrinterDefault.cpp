@@ -14,14 +14,17 @@ PrinterDefault::PrinterDefault(void)
 
 PrinterDefault::~PrinterDefault(void)
 {
+#ifndef MINIMUM_DEPENDENCIES
    if (file_ptr_ != NULL)
    {
       fclose ( file_ptr_);
    }
+#endif
 }
 
 void PrinterDefault::Out ( unsigned char c)
 {
+#ifndef MINIMUM_DEPENDENCIES
    char buff[8] = { 0 };
    sprintf ( buff, "%c", c&0x7F );
    if (!busy_ && c & 0x80 )
@@ -45,7 +48,7 @@ void PrinterDefault::Out ( unsigned char c)
 
       busy_ = true;
    }
-
+#endif
 }
 
 bool PrinterDefault::Busy ()
@@ -58,6 +61,7 @@ bool PrinterDefault::Busy ()
 
 bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
 {
+#ifndef MINIMUM_DEPENDENCIES
    if (diretories_ == NULL)
       return false;
 
@@ -91,4 +95,7 @@ bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
       }
    }
    return name_ok;
+#else
+   return false;
+#endif
 }

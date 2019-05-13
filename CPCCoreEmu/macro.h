@@ -12,7 +12,7 @@
 #ifdef _WIN32
 static __int64 S1, S2, Freq;
 #else
-static int64_t s1, s2, freq;
+static __uint64_t s1, s2, freq;
 #endif
 
 static DWORD T;

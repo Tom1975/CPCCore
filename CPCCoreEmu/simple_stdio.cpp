@@ -5,6 +5,21 @@
 
 static CFATFileSystem		file_system;
 
+class File
+{
+public:
+   File()
+   {
+
+   }
+   virtual ~File()
+   {
+
+   }
+protected:
+   unsigned int handle_;
+};
+
 errno_t fopen_s(
    FILE**      _Stream,
    char const* _FileName,
@@ -19,6 +34,42 @@ errno_t fopen_s(
    else
       return 0;
 }
+
+int fclose(FILE* _Stream)
+{
+   file_system.FileClose(*_Stream);
+   delete _Stream;
+   return 0;
+}
+
+int fseek(FILE* _Stream, long  _Offset, int   _Origin)
+{
+   switch (_Origin)
+   {
+   default:
+      break;
+   }
+}
+void rewind( FILE* _Stream) 
+{
+}
+
+long ftell(FILE* _Stream)
+{
+   return 0;
+}
+
+size_t fread(
+   void* _Buffer,
+   size_t _ElementSize,
+   size_t _ElementCount,
+   FILE* _Stream
+)
+{
+   unsigned int handle = *_Stream;
+   return (file_system.FileRead(handle, _Buffer, _ElementSize * _ElementCount) / _ElementSize);
+}
+
 unsigned int fwrite(
    void const* _Buffer,
    unsigned int _ElementSize,

@@ -2,9 +2,7 @@
 
 #ifdef MINIMUM_DEPENDENCIES
 
-
 double Round(double d);
-
 float sqrt(float number);
 int abs(int _Number);
 

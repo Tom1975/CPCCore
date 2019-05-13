@@ -5,6 +5,7 @@
 #include "simple_math.h"
 #include "simple_regex.h"
 #include "simple_filesystem.h"
+#include "simple_stdio.h"
 
 #ifndef NOZLIB
 #include "zlib.h"
@@ -3242,7 +3243,8 @@ void CTape::SaveAsWav (const char* filepath)
       // Rewind the tape
       // Play it 
 #if defined (__unix) || (RASPPI)
-      __uint64_t total;
+      __uint64_t total = 0;
+      __uint64_t current_length = 0;
 #else
       unsigned _int64 total = 0;
       unsigned _int64 current_length = 0;

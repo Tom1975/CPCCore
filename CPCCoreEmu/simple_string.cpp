@@ -3,21 +3,34 @@
 
 #include "simple_string.h"
 
-std::string::string() : inner_string_()
+std::string::string() : inner_string_(nullptr)
 {
 
 }
 
-std::string::string(const char* str) : inner_string_(str)
+std::string::string(const char* str)
 {
-
+   inner_string_ = new CString(str);
 }
 std::string::~string(void)
-{ };
+{
+   delete inner_string_;
+};
 
 const char* std::string::c_str(void) const
 {
-   return inner_string_;
+   return *inner_string_;
+}
+
+unsigned int std::string::size() const noexcept { // return length of sequence
+   return inner_string_==0?0:inner_string_->GetLength();
+}
+
+
+void std::string::clear()
+{
+   delete inner_string_;
+   inner_string_ = new CString();
 }
 
 int sprintf(char* buf, const char* fmt, ...)
@@ -33,6 +46,29 @@ int sprintf(char* buf, const char* fmt, ...)
    strcpy(buf, (const char*)Msg);
 
    return Msg.GetLength();
+}
+
+int stricmp(char const* _String1, char const* _String2)
+{
+   return strcasecmp(_String1, _String2);
+}
+
+int strnicmp(char const* _String1, char const* _String2, unsigned int _MaxCount)
+{
+   char* str1 = new char[_MaxCount+1];
+   char* str2 = new char[_MaxCount + 1];
+
+   strncpy(str1, _String1, _MaxCount);
+   strncpy(str2, _String2, _MaxCount);
+   str1[_MaxCount] = 0;
+   str2[_MaxCount] = 0;
+   int result = strcasecmp(str1, str2);
+
+   delete []str1;
+   delete []str2;
+
+   return result;
+
 }
 
 #else

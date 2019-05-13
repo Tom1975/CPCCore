@@ -3,9 +3,9 @@
 #include "FDC765.h"
 
 #include "simple_filesystem.h"
-
-#include <vector>
-#include <algorithm>
+#include "simple_stdio.h"
+#include "rand.h"
+#include "simple_vector.hpp"
 
 #ifdef __MORPHOS__
 #include <proto/dos.h>

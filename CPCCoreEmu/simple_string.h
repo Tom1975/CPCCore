@@ -15,13 +15,19 @@ namespace std
       string(const char* str);
       virtual ~string(void);
 
+      unsigned int size() const noexcept;
+      void clear();
       const char* c_str(void) const;
    protected:
-      CString inner_string_;
+      CString *inner_string_;
    };
 }
 int sprintf(char* buf, const char* fmt, ...);
-   
+
+int stricmp(char const* _String1, char const* _String2);
+int strnicmp(char const* _String1, char const* _String2, unsigned int _MaxCount);
+
+
 #else
 
 #include <string>

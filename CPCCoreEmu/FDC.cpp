@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "FDC.h"
 
-#include <algorithm>
-#include <stdio.h>
-#include <stdlib.h>
+//#include <algorithm>
+#include "simple_stdio.h"
+#include "simple_vector.hpp"
+#include "simple_math.h"
 
 // Parameter definition for FDC commands
 

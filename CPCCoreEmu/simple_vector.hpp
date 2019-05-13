@@ -6,6 +6,17 @@
 
 namespace std
 {
+   template <class _Ty>
+   constexpr const _Ty& (min)(const _Ty& _Left,
+      const _Ty& _Right) 
+   { // return smaller of _Left and _Right
+      if (_Right < _Left) 
+      {
+         return _Right;
+      }
+      return _Left;
+   }
+
    template <typename T>
    class vector {
    public:
@@ -19,6 +30,8 @@ namespace std
 
       void clear() noexcept;
 
+      void push_back(T&& _Val);
+
       // element access
       T& operator [](unsigned int);
       const T& operator [](unsigned int) const;
@@ -26,7 +39,10 @@ namespace std
       // Iterator
       iterator begin() noexcept;
       iterator end() noexcept;
-
+      unsigned int size() const noexcept 
+      {
+         return size_;
+      }
    protected:
       unsigned int size_;
       unsigned int size_of_element_list_;
@@ -42,13 +58,29 @@ namespace std
    template <typename T>
    vector<T>::vector(unsigned int size) : size_(0), size_of_element_list_(size), element_list_(nullptr)
    {
-      element_list_ = new T[size];
+      element_list_ = new T[size_];
    }
 
    template <typename T>
    vector<T>::~vector()
    {
       delete[]element_list_;
+   }
+
+   template <typename T>
+   void vector<T>::push_back(T&& _Val)
+   {
+      if (size_ >= size_of_element_list_)
+      {
+         size_of_element_list_ *= 2;
+         T* tmp = element_list_;
+         element_list_ = (T*)new void* [ sizeof (T) * size_of_element_list_];
+         memcpy(element_list_, tmp, size_of_element_list_ * sizeof(T));
+         delete[] tmp;
+      }
+      element_list_[size_] = _Val;
+      size_++;
+      
    }
 
    // element access
