@@ -40,7 +40,7 @@ public:
 
    virtual void DumpTrack(int side, int track)
    {
-      if (disk_ != NULL)
+      if (disk_ != nullptr)
          if (side < disk_->GetNumberOfSide())
          {
             if (side_0_number_ == 0)disk_->DumpTrack(side, track);
@@ -54,11 +54,11 @@ public:
          }
    };
 
-   virtual void SetWrite(int track) { if (disk_ != NULL)disk_->SetWrite(current_side_, track); };
+   virtual void SetWrite(int track) { if (disk_ != nullptr)disk_->SetWrite(current_side_, track); };
    
    virtual void SetWrite(int side, unsigned int track)
    {
-      if (disk_ != NULL)
+      if (disk_ != nullptr)
          if (side < disk_->GetNumberOfSide())
          {
             if (side_0_number_ == 0)disk_->SetWrite(side, track);
@@ -91,7 +91,7 @@ public:
    virtual int LoadDisk(const char* file_path);
    virtual int LoadDisk(DataContainer* container, ILoadingProgress* loading_progress = nullptr);
    virtual int LoadDisk(IDisk* new_disk);
-   const char* GetCurrentLoadedDisk() { return (disk_ != NULL) ? disk_->GetCurrentLoadedDisk() : ""; };
+   const char* GetCurrentLoadedDisk() { return (disk_ != nullptr) ? disk_->GetCurrentLoadedDisk() : ""; };
    virtual void WriteDisk(const char* file_path, FormatType* format);
    virtual void WriteDisk();
 
@@ -99,10 +99,10 @@ public:
    void SetCurrentTrack(int track);
    int GetCurrentTrack() { return current_track_; }
    int GetCurrentSide() { return current_side_; }
-   bool DoubleSided() { return (disk_ != NULL) ? ((disk_->GetNumberOfSide() == 2) ? true : false) : false; };
+   bool DoubleSided() { return (disk_ != nullptr) ? ((disk_->GetNumberOfSide() == 2) ? true : false) : false; };
 
    virtual void Recalib();
-   int GetPos() { return (disk_ != NULL) ? (disk_->GetPos() / 16) : 0; };
+   int GetPos() { return (disk_ != nullptr) ? (disk_->GetPos() / 16) : 0; };
 
    virtual int GetSide()
    {
@@ -112,7 +112,7 @@ public:
 
    virtual void SetSide(int side)
    {
-      if (disk_ != NULL)
+      if (disk_ != nullptr)
       {
          if (side < disk_->GetNumberOfSide())
          {
@@ -131,7 +131,7 @@ public:
          }
       }
    };
-   virtual bool SideValid() { return ((disk_ != NULL) ? current_side_ < disk_->GetNumberOfSide() : false); };
+   virtual bool SideValid() { return ((disk_ != nullptr) ? current_side_ < disk_->GetNumberOfSide() : false); };
    // Advance
    void Tick();
    virtual bool NewBitAvailable() { return new_bit_available_; };
@@ -152,7 +152,7 @@ public:
    void Write(unsigned char byte, bool sync = false);
    bool IsWriteOver() { return read_; };
 
-   bool IsDiskModified() { return (disk_ != NULL) ? disk_->IsDiskModified() : false; };
+   bool IsDiskModified() { return (disk_ != nullptr) ? disk_->IsDiskModified() : false; };
    int GetSizeOfTrack(int side, int track) { return disk_->GetSizeOfTrack(side, track); }
 
    void InsertBlankDisk(IDisk::DiskType);

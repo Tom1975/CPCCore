@@ -9,6 +9,8 @@
 #include "ISound.h"
 #include "IComponent.h"
 
+#include "simple_stdio.h"
+
 #ifndef MINIMUM_DEPENDENCIES
 #include <atomic>
 #include <thread>

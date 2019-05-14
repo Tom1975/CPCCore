@@ -249,7 +249,7 @@ protected:
    // Timing : Counter
    unsigned int delay_for_instruction_;
 #if defined (__unix) || (RASPPI)
-    __uint64_t time_, time_for_bad_instruction_;
+   __uint64_t  time_, time_for_bad_instruction_;
 #else
    unsigned __int64 time_;
    unsigned __int64 time_for_bad_instruction_;

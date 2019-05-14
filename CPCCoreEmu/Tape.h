@@ -84,7 +84,7 @@ public:
    char* GetTextBlock ( int num_block);
 
    void Eject ();
-   bool IsTapeInserted () { return tape_array_ != NULL;}
+   bool IsTapeInserted () { return tape_array_ != nullptr;}
 
    // RECORD
    void Record ();
@@ -228,8 +228,8 @@ protected:
    typedef struct
    {
 #if defined (__unix) || (RASPPI)
-    __uint64_t length;
-    __uint64_t place;
+      __Uint64x2_t length;
+      __Uint64x2_t place;
 #else
       unsigned _int64 length;
       unsigned _int64 place;

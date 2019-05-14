@@ -1,7 +1,9 @@
 #pragma once
 
+#include "simple_string.h"
 #include "IExpansion.h"
 #include "DMAStop.h"
+
 
 class Monitor;
 
@@ -101,7 +103,8 @@ public:
    inline unsigned char* GetCartridge(int index) {
       cart_available_[index] = true; return cartridge_[index];
 };
-   void EjectCartridge() {memset (cartridge_, 0, sizeof(cartridge_)); memset(cart_available_, 0, sizeof(cart_available_)); SetMemoryMap();
+   void EjectCartridge() {
+      memset (cartridge_, 0, sizeof(cartridge_)); memset(cart_available_, 0, sizeof(cart_available_)); SetMemoryMap();
    }
 
    inline unsigned char* GetRomBuffer(int rom_index) { return rom_[rom_index]; };
