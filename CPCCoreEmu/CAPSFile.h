@@ -23,7 +23,7 @@ SOFTWARE.*/
 
 #pragma once
 
-#include <vector>
+#include "simple_vector.hpp"
 #include "ILoadingProgress.h"
 #include "IDisk.h"
 

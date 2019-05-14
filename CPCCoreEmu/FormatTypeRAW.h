@@ -2,7 +2,7 @@
 #include "IDisk.h"
 #include "DiskBuilder.h"
 
-#include <vector>
+#include "simple_vector.hpp"
 
 // Clock average computation
 #define NB_CLOCK_DATAS 10

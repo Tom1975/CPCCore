@@ -7,7 +7,6 @@ September 1992 */
 
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
 
 #include "mkfilter.h"
 #include "complex.h"
