@@ -1,43 +1,48 @@
-#pragma once
+
+#include "simple_filesystem.h"
 
 #ifdef MINIMUM_DEPENDENCIES
-#include "simple_string.h"
 
 #define PATH_SLASH '/'
+#define PATH_SLASH_STRING "/"
 
-std::filesystem::path::path(const char* path)
+namespace std::filesystem
 {
-   path_ = path;
-}
 
-
-
-std::filesystem::path filename() const
-{
-   int lg = strlen(path_);
-   if (lg == 0) return "";
-   lg--;
-   for (lg; lg >= 0; lg--)
+   path::path(const char* path)
    {
-      if (path_[lg] == PATH_SLASH)
+      path_ = path;
+   }
+
+
+
+   std::string path::filename() const
+   {
+      int lg = path_.length();
+      if (lg == 0) return "";
+      lg--;
+      for (lg; lg >= 0; lg--)
       {
-         return std::string(&path_[lg+1]);
+         if (path_[lg] == PATH_SLASH)
+         {
+            return std::string(&path_[lg + 1]);
+         }
       }
    }
-}
 
-std::filesystem::path& operator std::filesystem:: /=(const char*ext)
-{
-   path_.Append(PATH_SLASH);
-   path_.Append(ext);
-   return *this;
-}
+   path& path::operator /=(const char*ext)
+   {
+      path_.Append(PATH_SLASH_STRING);
+      path_.Append(ext);
+      return *this;
+   }
 
-std::string std::filesystem::string() const
-{ // return path as basic_string<char> native
-   return path_;
-}
+   std::string path::string() const
+   { // return path as basic_string<char> native
+      return path_;
+   }
 
+}
 
 #else
 

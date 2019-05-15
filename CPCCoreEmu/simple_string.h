@@ -15,9 +15,13 @@ namespace std
       string(const char* str);
       virtual ~string(void);
 
+      unsigned int length() const noexcept;
       unsigned int size() const noexcept;
       void clear();
       const char* c_str(void) const;
+
+      char& operator [](const unsigned int);
+
    protected:
       CString *inner_string_;
    };

@@ -11,7 +11,7 @@ namespace std::filesystem
       path(const char* path);
 
       path& operator/=(const char*ext);
-      path filename() const;
+      std::string filename() const;
       std::string string() const;
 
    protected:

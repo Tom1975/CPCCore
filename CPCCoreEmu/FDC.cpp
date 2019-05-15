@@ -593,7 +593,6 @@ unsigned char FDC::In ( unsigned short Addr_P )
          if (nb_data_in_buffer_ > FDC_OUT_BUFFER_SIZE)
          {
             // Wtf ?!
-            int err = 1;
          }
          if ( dma_disable_)
             exm_ = true;
@@ -1555,13 +1554,6 @@ void FDC::ReadSectorTick ()   // 6
 
 
    case R_READ_DATA:
-      // Test : Are-we on index hole ?
-      /*if ( read_track_ == true && disk_[current_drive_].IsHeadOnIndex () )
-      {
-      // Stop sending information.
-      READ_END(false)
-      }
-      else*/
       {
          switch ( HandleReadData (data_buffer_) )
          {
@@ -1573,26 +1565,9 @@ void FDC::ReadSectorTick ()   // 6
             if ( nb_data_in_buffer_ > 0 )
             {
                // Overrun
-               //m_Status1 |= 0x10;
                or_ = true;
-               /*                  m_Status0 |= 0x40;
-               m_Status0 &= ~0x80;*/
-
-               /*                  if ( true )
-               {
-               interrupt_occured_ = true;
-               READ_END(false);
-               }*/
-
-               /*
-               LOG(_T("("));
-               LOGB(m_DataBuffer[0]);
-               LOG(_T(")"));*/
             }
-            if ( tr_ == 03)
-            {
-               int bdg = 1;
-            }
+
             nb_data_in_buffer_ = 1;
 
             state_ = EXEC_PRECISE;
@@ -1637,8 +1612,6 @@ void FDC::SpecifySpdDma()
 
 void FDC::SenseIntState () // 08
 {
-   int i = 0;
-
    status_0_ = 0;
    current_command_ = C_SENSE_INT_STATE;
    if (!disk_[current_drive_].IsDiskReady(true) && (recalibrate_ ))
@@ -2055,70 +2028,68 @@ void FDC::WriteSectorTick ()
             {
                READ_END(false);
             }
-            else
-               if ( results_[5] == ls_)
+            else if ( results_[5] == ls_)
+            {
+
+               if (mt_ && ((hd_ & 1) == 0))
                {
+                  mt_ = false;
+                  nd_ = true;
+                  // Invert head
+                  // Read sector 0 to LS-first
+                  hd_++;
+                  // Invert side
 
-                  if (mt_ && ((hd_ & 1) == 0))
-                  {
-                     mt_ = false;
-                     nd_ = true;
-                     // Invert head
-                     // Read sector 0 to LS-first
-                     hd_++;
-                     // Invert side
+                  disk_[current_drive_].SetSide(disk_[current_drive_].GetSide() == 0 ? 1 : 0);
 
-                     disk_[current_drive_].SetSide(disk_[current_drive_].GetSide() == 0 ? 1 : 0);
+                  if (init_r_ != 1)force_nd_ = true;
+                  sc_ = 1;
+                  //LS = LS - m_InitR+SC;
 
-                     if (init_r_ != 1)force_nd_ = true;
-                     sc_ = 1;
-                     //LS = LS - m_InitR+SC;
-
-                     index_hole_encountered_ = 0;
-                     read_sector_state_ = 0;
-                     rqm_ = false;
-                     InitHandleSyncField();
-                  }
-                  else
-                  {
-                     // Yes : EOT encountered
-
-                     // S0 S1 S2 TR HD LS Sz
-                     int i = 0;
-
-                     // TEST : At the end of a successful read/write command, the program should send a Terminal Count (TC) signal to the FDC.
-                     // However, in the CPC the TC pin isn't connected to the I/O bus, making it impossible for the program to confirm a correct operation.
-                     // For that reason, the FDC will assume that the command has failed, and it'll return both Bit 6 in Status Register 0 and Bit 7 in Status Register 1 set.
-                     // The program should ignore this error message.
-                     status_0_ |= 0x40; // Instruction achevée - TA : No TC on CPC
-                     if( !or_)
-                        status_1_ |= 0x80;
-                     results_[i++] = status_0_;
-                     results_[i++] = status_1_;
-                     results_[i++] = status_2_;
-
-                     results_[i++] = tr_;
-                     results_[i++] = hd_;
-                     results_[i++] = sc_; // parameters_[3]; //LS;
-                     results_[i++] = sz_;
-
-                     // TODO : Add a question mark about the writability of disk ?
-                     interrupt_occured_ = true;
-                     dio_ = true; exm_ = false; rqm_ = true;
-                     state_ = RESULT;
-                  }
+                  index_hole_encountered_ = 0;
+                  read_sector_state_ = 0;
+                  rqm_ = false;
+                  InitHandleSyncField();
                }
                else
                {
-                  // Seek next sector
-                  sc_++;
-                  sc_array_[current_drive_&1] = sc_;
-                  index_hole_encountered_ = 0;
-                  rqm_ = false;
-                  InitHandleSyncField ();
-               }
+                  // Yes : EOT encountered
 
-               break;
+                  // S0 S1 S2 TR HD LS Sz
+                  int i = 0;
+
+                  // TEST : At the end of a successful read/write command, the program should send a Terminal Count (TC) signal to the FDC.
+                  // However, in the CPC the TC pin isn't connected to the I/O bus, making it impossible for the program to confirm a correct operation.
+                  // For that reason, the FDC will assume that the command has failed, and it'll return both Bit 6 in Status Register 0 and Bit 7 in Status Register 1 set.
+                  // The program should ignore this error message.
+                  status_0_ |= 0x40; // Instruction achevée - TA : No TC on CPC
+                  if( !or_)
+                     status_1_ |= 0x80;
+                  results_[i++] = status_0_;
+                  results_[i++] = status_1_;
+                  results_[i++] = status_2_;
+
+                  results_[i++] = tr_;
+                  results_[i++] = hd_;
+                  results_[i++] = sc_; // parameters_[3]; //LS;
+                  results_[i++] = sz_;
+
+                  // TODO : Add a question mark about the writability of disk ?
+                  interrupt_occured_ = true;
+                  dio_ = true; exm_ = false; rqm_ = true;
+                  state_ = RESULT;
+               }
+            }
+            else
+            {
+               // Seek next sector
+               sc_++;
+               sc_array_[current_drive_&1] = sc_;
+               index_hole_encountered_ = 0;
+               rqm_ = false;
+               InitHandleSyncField ();
+            }
+            break;
          case 2: // Error....
             break;
          }
@@ -3428,10 +3399,6 @@ void FDC::ReadTrackTick ()
                LOG(")");
 #endif
             }
-            if ( tr_ == 03)
-            {
-               int bdg = 1;
-            }
             if ( data_to_return_ > 0)
             {
                nb_data_in_buffer_ = 1;
@@ -3937,7 +3904,6 @@ int FDC::HandleWriteData ()
             // Data ready to be read
             if ( write_byte_counter_+1 == (0x80<<sz_))
             {
-               int dbg = 1;
             }
             else
             {

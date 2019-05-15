@@ -1,7 +1,6 @@
 #pragma once
 #include "IDisk.h"
 #include "DiskBuilder.h"
-#include <deque>
 
 
 // 12x0 - A1A1A1FE - CHRN - CRC = 22 byte = 22*16 MFM bits  - 22*16 = 352

@@ -2,6 +2,7 @@
 #include "MediaManager.h"
 
 #include "simple_regex.h"
+#include "simple_stdio.h"
 
 
 IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* log)
@@ -132,7 +133,7 @@ std::vector<IDisk*> MediaManager::GetDisk(ILoadingProgress* loading_progress, IL
       if (it->GetType() == MEDIA_DISK)
       {
          // Add it : From buffer,
-         Disk* disk = dynamic_cast<Disk*>(it);
+         Disk* disk = (Disk*)(it);
          IDisk* disk_image = disk->CreateDisk(loading_progress, log);
          if (disk_image != nullptr)
             disk_list.push_back(disk_image);

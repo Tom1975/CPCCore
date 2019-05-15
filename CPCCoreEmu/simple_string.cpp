@@ -26,12 +26,24 @@ unsigned int std::string::size() const noexcept { // return length of sequence
    return inner_string_==0?0:inner_string_->GetLength();
 }
 
+unsigned int std::string::length() const noexcept { // return length of sequence
+   return inner_string_ == 0 ? 0 : inner_string_->GetLength();
+}
 
 void std::string::clear()
 {
    delete inner_string_;
    inner_string_ = new CString();
 }
+
+
+char& std::string::operator [](unsigned int idx)
+{
+   const char* ptr = *inner_string_;
+
+   return ((char*)ptr)[idx];
+}
+
 
 int sprintf(char* buf, const char* fmt, ...)
 {

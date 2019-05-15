@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "CRC.h"
 #include "IComponent.h"
 
@@ -148,7 +150,7 @@ protected:
 
    bool first_sector_found_;
    int sector_count_;
-   int nb_data_in_buffer_;
+   unsigned int nb_data_in_buffer_;
    unsigned int nb_data_offset_;
    unsigned char data_buffer_ [1/*32*1024*/];
    bool recalibrate_;
@@ -249,7 +251,7 @@ protected:
    // Timing : Counter
    unsigned int delay_for_instruction_;
 #if defined (__unix) || (RASPPI)
-   __uint64_t  time_, time_for_bad_instruction_;
+   uint64_t  time_, time_for_bad_instruction_;
 #else
    unsigned __int64 time_;
    unsigned __int64 time_for_bad_instruction_;

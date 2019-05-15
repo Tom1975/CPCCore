@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "IConfiguration.h"
 #include "IComponent.h"
 #include "ILog.h"
@@ -228,8 +230,8 @@ protected:
    typedef struct
    {
 #if defined (__unix) || (RASPPI)
-      __Uint64x2_t length;
-      __Uint64x2_t place;
+      uint64_t length;
+      uint64_t place;
 #else
       unsigned _int64 length;
       unsigned _int64 place;

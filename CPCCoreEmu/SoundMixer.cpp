@@ -5,11 +5,13 @@
 #include "stdafx.h"
 #include "SoundMixer.h"
 
+#ifndef NOFILTER
+
 #include <regex>
 #include <cmath>
 
 #include "mkfilter.h"
-
+#endif
 
 SoundBuffer::SoundBuffer() : offset_(0)
 {
@@ -46,8 +48,19 @@ void SoundBuffer::InitBuffer()
 #define ORDER 1
 #define TYPE_OF_FILTER 1
 
-SoundMixer::SoundMixer() : sample_number_(0), worker_thread_(nullptr), finished_(true), current_wav_buffer_(nullptr), current_wav_index_(0),
-                        record_(false), start_recording_(false), stop_recording_(false), tape_(nullptr), tape_adjust_volume_(0.02)
+SoundMixer::SoundMixer() : 
+   sample_number_(0),
+#ifndef NO_MULTITHREAD
+   worker_thread_(nullptr),
+   finished_(true),
+#endif
+   current_wav_buffer_(nullptr), 
+   current_wav_index_(0),
+   record_(false), 
+   start_recording_(false), 
+   stop_recording_(false), 
+   tape_(nullptr), 
+   tape_adjust_volume_(0.02)
 {
    // Everything, except firt, is on the "free buffer" list
    buffer_list_[0].Init();
@@ -89,6 +102,8 @@ SoundMixer::SoundMixer() : sample_number_(0), worker_thread_(nullptr), finished_
       fldcw cw
    }
 #endif
+
+#ifndef NOFILTER
    // Compute gain and coeff.
    switch (TYPE_OF_FILTER)
    {
@@ -96,6 +111,7 @@ SoundMixer::SoundMixer() : sample_number_(0), worker_thread_(nullptr), finished_
       ComputeBandPass(TYPE_OF_FILTER, ORDER, 125000, 20833, 12, &gain_, coefx_, coefy_);
       break;
    }
+#endif
 
 #ifdef _WIN32
    __asm {
@@ -106,6 +122,7 @@ SoundMixer::SoundMixer() : sample_number_(0), worker_thread_(nullptr), finished_
 
 SoundMixer::~SoundMixer()
 {
+#ifndef NO_MULTITHREAD
    if (worker_thread_ != nullptr)
    {
       // Stop the thread
@@ -114,6 +131,8 @@ SoundMixer::~SoundMixer()
       // Delete it
       delete worker_thread_;
    }
+#endif
+
    delete[]xv_left_;
    delete[]xv_right_;
    delete[]yv_left_;
@@ -125,7 +144,7 @@ SoundMixer::~SoundMixer()
 
 void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples)
 {
-
+#ifndef NOFILTER
    volatile short int  cw = 0x27F;
    volatile short int oldcw = 0;
 
@@ -178,6 +197,7 @@ void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsig
       fldcw oldcw
    }
 #endif
+#endif
 }
 
 void PrepareBuffer(SoundMixer* sound_hub)
@@ -187,6 +207,7 @@ void PrepareBuffer(SoundMixer* sound_hub)
 
 void SoundMixer::StopMixer()
 {
+#ifndef NO_MULTITHREAD
    if (worker_thread_ != nullptr)
    {
       finished_ = true;
@@ -194,19 +215,22 @@ void SoundMixer::StopMixer()
       delete worker_thread_;
       worker_thread_ = nullptr;
    }
-   
+#endif   
 }
 
 void SoundMixer::StartMixer()
 {
+#ifndef NO_MULTITHREAD
    finished_ = false;
    worker_thread_ = new std::thread(PrepareBuffer, this);
+#endif
 }
 
 
 void SoundMixer::Init(ISound* sound, IExternalSource* tape)
 {
    tape_ = tape;
+#ifndef NO_MULTITHREAD
    if (worker_thread_ != nullptr)
    {
       finished_ = true;
@@ -214,12 +238,14 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
       delete worker_thread_;
    }
    finished_ = false;
+#endif
    sound_ = sound;
-
+#ifndef NO_MULTITHREAD
    if (sound_ != nullptr)
    {
       worker_thread_ = new std::thread(PrepareBuffer, this);
    }
+#endif
 }
 
 void SoundMixer::AddSound(double  volume_left, double  volume_right)
@@ -345,6 +371,7 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
 
 void SoundMixer::PrepareBufferThread()
 {
+#ifndef NO_MULTITHREAD
    sound_->Reinit();
 
    if (current_wav_buffer_ == nullptr)
@@ -390,15 +417,17 @@ void SoundMixer::PrepareBufferThread()
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
       }
    }
+#endif
 }
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 {
+   bool name_is_ok = false;
+
    char exe_path[MAX_PATH];
    strcpy(exe_path, ".\\REC\\");
 
    // Create new sound file
-   bool name_is_ok = false;
    unsigned int inc = 0;
 
    while (!name_is_ok && inc <= 9999)
