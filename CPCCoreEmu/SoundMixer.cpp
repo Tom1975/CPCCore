@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #include "SoundMixer.h"
 
+#include "simple_stdio.h"
+
 #ifndef NOFILTER
 
 #include <regex>
@@ -422,6 +424,7 @@ void SoundMixer::PrepareBufferThread()
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 {
+#ifndef RASPPI
    bool name_is_ok = false;
 
    char exe_path[MAX_PATH];
@@ -448,6 +451,10 @@ bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
       }
    }
    return name_is_ok;
+#else
+	strcpy(buffer, "/REC/SoundOutput.wav");
+	return true;
+#endif
 }
 
 
@@ -594,10 +601,14 @@ unsigned int SoundMixer::Tick()
 
 SoundSource::SoundSource(SoundMixer * sound_hub): sound_mixer_(sound_hub)
 {
+#ifndef RASPPI
    for (int i = 0; i < 16; i++)
    {
       volume_[i] = ((1.0f / (pow(sqrt(2.0f), (15 - i))))) ;
    }
+#else
+	memset ( volume_ , 0, sizeof(volume_));
+#endif
 }
 
 void SoundSource::AddSound(int volume_left, int volume_right, int volume_center)

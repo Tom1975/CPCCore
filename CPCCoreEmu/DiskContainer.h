@@ -12,7 +12,7 @@ public:
    unsigned char* buffer_;
    int size_;
 };
-
+#ifndef NOZLIB
 // Inner files structure : can be either a directory (containing file) or a file.
 class NodeFS
 {
@@ -47,7 +47,7 @@ public:
    unsigned int size_;
    int type_;
 };
-
+#endif
 /////////////////////////////////////////////////
 // Interface TypeManager : can create a value type from any source (filename, inner buffer)
 class ITypeManager

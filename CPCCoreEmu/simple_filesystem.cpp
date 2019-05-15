@@ -9,23 +9,23 @@
 namespace std::filesystem
 {
 
-   path::path(const char* path)
+   path::path(const char* path_file)
    {
-      path_ = path;
+      path_ = path_file;
    }
 
 
 
-   std::string path::filename() const
+   path path::filename() 
    {
       int lg = path_.length();
-      if (lg == 0) return "";
+      if (lg == 0) return path("");
       lg--;
       for (lg; lg >= 0; lg--)
       {
          if (path_[lg] == PATH_SLASH)
          {
-            return std::string(&path_[lg + 1]);
+            return path(&path_[lg + 1]);
          }
       }
    }

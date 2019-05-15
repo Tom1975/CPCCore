@@ -2,9 +2,11 @@
 
 #include "DiskContainer.h"
 
+#include "simple_stdio.h"
+
+
 #ifndef NOZLIB
 #include "zlib.h"
-#endif
 
 #define FILE_ATTRIBUTE_DIRECTORY            0x00000010
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
@@ -277,7 +279,7 @@ std::vector<SingleElements> SingleFile::GetInnerElements(int type)
 /////////////////////////////////////////////////////////////////
 // ZippedFile Implementation
 /////////////////////////////////////////////////////////////////
-#ifndef NOZLIB
+
 ZippedFile::ZippedFile(ITypeManager* type_manager, const std::string& file) : IContainedElement(type_manager),
                                                                               file_name_(file)
 {
