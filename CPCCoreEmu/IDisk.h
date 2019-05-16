@@ -13,6 +13,7 @@
 #include "ILog.h"
 #include "CRC.h"
 
+#include "simple_stdio.h"
 #include "simple_vector.hpp"
 #include "simple_string.h"
 
