@@ -6,6 +6,8 @@
  * 
  *
  */
+#include "simple_stdio.h"
+
 #include "ISound.h"
 
 #ifndef MINIMUM_DEPENDENCIES
