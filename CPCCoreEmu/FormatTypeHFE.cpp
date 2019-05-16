@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "FormatTypeHFE.h"
-
+#include "simple_stdio.h"
 
 #define IBMPC_DD_FLOPPYMODE 0x00
 #define IBMPC_HD_FLOPPYMODE 0x01

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "FormatTypeEDSK.h"
-
+#include "simple_stdio.h"
 
 #ifdef LOGFDC
 #define LOG(str) \

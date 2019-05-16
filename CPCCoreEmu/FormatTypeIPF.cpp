@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "FormatTypeIPF.h"
 #include "CAPSFile.h"
-
+#include "simple_stdio.h"
 
 FormatTypeIPF::FormatTypeIPF()
 {

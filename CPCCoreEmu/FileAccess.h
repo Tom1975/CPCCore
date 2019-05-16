@@ -11,5 +11,7 @@ std::string GetFullPath(const char* path);
 std::string GetFileFromPath(const char* path);
 std::string GetDirectoryFromPath(const char* path);
 
+#ifndef RASPPI
 bool MatchTextWithWildcards(const std::string& text, std::string wildcard_pattern);
 void EscapeRegex(std::string& regex);
+#endif

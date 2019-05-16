@@ -201,7 +201,9 @@ protected:
 
    void BuildFileList();
    // Private functions
+#ifndef NOZLIB
    int GetTypeFromZippedFile(ITypeManager* manager);
+#endif
    bool BuildFromZippedFile();
 
    int GetTypeFromDirectory(ITypeManager* manager);
@@ -210,8 +212,9 @@ protected:
    int GetTypeFromFile(ITypeManager* manager);
    void BuildFromFile();
 
+#ifndef NOZLIB
    int InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer, int size); // ZIP file
-
+#endif
 
    ////////////////////////////
    // Attributes
@@ -220,5 +223,7 @@ protected:
    std::vector<IContainedElement*> file_list_;
 
    // Main node!
+#ifndef NOZLIB
    NodeFS zip_file_;
+#endif
 };

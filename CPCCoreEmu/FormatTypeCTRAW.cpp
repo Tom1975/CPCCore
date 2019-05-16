@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "FormatTypeCTRAW.h"
 #include "CAPSFile.h"
-
+#include "simple_stdio.h"
 
 FormatTypeCTRAW::FormatTypeCTRAW()
 {

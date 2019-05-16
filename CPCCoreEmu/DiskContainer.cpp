@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "DiskContainer.h"
-
+#include "FileAccess.h"
 #include "simple_stdio.h"
 
 
@@ -162,7 +162,7 @@ NodeFS* NodeFS::InsertFile(std::string node_name, unsigned char* full_buffer)
    return nullptr;
 }
 
-#ifndef NOZLIB
+
 unsigned char* NodeFS::Extract()
 {
    if (!is_leaf_) return nullptr;
@@ -202,7 +202,7 @@ unsigned char* NodeFS::Extract()
 
    return buffer_;
 }
-#endif
+
 
 /////////////////////////////////////////////////////////////////
 // SingleFile Implementation
@@ -216,6 +216,7 @@ std::vector<SingleElements> BufferFile::GetInnerElements(int type)
    std::vector<SingleElements> list;
    return list;
 }
+#endif
 
 
 /////////////////////////////////////////////////////////////////
@@ -275,6 +276,8 @@ std::vector<SingleElements> SingleFile::GetInnerElements(int type)
    list.push_back(element);
    return list;
 }
+
+#ifndef NOZLIB
 
 /////////////////////////////////////////////////////////////////
 // ZippedFile Implementation
@@ -535,20 +538,14 @@ void DataContainer::AddSourceFile(const char* path)
 void DataContainer::BuildFileList()
 {
    // Is this a file or a directory ?
-   struct stat s;
-
-   if (stat(current_path_.c_str(), &s) == 0)
+   if (IsDirectory (current_path_.c_str()))
    {
-      // Directory
-      if (s.st_mode & S_IFDIR)
-      {
-         BuildFromDirectory();
-      }
-      else
-      {
-         // Is this a compressed file ?
-         BuildFromFile();
-      }
+      BuildFromDirectory();
+   }
+   else
+   {
+      // Is this a compressed file ?
+      BuildFromFile();
    }
 }
 
@@ -623,24 +620,20 @@ int DataContainer::GetType(ITypeManager* manager)
 {
    auto return_value = 0;
 
-   struct stat s;
-
-   if (stat(current_path_.c_str(), &s) == 0)
+   if (IsDirectory(current_path_.c_str()))
    {
-      // Directory
-      if (s.st_mode & S_IFDIR)
-      {
-         return_value = GetTypeFromDirectory(manager);
-      }
-      else
-      {
-         // Is this a compressed file ?
-         return_value = GetTypeFromFile(manager);
-      }
+      return_value = GetTypeFromDirectory(manager);
    }
+   else
+   {
+      // Is this a compressed file ?
+      return_value = GetTypeFromFile(manager);
+   }
+
    return return_value;
 }
 
+#ifndef NOZLIB
 int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer, int size)
 {
    auto return_value = -1;
@@ -749,18 +742,24 @@ int DataContainer::GetTypeFromZippedFile(ITypeManager* manager)
 
       delete []zipped_buffer;
    }
+
    return ret;
 }
+#endif
 
 
 int DataContainer::GetTypeFromFile(ITypeManager* manager)
 {
    FILE* f;
+#ifndef NOZLIB
    int ret = GetTypeFromZippedFile(manager);
    if (ret != 0)
    {
       return ret;
    }
+#else
+   int ret = 0;
+#endif
    if (fopen_s(&f, current_path_.c_str(), "rb") == 0)
    {
       fseek(f, 0, SEEK_END);
@@ -783,5 +782,6 @@ int DataContainer::GetTypeFromFile(ITypeManager* manager)
 
       delete []header;
    }
+
    return ret;
 }

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "FileAccess.h"
+#ifndef RASPPI
 #include <regex>
+#endif
 #include "simple_filesystem.h"
 
 #ifdef __MORPHOS__
@@ -28,6 +30,8 @@ bool IsDirectory(const char* path)
         UnLock(lock);
     }
     return isDir;
+#elif RASPPI
+   return false;  // todo PI
 #else
    return (fs::is_directory(fs::status(fs::path(path))));
 #endif
@@ -61,6 +65,8 @@ unsigned int GetDirectoryContent(const char* path, std::vector<std::string>& fil
     }
     UnLock(dirLock);
     FreeDosObject(DOS_FIB, fib);
+#elif RASPPI
+   // todo
 #else
    for (auto& p : fs::directory_iterator(path))
    {
@@ -85,6 +91,9 @@ std::string GetDirectoryFromPath(const char* path)
 {
 #ifdef __MORPHOS__
    return std::string(path, PathPart(path) - path);
+#elif RASPPI
+   // todo
+
 #else
    fs::path full_path(path);
    full_path.remove_filename();
@@ -101,6 +110,8 @@ std::string GetFullPath(const char* path)
    NameFromLock(lock, (STRPTR)buffer, sizeof(buffer));
    UnLock(lock);
    return std::string((char *)buffer);
+#elif RASPPI
+   // todo
 #else
    fs::path full_path(path);
    return full_path.string();
@@ -111,12 +122,16 @@ std::string GetFileFromPath(const char* path)
 {
 #ifdef __MORPHOS__
     return std::string(FilePart(path));
+#elif RASPPI
+   // todo
 #else
    fs::path full_path(path);
    return full_path.filename().string();
 #endif
 }
 
+#ifndef RASPPI
+// todo
 
 size_t ReplaceAll(std::string& str, const std::string& from, const std::string& to)
 {
@@ -163,3 +178,4 @@ bool MatchTextWithWildcards(const std::string& text, std::string wildcard_patter
 
    return std::regex_match(text, pattern);
 }
+#endif
