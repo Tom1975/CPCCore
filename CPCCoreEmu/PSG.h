@@ -14,7 +14,7 @@ friend class EmulatorEngine;
 friend class CSnapshot;
 public:
    
-   Ay8912(SoundMixer *sound_hub, KeyboardHandler* keyboard_handler);
+   Ay8912(SoundMixer *sound_hub, IKeyboardHandler* keyboard_handler);
    virtual ~Ay8912(void);
 
    virtual void SetDirectories(IDirectories * dir) {directories_ = dir;   };
@@ -66,7 +66,7 @@ protected :
 
    /////////////////////////////////
    // Keyboard
-   KeyboardHandler* keyboard_handler_;
+   IKeyboardHandler* keyboard_handler_;
    bool register_replaced_;
    unsigned char register_14_;
 

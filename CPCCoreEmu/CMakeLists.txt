@@ -10,6 +10,8 @@ file( GLOB HEADERS
 	"*.h"
 )
 
+list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
+
 #Fichier ressource
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 add_library(CPCCoreEmu ${SRCS} ${HEADERS})

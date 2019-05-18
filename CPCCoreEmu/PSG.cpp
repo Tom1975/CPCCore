@@ -15,7 +15,7 @@ extern const char * SugarboxPath;
 // SIDE = (MEASURE/2) * 0.687;
 // CENTER = (MEASURE/2) * 0.313;
 
-Ay8912::Ay8912( SoundMixer *sound_hub, KeyboardHandler* keyboard_handler) :
+Ay8912::Ay8912( SoundMixer *sound_hub, IKeyboardHandler* keyboard_handler) :
    sound_source_(sound_hub), 
    sound_hub_(sound_hub), 
    directories_(nullptr), 

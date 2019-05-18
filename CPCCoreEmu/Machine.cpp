@@ -35,7 +35,7 @@ const char* CartPath = "\\CART\\";
 EmulatorEngine::EmulatorEngine() :
    paste_size_(0), paste_count_(0), media_inserted_(&disk_type_manager_),
    do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_)
+   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
 {
 
    fdc_present_ = true;
@@ -74,7 +74,12 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
    paste_available_ = false;
    paste_wait_time_ = 3;
 
+   keyboardhandler_.SetDirectories(directories_);
+   keyboardhandler_.SetConfigurationManager(configuration_manager_);
+   keyboardhandler_.LoadKeyboardMap("FRENCH");
+
    motherboard_.InitMotherbard(log_, &sna_handler_, display_, notifier_, directories_, configuration_manager_);
+
 
    return true;
 }

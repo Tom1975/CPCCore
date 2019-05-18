@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #include "Motherboard.h"
 
-Motherboard::Motherboard(SoundMixer* sound_mixer): 
+Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_handler):
    generic_breakpoint_(nullptr),
    supervisor_(nullptr),
    plus_(false),
    address_bus_(16), data_bus_(8),
    memory_(&monitor_), 
-   psg_(sound_mixer, &keyboardhandler_),
+   keyboardhandler_(keyboard_handler),
+   psg_(sound_mixer, keyboardhandler_),
    netlist_int_(&signals_), 
    netlist_nmi_(&signals_.nmi_),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
@@ -102,9 +103,9 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    tape_.Init(directories, &ppi_, configuration_manager);
 
    psg_.SetDirectories(directories);
-   keyboardhandler_.SetDirectories(directories);
-   keyboardhandler_.SetConfigurationManager(configuration_manager);
-   keyboardhandler_.LoadKeyboardMap("FRENCH");
+   //keyboardhandler_.SetDirectories(directories);
+//   keyboardhandler_.SetConfigurationManager(configuration_manager);
+//   keyboardhandler_.LoadKeyboardMap("FRENCH");
 
    //UpdateComputer ();
 
