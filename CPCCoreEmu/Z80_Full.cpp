@@ -119,6 +119,11 @@ Z80::Z80(void) :
 
    carry_set_ = false;
 
+   for ( i = 0; i < 0x100; i++)
+   {
+      fetch_func[i] = &Z80::DefaultFetch;
+   }
+   fetch_func[0] = &Z80::Opcode_NOP;
    //InitOpcodes ();
    Reset();
 }
@@ -578,8 +583,15 @@ unsigned int Z80::Tick()
 
 int Z80::OpcodeFetch()
 {
-   unsigned int res; unsigned char btmp;
+   return (this->*fetch_func[current_opcode_&0xFF])();
+}
+
+unsigned int Z80::DefaultFetch()
+{
+   unsigned int res;
+   unsigned char btmp;
    int nextcycle;
+
 #include "Z80_Opcodes_fetch.h"
    if (machine_cycle_ == M_Z80_WORK)
    {
