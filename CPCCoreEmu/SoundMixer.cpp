@@ -253,6 +253,7 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
 void SoundMixer::AddSound(double  volume_left, double  volume_right)
 {
    buffer_list_[index_current_buffer_].buffer_.AddSound(volume_left, volume_right);
+
 }
 
 //
@@ -576,13 +577,17 @@ unsigned int SoundMixer::Tick()
          // Buffer is full ? Prepare next, and mark this one to be played
          buffer_list_[index_current_buffer_].status_ = BufferItem::TO_PLAY;
 
+#ifdef NO_MULTITHREAD
+         ConvertToWav(&buffer_list_[index_current_buffer_].buffer_);
+#else
+
          if(index_current_buffer_ == next_to_play)
          {
             int dbg = 1;
          }
 
          index_current_buffer_ = next_to_play;
-
+#endif
          if (buffer_list_[index_current_buffer_].status_ != BufferItem::FREE)
          {
             buffer_list_[index_current_buffer_].buffer_.InitBuffer();
