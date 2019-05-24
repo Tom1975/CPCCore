@@ -17,6 +17,7 @@ public:
    Ay8912(SoundMixer *sound_hub, IKeyboardHandler* keyboard_handler);
    virtual ~Ay8912(void);
 
+   void SetLog(ILog* log) { log_ = log; };
    virtual void SetDirectories(IDirectories * dir) {directories_ = dir;   };
    virtual void SetConfigurationManager(IConfiguration * configuration_manager) { configuration_manager_ = configuration_manager; }
    void Reset ();
@@ -31,6 +32,7 @@ public:
          ;
    }
 protected :
+   ILog* log_;
 
    void TickSound ();
 

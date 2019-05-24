@@ -128,7 +128,7 @@ public:
    virtual void SaveConfiguration (const char* config_name, const char* ini_file);
    virtual void LoadConfiguration (const char* config_name, const char* ini_file);
 
-   void SetLog(ILog* log) { log_ = log; motherboard_.SetLog(log_); }
+   void SetLog(ILog* log) { log_ = log; motherboard_.SetLog(log_);sound_mixer_.SetLog(log_);}
    void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);motherboard_.SetNotifier(notifier);}
 
    virtual int RunTimeSlice(bool dbg = false);

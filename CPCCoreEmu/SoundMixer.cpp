@@ -15,6 +15,17 @@
 #include "mkfilter.h"
 #endif
 
+#ifdef LOG_MIXER
+#define LOG(str)  if (log_) log_->WriteLog (str);
+#define LOGEOL if (log_) log_->EndOfLine ();
+#define LOGB(str)  if (log_) log_->WriteLogByte (str);
+#else
+#define LOG(str)
+#define LOGB(str)
+#define LOGEOL
+#endif
+
+
 SoundBuffer::SoundBuffer() : offset_(0)
 {
 }
@@ -62,7 +73,8 @@ SoundMixer::SoundMixer() :
    start_recording_(false), 
    stop_recording_(false), 
    tape_(nullptr), 
-   tape_adjust_volume_(0.02)
+   tape_adjust_volume_(0.02),
+   log_(nullptr)
 {
    // Everything, except firt, is on the "free buffer" list
    buffer_list_[0].Init();
@@ -240,6 +252,8 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
       delete worker_thread_;
    }
    finished_ = false;
+#else
+
 #endif
    sound_ = sound;
 #ifndef NO_MULTITHREAD
@@ -253,14 +267,14 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
 void SoundMixer::AddSound(double  volume_left, double  volume_right)
 {
    buffer_list_[index_current_buffer_].buffer_.AddSound(volume_left, volume_right);
-
+   LOG("Add sound.\n");
 }
 
 //
 // The downsampling (if needed) has to be rework with more math !
 void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
 {
-
+   LOG("ConvertToWav.\n");
    if (start_recording_ && !record_)
    {
       start_recording_ = false;
@@ -551,6 +565,8 @@ void SoundMixer::EndRecordImp()
 // This is a pragmatic value, set because it is the tick rate of AY8912 used by both CPC and PlayCITY
 unsigned int SoundMixer::Tick()
 {
+   LOG("Tick")
+   LOGEOL
    if (tape_ && tape_->SoundOn())
    {
       double tapeSnd = tape_->GetSoundVolume() * tape_adjust_volume_;
@@ -561,6 +577,7 @@ unsigned int SoundMixer::Tick()
    // Advance
    if (buffer_list_[index_current_buffer_].buffer_.Advance() == false )
    {
+      LOG("Buffer is full")
       // Synchronize
       int next_to_play = -1;
       for (int i = 0; i < 16; i++)

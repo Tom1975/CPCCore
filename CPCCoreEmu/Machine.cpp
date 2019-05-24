@@ -37,7 +37,7 @@ EmulatorEngine::EmulatorEngine() :
    do_snapshot_(false), current_settings_(nullptr),
    directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
 {
-
+   breakpoint_handler_.Init(this);
    fdc_present_ = true;
    pal_present_ = true;
    quick_sna_available_ = false;

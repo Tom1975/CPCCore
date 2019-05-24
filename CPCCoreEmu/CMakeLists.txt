@@ -5,7 +5,6 @@ file( GLOB SRCS
 	"*.cpp"
 	)
 
-
 file( GLOB HEADERS
 	"*.h"
 )
@@ -16,6 +15,7 @@ list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
 add_library(CPCCoreEmu ${SRCS} ${HEADERS})
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib)
+
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS

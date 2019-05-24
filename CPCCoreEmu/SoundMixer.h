@@ -9,6 +9,7 @@
 #include "simple_stdio.h"
 
 #include "ISound.h"
+#include "ILog.h"
 
 #ifndef MINIMUM_DEPENDENCIES
 #include <atomic>
@@ -43,6 +44,7 @@ public:
    virtual void StopMixer();
    virtual void StartMixer();
 
+   void SetLog(ILog* log) { log_ = log; };
    void Init(ISound* sound, IExternalSource* tape = nullptr);
 
    // Add sound
@@ -57,6 +59,7 @@ public:
    bool IsRecording() { return record_; };
 
 protected:
+   ILog* log_;
 
    // Filtering on output
    void FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples);

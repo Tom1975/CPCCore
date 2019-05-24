@@ -103,6 +103,7 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    tape_.Init(directories, &ppi_, configuration_manager);
 
    psg_.SetDirectories(directories);
+   psg_.SetLog(log);
    //keyboardhandler_.SetDirectories(directories);
 //   keyboardhandler_.SetConfigurationManager(configuration_manager);
 //   keyboardhandler_.LoadKeyboardMap("FRENCH");
