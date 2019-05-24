@@ -5,6 +5,7 @@
 #include "FormatTypeEDSK.h"
 #include "FormatTypeDSK.h"
 #include "FormatTypeHFE.h"
+#include "FormatTypeHFEv3.h"
 #ifndef NO_RAW_FORMAT
 #include "FormatTypeRAW.h"
 #endif
@@ -19,6 +20,7 @@ DiskBuilder::DiskBuilder(void)
    format_list_.push_back(new FormatTypeDSK()); // DSK
    format_list_.push_back(new FormatTypeEDSK()); // EDSK
    format_list_.push_back(new FormatTypeHFE()); // HFE
+   format_list_.push_back(new FormatTypeHFEv3()); // HFE
    format_list_.push_back(new FormatTypeIPF()); // IPF
 #ifndef NO_RAW_FORMAT
    format_list_.push_back(new FormatTypeSCP()); // SCP

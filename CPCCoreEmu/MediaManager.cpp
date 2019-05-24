@@ -153,6 +153,8 @@ int MediaManager::GetTypeFromBuffer(unsigned char* buffer, int size)
       || (memcmp(buffer, "SCP", 3) == 0)
       || (memcmp(buffer, "CAPS", 4) == 0)
       || (memcmp(buffer, "HXCPICFE", 8) == 0)
+      || (memcmp(buffer, "HXCHFEV3", 8) == 0)
+      
 #ifdef SUPPORT_SFWR
       || (memcmp(buffer, "FORM", 4) == 0)
 #endif
