@@ -15,16 +15,16 @@
 #include "mkfilter.h"
 #endif
 
-#ifdef LOG_MIXER
+//#ifdef LOG_MIXER
 #define LOG(str)  if (log_) log_->WriteLog (str);
 #define LOGEOL if (log_) log_->EndOfLine ();
 #define LOGB(str)  if (log_) log_->WriteLogByte (str);
-#else
+/*#else
 #define LOG(str)
 #define LOGB(str)
 #define LOGEOL
 #endif
-
+*/
 
 SoundBuffer::SoundBuffer() : offset_(0)
 {
@@ -267,14 +267,12 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
 void SoundMixer::AddSound(double  volume_left, double  volume_right)
 {
    buffer_list_[index_current_buffer_].buffer_.AddSound(volume_left, volume_right);
-   LOG("Add sound.\n");
 }
 
 //
 // The downsampling (if needed) has to be rework with more math !
 void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
 {
-   LOG("ConvertToWav.\n");
    if (start_recording_ && !record_)
    {
       start_recording_ = false;
@@ -313,7 +311,6 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
          buffer_right_[offset_buffer_to_convert_ + i] = float_buffer_r[i] * maxValue;
       }
       offset_buffer_to_convert_ += BUFFER_SIZE;
-
       // From convert_offset_  to 1024
       double div = 125000.0 / sound_->GetSampleRate(); // 44100.0;
       double add = 0.0;
@@ -331,7 +328,6 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             add++;
          }
          i += total_added;
-
          if (add >= div  && total_added != 0)
          {
             // If ok, add it
@@ -342,12 +338,10 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             if (right < -0x7FFF) right = -0x7FFF;
             if (left > 0x7FFF) left = 0x7FFF;
             if (left < -0x7FFF) left = -0x7FFF;
-
             AddRecord(left, right);
 
             data[current_wav_index_++] = left ;
             data[current_wav_index_++] = right ;
-
             if (((current_wav_index_ + 2) * sizeof(short) ) > current_wav_buffer_->buffer_length_)
             {
                // Play it and set a new one
@@ -362,7 +356,6 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
                }
                data = (short*)current_wav_buffer_->data_;
             }
-
             total_added = 0;
             left = right = 0;
             add -= div;
@@ -565,8 +558,6 @@ void SoundMixer::EndRecordImp()
 // This is a pragmatic value, set because it is the tick rate of AY8912 used by both CPC and PlayCITY
 unsigned int SoundMixer::Tick()
 {
-   LOG("Tick")
-   LOGEOL
    if (tape_ && tape_->SoundOn())
    {
       double tapeSnd = tape_->GetSoundVolume() * tape_adjust_volume_;
@@ -577,7 +568,6 @@ unsigned int SoundMixer::Tick()
    // Advance
    if (buffer_list_[index_current_buffer_].buffer_.Advance() == false )
    {
-      LOG("Buffer is full")
       // Synchronize
       int next_to_play = -1;
       for (int i = 0; i < 16; i++)

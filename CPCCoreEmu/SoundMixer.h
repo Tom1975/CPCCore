@@ -44,7 +44,7 @@ public:
    virtual void StopMixer();
    virtual void StartMixer();
 
-   void SetLog(ILog* log) { log_ = log; };
+   void SetLog(ILog* log) { log_ = log; log_->WriteLog("Init !"); };
    void Init(ISound* sound, IExternalSource* tape = nullptr);
 
    // Add sound
