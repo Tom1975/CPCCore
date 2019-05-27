@@ -167,7 +167,7 @@ public:
    inline void Reinit() {}
 protected:
    // Counter for buffer creation
-   double volume_[16];
+   static double volume_[16];
 
    SoundMixer * sound_mixer_;
 

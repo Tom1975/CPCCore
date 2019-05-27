@@ -15,16 +15,33 @@
 #include "mkfilter.h"
 #endif
 
-//#ifdef LOG_MIXER
+#ifdef LOG_MIXER
 #define LOG(str)  if (log_) log_->WriteLog (str);
 #define LOGEOL if (log_) log_->EndOfLine ();
 #define LOGB(str)  if (log_) log_->WriteLogByte (str);
-/*#else
+#else
 #define LOG(str)
 #define LOGB(str)
 #define LOGEOL
 #endif
-*/
+
+double SoundSource::volume_[16] = {  
+   0.0055242730304598808, 
+   0.0078125018626451492, 
+   0.011048545129597187,
+   0.015625003725290298,
+   0.022097090259194374, 
+   0.031250007450580597, 
+   0.044194180518388748,
+   0.062500007450580597,
+   0.088388353586196899,
+   0.12500001490116119,
+   0.17677670717239380, 
+   0.25000002980232239,
+   0.35355338454246521,
+   0.50000005960464478,
+   0.70710676908493042,
+   1.0 };
 
 SoundBuffer::SoundBuffer() : offset_(0)
 {
@@ -304,11 +321,14 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
       if (offset_buffer_to_convert_ > BUFFER_SIZE)
          offset_buffer_to_convert_ = 0;
 
-      int maxValue = (1 << (sound_->GetBitDepth() ))-1;
+      //int maxValue = (1 << (sound_->GetBitDepth() ))-1;
+      int maxValue = sound_->GetMaxValue();;
+      int minValue = sound_->GetMinValue();;
+
       for (int i = 0; i < BUFFER_SIZE; i++)
       {
-         buffer_left_[offset_buffer_to_convert_ + i] = float_buffer_l[i] * maxValue;
-         buffer_right_[offset_buffer_to_convert_ + i] = float_buffer_r[i] * maxValue;
+         buffer_left_[offset_buffer_to_convert_ + i] = minValue + float_buffer_l[i] * (maxValue- minValue);
+         buffer_right_[offset_buffer_to_convert_ + i] = minValue + float_buffer_r[i] * (maxValue - minValue);
       }
       offset_buffer_to_convert_ += BUFFER_SIZE;
       // From convert_offset_  to 1024
@@ -339,7 +359,6 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             if (left > 0x7FFF) left = 0x7FFF;
             if (left < -0x7FFF) left = -0x7FFF;
             AddRecord(left, right);
-
             data[current_wav_index_++] = left ;
             data[current_wav_index_++] = right ;
             if (((current_wav_index_ + 2) * sizeof(short) ) > current_wav_buffer_->buffer_length_)
@@ -564,7 +583,6 @@ unsigned int SoundMixer::Tick()
       buffer_list_[index_current_buffer_].buffer_.AddSound(tapeSnd, tapeSnd);
    }
 
-
    // Advance
    if (buffer_list_[index_current_buffer_].buffer_.Advance() == false )
    {
@@ -618,8 +636,6 @@ SoundSource::SoundSource(SoundMixer * sound_hub): sound_mixer_(sound_hub)
    {
       volume_[i] = ((1.0f / (pow(sqrt(2.0f), (15 - i))))) ;
    }
-#else
-	memset ( volume_ , 0, sizeof(volume_));
 #endif
 }
 

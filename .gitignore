@@ -32,3 +32,4 @@
 *.app
 /.vs/**
 /CPCCoreEmu/.vs/**
+/out/**

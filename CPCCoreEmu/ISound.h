@@ -31,6 +31,8 @@ class ISound : public ICfg
 public:
    virtual bool Init(int sample_rate, int sample_bits, int nb_channels) = 0;
    virtual void Reinit() = 0;
+   virtual unsigned int GetMaxValue() = 0;
+   virtual unsigned int GetMinValue() = 0;
    virtual unsigned int GetSampleRate() = 0;
    virtual unsigned int GetBitDepth() = 0;
    virtual unsigned int GetNbChannels() = 0;
