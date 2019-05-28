@@ -2,18 +2,6 @@
 #include "FormatTypeEDSK.h"
 #include "simple_stdio.h"
 
-#ifdef LOGFDC
-#define LOG(str) \
-   if (log_) log_->WriteLog (str);
-#define LOGEOL if (log_) log_->EndOfLine ();
-#define LOGB(str) \
-   if (log_) log_->WriteLogByte (str);
-#else
-#define LOG(str)
-#define LOGB(str)
-#define LOGEOL
-#endif
-
 // Data pattern : 0 0 0 0 0 0 0 0 0 0 A1 A1 A1
 unsigned char MFMDataPattern [15 * 16];
 
@@ -353,11 +341,7 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
                FillTrackMfm(new_disk, side, track, rev);
 
                IDisk::Track trk;
-               LOG("TRACK ");
-               LOG(i);
-               LOGEOL
                new_disk->GetTrackInfoForRev(side, track, &trk);
-               LOGEOL
             }
          }
       }
