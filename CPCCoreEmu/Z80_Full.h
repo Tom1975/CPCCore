@@ -321,12 +321,5 @@ public:
    void TraceTape(unsigned short pc, unsigned char value);
    ILog* log_;
    int count_;
-
-   
-   typedef unsigned int (Z80::*Func)();
-   Func fetch_func[0x100];
-
-   unsigned int DefaultFetch();
-   unsigned int Opcode_NOP();
 };
 
