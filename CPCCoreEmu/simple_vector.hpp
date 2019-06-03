@@ -4,6 +4,8 @@
    #include <vector>
 #else
 
+#pragma pack(push, 1)
+
 namespace std
 {
    template <class _Ty>
@@ -90,7 +92,7 @@ namespace std
          size_of_element_list_ *= 2;
          T* tmp = element_list_;
          element_list_ = (T*)new void* [ sizeof (T) * size_of_element_list_];
-         memcpy(element_list_, tmp, size_of_element_list_ * sizeof(T));
+         memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
       }
       element_list_[size_] = _Val;
@@ -106,7 +108,7 @@ namespace std
          size_of_element_list_ *= 2;
          T* tmp = element_list_;
          element_list_ = (T*)new void*[sizeof(T) * size_of_element_list_];
-         memcpy(element_list_, tmp, size_of_element_list_ * sizeof(T));
+         memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
       }
       element_list_[size_] = _Val;
@@ -157,6 +159,6 @@ namespace std
       return element_list_ + size_;
    }
 }
-
+#pragma pack(pop)
 
 #endif
