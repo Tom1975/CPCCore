@@ -4,16 +4,13 @@
 #include "Sig.h"
 #include "Memoire.h"
 
-// Create and add opcode to correct array
-
-
+/*
 unsigned int Z80::Opcode_NOP()
 {
-   unsigned int res;
    unsigned char btmp;
    int nextcycle;
 
-Begin:
+BeginNop:
    switch (current_opcode_) {
    case 0x00: NEXT_INSTR; break;// NOP
 //////////////////////////////////////////////////////////
@@ -25,17 +22,7 @@ Begin:
          || ((current_opcode_ & 0xFF00) == 0xDD00))
       {
          current_opcode_ &= 0xFF;
-         goto Begin;
-      }
-      else
-      {
-         if ((current_opcode_ & 0xFF00) != 0xED00)
-         {
-            // Assert !
-         }
-         /*#ifdef _WIN32
-                  _CrtDbgBreak();
-         #endif*/
+         goto BeginNop;
       }
 
       NEXT_INSTR;
@@ -50,3 +37,4 @@ Begin:
    }
    return 1;
 }
+*/
