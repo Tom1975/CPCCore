@@ -193,9 +193,8 @@ void DMA::SetPrescalar(unsigned char prescalar)
 
 unsigned int DMA::Tick()
 {
-
-   // todo
-   return 4;
+   // This is not handled it by now...
+   return 4000000;
 }
 
 void DMA::M1()

@@ -586,6 +586,7 @@ unsigned int Z80::Tick()
    return 1;
 }
 
+
 int Z80::OpcodeFetch()
 {
    return (this->*(*current_function_)[current_opcode_ & 0xFF])();

@@ -406,9 +406,13 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       RUN_COMPOSANT_N(asic_, elapsed_time_asic);
       RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
       RUN_COMPOSANT_N((z80_), elapsed_time_z80);
-      RUN_COMPOSANT_N(dma_[0], elapsed_time_dma);
-      RUN_COMPOSANT_N(dma_[1], elapsed_time_dma);
-      RUN_COMPOSANT_N(dma_[2], elapsed_time_dma);
+
+      /*if (elapsed_time_dma <= next_cycle)
+      {
+         dma_[0].Tick();
+         dma_[1].Tick();
+         elapsed_time_dma += dma_[2].Tick();
+      }*/
 
       for (int i = 0; i < signals_.nb_expansion_; i++)
       {
