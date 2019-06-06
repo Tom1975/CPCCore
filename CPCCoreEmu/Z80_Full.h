@@ -10,12 +10,6 @@
 ///////////////////////////////////////////////////////
 // MACRO
 ///////////////////////////////////////////////////////
-static unsigned char Sz[256];       /* zero and sign flags */
-static unsigned char SzBit[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
-static unsigned char Szp[256];      /* zero, sign and parity flags */
-static unsigned char SzhvInc[256]; /* zero, sign, half btmp and overflow flags INC r8 */
-static unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
-static unsigned char P[256];        /* Parity flag */
 
                             // Next instruction is ready
 #define SYNC_Z80 current_opcode_ = 0;sig_->iorw_ = false;
@@ -336,5 +330,13 @@ public:
 
    unsigned int DefaultFetch();
    unsigned int Opcode_NOP();
+
+   unsigned char Sz[256];       /* zero and sign flags */
+   unsigned char SzBit[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
+   unsigned char Szp[256];      /* zero, sign and parity flags */
+   unsigned char SzhvInc[256]; /* zero, sign, half btmp and overflow flags INC r8 */
+   unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
+   unsigned char P[256];        /* Parity flag */
+
 };
 
