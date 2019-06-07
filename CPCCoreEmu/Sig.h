@@ -67,10 +67,6 @@ public:
    bool req_int_;
    bool int_;
 
-   // I/O
-   bool iord_;
-   bool iorw_;
-
    // Bus d'adresse
    Bus* address_bus_;
 

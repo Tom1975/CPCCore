@@ -16,8 +16,6 @@
 CSig::CSig(void) : plus_(false), interrupt_io_data_(0xFF)
 {
    log_ = NULL;
-   iorw_ = false;
-   iord_ = false;
    h_sync_ = false;
    v_sync_ = false;
    dispen_ = false;
@@ -44,8 +42,6 @@ void CSig::Reset ()
 {
    h_sync_on_begining_of_line_ = false;
    pri_changed_ = false;
-   iorw_ = false;
-   iord_ = false;
    h_sync_ = h_sync_wr_ = false;
    v_sync_ = v_sync_wr_ = false;
    dispen_ = false;
@@ -80,40 +76,6 @@ void CSig::Propagate()
       req_nmi_ = false;
    }
 }
-
-/*void CSig::Tick ()
-{
-   // Update values from various signals
-   if (  z80_->system_ctrl_.MREQ == 1
-      && z80_->system_ctrl_.RD   == 1
-      )
-   {
-      // Set adress requested from z80_->address_;
-      z80_->data_ = memory_->Get ( z80_->address_ );
-   } else
-   if (  z80_->system_ctrl_.MREQ == 1
-      && z80_->system_ctrl_.WR   == 1
-      )
-   {
-      // Set adress requested from z80_->address_;
-      memory_->Set ( z80_->address_, z80_->data_ );
-   }
-   else
-      if (z80_->system_ctrl_.WR == 1
-         && z80_->system_ctrl_.IORQ == 1
-         )
-      {
-         // OUT
-         Out(z80_->address_, z80_->data_);
-      }
-   else if (
-         z80_->system_ctrl_.RD  == 1
-      && z80_->system_ctrl_.IORQ == 1)
-   {
-      In ( &z80_->data_, (z80_->address_>>8)&0xFF, (z80_->address_)&0xFF );
-   }
-
-}*/
 
 void CSig::M1()
 {
@@ -180,9 +142,6 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P/*, int delay*/ )
    {
       int dbg = 1;
    }
-
-
-   iorw_ = true;
 
    // Is it a PPI call ?
    if ( ((address_ &0x0800) ==0x0000 )

@@ -2,7 +2,6 @@
 
 Begin:
 switch (current_opcode_){
-case 0x00: NEXT_INSTR; break;// NOP
 case 0x01: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // LD BC, nn
 case 0x02: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = bc_.w; current_data_ = af_.b.h;read_count_ = 0;break; // LD (BC), A
 case 0x03: if ( t_ == 6){++bc_.w;NEXT_INSTR;}else{++t_;} break;                                                // INC BC
@@ -208,7 +207,6 @@ case 0xC9:
       TraceTape(pc_, af_.b.h);
       machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = sp_++;current_data_ = 0;read_count_ = 0;break; // RET
 case 0xCA: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // JP Z nn
-case 0xCB: machine_cycle_ = M_FETCH; t_ = 1;break;                              // CD Extension opcode
 case 0xCC: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // CALL Z nn
 case 0xCD: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = (pc_+2)>>8;read_count_ = 0;break; // CALL nn
 case 0xCE: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0; read_count_ = 0; break; // ADC_A, N
@@ -232,7 +230,6 @@ case 0xD9: EXCHANGE(bc_.w, bc_p_.w );EXCHANGE(de_.w, de_p_.w );EXCHANGE(hl_.w, h
 case 0xDA: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // JP C nn
 case 0xDB: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // IN A, n
 case 0xDC: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // CALL C nn
-case 0xDD: machine_cycle_ = M_FETCH; t_ = 1; break;                             // DD Extension opcode
 case 0xDE: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break;// SBC n
 case 0xDF: if ( t_ == 5) {machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_>>8;read_count_ = 0;}else{++t_;}break; // RST 18
 case 0xE0: if ( t_ == 5) { TSTN(PF){machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = sp_++;current_data_ = 0;read_count_ = 0;}else{NEXT_INSTR}}else{++t_;}break;// RET PO
@@ -248,7 +245,6 @@ case 0xE9: pc_ = hl_.w;NEXT_INSTR;break;   // JP (HL)
 case 0xEA: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // JP PE nn
 case 0xEB: EXCHANGE(de_.w, hl_.w); NEXT_INSTR; break;//EX DE, HL
 case 0xEC: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // CALL PE nn
-case 0xED: machine_cycle_ = M_FETCH; t_ = 1; break;                             // ED Extension opcode
 case 0xEE: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break;// XOR n
 case 0xEF: if ( t_ == 5) {machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_>>8;read_count_ = 0;}else{++t_;}break; // RST 28
 case 0xF0: if ( t_ == 5) { TSTN(SF){machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = sp_++;current_data_ = 0;read_count_ = 0;}else{NEXT_INSTR}}else{++t_;}break;// RET M
@@ -264,7 +260,6 @@ case 0xF9: if ( t_ == 6) { sp_ = hl_.w; NEXT_INSTR;}else{++t_;}break;// LD SP, H
 case 0xFA: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // JP M nn
 case 0xFB: iff1_ = true;iff2_ = true;NEXT_INSTR_EI; break;                        // EI
 case 0xFC: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // CALL M nn
-case 0xFD: machine_cycle_ = M_FETCH; t_ = 1; break;                             // FD Extension opcode
 case 0xFE: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break;// CP n;
 case 0xFF: if ( t_ == 5) {machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_>>8;read_count_ = 0;}else{++t_;}break; // RST 38
    //////////////////////////////////////////////////////////

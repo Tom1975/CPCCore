@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////
 
                             // Next instruction is ready
-#define SYNC_Z80 current_opcode_ = 0;sig_->iorw_ = false;
+#define SYNC_Z80 current_opcode_ = 0;
 
 #define VAR_DECL  unsigned int res;unsigned char btmp;unsigned short utmp;\
                   int sres;char sbtmp;short stmp;int nextcycle;
@@ -20,19 +20,15 @@
 #define SET_NMI machine_cycle_=M_M1_NMI;t_ = 1;SYNC_Z80;return 1;
 #define SET_INT machine_cycle_=M_M1_INT;t_ = 1;SYNC_Z80;return 1;
 
-                            // Compute to avoid waiting cycles :
-                            //#define SET_NOINT machine_cycle_=M_FETCH;t_ = 1;SYNC_Z80;return 1;
+#define SET_NOINT if (!stop_on_fetch_){INC_R;machine_cycle_=M_FETCH;t_ = 4;rw_opcode_=false;\
+            current_opcode_ = memory_->Get ( pc_++);nextcycle = 4 - ((counter_+1) & 0x3)+1;counter_+=nextcycle+1;return nextcycle+2;}\
+            else {machine_cycle_=M_FETCH;t_ = 1;rw_opcode_=false;\
+            current_opcode_ = 0;return 1;}
 
-/*#define SET_NOINT INC_R;machine_cycle_=M_FETCH;t_ = 4;sig_->IORW = false;rw_opcode_=false;\
-            current_opcode_ = memory_->Get ( pc_++);nextcycle = 4 - ((counter_+1) & 0x3)+1;counter_+=nextcycle+1;return nextcycle+2;*/
-#define SET_NOINT if (stop_on_fetch_){machine_cycle_=M_FETCH;t_ = 1;sig_->iorw_ = false;rw_opcode_=false;\
-            current_opcode_ = 0;return 1;}\
-            else{INC_R;machine_cycle_=M_FETCH;t_ = 4;sig_->iorw_ = false;rw_opcode_=false;\
-            current_opcode_ = memory_->Get ( pc_++);nextcycle = 4 - ((counter_+1) & 0x3)+1;counter_+=nextcycle+1;return nextcycle+2;}
 
-#define NEXT_INSTR         if (sig_->nmi_){SET_NMI;}else if ((sig_->int_) && iff1_) {SET_INT;}else{SET_NOINT;}
-#define NEXT_INSTR_LDAIR   if (sig_->nmi_){carry_set_ = true;SET_NMI;}else if ((sig_->int_) && iff1_) {carry_set_ = true;SET_INT;}else{carry_set_ = false;SET_NOINT;}
-#define NEXT_INSTR_EI      if (sig_->nmi_){SET_NMI;}SET_NOINT;
+#define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
+#define NEXT_INSTR_LDAIR   current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {carry_set_ = false;SET_NOINT;}else{carry_set_ = true;SET_INT;}}else{carry_set_ = true;SET_NMI;}
+#define NEXT_INSTR_EI      current_function_ = &fetch_func;if (!sig_->nmi_)SET_NOINT;{SET_NMI;}
 
 // INC R
 #define INC_R           ir_.b.l = ( ( (ir_.b.l+1) & 0x7F) | (ir_.b.l & 0x80));
@@ -316,7 +312,13 @@ public:
    ILog* log_;
    int count_;
 
-   
+   unsigned char Sz[256];       /* zero and sign flags */
+   unsigned char SzBit[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
+   unsigned char Szp[256];      /* zero, sign and parity flags */
+   unsigned char SzhvInc[256]; /* zero, sign, half btmp and overflow flags INC r8 */
+   unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
+   unsigned char P[256];        /* Parity flag */
+
    typedef unsigned int (Z80::*Func)();
    typedef Func ListFunction[0x100];
 
@@ -330,13 +332,9 @@ public:
 
    unsigned int DefaultFetch();
    unsigned int Opcode_NOP();
-
-   unsigned char Sz[256];       /* zero and sign flags */
-   unsigned char SzBit[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
-   unsigned char Szp[256];      /* zero, sign and parity flags */
-   unsigned char SzhvInc[256]; /* zero, sign, half btmp and overflow flags INC r8 */
-   unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
-   unsigned char P[256];        /* Parity flag */
-
+   unsigned int Opcode_CB();
+   unsigned int Opcode_ED();
+   unsigned int Opcode_DD();
+   unsigned int Opcode_FD();
 };
 

@@ -84,22 +84,6 @@ Z80::Z80(void) :
       if (i == 0x7f) SzhvDec[i] |= VF;
       if ((i & 0x0f) == 0x0f) SzhvDec[i] |= HF;
    }
-   // Set register access
-   /*m_PairRegAccess[0] = &bc_.w;
-   m_PairRegAccess[1] = &de_.w;
-   m_PairRegAccess[2] = &hl_.w;
-   m_PairRegAccess[3] = &sp_;
-   m_PairRegAccess[4] = &bc_p_.w;
-   m_PairRegAccess[5] = &de_p_.w;
-   m_PairRegAccess[6] = &hl_p_.w;*/
-
-   /*m_RegAccess[0] = &bc_.b.h;
-   m_RegAccess[1] = &bc_.b.l;
-   m_RegAccess[2] = &de_.b.h;
-   m_RegAccess[3] = &de_.b.l;
-   m_RegAccess[4] = &hl_.b.h;
-   m_RegAccess[5] = &hl_.b.l;
-   m_RegAccess[7] = &af_.b.h;*/
 
    bc_.w = 0;
    de_.w = 0;
@@ -126,6 +110,10 @@ Z80::Z80(void) :
       fetch_func_FD_[i] = &Z80::DefaultFetch;
    }
    fetch_func[0] = &Z80::Opcode_NOP;
+   fetch_func[0xCB] = &Z80::Opcode_CB;
+   fetch_func[0xED] = &Z80::Opcode_ED;
+   fetch_func[0xDD] = &Z80::Opcode_DD;
+   fetch_func[0xFD] = &Z80::Opcode_FD;
 
    current_function_ = &fetch_func;
 
@@ -590,7 +578,6 @@ unsigned int Z80::Tick()
 int Z80::OpcodeFetch()
 {
    return (this->*(*current_function_)[current_opcode_ & 0xFF])();
-   //return (this->*fetch_func[current_opcode_&0xFF])();
 }
 
 unsigned int Z80::DefaultFetch()
