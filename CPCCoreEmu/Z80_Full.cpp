@@ -111,9 +111,56 @@ Z80::Z80(void) :
    }
    fetch_func[0] = &Z80::Opcode_NOP;
    fetch_func[0xCB] = &Z80::Opcode_CB;
-   fetch_func[0xED] = &Z80::Opcode_ED;
-   fetch_func[0xDD] = &Z80::Opcode_DD;
    fetch_func[0xFD] = &Z80::Opcode_FD;
+
+   fetch_func[0x01] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x06] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x0E] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x11] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x16] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x18] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x1E] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x20] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x20] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x21] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x22] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x26] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x28] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x2A] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x2E] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x30] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x31] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x32] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x36] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x38] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x3A] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0x3E] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xC2] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xC3] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xC4] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xCA] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xCC] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xD2] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xD3] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xD4] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xD6] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xDA] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xDB] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xDC] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xDD] = &Z80::Opcode_DD;
+   fetch_func[0xDE] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xE2] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xE4] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xE6] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xEA] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xEC] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xED] = &Z80::Opcode_ED;
+   fetch_func[0xEE] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xF2] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xF4] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xFA] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xFC] = &Z80::Opcode_Memory_Read_PC;
+   fetch_func[0xFE] = &Z80::Opcode_Memory_Read_PC;
 
    current_function_ = &fetch_func;
 
@@ -429,6 +476,7 @@ unsigned int Z80::Tick()
    {
       //#include "Z80_Opcodes_fetch.h"
       int val = OpcodeFetch();
+      //int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
       if (pc_ == 0x61D || pc_ == 0x628)
       {
       }

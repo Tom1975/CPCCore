@@ -336,5 +336,7 @@ public:
    unsigned int Opcode_ED();
    unsigned int Opcode_DD();
    unsigned int Opcode_FD();
+
+   unsigned int Opcode_Memory_Read_PC();
 };
 

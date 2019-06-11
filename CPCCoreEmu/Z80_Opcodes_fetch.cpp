@@ -49,3 +49,14 @@ unsigned int Z80::Opcode_NOP()
    }
    SET_NMI;
 }
+
+unsigned int Z80::Opcode_Memory_Read_PC()
+{
+   machine_cycle_ = M_MEMORY_R; 
+   t_ = 1; 
+   current_address_ = pc_; 
+   current_data_ = 0; 
+   read_count_ = 0;  // LD BC, nn   
+   return 1;
+}
+
