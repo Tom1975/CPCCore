@@ -27,6 +27,17 @@
 
 
 #define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
+
+#define NEXT_INSTR_RES(reset_ptr)\
+   if(reset_ptr)current_function_ = &fetch_func;\
+   if (!sig_->nmi_ && ((!sig_->int_) || !iff1_)){\
+         SET_NOINT;}\
+      if ((sig_->int_) && iff1_) {\
+      {SET_INT;}\
+   }else {SET_NMI;}
+
+
+
 #define NEXT_INSTR_LDAIR   current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {carry_set_ = false;SET_NOINT;}else{carry_set_ = true;SET_INT;}}else{carry_set_ = true;SET_NMI;}
 #define NEXT_INSTR_EI      current_function_ = &fetch_func;if (!sig_->nmi_)SET_NOINT;{SET_NMI;}
 
@@ -287,19 +298,55 @@ public:
 #define MAX_DISASSEMBLY_SIZE 32
    typedef struct
    {
-      unsigned short (Z80::* func)();
+      //unsigned short (Z80::* func)();
       unsigned char size;
       char disassembly[MAX_DISASSEMBLY_SIZE];
 
    }Opcode;
 
-   Opcode FillStructOpcode(unsigned short(Z80::* func)(), unsigned char Size, const char* disassembly)
+   typedef unsigned int (Z80::*Func)();
+   typedef Func ListFunction[0x100];
+
+   typedef enum
    {
-      Opcode op;
-      op.func = func;
-      op.size = Size;
-      strcpy(op.disassembly, disassembly);
-      return op;
+      None,
+      CB, 
+      ED,
+      DD,
+      FD
+   } OpcodeType;
+
+   template<OpcodeType type>
+   void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
+   {
+      Opcode *op;
+      ListFunction* fetch;
+      switch( type )
+      {
+      case None:
+         op = &liste_opcodes_[opcode];
+         fetch = &fetch_func;
+         break;
+      case CB:
+         op = &liste_opcodes_cb_[opcode];
+         fetch = &fetch_func_cb_;
+         break;
+      case ED:
+         op = &liste_opcodes_ed_[opcode];
+         fetch = &fetch_func_ed_;
+         break;
+      case DD:
+         op = &liste_opcodes_dd_[opcode];
+         fetch = &fetch_func_dd_;
+         break;
+      case FD:
+         op = &liste_opcodes_fd_[opcode];
+         fetch = &fetch_func_fd_;
+         break;
+      }
+      op->size = Size;
+      strcpy(op->disassembly, disassembly);
+      (*fetch)[opcode] = func;
    };
 
    Opcode liste_opcodes_[256];
@@ -319,14 +366,11 @@ public:
    unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
    unsigned char P[256];        /* Parity flag */
 
-   typedef unsigned int (Z80::*Func)();
-   typedef Func ListFunction[0x100];
-
    ListFunction fetch_func;
-   ListFunction fetch_func_CB_;
-   ListFunction fetch_func_ED_;
-   ListFunction fetch_func_DD_;
-   ListFunction fetch_func_FD_;
+   ListFunction fetch_func_cb_;
+   ListFunction fetch_func_ed_;
+   ListFunction fetch_func_dd_;
+   ListFunction fetch_func_fd_;
 
    ListFunction * current_function_;
 
@@ -338,5 +382,31 @@ public:
    unsigned int Opcode_FD();
 
    unsigned int Opcode_Memory_Read_PC();
+
+   typedef enum
+   {
+      ADDR_BC,
+      ADDR_DE,
+      ADDR_HL,
+      ADDR_IX,
+      ADDR_IY,
+   } AddressRegisters;
+
+   typedef enum
+   {
+      R_A,
+      R_F,
+      R_B,
+      R_C,
+      R_D,
+      R_E,
+   } Registers;
+   
+   template<AddressRegisters addr, Registers reg>
+   unsigned int Opcode_Memory_Write_Addr_Reg();
+
+   template<Z80::Registers reg, bool reset_ptr>
+   unsigned int Opcode_Inc_Reg();
 };
 
+#include "Z80_Opcodes.hpp"

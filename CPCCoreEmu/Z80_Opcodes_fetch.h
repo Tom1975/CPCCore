@@ -2,8 +2,6 @@
 
 Begin:
 switch (current_opcode_){
-case 0x01: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0;read_count_ = 0;break; // LD BC, nn
-case 0x02: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = bc_.w; current_data_ = af_.b.h;read_count_ = 0;break; // LD (BC), A
 case 0x03: if ( t_ == 6){++bc_.w;NEXT_INSTR;}else{++t_;} break;                                                // INC BC
 case 0x04: INC_FLAGS (bc_.b.h);NEXT_INSTR; break;                                                                     // INC B
 case 0x05: DEC_FLAGS (bc_.b.h);NEXT_INSTR; break;                                                                     // DEC
