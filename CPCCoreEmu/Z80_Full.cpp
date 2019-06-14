@@ -414,8 +414,8 @@ unsigned int Z80::Tick()
    case M_FETCH + 12:
    {
       //#include "Z80_Opcodes_fetch.h"
-      int val = OpcodeFetch();
-      //int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
+      //int val = OpcodeFetch();
+      int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
       if (pc_ == 0x61D || pc_ == 0x628)
       {
       }

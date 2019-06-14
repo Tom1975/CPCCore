@@ -10,6 +10,7 @@ void Z80::InitOpcodeShortcuts()
    // Par defaut, tout le monde pointe sur NOP
    for (unsigned int i = 0; i < 256; i++)
    {
+      FillStructOpcode<None>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<CB>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<ED>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<DD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
@@ -33,7 +34,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x09, &Z80::DefaultFetch, 1, "ADD HL, BC");
    FillStructOpcode<None>(0x0A, &Z80::DefaultFetch, 1, "LD A, (BC)");
    FillStructOpcode<None>(0x0B, &Z80::DefaultFetch, 1, "DEC BC");
-   FillStructOpcode<None>(0x0C, &Z80::DefaultFetch, 1, "INC C");
+   FillStructOpcode<None>(0x0C, &Z80::Opcode_Inc_Reg<R_C, false>, 1, "INC C");
    FillStructOpcode<None>(0x0D, &Z80::DefaultFetch, 1, "DEC C");
    FillStructOpcode<None>(0x0E, &Z80::Opcode_Memory_Read_PC, 2, "LD C,  %n");
    FillStructOpcode<None>(0x0F, &Z80::DefaultFetch, 1, "RRCA");
@@ -41,7 +42,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x11, &Z80::Opcode_Memory_Read_PC, 3, "LD DE, %nn__");
    FillStructOpcode<None>(0x12, &Z80::DefaultFetch, 1, "LD (DE), A");
    FillStructOpcode<None>(0x13, &Z80::DefaultFetch, 1, "INC DE");
-   FillStructOpcode<None>(0x14, &Z80::DefaultFetch, 1, "INC D");
+   FillStructOpcode<None>(0x14, &Z80::Opcode_Inc_Reg<R_D, false>, 1, "INC D");
    FillStructOpcode<None>(0x15, &Z80::DefaultFetch, 1, "DEC D");
    FillStructOpcode<None>(0x16, &Z80::Opcode_Memory_Read_PC, 2, "LD D,  %n");
    FillStructOpcode<None>(0x17, &Z80::DefaultFetch, 1, "RLA");
@@ -49,7 +50,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x19, &Z80::DefaultFetch, 1, "ADD HL, DE");
    FillStructOpcode<None>(0x1A, &Z80::DefaultFetch, 1, "LD A, (DE)");
    FillStructOpcode<None>(0x1B, &Z80::DefaultFetch, 1, "DEC DE");
-   FillStructOpcode<None>(0x1C, &Z80::DefaultFetch, 1, "INC E");
+   FillStructOpcode<None>(0x1C, &Z80::Opcode_Inc_Reg<R_E, false>, 1, "INC E");
    FillStructOpcode<None>(0x1D, &Z80::DefaultFetch, 1, "DEC E");
    FillStructOpcode<None>(0x1E, &Z80::Opcode_Memory_Read_PC, 2, "LD E,  %n");
    FillStructOpcode<None>(0x1F, &Z80::DefaultFetch, 1, "RRA");
@@ -57,7 +58,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x21, &Z80::Opcode_Memory_Read_PC, 3, "LD HL, %nn__");
    FillStructOpcode<None>(0x22, &Z80::Opcode_Memory_Read_PC, 3, "LD (%nn__), HL");
    FillStructOpcode<None>(0x23, &Z80::DefaultFetch, 1, "INC HL");
-   FillStructOpcode<None>(0x24, &Z80::DefaultFetch, 1, "INC H");
+   FillStructOpcode<None>(0x24, &Z80::Opcode_Inc_Reg<R_H, false>, 1, "INC H");
    FillStructOpcode<None>(0x25, &Z80::DefaultFetch, 1, "DEC H");
    FillStructOpcode<None>(0x26, &Z80::Opcode_Memory_Read_PC, 2, "LD H,  %n");
    FillStructOpcode<None>(0x27, &Z80::DefaultFetch, 1, "DAA");
@@ -65,7 +66,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x29, &Z80::DefaultFetch, 1, "ADD HL, HL");
    FillStructOpcode<None>(0x2A, &Z80::Opcode_Memory_Read_PC, 3, "LD HL, (%nn__)");
    FillStructOpcode<None>(0x2B, &Z80::DefaultFetch, 1, "DEC HL");
-   FillStructOpcode<None>(0x2C, &Z80::DefaultFetch, 1, "INC L");
+   FillStructOpcode<None>(0x2C, &Z80::Opcode_Inc_Reg<R_L, false>, 1, "INC L");
    FillStructOpcode<None>(0x2D, &Z80::DefaultFetch, 1, "DEC L");
    FillStructOpcode<None>(0x2E, &Z80::Opcode_Memory_Read_PC, 2, "LD L,  %n");
    FillStructOpcode<None>(0x2F, &Z80::DefaultFetch, 1, "CPL");
@@ -81,7 +82,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x39, &Z80::DefaultFetch, 1, "ADD HL, SP");
    FillStructOpcode<None>(0x3A, &Z80::Opcode_Memory_Read_PC, 3, "LD A, (%nn__)");
    FillStructOpcode<None>(0x3B, &Z80::DefaultFetch, 1, "DEC SP");
-   FillStructOpcode<None>(0x3C, &Z80::DefaultFetch, 1, "INC A");
+   FillStructOpcode<None>(0x3C, &Z80::Opcode_Inc_Reg<R_A, false>, 1, "INC A");
    FillStructOpcode<None>(0x3D, &Z80::DefaultFetch, 1, "DEC A");
    FillStructOpcode<None>(0x3E, &Z80::Opcode_Memory_Read_PC, 2, "LD A, %n");
    FillStructOpcode<None>(0x3F, &Z80::DefaultFetch, 1, "CCF");

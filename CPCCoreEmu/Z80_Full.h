@@ -400,6 +400,8 @@ public:
       R_C,
       R_D,
       R_E,
+      R_H,
+      R_L
    } Registers;
    
    template<AddressRegisters addr, Registers reg>
