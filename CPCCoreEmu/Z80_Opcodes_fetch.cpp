@@ -25,7 +25,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x00, &Z80::Opcode_NOP, 1, "NOP");
    FillStructOpcode<None>(0x01, &Z80::Opcode_Memory_Read_PC, 3, "LD BC, %nn__");
    FillStructOpcode<None>(0x02, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_BC, R_A>, 1, "LD (BC), A");
-   FillStructOpcode<None>(0x03, &Z80::DefaultFetch, 1, "INC BC");
+   FillStructOpcode<None>(0x03, &Z80::Opcode_Inc_RegW<ADDR_BC, false>, 1, "INC BC");
    FillStructOpcode<None>(0x04, &Z80::Opcode_Inc_Reg<R_B, false>, 1, "INC B");
    FillStructOpcode<None>(0x05, &Z80::DefaultFetch, 1, "DEC B");
    FillStructOpcode<None>(0x06, &Z80::Opcode_Memory_Read_PC, 2, "LD B, %n");
@@ -41,7 +41,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x10, &Z80::DefaultFetch, 2, "DJNZ %j__");
    FillStructOpcode<None>(0x11, &Z80::Opcode_Memory_Read_PC, 3, "LD DE, %nn__");
    FillStructOpcode<None>(0x12, &Z80::DefaultFetch, 1, "LD (DE), A");
-   FillStructOpcode<None>(0x13, &Z80::DefaultFetch, 1, "INC DE");
+   FillStructOpcode<None>(0x13, &Z80::Opcode_Inc_RegW<ADDR_DE, false>, 1, "INC DE");
    FillStructOpcode<None>(0x14, &Z80::Opcode_Inc_Reg<R_D, false>, 1, "INC D");
    FillStructOpcode<None>(0x15, &Z80::DefaultFetch, 1, "DEC D");
    FillStructOpcode<None>(0x16, &Z80::Opcode_Memory_Read_PC, 2, "LD D,  %n");
@@ -57,7 +57,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x20, &Z80::Opcode_Memory_Read_PC, 2, "JR NZ  %j__");
    FillStructOpcode<None>(0x21, &Z80::Opcode_Memory_Read_PC, 3, "LD HL, %nn__");
    FillStructOpcode<None>(0x22, &Z80::Opcode_Memory_Read_PC, 3, "LD (%nn__), HL");
-   FillStructOpcode<None>(0x23, &Z80::DefaultFetch, 1, "INC HL");
+   FillStructOpcode<None>(0x23, &Z80::Opcode_Inc_RegW<ADDR_HL, false>, 1, "INC HL");
    FillStructOpcode<None>(0x24, &Z80::Opcode_Inc_Reg<R_H, false>, 1, "INC H");
    FillStructOpcode<None>(0x25, &Z80::DefaultFetch, 1, "DEC H");
    FillStructOpcode<None>(0x26, &Z80::Opcode_Memory_Read_PC, 2, "LD H,  %n");
@@ -73,7 +73,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x30, &Z80::Opcode_Memory_Read_PC, 2, "JR NC  %j__");
    FillStructOpcode<None>(0x31, &Z80::Opcode_Memory_Read_PC, 3, "LD SP, %nn__");
    FillStructOpcode<None>(0x32, &Z80::Opcode_Memory_Read_PC, 3, "LD (%nn__), A");
-   FillStructOpcode<None>(0x33, &Z80::DefaultFetch, 1, "INC SP");
+   FillStructOpcode<None>(0x33, &Z80::Opcode_Inc_RegW<ADDR_SP, false>, 1, "INC SP");
    FillStructOpcode<None>(0x34, &Z80::DefaultFetch, 1, "INC (HL)");
    FillStructOpcode<None>(0x35, &Z80::DefaultFetch, 1, "DEC (HL)");
    FillStructOpcode<None>(0x36, &Z80::Opcode_Memory_Read_PC, 2, "LD (HL), %n");
@@ -601,6 +601,7 @@ unsigned int Z80::Opcode_FD()
 unsigned int Z80::Opcode_NOP()
 {
    int nextcycle;
+   NEXT_INSTR
 
    if (!sig_->nmi_)
    {

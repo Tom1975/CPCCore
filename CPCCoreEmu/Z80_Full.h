@@ -390,6 +390,7 @@ public:
       ADDR_HL,
       ADDR_IX,
       ADDR_IY,
+      ADDR_SP
    } AddressRegisters;
 
    typedef enum
@@ -409,6 +410,10 @@ public:
 
    template<Z80::Registers reg, bool reset_ptr>
    unsigned int Opcode_Inc_Reg();
+
+   template<Z80::AddressRegisters reg, bool reset_ptr>
+   unsigned int Opcode_Inc_RegW();
+
 };
 
 #include "Z80_Opcodes.hpp"

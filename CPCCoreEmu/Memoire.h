@@ -97,7 +97,7 @@ public:
    inline unsigned short GetWWriteDbg(unsigned short i, unsigned int ram_bank) {return ((GetWriteDbg ( i+1 , ram_bank)<<8) + (GetWriteDbg(i, ram_bank)));};
    inline void SetDbg ( unsigned short addr, unsigned char data , unsigned int ram_bank) {(*ram_write_[ram_bank])[addr & 0x3FFF] = data;};
    inline void SetWordDbg ( unsigned short addr, unsigned short data , unsigned int ram_bank){   SetDbg( addr, data&0xff, ram_bank);SetDbg( addr+1, data>>8, ram_bank);};
-
+   inline unsigned char *GetRamRead(unsigned int ram_bank) { return *ram_read_[ram_bank]; }
    //
    inline unsigned char* GetRomBuffer() {return rom_[0];};
    inline unsigned char* GetCartridge(int index) {
