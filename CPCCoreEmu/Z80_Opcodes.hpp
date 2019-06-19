@@ -25,6 +25,17 @@ unsigned int Z80::Opcode_Inc_Reg()
    NEXT_INSTR_RES((current_opcode_ & 0xFFFF00) && reset_ptr)
 }
 
+template<Z80::Registers reg, bool reset_ptr>
+unsigned int Z80::Opcode_Dec_Reg()
+{
+   int nextcycle;
+   REG(reg)--;
+   q_ = (af_.b.l&CF) | SzhvDec[REG(reg)];
+   af_.b.l = q_;
+
+   NEXT_INSTR_RES((current_opcode_ & 0xFFFF00) && reset_ptr)
+}
+
 template<Z80::AddressRegisters reg, bool reset_ptr>
 unsigned int Z80::Opcode_Inc_RegW()
 {
@@ -39,4 +50,14 @@ unsigned int Z80::Opcode_Inc_RegW()
       REGW(reg)++;
       NEXT_INSTR_RES((current_opcode_&0xFFFF00)&& reset_ptr)
    }
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Dec_RegW()
+{
+   machine_cycle_ = M_Z80_WORK; 
+   REGW(reg)--;
+   counter_ += (2 - 1);
+   t_ = 1;
+   return 2;
 }

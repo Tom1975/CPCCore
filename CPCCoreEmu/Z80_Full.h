@@ -313,7 +313,7 @@ public:
       CB, 
       ED,
       DD,
-      FD
+      FD,
    } OpcodeType;
 
    template<OpcodeType type>
@@ -411,8 +411,14 @@ public:
    template<Z80::Registers reg, bool reset_ptr>
    unsigned int Opcode_Inc_Reg();
 
+   template<Z80::Registers reg, bool reset_ptr>
+   unsigned int Opcode_Dec_Reg();
+
    template<Z80::AddressRegisters reg, bool reset_ptr>
    unsigned int Opcode_Inc_RegW();
+
+   template<Z80::AddressRegisters reg>
+   unsigned int Opcode_Dec_RegW();
 
 };
 
