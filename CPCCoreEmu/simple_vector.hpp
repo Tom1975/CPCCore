@@ -75,7 +75,7 @@ namespace std
    template <typename T>
    vector<T>::vector(unsigned int size) : size_(0), size_of_element_list_(size), element_list_(nullptr)
    {
-      element_list_ = new T[size_];
+      element_list_ = new T[size_of_element_list_];
    }
 
    template <typename T>
