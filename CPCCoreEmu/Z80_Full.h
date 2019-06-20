@@ -385,12 +385,17 @@ public:
 
    typedef enum
    {
+      ADDR_AF,
       ADDR_BC,
       ADDR_DE,
       ADDR_HL,
       ADDR_IX,
       ADDR_IY,
-      ADDR_SP
+      ADDR_SP,
+      ADDR_AFP,
+      ADDR_BCP,
+      ADDR_DEP,
+      ADDR_HLP
    } AddressRegisters;
 
    typedef enum
@@ -420,6 +425,11 @@ public:
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Dec_RegW();
 
+   template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
+   unsigned int Opcode_EX();
+   
+
+   unsigned int Opcode_RLCA();
 };
 
 #include "Z80_Opcodes.hpp"
