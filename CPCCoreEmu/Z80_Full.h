@@ -381,10 +381,9 @@ public:
    unsigned int Opcode_DD();
    unsigned int Opcode_FD();
 
-   unsigned int Opcode_Memory_Read_PC();
-
    typedef enum
    {
+      ADDR_PC,
       ADDR_AF,
       ADDR_BC,
       ADDR_DE,
@@ -409,7 +408,10 @@ public:
       R_H,
       R_L
    } Registers;
-   
+
+   template<AddressRegisters reg>
+   unsigned int Opcode_Memory_Read_REGW();
+
    template<AddressRegisters addr, Registers reg>
    unsigned int Opcode_Memory_Write_Addr_Reg();
 
@@ -427,7 +429,9 @@ public:
 
    template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
    unsigned int Opcode_EX();
-   
+
+   template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
+   unsigned int Opcode_ADD_REGW();
 
    unsigned int Opcode_RLCA();
 };
