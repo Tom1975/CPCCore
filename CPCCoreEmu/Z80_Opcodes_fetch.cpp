@@ -19,6 +19,12 @@ void Z80::InitOpcodeShortcuts()
 
    current_function_ = &fetch_func;
 
+   FillStructOpcode<None>(0xCB, &Z80::Opcode_CB, 1, "%CB");
+   FillStructOpcode<None>(0xED, &Z80::Opcode_ED, 1, "%ED");
+   FillStructOpcode<None>(0xDD, &Z80::Opcode_DD, 1, "%DD");
+   FillStructOpcode<None>(0xFD, &Z80::Opcode_FD, 1, "%FD");
+
+
    // Opcodes standards
    ///////////////////////////////////////////////////////////////////////////////////////
    /////////////                           FUNCTION       SIZE   DISASSMBLY
@@ -37,8 +43,10 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x0C, &Z80::Opcode_Inc_Reg<R_C, false>, 1, "INC C");
    FillStructOpcode<None>(0x0D, &Z80::Opcode_Dec_Reg<R_C, false>, 1, "DEC C");
    FillStructOpcode<None>(0x0E, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "LD C,  %n");
-   FillStructOpcode<None>(0x0F, &Z80::DefaultFetch, 1, "RRCA");
-   FillStructOpcode<None>(0x10, &Z80::DefaultFetch, 2, "DJNZ %j__");
+   FillStructOpcode<None>(0x0F, &Z80::Opcode_RRCA, 1, "RRCA");
+
+   FillStructOpcode<None>(0x10, &Z80::Opcode_Memory_Read_Delayed<ADDR_PC, 5>, 2, "DJNZ %j__");
+
    FillStructOpcode<None>(0x11, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "LD DE, %nn__");
    FillStructOpcode<None>(0x12, &Z80::DefaultFetch, 1, "LD (DE), A");
    FillStructOpcode<None>(0x13, &Z80::Opcode_Inc_RegW<ADDR_DE, false>, 1, "INC DE");
@@ -225,7 +233,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xC8, &Z80::DefaultFetch, 1, "RET Z");
    FillStructOpcode<None>(0xC9, &Z80::DefaultFetch, 1, "RET");
    FillStructOpcode<None>(0xCA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP Z %nn__");
-   FillStructOpcode<None>(0xCB, &Z80::Opcode_CB, 1, "%CB");
+   
    FillStructOpcode<None>(0xCC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL Z %nn__");
    FillStructOpcode<None>(0xCD, &Z80::DefaultFetch, 3, "CALL %nn__");
    FillStructOpcode<None>(0xCE, &Z80::DefaultFetch, 2, "ADC A, %n");
@@ -243,7 +251,6 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xDA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP C %nn__");
    FillStructOpcode<None>(0xDB, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "IN A, (%n)");
    FillStructOpcode<None>(0xDC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL C %nn__");
-   FillStructOpcode<None>(0xDD, &Z80::Opcode_DD, 1, "%DD");
    FillStructOpcode<None>(0xDE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "SBC A, %n");
    FillStructOpcode<None>(0xDF, &Z80::DefaultFetch, 1, "RST 18H");
    FillStructOpcode<None>(0xE0, &Z80::DefaultFetch, 1, "RET PO");
@@ -259,7 +266,6 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xEA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP PE %nn__");
    FillStructOpcode<None>(0xEB, &Z80::Opcode_EX<ADDR_DE, ADDR_HL>, 1, "EX DE,HL");
    FillStructOpcode<None>(0xEC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL PE %nn__");
-   FillStructOpcode<None>(0xED, &Z80::Opcode_ED, 1, "%ED");
    FillStructOpcode<None>(0xEE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "XOR %n");
    FillStructOpcode<None>(0xEF, &Z80::DefaultFetch, 1, "RST 28H");
    FillStructOpcode<None>(0xF0, &Z80::DefaultFetch, 1, "RET P");
@@ -275,7 +281,6 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xFA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP M %nn__");
    FillStructOpcode<None>(0xFB, &Z80::DefaultFetch, 1, "EI");
    FillStructOpcode<None>(0xFC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL M %nn__");
-   FillStructOpcode<None>(0xFD, &Z80::Opcode_FD, 1, "%FD");
    FillStructOpcode<None>(0xFE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "CP %n");
    FillStructOpcode<None>(0xFF, &Z80::DefaultFetch, 1, "RST 38H");
 #if 0
@@ -616,4 +621,18 @@ unsigned int Z80::Opcode_RLCA()
 
    af_.b.l = q_;
    NEXT_INSTR_RES(current_opcode_ & 0xFFFF00);
+}
+
+unsigned int Z80::Opcode_RRCA()
+{
+   unsigned char btmp;
+   int nextcycle;
+
+   btmp = af_.b.h & 0x1;
+   q_ = af_.b.l & ~(NF | HF | CF | 0x28);
+   q_ |= btmp;
+   af_.b.h = (af_.b.h >> 1) + (btmp << 7);
+   q_ |= (af_.b.h & 0x28); 
+   af_.b.l = q_; 
+   NEXT_INSTR;
 }

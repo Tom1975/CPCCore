@@ -433,7 +433,11 @@ public:
    template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
    unsigned int Opcode_ADD_REGW();
 
+   template<Z80::AddressRegisters reg, int t_val>
+   unsigned int Opcode_Memory_Read_Delayed();
+      
    unsigned int Opcode_RLCA();
+   unsigned int Opcode_RRCA();
 };
 
 #include "Z80_Opcodes.hpp"
