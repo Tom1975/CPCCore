@@ -103,21 +103,6 @@ unsigned int Z80::Opcode_Memory_Read_REGW()
 template<Z80::AddressRegisters reg, int t_val>
 unsigned int Z80::Opcode_Memory_Read_Delayed()
 {
-   /*
-   if (t_ == 5)
-   {
-      machine_cycle_ = M_MEMORY_R; 
-      t_ = 1; 
-      current_address_ = REGW(reg);
-      current_data_ = 0; 
-      read_count_ = 0;
-   }
-   else
-   {
-      ++t_;
-   }
-   return 1;
-   */
    // This one give wrong timings
    if (t_ == t_val)
    {
@@ -141,5 +126,4 @@ unsigned int Z80::Opcode_Memory_Read_Delayed()
    current_data_ = 0;
    read_count_ = 0;
    return t_val - 3;*/
-
 }

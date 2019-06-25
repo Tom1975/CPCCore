@@ -7,6 +7,8 @@
 
 void Z80::InitOpcodeShortcuts()
 {
+   unsigned int j;
+
    // Par defaut, tout le monde pointe sur NOP
    for (unsigned int i = 0; i < 256; i++)
    {
@@ -44,16 +46,14 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x0D, &Z80::Opcode_Dec_Reg<R_C, false>, 1, "DEC C");
    FillStructOpcode<None>(0x0E, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "LD C,  %n");
    FillStructOpcode<None>(0x0F, &Z80::Opcode_RRCA, 1, "RRCA");
-
    FillStructOpcode<None>(0x10, &Z80::Opcode_Memory_Read_Delayed<ADDR_PC, 5>, 2, "DJNZ %j__");
-
    FillStructOpcode<None>(0x11, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "LD DE, %nn__");
-   FillStructOpcode<None>(0x12, &Z80::DefaultFetch, 1, "LD (DE), A");
+   FillStructOpcode<None>(0x12, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_DE, R_A>, 1, "LD (DE), A");
    FillStructOpcode<None>(0x13, &Z80::Opcode_Inc_RegW<ADDR_DE, false>, 1, "INC DE");
    FillStructOpcode<None>(0x14, &Z80::Opcode_Inc_Reg<R_D, false>, 1, "INC D");
    FillStructOpcode<None>(0x15, &Z80::Opcode_Dec_Reg<R_D, false>, 1, "DEC D");
    FillStructOpcode<None>(0x16, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "LD D,  %n");
-   FillStructOpcode<None>(0x17, &Z80::DefaultFetch, 1, "RLA");
+   FillStructOpcode<None>(0x17, &Z80::Opcode_RLA, 1, "RLA");
    FillStructOpcode<None>(0x18, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "JR %j__");
    FillStructOpcode<None>(0x19, &Z80::Opcode_ADD_REGW<ADDR_HL, ADDR_DE>, 1, "ADD HL, DE");
    FillStructOpcode<None>(0x1A, &Z80::DefaultFetch, 1, "LD A, (DE)");
@@ -61,7 +61,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x1C, &Z80::Opcode_Inc_Reg<R_E, false>, 1, "INC E");
    FillStructOpcode<None>(0x1D, &Z80::Opcode_Dec_Reg<R_E, false>, 1, "DEC E");
    FillStructOpcode<None>(0x1E, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "LD E,  %n");
-   FillStructOpcode<None>(0x1F, &Z80::DefaultFetch, 1, "RRA");
+   FillStructOpcode<None>(0x1F, &Z80::Opcode_RRA, 1, "RRA");
    FillStructOpcode<None>(0x20, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "JR NZ  %j__");
    FillStructOpcode<None>(0x21, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "LD HL, %nn__");
    FillStructOpcode<None>(0x22, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "LD (%nn__), HL");
@@ -142,14 +142,14 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x6D, &Z80::DefaultFetch, 1, "LD L, L");
    FillStructOpcode<None>(0x6E, &Z80::DefaultFetch, 1, "LD L, (HL)");
    FillStructOpcode<None>(0x6F, &Z80::DefaultFetch, 1, "LD L, A");
-   FillStructOpcode<None>(0x70, &Z80::DefaultFetch, 1, "LD (HL), B");
-   FillStructOpcode<None>(0x71, &Z80::DefaultFetch, 1, "LD (HL), C");
-   FillStructOpcode<None>(0x72, &Z80::DefaultFetch, 1, "LD (HL), D");
-   FillStructOpcode<None>(0x73, &Z80::DefaultFetch, 1, "LD (HL), E");
-   FillStructOpcode<None>(0x74, &Z80::DefaultFetch, 1, "LD (HL), H");
-   FillStructOpcode<None>(0x75, &Z80::DefaultFetch, 1, "LD (HL), L");
+   FillStructOpcode<None>(0x70, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_B>, 1, "LD (HL), B");
+   FillStructOpcode<None>(0x71, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_C>, 1, "LD (HL), C");
+   FillStructOpcode<None>(0x72, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_D>, 1, "LD (HL), D");
+   FillStructOpcode<None>(0x73, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_E>, 1, "LD (HL), E");
+   FillStructOpcode<None>(0x74, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_H>, 1, "LD (HL), H");
+   FillStructOpcode<None>(0x75, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_L>, 1, "LD (HL), L");
    FillStructOpcode<None>(0x76, &Z80::DefaultFetch, 1, "HALT");
-   FillStructOpcode<None>(0x77, &Z80::DefaultFetch, 1, "LD (HL), A");
+   FillStructOpcode<None>(0x77, &Z80::Opcode_Memory_Write_Addr_Reg<ADDR_HL, R_A>, 1, "LD (HL), A");
    FillStructOpcode<None>(0x78, &Z80::DefaultFetch, 1, "LD A, B");
    FillStructOpcode<None>(0x79, &Z80::DefaultFetch, 1, "LD A, C");
    FillStructOpcode<None>(0x7A, &Z80::DefaultFetch, 1, "LD A, D");
@@ -233,7 +233,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xC8, &Z80::DefaultFetch, 1, "RET Z");
    FillStructOpcode<None>(0xC9, &Z80::DefaultFetch, 1, "RET");
    FillStructOpcode<None>(0xCA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP Z %nn__");
-   
+
    FillStructOpcode<None>(0xCC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL Z %nn__");
    FillStructOpcode<None>(0xCD, &Z80::DefaultFetch, 3, "CALL %nn__");
    FillStructOpcode<None>(0xCE, &Z80::DefaultFetch, 2, "ADC A, %n");
@@ -286,7 +286,6 @@ void Z80::InitOpcodeShortcuts()
 #if 0
    // Opcode a multiple byte
    // CB
-   unsigned int j;
    for (j = 0x00; j <= 0x07; j++) liste_opcodes_cb_[j] = FillStructOpcode(nullptr, 1, "RLC %r");
    for (j = 0x08; j <= 0x0F; j++) liste_opcodes_cb_[j] = FillStructOpcode(nullptr, 1, "RRC %r");
    for (j = 0x10; j <= 0x17; j++) liste_opcodes_cb_[j] = FillStructOpcode(nullptr, 1, "RL %r");
@@ -384,7 +383,8 @@ void Z80::InitOpcodeShortcuts()
    liste_opcodes_ed_[0xBA] = FillStructOpcode(nullptr, 1, "INDR");
    liste_opcodes_ed_[0xBB] = FillStructOpcode(nullptr, 1, "OTDR");
    liste_opcodes_ed_[0xED] = FillStructOpcode(nullptr, 1, "%ED");
-
+#endif
+   // Par defaut, tout le monde pointe sur NOP
    // DD
    // Act like normal opcode, except that HL is replaced by IX.
    for (j = 0x00; j <= 0xff; j++)
@@ -392,92 +392,92 @@ void Z80::InitOpcodeShortcuts()
       liste_opcodes_dd_[j] = liste_opcodes_[j];
    }
 
-   liste_opcodes_dd_[0x09] = FillStructOpcode(nullptr, 1, "ADD IX, BC");
-   liste_opcodes_dd_[0x19] = FillStructOpcode(nullptr, 1, "ADD IX, DE");
-   liste_opcodes_dd_[0x21] = FillStructOpcode(nullptr, 3, "LD IX, %nn__");
-   liste_opcodes_dd_[0x22] = FillStructOpcode(nullptr, 3, "LD (%nn__), IX");
-   liste_opcodes_dd_[0x23] = FillStructOpcode(nullptr, 1, "INC IX");
-   liste_opcodes_dd_[0x24] = FillStructOpcode(nullptr, 1, "INC IXh");
-   liste_opcodes_dd_[0x25] = FillStructOpcode(nullptr, 1, "DEC IXh");
-   liste_opcodes_dd_[0x26] = FillStructOpcode(nullptr, 2, "LD IXh, %n");
-   liste_opcodes_dd_[0x29] = FillStructOpcode(nullptr, 1, "ADD IX, IX");
-   liste_opcodes_dd_[0x2A] = FillStructOpcode(nullptr, 3, "LD IX, (%nn__)");
-   liste_opcodes_dd_[0x2B] = FillStructOpcode(nullptr, 1, "DEC IX");
-   liste_opcodes_dd_[0x2C] = FillStructOpcode(nullptr, 1, "INC IXl");
-   liste_opcodes_dd_[0x2D] = FillStructOpcode(nullptr, 1, "DEC IXl");
-   liste_opcodes_dd_[0x2E] = FillStructOpcode(nullptr, 2, "LD IXl, %n");
-   liste_opcodes_dd_[0x34] = FillStructOpcode(nullptr, 1, "INC (IX+%n)");
-   liste_opcodes_dd_[0x35] = FillStructOpcode(nullptr, 1, "DEC (IX+%n)");
-   liste_opcodes_dd_[0x36] = FillStructOpcode(nullptr, 3, "LD (IX+%n), %n");
-   liste_opcodes_dd_[0x39] = FillStructOpcode(nullptr, 1, "ADD IX, SP");
-   liste_opcodes_dd_[0x44] = FillStructOpcode(nullptr, 2, "LD B, IXh");
-   liste_opcodes_dd_[0x45] = FillStructOpcode(nullptr, 2, "LD B, IXl");
-   liste_opcodes_dd_[0x46] = FillStructOpcode(nullptr, 2, "LD B, (IX+%n)");
-   liste_opcodes_dd_[0x4C] = FillStructOpcode(nullptr, 2, "LD C, IXh");
-   liste_opcodes_dd_[0x4D] = FillStructOpcode(nullptr, 2, "LD C, IXl");
-   liste_opcodes_dd_[0x4E] = FillStructOpcode(nullptr, 2, "LD C, (IX+%n)");
-   liste_opcodes_dd_[0x54] = FillStructOpcode(nullptr, 2, "LD D, IXh");
-   liste_opcodes_dd_[0x55] = FillStructOpcode(nullptr, 2, "LD D, IXl");
-   liste_opcodes_dd_[0x56] = FillStructOpcode(nullptr, 2, "LD D, (IX+%n)");
-   liste_opcodes_dd_[0x5C] = FillStructOpcode(nullptr, 2, "LD E, IXh");
-   liste_opcodes_dd_[0x5D] = FillStructOpcode(nullptr, 2, "LD E, IXl");
-   liste_opcodes_dd_[0x5E] = FillStructOpcode(nullptr, 2, "LD E, (IX+%n)");
-   liste_opcodes_dd_[0x60] = FillStructOpcode(nullptr, 2, "LD IXh, B");
-   liste_opcodes_dd_[0x61] = FillStructOpcode(nullptr, 2, "LD IXh, C");
-   liste_opcodes_dd_[0x62] = FillStructOpcode(nullptr, 2, "LD IXh, D");
-   liste_opcodes_dd_[0x63] = FillStructOpcode(nullptr, 2, "LD IXh, E");
-   liste_opcodes_dd_[0x64] = FillStructOpcode(nullptr, 2, "LD IXh, IXh");
-   liste_opcodes_dd_[0x65] = FillStructOpcode(nullptr, 2, "LD IXh, IXl");
-   liste_opcodes_dd_[0x66] = FillStructOpcode(nullptr, 2, "LD H, (IX+%n)");
-   liste_opcodes_dd_[0x67] = FillStructOpcode(nullptr, 2, "LD IXh, A");
-   liste_opcodes_dd_[0x68] = FillStructOpcode(nullptr, 2, "LD IXl, B");
-   liste_opcodes_dd_[0x69] = FillStructOpcode(nullptr, 2, "LD IXl, C");
-   liste_opcodes_dd_[0x6A] = FillStructOpcode(nullptr, 2, "LD IXl, D");
-   liste_opcodes_dd_[0x6B] = FillStructOpcode(nullptr, 2, "LD IXl, E");
-   liste_opcodes_dd_[0x6C] = FillStructOpcode(nullptr, 2, "LD IXl, IXh");
-   liste_opcodes_dd_[0x6D] = FillStructOpcode(nullptr, 2, "LD IXl, IXl");
-   liste_opcodes_dd_[0x6E] = FillStructOpcode(nullptr, 2, "LD L, (IX+%n)");
-   liste_opcodes_dd_[0x6F] = FillStructOpcode(nullptr, 2, "LD IXh, A");
-   liste_opcodes_dd_[0x70] = FillStructOpcode(nullptr, 2, "LD (IX+%n), B");
-   liste_opcodes_dd_[0x71] = FillStructOpcode(nullptr, 2, "LD (IX+%n), C");
-   liste_opcodes_dd_[0x72] = FillStructOpcode(nullptr, 2, "LD (IX+%n), D");
-   liste_opcodes_dd_[0x73] = FillStructOpcode(nullptr, 2, "LD (IX+%n), E");
-   liste_opcodes_dd_[0x74] = FillStructOpcode(nullptr, 2, "LD (IX+%n), H");
-   liste_opcodes_dd_[0x75] = FillStructOpcode(nullptr, 2, "LD (IX+%n), L");
-   liste_opcodes_dd_[0x77] = FillStructOpcode(nullptr, 2, "LD (IX+%n), A");
-   liste_opcodes_dd_[0x7C] = FillStructOpcode(nullptr, 2, "LD A, IXh");
-   liste_opcodes_dd_[0x7D] = FillStructOpcode(nullptr, 1, "LD A, IXl");
-   liste_opcodes_dd_[0x7E] = FillStructOpcode(nullptr, 2, "LD A, (IX+%n)");
-   liste_opcodes_dd_[0x84] = FillStructOpcode(nullptr, 2, "ADD A, IXh");
-   liste_opcodes_dd_[0x85] = FillStructOpcode(nullptr, 2, "ADD A, IXl");
-   liste_opcodes_dd_[0x86] = FillStructOpcode(nullptr, 2, "ADD A, (IX+%n)");
-   liste_opcodes_dd_[0x8C] = FillStructOpcode(nullptr, 2, "ADC A, IXh");
-   liste_opcodes_dd_[0x8D] = FillStructOpcode(nullptr, 2, "ADC A, IXl");
-   liste_opcodes_dd_[0x8E] = FillStructOpcode(nullptr, 2, "ADC A, (IX+%n)");
-   liste_opcodes_dd_[0x94] = FillStructOpcode(nullptr, 2, "SUB A, IXh");
-   liste_opcodes_dd_[0x95] = FillStructOpcode(nullptr, 2, "SUB A, IXl");
-   liste_opcodes_dd_[0x96] = FillStructOpcode(nullptr, 2, "SUB A, (IX+%n)");
-   liste_opcodes_dd_[0x9C] = FillStructOpcode(nullptr, 2, "SBC A, IXh");
-   liste_opcodes_dd_[0x9D] = FillStructOpcode(nullptr, 2, "SBC A, IXl");
-   liste_opcodes_dd_[0x9E] = FillStructOpcode(nullptr, 2, "SBC A, (IX+%n)");
-   liste_opcodes_dd_[0xA4] = FillStructOpcode(nullptr, 2, "AND A, IXh");
-   liste_opcodes_dd_[0xA5] = FillStructOpcode(nullptr, 2, "AND A, IXl");
-   liste_opcodes_dd_[0xA6] = FillStructOpcode(nullptr, 2, "AND (IX+%n)");
-   liste_opcodes_dd_[0xAC] = FillStructOpcode(nullptr, 2, "XOR A, IXh");
-   liste_opcodes_dd_[0xAD] = FillStructOpcode(nullptr, 2, "XOR A, IXl");
-   liste_opcodes_dd_[0xAE] = FillStructOpcode(nullptr, 2, "XOR (IX+%n)");
-   liste_opcodes_dd_[0xB4] = FillStructOpcode(nullptr, 2, "OR A, IXh");
-   liste_opcodes_dd_[0xB5] = FillStructOpcode(nullptr, 2, "OR A, IXl");
-   liste_opcodes_dd_[0xB6] = FillStructOpcode(nullptr, 2, "OR (IX+%n)");
-   liste_opcodes_dd_[0xBC] = FillStructOpcode(nullptr, 2, "CP IXh");
-   liste_opcodes_dd_[0xBD] = FillStructOpcode(nullptr, 2, "CP (IXl");
-   liste_opcodes_dd_[0xBE] = FillStructOpcode(nullptr, 2, "CP (IX+%n)");
-   liste_opcodes_dd_[0xCB] = FillStructOpcode(nullptr, 4, "RES b, (IX+%n)");
-   liste_opcodes_dd_[0xE1] = FillStructOpcode(nullptr, 1, "POP IX");
-   liste_opcodes_dd_[0xE3] = FillStructOpcode(nullptr, 1, "EX SP, IX");
-   liste_opcodes_dd_[0xE5] = FillStructOpcode(nullptr, 1, "PUSH IX");
-   liste_opcodes_dd_[0xE9] = FillStructOpcode(nullptr, 1, "JP (IX)");
-   liste_opcodes_dd_[0xF9] = FillStructOpcode(nullptr, 1, "LD SP, IX");
+   FillStructOpcode<DD>(0x09, &Z80::DefaultFetch, 1, "ADD IX, BC");
+   FillStructOpcode<DD>(0x19, &Z80::DefaultFetch, 1, "ADD IX, DE");
+   FillStructOpcode<DD>(0x21, &Z80::DefaultFetch, 3, "LD IX, %nn__");
+   FillStructOpcode<DD>(0x22, &Z80::DefaultFetch, 3, "LD (%nn__), IX");
+   FillStructOpcode<DD>(0x23, &Z80::DefaultFetch, 1, "INC IX");
+   FillStructOpcode<DD>(0x24, &Z80::DefaultFetch, 1, "INC IXh");
+   FillStructOpcode<DD>(0x25, &Z80::DefaultFetch, 1, "DEC IXh");
+   FillStructOpcode<DD>(0x26, &Z80::DefaultFetch, 2, "LD IXh, %n");
+   FillStructOpcode<DD>(0x29, &Z80::DefaultFetch, 1, "ADD IX, IX");
+   FillStructOpcode<DD>(0x2A, &Z80::DefaultFetch, 3, "LD IX, (%nn__)");
+   FillStructOpcode<DD>(0x2B, &Z80::DefaultFetch, 1, "DEC IX");
+   FillStructOpcode<DD>(0x2C, &Z80::DefaultFetch, 1, "INC IXl");
+   FillStructOpcode<DD>(0x2D, &Z80::DefaultFetch, 1, "DEC IXl");
+   FillStructOpcode<DD>(0x2E, &Z80::DefaultFetch, 2, "LD IXl, %n");
+   FillStructOpcode<DD>(0x34, &Z80::DefaultFetch, 1, "INC (IX+%n)");
+   FillStructOpcode<DD>(0x35, &Z80::DefaultFetch, 1, "DEC (IX+%n)");
+   FillStructOpcode<DD>(0x36, &Z80::DefaultFetch, 3, "LD (IX+%n), %n");
+   FillStructOpcode<DD>(0x39, &Z80::DefaultFetch, 1, "ADD IX, SP");
+   FillStructOpcode<DD>(0x44, &Z80::DefaultFetch, 2, "LD B, IXh");
+   FillStructOpcode<DD>(0x45, &Z80::DefaultFetch, 2, "LD B, IXl");
+   FillStructOpcode<DD>(0x46, &Z80::DefaultFetch, 2, "LD B, (IX+%n)");
+   FillStructOpcode<DD>(0x4C, &Z80::DefaultFetch, 2, "LD C, IXh");
+   FillStructOpcode<DD>(0x4D, &Z80::DefaultFetch, 2, "LD C, IXl");
+   FillStructOpcode<DD>(0x4E, &Z80::DefaultFetch, 2, "LD C, (IX+%n)");
+   FillStructOpcode<DD>(0x54, &Z80::DefaultFetch, 2, "LD D, IXh");
+   FillStructOpcode<DD>(0x55, &Z80::DefaultFetch, 2, "LD D, IXl");
+   FillStructOpcode<DD>(0x56, &Z80::DefaultFetch, 2, "LD D, (IX+%n)");
+   FillStructOpcode<DD>(0x5C, &Z80::DefaultFetch, 2, "LD E, IXh");
+   FillStructOpcode<DD>(0x5D, &Z80::DefaultFetch, 2, "LD E, IXl");
+   FillStructOpcode<DD>(0x5E, &Z80::DefaultFetch, 2, "LD E, (IX+%n)");
+   FillStructOpcode<DD>(0x60, &Z80::DefaultFetch, 2, "LD IXh, B");
+   FillStructOpcode<DD>(0x61, &Z80::DefaultFetch, 2, "LD IXh, C");
+   FillStructOpcode<DD>(0x62, &Z80::DefaultFetch, 2, "LD IXh, D");
+   FillStructOpcode<DD>(0x63, &Z80::DefaultFetch, 2, "LD IXh, E");
+   FillStructOpcode<DD>(0x64, &Z80::DefaultFetch, 2, "LD IXh, IXh");
+   FillStructOpcode<DD>(0x65, &Z80::DefaultFetch, 2, "LD IXh, IXl");
+   FillStructOpcode<DD>(0x66, &Z80::DefaultFetch, 2, "LD H, (IX+%n)");
+   FillStructOpcode<DD>(0x67, &Z80::DefaultFetch, 2, "LD IXh, A");
+   FillStructOpcode<DD>(0x68, &Z80::DefaultFetch, 2, "LD IXl, B");
+   FillStructOpcode<DD>(0x69, &Z80::DefaultFetch, 2, "LD IXl, C");
+   FillStructOpcode<DD>(0x6A, &Z80::DefaultFetch, 2, "LD IXl, D");
+   FillStructOpcode<DD>(0x6B, &Z80::DefaultFetch, 2, "LD IXl, E");
+   FillStructOpcode<DD>(0x6C, &Z80::DefaultFetch, 2, "LD IXl, IXh");
+   FillStructOpcode<DD>(0x6D, &Z80::DefaultFetch, 2, "LD IXl, IXl");
+   FillStructOpcode<DD>(0x6E, &Z80::DefaultFetch, 2, "LD L, (IX+%n)");
+   FillStructOpcode<DD>(0x6F, &Z80::DefaultFetch, 2, "LD IXh, A");
+   FillStructOpcode<DD>(0x70, &Z80::DefaultFetch, 2, "LD (IX+%n), B");
+   FillStructOpcode<DD>(0x71, &Z80::DefaultFetch, 2, "LD (IX+%n), C");
+   FillStructOpcode<DD>(0x72, &Z80::DefaultFetch, 2, "LD (IX+%n), D");
+   FillStructOpcode<DD>(0x73, &Z80::DefaultFetch, 2, "LD (IX+%n), E");
+   FillStructOpcode<DD>(0x74, &Z80::DefaultFetch, 2, "LD (IX+%n), H");
+   FillStructOpcode<DD>(0x75, &Z80::DefaultFetch, 2, "LD (IX+%n), L");
+   FillStructOpcode<DD>(0x77, &Z80::DefaultFetch, 2, "LD (IX+%n), A");
+   FillStructOpcode<DD>(0x7C, &Z80::DefaultFetch, 2, "LD A, IXh");
+   FillStructOpcode<DD>(0x7D, &Z80::DefaultFetch, 1, "LD A, IXl");
+   FillStructOpcode<DD>(0x7E, &Z80::DefaultFetch, 2, "LD A, (IX+%n)");
+   FillStructOpcode<DD>(0x84, &Z80::DefaultFetch, 2, "ADD A, IXh");
+   FillStructOpcode<DD>(0x85, &Z80::DefaultFetch, 2, "ADD A, IXl");
+   FillStructOpcode<DD>(0x86, &Z80::DefaultFetch, 2, "ADD A, (IX+%n)");
+   FillStructOpcode<DD>(0x8C, &Z80::DefaultFetch, 2, "ADC A, IXh");
+   FillStructOpcode<DD>(0x8D, &Z80::DefaultFetch, 2, "ADC A, IXl");
+   FillStructOpcode<DD>(0x8E, &Z80::DefaultFetch, 2, "ADC A, (IX+%n)");
+   FillStructOpcode<DD>(0x94, &Z80::DefaultFetch, 2, "SUB A, IXh");
+   FillStructOpcode<DD>(0x95, &Z80::DefaultFetch, 2, "SUB A, IXl");
+   FillStructOpcode<DD>(0x96, &Z80::DefaultFetch, 2, "SUB A, (IX+%n)");
+   FillStructOpcode<DD>(0x9C, &Z80::DefaultFetch, 2, "SBC A, IXh");
+   FillStructOpcode<DD>(0x9D, &Z80::DefaultFetch, 2, "SBC A, IXl");
+   FillStructOpcode<DD>(0x9E, &Z80::DefaultFetch, 2, "SBC A, (IX+%n)");
+   FillStructOpcode<DD>(0xA4, &Z80::DefaultFetch, 2, "AND A, IXh");
+   FillStructOpcode<DD>(0xA5, &Z80::DefaultFetch, 2, "AND A, IXl");
+   FillStructOpcode<DD>(0xA6, &Z80::DefaultFetch, 2, "AND (IX+%n)");
+   FillStructOpcode<DD>(0xAC, &Z80::DefaultFetch, 2, "XOR A, IXh");
+   FillStructOpcode<DD>(0xAD, &Z80::DefaultFetch, 2, "XOR A, IXl");
+   FillStructOpcode<DD>(0xAE, &Z80::DefaultFetch, 2, "XOR (IX+%n)");
+   FillStructOpcode<DD>(0xB4, &Z80::DefaultFetch, 2, "OR A, IXh");
+   FillStructOpcode<DD>(0xB5, &Z80::DefaultFetch, 2, "OR A, IXl");
+   FillStructOpcode<DD>(0xB6, &Z80::DefaultFetch, 2, "OR (IX+%n)");
+   FillStructOpcode<DD>(0xBC, &Z80::DefaultFetch, 2, "CP IXh");
+   FillStructOpcode<DD>(0xBD, &Z80::DefaultFetch, 2, "CP (IXl");
+   FillStructOpcode<DD>(0xBE, &Z80::DefaultFetch, 2, "CP (IX+%n)");
+   FillStructOpcode<DD>(0xCB, &Z80::DefaultFetch, 4, "RES b, (IX+%n)");
+   FillStructOpcode<DD>(0xE1, &Z80::DefaultFetch, 1, "POP IX");
+   FillStructOpcode<DD>(0xE3, &Z80::DefaultFetch, 1, "EX SP, IX");
+   FillStructOpcode<DD>(0xE5, &Z80::DefaultFetch, 1, "PUSH IX");
+   FillStructOpcode<DD>(0xE9, &Z80::DefaultFetch, 1, "JP (IX)");
+   FillStructOpcode<DD>(0xF9, &Z80::DefaultFetch, 1, "LD SP, IX");
 
    // FD
    // Act like normal opcode, except that HL is replaced by IY.
@@ -486,93 +486,92 @@ void Z80::InitOpcodeShortcuts()
       liste_opcodes_fd_[j] = liste_opcodes_[j];
    }
 
-   liste_opcodes_fd_[0x09] = FillStructOpcode(nullptr, 1, "ADD IY, BC");
-   liste_opcodes_fd_[0x19] = FillStructOpcode(nullptr, 1, "ADD IY, DE");
-   liste_opcodes_fd_[0x21] = FillStructOpcode(nullptr, 3, "LD IY, %nn__");
-   liste_opcodes_fd_[0x22] = FillStructOpcode(nullptr, 3, "LD (%nn__), IY");
-   liste_opcodes_fd_[0x23] = FillStructOpcode(nullptr, 1, "INC IY");
-   liste_opcodes_fd_[0x24] = FillStructOpcode(nullptr, 1, "INC IYh");
-   liste_opcodes_fd_[0x25] = FillStructOpcode(nullptr, 1, "DEC IYh");
-   liste_opcodes_fd_[0x26] = FillStructOpcode(nullptr, 2, "LD IYh, %n");
-   liste_opcodes_fd_[0x29] = FillStructOpcode(nullptr, 1, "ADD IY, IY");
-   liste_opcodes_fd_[0x2A] = FillStructOpcode(nullptr, 3, "LD IY, (%nn__)");
-   liste_opcodes_fd_[0x2B] = FillStructOpcode(nullptr, 1, "DEC IY");
-   liste_opcodes_fd_[0x2C] = FillStructOpcode(nullptr, 1, "INC IYl");
-   liste_opcodes_fd_[0x2D] = FillStructOpcode(nullptr, 1, "DEC IYl");
-   liste_opcodes_fd_[0x2E] = FillStructOpcode(nullptr, 2, "LD IXl, %n");
-   liste_opcodes_fd_[0x34] = FillStructOpcode(nullptr, 2, "INC (IY+%n)");
-   liste_opcodes_fd_[0x35] = FillStructOpcode(nullptr, 2, "DEC (IY+%n)");
-   liste_opcodes_fd_[0x36] = FillStructOpcode(nullptr, 3, "LD (IY+%n), %n");
-   liste_opcodes_fd_[0x39] = FillStructOpcode(nullptr, 1, "ADD IY, SP");
-   liste_opcodes_fd_[0x44] = FillStructOpcode(nullptr, 2, "LD B, IYh");
-   liste_opcodes_fd_[0x45] = FillStructOpcode(nullptr, 2, "LD B, IYl");
-   liste_opcodes_fd_[0x46] = FillStructOpcode(nullptr, 2, "LD B, (IY+%n)");
-   liste_opcodes_fd_[0x4C] = FillStructOpcode(nullptr, 2, "LD C, IYh");
-   liste_opcodes_fd_[0x4D] = FillStructOpcode(nullptr, 2, "LD C, IYl");
-   liste_opcodes_fd_[0x4E] = FillStructOpcode(nullptr, 2, "LD C, (IY+%n)");
-   liste_opcodes_fd_[0x54] = FillStructOpcode(nullptr, 2, "LD D, IYh");
-   liste_opcodes_fd_[0x55] = FillStructOpcode(nullptr, 2, "LD D, IYl");
-   liste_opcodes_fd_[0x56] = FillStructOpcode(nullptr, 2, "LD D, (IY+%n)");
-   liste_opcodes_fd_[0x5C] = FillStructOpcode(nullptr, 2, "LD E, IYh");
-   liste_opcodes_fd_[0x5D] = FillStructOpcode(nullptr, 2, "LD E, IYl");
-   liste_opcodes_fd_[0x5E] = FillStructOpcode(nullptr, 2, "LD E, (IY+%n)");
-   liste_opcodes_fd_[0x60] = FillStructOpcode(nullptr, 2, "LD IYh, B");
-   liste_opcodes_fd_[0x61] = FillStructOpcode(nullptr, 2, "LD IYh, C");
-   liste_opcodes_fd_[0x62] = FillStructOpcode(nullptr, 2, "LD IYh, D");
-   liste_opcodes_fd_[0x63] = FillStructOpcode(nullptr, 2, "LD IYh, E");
-   liste_opcodes_fd_[0x64] = FillStructOpcode(nullptr, 2, "LD IYh, IYh");
-   liste_opcodes_fd_[0x65] = FillStructOpcode(nullptr, 2, "LD IYh, IYl");
-   liste_opcodes_fd_[0x66] = FillStructOpcode(nullptr, 2, "LD H, (IY+%n)");
-   liste_opcodes_fd_[0x67] = FillStructOpcode(nullptr, 2, "LD IYh, A");
-   liste_opcodes_fd_[0x68] = FillStructOpcode(nullptr, 2, "LD IYh, B");
-   liste_opcodes_fd_[0x69] = FillStructOpcode(nullptr, 2, "LD IYh, C");
-   liste_opcodes_fd_[0x6A] = FillStructOpcode(nullptr, 2, "LD IYh, D");
-   liste_opcodes_fd_[0x6B] = FillStructOpcode(nullptr, 2, "LD IYh, E");
-   liste_opcodes_fd_[0x6C] = FillStructOpcode(nullptr, 2, "LD IYh, IYh");
-   liste_opcodes_fd_[0x6D] = FillStructOpcode(nullptr, 2, "LD IYh, IYl");
-   liste_opcodes_fd_[0x6E] = FillStructOpcode(nullptr, 2, "LD L, (IY+%n)");
-   liste_opcodes_fd_[0x6F] = FillStructOpcode(nullptr, 2, "LD IYh, A");
-   liste_opcodes_fd_[0x70] = FillStructOpcode(nullptr, 2, "LD (IY+%n), B");
-   liste_opcodes_fd_[0x71] = FillStructOpcode(nullptr, 2, "LD (IY+%n), C");
-   liste_opcodes_fd_[0x72] = FillStructOpcode(nullptr, 2, "LD (IY+%n), D");
-   liste_opcodes_fd_[0x73] = FillStructOpcode(nullptr, 2, "LD (IY+%n), E");
-   liste_opcodes_fd_[0x74] = FillStructOpcode(nullptr, 2, "LD (IY+%n), H");
-   liste_opcodes_fd_[0x75] = FillStructOpcode(nullptr, 2, "LD (IY+%n), L");
-   liste_opcodes_fd_[0x77] = FillStructOpcode(nullptr, 2, "LD (IY+%n), A");
-   liste_opcodes_fd_[0x7C] = FillStructOpcode(nullptr, 2, "LD A, IYh");
-   liste_opcodes_fd_[0x7D] = FillStructOpcode(nullptr, 1, "LD A, IYl");
-   liste_opcodes_fd_[0x7E] = FillStructOpcode(nullptr, 2, "LD A, (IY+%n)");
-   liste_opcodes_fd_[0x84] = FillStructOpcode(nullptr, 2, "ADD A, IYh");
-   liste_opcodes_fd_[0x85] = FillStructOpcode(nullptr, 2, "ADD A, IYl");
-   liste_opcodes_fd_[0x86] = FillStructOpcode(nullptr, 2, "ADD A, (IY+%n)");
-   liste_opcodes_fd_[0x8C] = FillStructOpcode(nullptr, 2, "ADC A, IYh");
-   liste_opcodes_fd_[0x8D] = FillStructOpcode(nullptr, 2, "ADC A, IYl");
-   liste_opcodes_fd_[0x8E] = FillStructOpcode(nullptr, 2, "ADC A, (IY+%n)");
-   liste_opcodes_fd_[0x94] = FillStructOpcode(nullptr, 2, "SUB A, IYh");
-   liste_opcodes_fd_[0x95] = FillStructOpcode(nullptr, 2, "SUB A, IYl");
-   liste_opcodes_fd_[0x96] = FillStructOpcode(nullptr, 2, "SUB A, (IY+%n)");
-   liste_opcodes_fd_[0x9C] = FillStructOpcode(nullptr, 2, "SBC A, IYh");
-   liste_opcodes_fd_[0x9D] = FillStructOpcode(nullptr, 2, "SBC A, IYl");
-   liste_opcodes_fd_[0x9E] = FillStructOpcode(nullptr, 2, "SBC A, (IY+%n)");
-   liste_opcodes_fd_[0xA4] = FillStructOpcode(nullptr, 2, "AND A, IYh");
-   liste_opcodes_fd_[0xA5] = FillStructOpcode(nullptr, 2, "AND A, IYl");
-   liste_opcodes_fd_[0xA6] = FillStructOpcode(nullptr, 2, "AND (IY+%n)");
-   liste_opcodes_fd_[0xAC] = FillStructOpcode(nullptr, 2, "XOR A, IYh");
-   liste_opcodes_fd_[0xAD] = FillStructOpcode(nullptr, 2, "XOR A, IYl");
-   liste_opcodes_fd_[0xAE] = FillStructOpcode(nullptr, 2, "XOR (IY+%n)");
-   liste_opcodes_fd_[0xB4] = FillStructOpcode(nullptr, 2, "OR A, IYh");
-   liste_opcodes_fd_[0xB5] = FillStructOpcode(nullptr, 2, "OR A, IYl");
-   liste_opcodes_fd_[0xB6] = FillStructOpcode(nullptr, 2, "OR (IY+%n)");
-   liste_opcodes_fd_[0xBC] = FillStructOpcode(nullptr, 2, "CP IYh");
-   liste_opcodes_fd_[0xBD] = FillStructOpcode(nullptr, 2, "CP (IYl");
-   liste_opcodes_fd_[0xBE] = FillStructOpcode(nullptr, 2, "CP (IY+%n)");
-   liste_opcodes_fd_[0xCB] = FillStructOpcode(nullptr, 3, "RES %b, (IY+%n)");
-   liste_opcodes_fd_[0xE1] = FillStructOpcode(nullptr, 1, "POP_IY");
-   liste_opcodes_fd_[0xE3] = FillStructOpcode(nullptr, 1, "EX (SP), IY");
-   liste_opcodes_fd_[0xE5] = FillStructOpcode(nullptr, 1, "PUSH_IY");
-   liste_opcodes_fd_[0xE9] = FillStructOpcode(nullptr, 1, "JP (IY)");
-   liste_opcodes_fd_[0xF9] = FillStructOpcode(nullptr, 1, "LD SP, IY");
-#endif
+   FillStructOpcode<FD>(0x09, &Z80::DefaultFetch, 1, "ADD IY, BC");
+   FillStructOpcode<FD>(0x19, &Z80::DefaultFetch, 1, "ADD IY, DE");
+   FillStructOpcode<FD>(0x21, &Z80::DefaultFetch, 3, "LD IY, %nn__");
+   FillStructOpcode<FD>(0x22, &Z80::DefaultFetch, 3, "LD (%nn__), IY");
+   FillStructOpcode<FD>(0x23, &Z80::DefaultFetch, 1, "INC IY");
+   FillStructOpcode<FD>(0x24, &Z80::DefaultFetch, 1, "INC IYh");
+   FillStructOpcode<FD>(0x25, &Z80::DefaultFetch, 1, "DEC IYh");
+   FillStructOpcode<FD>(0x26, &Z80::DefaultFetch, 2, "LD IYh, %n");
+   FillStructOpcode<FD>(0x29, &Z80::DefaultFetch, 1, "ADD IY, IY");
+   FillStructOpcode<FD>(0x2A, &Z80::DefaultFetch, 3, "LD IY, (%nn__)");
+   FillStructOpcode<FD>(0x2B, &Z80::DefaultFetch, 1, "DEC IY");
+   FillStructOpcode<FD>(0x2C, &Z80::DefaultFetch, 1, "INC IYl");
+   FillStructOpcode<FD>(0x2D, &Z80::DefaultFetch, 1, "DEC IYl");
+   FillStructOpcode<FD>(0x2E, &Z80::DefaultFetch, 2, "LD IXl, %n");
+   FillStructOpcode<FD>(0x34, &Z80::DefaultFetch, 2, "INC (IY+%n)");
+   FillStructOpcode<FD>(0x35, &Z80::DefaultFetch, 2, "DEC (IY+%n)");
+   FillStructOpcode<FD>(0x36, &Z80::DefaultFetch, 3, "LD (IY+%n), %n");
+   FillStructOpcode<FD>(0x39, &Z80::DefaultFetch, 1, "ADD IY, SP");
+   FillStructOpcode<FD>(0x44, &Z80::DefaultFetch, 2, "LD B, IYh");
+   FillStructOpcode<FD>(0x45, &Z80::DefaultFetch, 2, "LD B, IYl");
+   FillStructOpcode<FD>(0x46, &Z80::DefaultFetch, 2, "LD B, (IY+%n)");
+   FillStructOpcode<FD>(0x4C, &Z80::DefaultFetch, 2, "LD C, IYh");
+   FillStructOpcode<FD>(0x4D, &Z80::DefaultFetch, 2, "LD C, IYl");
+   FillStructOpcode<FD>(0x4E, &Z80::DefaultFetch, 2, "LD C, (IY+%n)");
+   FillStructOpcode<FD>(0x54, &Z80::DefaultFetch, 2, "LD D, IYh");
+   FillStructOpcode<FD>(0x55, &Z80::DefaultFetch, 2, "LD D, IYl");
+   FillStructOpcode<FD>(0x56, &Z80::DefaultFetch, 2, "LD D, (IY+%n)");
+   FillStructOpcode<FD>(0x5C, &Z80::DefaultFetch, 2, "LD E, IYh");
+   FillStructOpcode<FD>(0x5D, &Z80::DefaultFetch, 2, "LD E, IYl");
+   FillStructOpcode<FD>(0x5E, &Z80::DefaultFetch, 2, "LD E, (IY+%n)");
+   FillStructOpcode<FD>(0x60, &Z80::DefaultFetch, 2, "LD IYh, B");
+   FillStructOpcode<FD>(0x61, &Z80::DefaultFetch, 2, "LD IYh, C");
+   FillStructOpcode<FD>(0x62, &Z80::DefaultFetch, 2, "LD IYh, D");
+   FillStructOpcode<FD>(0x63, &Z80::DefaultFetch, 2, "LD IYh, E");
+   FillStructOpcode<FD>(0x64, &Z80::DefaultFetch, 2, "LD IYh, IYh");
+   FillStructOpcode<FD>(0x65, &Z80::DefaultFetch, 2, "LD IYh, IYl");
+   FillStructOpcode<FD>(0x66, &Z80::DefaultFetch, 2, "LD H, (IY+%n)");
+   FillStructOpcode<FD>(0x67, &Z80::DefaultFetch, 2, "LD IYh, A");
+   FillStructOpcode<FD>(0x68, &Z80::DefaultFetch, 2, "LD IYh, B");
+   FillStructOpcode<FD>(0x69, &Z80::DefaultFetch, 2, "LD IYh, C");
+   FillStructOpcode<FD>(0x6A, &Z80::DefaultFetch, 2, "LD IYh, D");
+   FillStructOpcode<FD>(0x6B, &Z80::DefaultFetch, 2, "LD IYh, E");
+   FillStructOpcode<FD>(0x6C, &Z80::DefaultFetch, 2, "LD IYh, IYh");
+   FillStructOpcode<FD>(0x6D, &Z80::DefaultFetch, 2, "LD IYh, IYl");
+   FillStructOpcode<FD>(0x6E, &Z80::DefaultFetch, 2, "LD L, (IY+%n)");
+   FillStructOpcode<FD>(0x6F, &Z80::DefaultFetch, 2, "LD IYh, A");
+   FillStructOpcode<FD>(0x70, &Z80::DefaultFetch, 2, "LD (IY+%n), B");
+   FillStructOpcode<FD>(0x71, &Z80::DefaultFetch, 2, "LD (IY+%n), C");
+   FillStructOpcode<FD>(0x72, &Z80::DefaultFetch, 2, "LD (IY+%n), D");
+   FillStructOpcode<FD>(0x73, &Z80::DefaultFetch, 2, "LD (IY+%n), E");
+   FillStructOpcode<FD>(0x74, &Z80::DefaultFetch, 2, "LD (IY+%n), H");
+   FillStructOpcode<FD>(0x75, &Z80::DefaultFetch, 2, "LD (IY+%n), L");
+   FillStructOpcode<FD>(0x77, &Z80::DefaultFetch, 2, "LD (IY+%n), A");
+   FillStructOpcode<FD>(0x7C, &Z80::DefaultFetch, 2, "LD A, IYh");
+   FillStructOpcode<FD>(0x7D, &Z80::DefaultFetch, 1, "LD A, IYl");
+   FillStructOpcode<FD>(0x7E, &Z80::DefaultFetch, 2, "LD A, (IY+%n)");
+   FillStructOpcode<FD>(0x84, &Z80::DefaultFetch, 2, "ADD A, IYh");
+   FillStructOpcode<FD>(0x85, &Z80::DefaultFetch, 2, "ADD A, IYl");
+   FillStructOpcode<FD>(0x86, &Z80::DefaultFetch, 2, "ADD A, (IY+%n)");
+   FillStructOpcode<FD>(0x8C, &Z80::DefaultFetch, 2, "ADC A, IYh");
+   FillStructOpcode<FD>(0x8D, &Z80::DefaultFetch, 2, "ADC A, IYl");
+   FillStructOpcode<FD>(0x8E, &Z80::DefaultFetch, 2, "ADC A, (IY+%n)");
+   FillStructOpcode<FD>(0x94, &Z80::DefaultFetch, 2, "SUB A, IYh");
+   FillStructOpcode<FD>(0x95, &Z80::DefaultFetch, 2, "SUB A, IYl");
+   FillStructOpcode<FD>(0x96, &Z80::DefaultFetch, 2, "SUB A, (IY+%n)");
+   FillStructOpcode<FD>(0x9C, &Z80::DefaultFetch, 2, "SBC A, IYh");
+   FillStructOpcode<FD>(0x9D, &Z80::DefaultFetch, 2, "SBC A, IYl");
+   FillStructOpcode<FD>(0x9E, &Z80::DefaultFetch, 2, "SBC A, (IY+%n)");
+   FillStructOpcode<FD>(0xA4, &Z80::DefaultFetch, 2, "AND A, IYh");
+   FillStructOpcode<FD>(0xA5, &Z80::DefaultFetch, 2, "AND A, IYl");
+   FillStructOpcode<FD>(0xA6, &Z80::DefaultFetch, 2, "AND (IY+%n)");
+   FillStructOpcode<FD>(0xAC, &Z80::DefaultFetch, 2, "XOR A, IYh");
+   FillStructOpcode<FD>(0xAD, &Z80::DefaultFetch, 2, "XOR A, IYl");
+   FillStructOpcode<FD>(0xAE, &Z80::DefaultFetch, 2, "XOR (IY+%n)");
+   FillStructOpcode<FD>(0xB4, &Z80::DefaultFetch, 2, "OR A, IYh");
+   FillStructOpcode<FD>(0xB5, &Z80::DefaultFetch, 2, "OR A, IYl");
+   FillStructOpcode<FD>(0xB6, &Z80::DefaultFetch, 2, "OR (IY+%n)");
+   FillStructOpcode<FD>(0xBC, &Z80::DefaultFetch, 2, "CP IYh");
+   FillStructOpcode<FD>(0xBD, &Z80::DefaultFetch, 2, "CP (IYl");
+   FillStructOpcode<FD>(0xBE, &Z80::DefaultFetch, 2, "CP (IY+%n)");
+   FillStructOpcode<FD>(0xCB, &Z80::DefaultFetch, 3, "RES %b, (IY+%n)");
+   FillStructOpcode<FD>(0xE1, &Z80::DefaultFetch, 1, "POP_IY");
+   FillStructOpcode<FD>(0xE3, &Z80::DefaultFetch, 1, "EX (SP), IY");
+   FillStructOpcode<FD>(0xE5, &Z80::DefaultFetch, 1, "PUSH_IY");
+   FillStructOpcode<FD>(0xE9, &Z80::DefaultFetch, 1, "JP (IY)");
+   FillStructOpcode<FD>(0xF9, &Z80::DefaultFetch, 1, "LD SP, IY");
 }
 
 
@@ -617,7 +616,7 @@ unsigned int Z80::Opcode_RLCA()
    q_ = af_.b.l& ~(NF | HF | CF | 0x28);
    btmp = af_.b.h >> 7;
    af_.b.h = (af_.b.h << 1) | btmp;
-   q_ |= (af_.b.h & 0x28)| btmp;
+   q_ |= (af_.b.h & 0x28) | btmp;
 
    af_.b.l = q_;
    NEXT_INSTR_RES(current_opcode_ & 0xFFFF00);
@@ -628,11 +627,39 @@ unsigned int Z80::Opcode_RRCA()
    unsigned char btmp;
    int nextcycle;
 
-   btmp = af_.b.h & 0x1;
+   btmp = af_.b.h & CF;
    q_ = af_.b.l & ~(NF | HF | CF | 0x28);
    q_ |= btmp;
    af_.b.h = (af_.b.h >> 1) + (btmp << 7);
+   q_ |= (af_.b.h & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RLA()
+{
+   unsigned char btmp;
+   int nextcycle;
+   btmp = af_.b.l&CF; 
+   q_ = af_.b.l & ~(NF | HF | CF | 0x28);
+
+   if (af_.b.h & 0x80) q_ |= CF; 
+   af_.b.h = af_.b.h << 1; 
+   af_.b.h |= btmp; 
    q_ |= (af_.b.h & 0x28); 
    af_.b.l = q_; 
    NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RRA()
+{
+   unsigned char btmp;
+   int nextcycle;
+   q_ = af_.b.l& ~(NF | HF | CF | 0x28); 
+   q_ |= (af_.b.h & CF);
+   af_.b.h = af_.b.h >> 1;
+   af_.b.h |= (af_.b.l&CF) * 0x80; 
+   q_ |= (af_.b.h & 0x28); 
+   af_.b.l = q_; 
+   NEXT_INSTR; 
 }

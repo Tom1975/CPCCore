@@ -438,6 +438,8 @@ public:
       
    unsigned int Opcode_RLCA();
    unsigned int Opcode_RRCA();
+   unsigned int Opcode_RLA();
+   unsigned int Opcode_RRA();
 };
 
 #include "Z80_Opcodes.hpp"
