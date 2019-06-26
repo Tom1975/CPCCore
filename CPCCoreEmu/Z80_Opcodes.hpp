@@ -127,3 +127,26 @@ unsigned int Z80::Opcode_Memory_Read_Delayed()
    read_count_ = 0;
    return t_val - 3;*/
 }
+
+template<Z80::Registers reg1, Z80::Registers reg2>
+unsigned int Z80::Opcode_Ld_Reg()
+{
+   int nextcycle;
+   REG(reg1) = REG(reg2);
+   NEXT_INSTR;
+}
+
+template<Z80::Registers reg, bool Carry>
+unsigned int Z80::Opcode_Add_Reg()
+{
+   int nextcycle;
+   unsigned int res = af_.b.h + REG(reg);
+
+   q_ = (((res & 0xff) == 0) ? ZF : 0) | (res >> 8) | (res & 0x80) | ((af_.b.h^res^REG(reg))&HF) | (res & 0x28);
+   if ((((af_.b.h & 0x80) ^ (REG(reg) & 0x80)) == 0) && (((REG(reg) & 0x80) ^ (res & 0x80)) != 0))
+      q_ |= PF;
+   af_.b.h = res;
+   af_.b.l = q_;
+   
+   NEXT_INSTR
+}

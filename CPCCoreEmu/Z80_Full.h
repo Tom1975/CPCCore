@@ -25,7 +25,6 @@
             else {machine_cycle_=M_FETCH;t_ = 1;rw_opcode_=false;\
             current_opcode_ = 0;return 1;}
 
-
 #define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
 
 #define NEXT_INSTR_RES(reset_ptr)\
@@ -435,11 +434,24 @@ public:
 
    template<Z80::AddressRegisters reg, int t_val>
    unsigned int Opcode_Memory_Read_Delayed();
-      
-   unsigned int Opcode_RLCA();
-   unsigned int Opcode_RRCA();
+
+   template<Z80::Registers reg1, Z80::Registers reg2>
+   unsigned int Opcode_Ld_Reg();
+
+   template<Z80::Registers reg, bool Carry>
+   unsigned int Opcode_Add_Reg();
+
+   unsigned int Opcode_CPL();
+   unsigned int Opcode_CCF();
+   unsigned int Opcode_SCF();
+
+   unsigned int Opcode_DAA();
    unsigned int Opcode_RLA();
+   unsigned int Opcode_RLCA();
    unsigned int Opcode_RRA();
+   unsigned int Opcode_RRCA();
+
+   unsigned int Opcode_HALT();
 };
 
 #include "Z80_Opcodes.hpp"
