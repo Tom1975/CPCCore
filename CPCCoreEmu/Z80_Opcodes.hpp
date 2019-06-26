@@ -140,7 +140,7 @@ template<Z80::Registers reg, bool Carry>
 unsigned int Z80::Opcode_Add_Reg()
 {
    int nextcycle;
-   unsigned int res = af_.b.h + REG(reg);
+   unsigned int res = af_.b.h + REG(reg) + ((Carry)? (af_.b.l&CF):0);
 
    q_ = (((res & 0xff) == 0) ? ZF : 0) | (res >> 8) | (res & 0x80) | ((af_.b.h^res^REG(reg))&HF) | (res & 0x28);
    if ((((af_.b.h & 0x80) ^ (REG(reg) & 0x80)) == 0) && (((REG(reg) & 0x80) ^ (res & 0x80)) != 0))

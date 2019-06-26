@@ -166,14 +166,14 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0x85, &Z80::Opcode_Add_Reg<R_L, false>, 1, "ADD A, L");
    FillStructOpcode<None>(0x86, &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, "ADD A, (HL)");
    FillStructOpcode<None>(0x87, &Z80::Opcode_Add_Reg<R_A, false>, 1, "ADD A, A");
-   /*FillStructOpcode<None>(0x88, &Z80::Opcode_Add_Reg<R_B, true>, 1, "ADC A, B");
+   FillStructOpcode<None>(0x88, &Z80::Opcode_Add_Reg<R_B, true>, 1, "ADC A, B");
    FillStructOpcode<None>(0x89, &Z80::Opcode_Add_Reg<R_C, true>, 1, "ADC A, C");
    FillStructOpcode<None>(0x8A, &Z80::Opcode_Add_Reg<R_D, true>, 1, "ADC A, D");
    FillStructOpcode<None>(0x8B, &Z80::Opcode_Add_Reg<R_E, true>, 1, "ADC A, E");
    FillStructOpcode<None>(0x8C, &Z80::Opcode_Add_Reg<R_H, true>, 1, "ADC A, H");
    FillStructOpcode<None>(0x8D, &Z80::Opcode_Add_Reg<R_L, true>, 1, "ADC A, L");
    FillStructOpcode<None>(0x8E, &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, "ADC A, (HL)");
-   FillStructOpcode<None>(0x8F, &Z80::Opcode_Add_Reg<R_A, true>, 1, "ADC A, A");*/
+   FillStructOpcode<None>(0x8F, &Z80::Opcode_Add_Reg<R_A, true>, 1, "ADC A, A");
    FillStructOpcode<None>(0x90, &Z80::DefaultFetch, 1, "SUB A, B");
    FillStructOpcode<None>(0x91, &Z80::DefaultFetch, 1, "SUB A, C");
    FillStructOpcode<None>(0x92, &Z80::DefaultFetch, 1, "SUB A, D");
