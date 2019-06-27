@@ -150,3 +150,40 @@ unsigned int Z80::Opcode_Add_Reg()
    
    NEXT_INSTR
 }
+
+template<Z80::Registers reg, bool Carry>
+unsigned int Z80::Opcode_Sub_Reg()
+{
+   int nextcycle;
+   unsigned int res = af_.b.h - (REG(reg) + (Carry? (af_.b.l&CF):0) );
+   q_ = NF | (((res & 0xff) == 0) ? ZF : 0) | ((res >> 8)&CF) | (res & 0x80) | ((af_.b.h^res^REG(reg))&HF);
+   if ((((af_.b.h & 0x80) ^ (REG(reg) & 0x80)) != 0) && (((af_.b.h & 0x80) ^ (res & 0x80)) != 0)) q_ |= PF;/*else af_.b.l &= ~(PF);*/
+   af_.b.h = res; 
+   q_ |= (af_.b.h & 0x28);   
+   af_.b.l = q_; \
+
+   NEXT_INSTR
+}
+
+template<Z80::Registers reg, Z80::OperationType op>
+unsigned int Z80::Opcode_BOOL_Reg()
+{
+   int nextcycle;
+   if (op == AND)
+   {
+      af_.b.h &= REG(reg);
+      q_ = FlagAnd[af_.b.h];
+   }
+   else if (op == OR)
+   {
+      af_.b.h |= REG(reg);
+      q_ = FlagOr[af_.b.h];
+   }
+   else if (op == XOR)
+   {
+      af_.b.h ^= REG(reg);
+      q_ = FlagXor[af_.b.h];
+   }
+   af_.b.l = q_;
+   NEXT_INSTR; 
+}

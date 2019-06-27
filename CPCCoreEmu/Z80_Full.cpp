@@ -84,7 +84,9 @@ Z80::Z80(void) :
       if (i == 0x7f) SzhvDec[i] |= VF;
       if ((i & 0x0f) == 0x0f) SzhvDec[i] |= HF;
 
-
+      FlagAnd[i] = (((i & 0xff) == 0) ? ZF : 0) | HF | (i & 0x80) | ((p & 1) ? 0 : PF) | (i & 0x28);
+      FlagOr[i] = (((i & 0xff) == 0) ? ZF : 0) | (i & 0x80) | ((p & 1) ? 0 : PF) | (i & 0x28);
+      FlagXor[i] = (((i & 0xff) == 0) ? ZF : 0) | (i & 0x80) | ((p & 1) ? 0 : PF) | (i & 0x28);
    }
 
    bc_.w = 0;

@@ -364,6 +364,9 @@ public:
    unsigned char SzhvInc[256]; /* zero, sign, half btmp and overflow flags INC r8 */
    unsigned char SzhvDec[256]; /* zero, sign, half btmp and overflow flags DEC r8 */
    unsigned char P[256];        /* Parity flag */
+   unsigned char FlagAnd[256];        /* AND flags */
+   unsigned char FlagOr[256];        /* AND flags */
+   unsigned char FlagXor[256];        /* AND flags */
 
    ListFunction fetch_func;
    ListFunction fetch_func_cb_;
@@ -408,6 +411,13 @@ public:
       R_L
    } Registers;
 
+   typedef enum
+   {
+      AND,
+      XOR,
+      OR,
+   } OperationType;
+
    template<AddressRegisters reg>
    unsigned int Opcode_Memory_Read_REGW();
 
@@ -441,6 +451,12 @@ public:
    template<Z80::Registers reg, bool Carry>
    unsigned int Opcode_Add_Reg();
 
+   template<Z80::Registers reg, bool Carry>
+   unsigned int Opcode_Sub_Reg();
+
+   template<Z80::Registers reg, Z80::OperationType op>
+   unsigned int Opcode_BOOL_Reg();
+      
    unsigned int Opcode_CPL();
    unsigned int Opcode_CCF();
    unsigned int Opcode_SCF();
