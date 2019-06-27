@@ -83,6 +83,8 @@ SoundMixer::SoundMixer() :
 #ifndef NO_MULTITHREAD
    worker_thread_(nullptr),
    finished_(true),
+#else
+   finished_(true),
 #endif
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
@@ -162,6 +164,8 @@ SoundMixer::~SoundMixer()
       // Delete it
       delete worker_thread_;
    }
+#else
+   finished_ = true;
 #endif
 
    delete[]xv_left_;
@@ -246,6 +250,8 @@ void SoundMixer::StopMixer()
       delete worker_thread_;
       worker_thread_ = nullptr;
    }
+#else
+   finished_ = true;
 #endif   
 }
 
@@ -254,6 +260,8 @@ void SoundMixer::StartMixer()
 #ifndef NO_MULTITHREAD
    finished_ = false;
    worker_thread_ = new std::thread(PrepareBuffer, this);
+#else
+   finished_ = false;
 #endif
 }
 
@@ -270,7 +278,7 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
    }
    finished_ = false;
 #else
-
+   finished_ = false;
 #endif
    sound_ = sound;
 #ifndef NO_MULTITHREAD
@@ -400,7 +408,6 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
 
 void SoundMixer::PrepareBufferThread()
 {
-#ifndef NO_MULTITHREAD
    sound_->Reinit();
 
    if (current_wav_buffer_ == nullptr)
@@ -443,10 +450,12 @@ void SoundMixer::PrepareBufferThread()
       {
          // Release mutex (todo)
          sound_->CheckBuffersStatus();
+#ifndef NO_MULTITHREAD
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#else
+#endif
       }
    }
-#endif
 }
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
@@ -602,9 +611,9 @@ unsigned int SoundMixer::Tick()
          // Buffer is full ? Prepare next, and mark this one to be played
          buffer_list_[index_current_buffer_].status_ = BufferItem::TO_PLAY;
 
-#ifdef NO_MULTITHREAD
+/*#ifdef NO_MULTITHREAD
          ConvertToWav(&buffer_list_[index_current_buffer_].buffer_);
-#else
+#else*/
 
          if(index_current_buffer_ == next_to_play)
          {
@@ -612,7 +621,7 @@ unsigned int SoundMixer::Tick()
          }
 
          index_current_buffer_ = next_to_play;
-#endif
+//#endif
          if (buffer_list_[index_current_buffer_].status_ != BufferItem::FREE)
          {
             buffer_list_[index_current_buffer_].buffer_.InitBuffer();

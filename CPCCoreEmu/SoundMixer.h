@@ -128,8 +128,10 @@ protected:
 #ifndef NO_MULTITHREAD
    std::thread * worker_thread_;
    std::atomic_bool finished_;
+#else
+   bool finished_;
 #endif
-
+   
    /////////////////////// Conversion 
    // Convertion of full buffer
    void ConvertToWav(SoundBuffer* buffer_in);
