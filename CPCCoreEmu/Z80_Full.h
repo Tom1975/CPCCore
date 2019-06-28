@@ -457,6 +457,17 @@ public:
    template<Z80::Registers reg, Z80::OperationType op>
    unsigned int Opcode_BOOL_Reg();
       
+   template<Z80::Registers reg>
+   unsigned int Opcode_CP_Reg();
+
+   template<unsigned char cond, bool present>
+   unsigned int Opcode_Ret_Cond();
+
+   template<Z80::AddressRegisters reg>
+   unsigned int Opcode_Push();
+
+   unsigned int Opcode_MemoryFromStack();
+
    unsigned int Opcode_CPL();
    unsigned int Opcode_CCF();
    unsigned int Opcode_SCF();

@@ -2,6 +2,8 @@
 #define REGW(reg) \
    ((reg==ADDR_PC)?pc_:(reg==ADDR_AF)?af_.w:(reg==ADDR_BC)?bc_.w:(reg==ADDR_DE)?de_.w:(reg==ADDR_HL)?hl_.w:(reg==ADDR_IX)?ix_.w:(reg==ADDR_IY)?iy_.w:(reg==ADDR_SP)?sp_:(reg==ADDR_AFP)?af_p_.w:(reg==ADDR_BCP)?bc_p_.w:(reg==ADDR_DEP)?de_p_.w:(reg==ADDR_HLP)?hl_p_.w:hl_p_.w)
 #define REG(reg) ((reg==R_A)?af_.b.h:(reg==R_F)?af_.b.l:(reg==R_B)?bc_.b.h:(reg==R_C)?bc_.b.l:(reg==R_D)?de_.b.h:(reg==R_E)?de_.b.l:(reg==R_H)?hl_.b.h:hl_.b.l)
+#define REG_First(reg) \
+   (reg==ADDR_AF)?af_.b.h:(reg==ADDR_BC)?bc_.b.h:(reg==ADDR_DE)?de_.b.h:(reg==ADDR_HL)?hl_.b.h:(reg==ADDR_IX)?ix_.b.h:iy_.b.h
 
 
 template<Z80::AddressRegisters addr, Z80::Registers reg>
@@ -186,4 +188,64 @@ unsigned int Z80::Opcode_BOOL_Reg()
    }
    af_.b.l = q_;
    NEXT_INSTR; 
+}
+
+template<Z80::Registers reg>
+unsigned int Z80::Opcode_CP_Reg()
+{
+   int nextcycle;
+   unsigned int res = af_.b.h - REG(reg);
+   q_ = NF | (((res & 0xff) == 0) ? ZF : 0) | (res & 0x80) | ((res >> 8) & CF) | ((af_.b.h ^ res ^ REG(reg)) & HF);
+   if ((((af_.b.h & 0x80) ^ (REG(reg) & 0x80)) != 0) && (((af_.b.h & 0x80) ^ (res & 0x80)) != 0)) q_ |= PF;
+      q_ |= (REG(reg) & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+template<unsigned char cond, bool present>
+unsigned int Z80::Opcode_Ret_Cond()
+{
+   int nextcycle;
+   if (t_ == 5)
+   {
+      if ((af_.b.l & cond) == (present? cond:0))
+      {
+         machine_cycle_ = M_MEMORY_R;
+         t_ = 1; 
+         current_address_ = sp_++; 
+         current_data_ = 0; 
+         read_count_ = 0;
+      }
+      else
+      {
+         NEXT_INSTR
+      }
+   }
+   else
+   {
+      ++t_;
+      /*
+      int t_tmp = 5 - t_;
+      t_ = 5;
+      return t_tmp;*/
+   }
+   return 1;
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Push()
+{
+   if (t_ == 5)
+   {
+      machine_cycle_ = M_MEMORY_W;
+      t_ = 1;
+      current_address_ = --sp_; 
+      current_data_ = REG_First(reg);
+      read_count_ = 0;
+   }
+   else
+   {
+      ++t_;
+   }
+   return 1;
 }
