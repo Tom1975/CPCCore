@@ -243,7 +243,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xD2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP NC %nn__");
    FillStructOpcode<None>(0xD3, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "OUT (%n), A");
    FillStructOpcode<None>(0xD4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL NC %nn__");
-   FillStructOpcode<None>(0xD5, &Z80::DefaultFetch, 1, "PUSH DE");
+   FillStructOpcode<None>(0xD5, &Z80::Opcode_Push<ADDR_DE>, 1, "PUSH DE");
    FillStructOpcode<None>(0xD6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "SUB A, %n");
    FillStructOpcode<None>(0xD7, &Z80::DefaultFetch, 1, "RST 10H");
    FillStructOpcode<None>(0xD8, &Z80::Opcode_Ret_Cond< CF, true>, 1, "RET C");
@@ -258,7 +258,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xE2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP PO %nn__");
    FillStructOpcode<None>(0xE3, &Z80::DefaultFetch, 1, "EX (SP), HL");
    FillStructOpcode<None>(0xE4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL PO %nn__");
-   FillStructOpcode<None>(0xE5, &Z80::DefaultFetch, 1, "PUSH HL");
+   FillStructOpcode<None>(0xE5, &Z80::Opcode_Push<ADDR_HL>, 1, "PUSH HL");
    FillStructOpcode<None>(0xE6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "AND %n");
    FillStructOpcode<None>(0xE7, &Z80::DefaultFetch, 1, "RST 20H");
    FillStructOpcode<None>(0xE8, &Z80::Opcode_Ret_Cond< PF, true>, 1, "RET PE");
@@ -273,7 +273,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xF2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP P %nn__");
    FillStructOpcode<None>(0xF3, &Z80::DefaultFetch, 1, "DI");
    FillStructOpcode<None>(0xF4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL P %nn__");
-   FillStructOpcode<None>(0xF5, &Z80::DefaultFetch, 1, "PUSH AF");
+   FillStructOpcode<None>(0xF5, &Z80::Opcode_Push<ADDR_AF>, 1, "PUSH AF");
    FillStructOpcode<None>(0xF6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "OR %n");
    FillStructOpcode<None>(0xF7, &Z80::DefaultFetch, 1, "RST 30H");
    FillStructOpcode<None>(0xF8, &Z80::Opcode_Ret_Cond< SF, true>, 1, "RET M");
