@@ -15,6 +15,11 @@
 #include "mkfilter.h"
 #endif
 
+
+#ifdef  __circle__
+#include <circle/timer.h>
+#endif
+
 #ifdef LOG_MIXER
 #define LOG(str)  if (log_) log_->WriteLog (str);
 #define LOGEOL if (log_) log_->EndOfLine ();
@@ -452,7 +457,8 @@ void SoundMixer::PrepareBufferThread()
          sound_->CheckBuffersStatus();
 #ifndef NO_MULTITHREAD
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
-#else
+#elif __circle
+         CTimer::Get()->MsDelay(1);
 #endif
       }
    }
