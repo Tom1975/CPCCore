@@ -468,6 +468,7 @@ public:
 
    unsigned int Opcode_MemoryFromStack();
    unsigned int Opcode_Push_delayed();
+   unsigned int Opcode_Call_fetch();
 
    unsigned int Opcode_CPL();
    unsigned int Opcode_CCF();
@@ -480,6 +481,12 @@ public:
    unsigned int Opcode_RRCA();
 
    unsigned int Opcode_HALT();
+   unsigned int Opcode_Exx();
+   unsigned int Opcode_DI();
+   unsigned int Opcode_EI();
+
+   unsigned int Opcode_JP_HL();
+   unsigned int Opcode_LD_SP_HL();
 };
 
 #include "Z80_Opcodes.hpp"
