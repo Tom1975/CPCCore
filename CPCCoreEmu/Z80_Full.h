@@ -467,6 +467,7 @@ public:
    unsigned int Opcode_Push();
 
    unsigned int Opcode_MemoryFromStack();
+   unsigned int Opcode_Push_delayed();
 
    unsigned int Opcode_CPL();
    unsigned int Opcode_CCF();
