@@ -28,7 +28,7 @@
 #define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
 
 #define NEXT_INSTR_RES(reset_ptr)\
-   if(reset_ptr)current_function_ = &fetch_func;\
+   /*if(reset_ptr)*/current_function_ = &fetch_func;\
    if (!sig_->nmi_ && ((!sig_->int_) || !iff1_)){\
          SET_NOINT;}\
       if ((sig_->int_) && iff1_) {\
@@ -377,6 +377,7 @@ public:
    ListFunction * current_function_;
 
    unsigned int DefaultFetch();
+   unsigned int Opcode_DefaultToSimple();
    unsigned int Opcode_NOP();
    unsigned int Opcode_CB();
    unsigned int Opcode_ED();
@@ -467,6 +468,8 @@ public:
    unsigned int Opcode_Push();
 
    unsigned int Opcode_MemoryFromStack();
+   unsigned int Opcode_Push_delayed();
+   unsigned int Opcode_Call_fetch();
 
    unsigned int Opcode_CPL();
    unsigned int Opcode_CCF();
@@ -479,6 +482,12 @@ public:
    unsigned int Opcode_RRCA();
 
    unsigned int Opcode_HALT();
+   unsigned int Opcode_Exx();
+   unsigned int Opcode_DI();
+   unsigned int Opcode_EI();
+
+   unsigned int Opcode_JP_HL();
+   unsigned int Opcode_LD_SP_HL();
 };
 
 #include "Z80_Opcodes.hpp"

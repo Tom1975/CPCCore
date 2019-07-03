@@ -229,15 +229,15 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xC4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL NZ %nn__");
    FillStructOpcode<None>(0xC5, &Z80::Opcode_Push<ADDR_BC>, 1, "PUSH BC");
    FillStructOpcode<None>(0xC6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "ADD A, %n");
-   FillStructOpcode<None>(0xC7, &Z80::DefaultFetch, 1, "RST 0");
+   FillStructOpcode<None>(0xC7, &Z80::Opcode_Push_delayed, 1, "RST 0");
    FillStructOpcode<None>(0xC8, &Z80::Opcode_Ret_Cond< ZF, true>, 1, "RET Z");
    FillStructOpcode<None>(0xC9, &Z80::Opcode_MemoryFromStack, 1, "RET");
    FillStructOpcode<None>(0xCA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP Z %nn__");
 
    FillStructOpcode<None>(0xCC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL Z %nn__");
-   FillStructOpcode<None>(0xCD, &Z80::DefaultFetch, 3, "CALL %nn__");
+   FillStructOpcode<None>(0xCD, &Z80::Opcode_Call_fetch, 3, "CALL %nn__");
    FillStructOpcode<None>(0xCE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "ADC A, %n");
-   FillStructOpcode<None>(0xCF, &Z80::DefaultFetch, 1, "RST 08H");
+   FillStructOpcode<None>(0xCF, &Z80::Opcode_Push_delayed, 1, "RST 08H");
    FillStructOpcode<None>(0xD0, &Z80::Opcode_Ret_Cond< CF, false>, 1, "RET NC");
    FillStructOpcode<None>(0xD1, &Z80::Opcode_MemoryFromStack, 1, "POP DE");
    FillStructOpcode<None>(0xD2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP NC %nn__");
@@ -245,44 +245,44 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xD4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL NC %nn__");
    FillStructOpcode<None>(0xD5, &Z80::Opcode_Push<ADDR_DE>, 1, "PUSH DE");
    FillStructOpcode<None>(0xD6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "SUB A, %n");
-   FillStructOpcode<None>(0xD7, &Z80::DefaultFetch, 1, "RST 10H");
+   FillStructOpcode<None>(0xD7, &Z80::Opcode_Push_delayed, 1, "RST 10H");
    FillStructOpcode<None>(0xD8, &Z80::Opcode_Ret_Cond< CF, true>, 1, "RET C");
-   FillStructOpcode<None>(0xD9, &Z80::DefaultFetch, 1, "EXX");
+   FillStructOpcode<None>(0xD9, &Z80::Opcode_Exx, 1, "EXX");
    FillStructOpcode<None>(0xDA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP C %nn__");
    FillStructOpcode<None>(0xDB, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "IN A, (%n)");
    FillStructOpcode<None>(0xDC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL C %nn__");
    FillStructOpcode<None>(0xDE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "SBC A, %n");
-   FillStructOpcode<None>(0xDF, &Z80::DefaultFetch, 1, "RST 18H");
+   FillStructOpcode<None>(0xDF, &Z80::Opcode_Push_delayed, 1, "RST 18H");
    FillStructOpcode<None>(0xE0, &Z80::Opcode_Ret_Cond< PF, false>, 1, "RET PO");
    FillStructOpcode<None>(0xE1, &Z80::Opcode_MemoryFromStack, 1, "POP HL");
    FillStructOpcode<None>(0xE2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP PO %nn__");
-   FillStructOpcode<None>(0xE3, &Z80::DefaultFetch, 1, "EX (SP), HL");
+   FillStructOpcode<None>(0xE3, &Z80::Opcode_Memory_Read_REGW<ADDR_SP>, 1, "EX (SP), HL");
    FillStructOpcode<None>(0xE4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL PO %nn__");
    FillStructOpcode<None>(0xE5, &Z80::Opcode_Push<ADDR_HL>, 1, "PUSH HL");
    FillStructOpcode<None>(0xE6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "AND %n");
-   FillStructOpcode<None>(0xE7, &Z80::DefaultFetch, 1, "RST 20H");
+   FillStructOpcode<None>(0xE7, &Z80::Opcode_Push_delayed, 1, "RST 20H");
    FillStructOpcode<None>(0xE8, &Z80::Opcode_Ret_Cond< PF, true>, 1, "RET PE");
-   FillStructOpcode<None>(0xE9, &Z80::DefaultFetch, 1, "JP (HL)");
+   FillStructOpcode<None>(0xE9, &Z80::Opcode_JP_HL, 1, "JP (HL)");
    FillStructOpcode<None>(0xEA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP PE %nn__");
    FillStructOpcode<None>(0xEB, &Z80::Opcode_EX<ADDR_DE, ADDR_HL>, 1, "EX DE,HL");
    FillStructOpcode<None>(0xEC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL PE %nn__");
    FillStructOpcode<None>(0xEE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "XOR %n");
-   FillStructOpcode<None>(0xEF, &Z80::DefaultFetch, 1, "RST 28H");
+   FillStructOpcode<None>(0xEF, &Z80::Opcode_Push_delayed, 1, "RST 28H");
    FillStructOpcode<None>(0xF0, &Z80::Opcode_Ret_Cond< SF, false>, 1, "RET P");
    FillStructOpcode<None>(0xF1, &Z80::Opcode_MemoryFromStack, 1, "POP AF");
    FillStructOpcode<None>(0xF2, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP P %nn__");
-   FillStructOpcode<None>(0xF3, &Z80::DefaultFetch, 1, "DI");
+   FillStructOpcode<None>(0xF3, &Z80::Opcode_DI, 1, "DI");
    FillStructOpcode<None>(0xF4, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL P %nn__");
    FillStructOpcode<None>(0xF5, &Z80::Opcode_Push<ADDR_AF>, 1, "PUSH AF");
    FillStructOpcode<None>(0xF6, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "OR %n");
-   FillStructOpcode<None>(0xF7, &Z80::DefaultFetch, 1, "RST 30H");
+   FillStructOpcode<None>(0xF7, &Z80::Opcode_Push_delayed, 1, "RST 30H");
    FillStructOpcode<None>(0xF8, &Z80::Opcode_Ret_Cond< SF, true>, 1, "RET M");
-   FillStructOpcode<None>(0xF9, &Z80::DefaultFetch, 1, "LD SP, HL");
+   FillStructOpcode<None>(0xF9, &Z80::Opcode_LD_SP_HL, 1, "LD SP, HL");
    FillStructOpcode<None>(0xFA, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "JP M %nn__");
-   FillStructOpcode<None>(0xFB, &Z80::DefaultFetch, 1, "EI");
+   FillStructOpcode<None>(0xFB, &Z80::Opcode_EI, 1, "EI");
    FillStructOpcode<None>(0xFC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL M %nn__");
    FillStructOpcode<None>(0xFE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "CP %n");
-   FillStructOpcode<None>(0xFF, &Z80::DefaultFetch, 1, "RST 38H");
+   FillStructOpcode<None>(0xFF, &Z80::Opcode_Push_delayed, 1, "RST 38H");
 #if 0
    // Opcode a multiple byte
    // CB
@@ -390,6 +390,7 @@ void Z80::InitOpcodeShortcuts()
    for (j = 0x00; j <= 0xff; j++)
    {
       liste_opcodes_dd_[j] = liste_opcodes_[j];
+      fetch_func_dd_[j] = &Z80::Opcode_DefaultToSimple;
    }
 
    FillStructOpcode<DD>(0x09, &Z80::DefaultFetch, 1, "ADD IX, BC");
@@ -484,6 +485,7 @@ void Z80::InitOpcodeShortcuts()
    for (j = 0x00; j <= 0xff; j++)
    {
       liste_opcodes_fd_[j] = liste_opcodes_[j];
+      fetch_func_fd_[j] = &Z80::Opcode_DefaultToSimple;
    }
 
    FillStructOpcode<FD>(0x09, &Z80::DefaultFetch, 1, "ADD IY, BC");
@@ -588,10 +590,19 @@ unsigned int Z80::Opcode_ED()
    machine_cycle_ = M_FETCH; t_ = 1;
    return 1;
 }
+
 unsigned int Z80::Opcode_DD()
 {
    current_function_ = &fetch_func_dd_;
    machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_DefaultToSimple()
+{
+   current_function_ = &fetch_func;
+   current_opcode_ &= 0xFF;
+   return (this->*(fetch_func)[current_opcode_ ])();
    return 1;
 }
 
@@ -736,5 +747,86 @@ unsigned int Z80::Opcode_MemoryFromStack()
    current_address_ = sp_++; 
    current_data_ = 0; 
    read_count_ = 0;
+   return 1;
+}
+
+unsigned int Z80::Opcode_Push_delayed()
+{
+   if (t_ == 5) {
+      machine_cycle_ = M_MEMORY_W;
+      t_ = 1;
+      current_address_ = --sp_;
+      current_data_ = pc_ >> 8;
+      read_count_ = 0;
+      return 1;
+   }
+   else
+   {
+      ++t_;
+   }
+   return 1;
+}
+
+unsigned int Z80::Opcode_Call_fetch()
+{
+   machine_cycle_ = M_MEMORY_W;
+   t_ = 1;
+   current_address_ = --sp_;
+   current_data_ = (pc_ + 2) >> 8;
+   read_count_ = 0;
+   return 1;
+}
+
+unsigned int Z80::Opcode_Exx()
+{
+   int nextcycle;
+   unsigned short t;
+   t = bc_.w;
+   bc_.w = bc_p_.w;
+   bc_p_.w = t;
+   t = de_.w;
+   de_.w = de_p_.w;
+   de_p_.w = t;
+   t = hl_.w;
+   hl_.w = hl_p_.w;
+   hl_p_.w = t;
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_DI()
+{
+   int nextcycle;
+   iff1_ = false; 
+   iff2_ = false; 
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_EI()
+{
+   int nextcycle;
+   iff1_ = true;
+   iff2_ = true;
+   NEXT_INSTR_EI
+}
+
+unsigned int Z80::Opcode_JP_HL()
+{
+   int nextcycle;
+   pc_ = hl_.w; 
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_LD_SP_HL()
+{
+   if (t_ == 6)
+   {
+      int nextcycle;
+      sp_ = hl_.w;
+      NEXT_INSTR;
+   }
+   else
+   {
+      ++t_;
+   }
    return 1;
 }

@@ -25,7 +25,7 @@ unsigned int Z80::Opcode_Inc_Reg()
    q_ = (af_.b.l&CF) | SzhvInc[REG(reg)];
    af_.b.l = q_;
 
-   NEXT_INSTR_RES((current_opcode_ & 0xFFFF00) && reset_ptr)
+   NEXT_INSTR_RES((current_opcode_ & 0xFFFF00))
 }
 
 template<Z80::Registers reg, bool reset_ptr>
@@ -36,7 +36,7 @@ unsigned int Z80::Opcode_Dec_Reg()
    q_ = (af_.b.l&CF) | SzhvDec[REG(reg)];
    af_.b.l = q_;
 
-   NEXT_INSTR_RES((current_opcode_ & 0xFFFF00) && reset_ptr)
+   NEXT_INSTR_RES((current_opcode_ & 0xFFFF00))
 }
 
 template<Z80::AddressRegisters reg, bool reset_ptr>
@@ -51,7 +51,7 @@ unsigned int Z80::Opcode_Inc_RegW()
    {
       int nextcycle;
       REGW(reg)++;
-      NEXT_INSTR_RES((current_opcode_ & 0xFFFF00) && reset_ptr)
+      NEXT_INSTR_RES((current_opcode_ & 0xFFFF00))
    }
 }
 
