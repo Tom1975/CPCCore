@@ -28,7 +28,7 @@
 #define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
 
 #define NEXT_INSTR_RES(reset_ptr)\
-   if(reset_ptr)current_function_ = &fetch_func;\
+   /*if(reset_ptr)*/current_function_ = &fetch_func;\
    if (!sig_->nmi_ && ((!sig_->int_) || !iff1_)){\
          SET_NOINT;}\
       if ((sig_->int_) && iff1_) {\
@@ -377,6 +377,7 @@ public:
    ListFunction * current_function_;
 
    unsigned int DefaultFetch();
+   unsigned int Opcode_DefaultToSimple();
    unsigned int Opcode_NOP();
    unsigned int Opcode_CB();
    unsigned int Opcode_ED();

@@ -1,7 +1,13 @@
 
 Begin:
+
+if (current_opcode_ < 0x100)
+{
+   nextcycle = 12;
+}
+
 switch (current_opcode_) {
-case 0x00: NEXT_INSTR; break;// NOP
+/*case 0x00: NEXT_INSTR; break;// NOP
 case 0x01: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0; read_count_ = 0; break; // LD BC, nn
 case 0x02: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = bc_.w; current_data_ = af_.b.h; read_count_ = 0; break; // LD (BC), A
 case 0x03: if (t_ == 6) { ++bc_.w; NEXT_INSTR; }
@@ -294,6 +300,7 @@ case 0xFD: machine_cycle_ = M_FETCH; t_ = 1; break;                             
 case 0xFE: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = pc_; current_data_ = 0; read_count_ = 0; break;// CP n;
 case 0xFF: if (t_ == 5) { machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; read_count_ = 0; }
            else { ++t_; }break; // RST 38
+   */
 //////////////////////////////////////////////////////////
 // CB
 /// RLC

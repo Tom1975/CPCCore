@@ -390,6 +390,7 @@ void Z80::InitOpcodeShortcuts()
    for (j = 0x00; j <= 0xff; j++)
    {
       liste_opcodes_dd_[j] = liste_opcodes_[j];
+      fetch_func_dd_[j] = &Z80::Opcode_DefaultToSimple;
    }
 
    FillStructOpcode<DD>(0x09, &Z80::DefaultFetch, 1, "ADD IX, BC");
@@ -484,6 +485,7 @@ void Z80::InitOpcodeShortcuts()
    for (j = 0x00; j <= 0xff; j++)
    {
       liste_opcodes_fd_[j] = liste_opcodes_[j];
+      fetch_func_fd_[j] = &Z80::Opcode_DefaultToSimple;
    }
 
    FillStructOpcode<FD>(0x09, &Z80::DefaultFetch, 1, "ADD IY, BC");
@@ -588,10 +590,19 @@ unsigned int Z80::Opcode_ED()
    machine_cycle_ = M_FETCH; t_ = 1;
    return 1;
 }
+
 unsigned int Z80::Opcode_DD()
 {
    current_function_ = &fetch_func_dd_;
    machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_DefaultToSimple()
+{
+   current_function_ = &fetch_func;
+   current_opcode_ &= 0xFF;
+   return (this->*(fetch_func)[current_opcode_ ])();
    return 1;
 }
 
