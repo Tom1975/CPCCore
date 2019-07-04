@@ -5,6 +5,7 @@
 #define REG_First(reg) \
    (reg==ADDR_AF)?af_.b.h:(reg==ADDR_BC)?bc_.b.h:(reg==ADDR_DE)?de_.b.h:(reg==ADDR_HL)?hl_.b.h:(reg==ADDR_IX)?ix_.b.h:iy_.b.h
 
+#define INT_TO_REG(i) ((i==0)?bc_.b.h:(i==1)?bc_.b.l:(i==2)?de_.b.h:(i==3)?de_.b.l:(i==4)?hl_.b.h:(i==5)?hl_.b.l:af_.b.h)
 
 template<Z80::AddressRegisters addr, Z80::Registers reg>
 unsigned int Z80::Opcode_Memory_Write_Addr_Reg()
@@ -248,4 +249,16 @@ unsigned int Z80::Opcode_Push()
       ++t_;
    }
    return 1;
+}
+
+template<int rlc> unsigned int Z80::Opcode_RLC()
+{
+   int nextcycle;
+   unsigned char btmp = INT_TO_REG(rlc) >> 7;
+   INT_TO_REG(rlc) = (INT_TO_REG(rlc) << 1) + btmp; 
+   q_ = btmp | ((((INT_TO_REG(rlc) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(rlc) & 0x80));
+   q_ |= (INT_TO_REG(rlc) & 0x28); 
+   PARITY_FLAG(INT_TO_REG(rlc)); 
+   af_.b.l = q_;
+   NEXT_INSTR;
 }

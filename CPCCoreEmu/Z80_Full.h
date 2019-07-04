@@ -467,6 +467,9 @@ public:
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Push();
 
+   template<int rlc> unsigned int Opcode_RLC();
+   
+
    unsigned int Opcode_MemoryFromStack();
    unsigned int Opcode_Push_delayed();
    unsigned int Opcode_Call_fetch();

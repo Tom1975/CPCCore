@@ -283,9 +283,18 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xFC, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 3, "CALL M %nn__");
    FillStructOpcode<None>(0xFE, &Z80::Opcode_Memory_Read_REGW<ADDR_PC>, 2, "CP %n");
    FillStructOpcode<None>(0xFF, &Z80::Opcode_Push_delayed, 1, "RST 38H");
-#if 0
    // Opcode a multiple byte
    // CB
+   FillStructOpcode<CB>(0, &Z80::Opcode_RLC<0>, 1, "RLC %r");
+   FillStructOpcode<CB>(1, &Z80::Opcode_RLC<1>, 1, "RLC %r");
+   FillStructOpcode<CB>(2, &Z80::Opcode_RLC<2>, 1, "RLC %r");
+   FillStructOpcode<CB>(3, &Z80::Opcode_RLC<3>, 1, "RLC %r");
+   FillStructOpcode<CB>(4, &Z80::Opcode_RLC<4>, 1, "RLC %r");
+   FillStructOpcode<CB>(5, &Z80::Opcode_RLC<5>, 1, "RLC %r");
+   FillStructOpcode<CB>(7, &Z80::Opcode_RLC<7>, 1, "RLC %r");
+   
+   
+#if 0   
    for (j = 0x00; j <= 0x07; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RLC %r");
    for (j = 0x08; j <= 0x0F; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RRC %r");
    for (j = 0x10; j <= 0x17; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RL %r");
