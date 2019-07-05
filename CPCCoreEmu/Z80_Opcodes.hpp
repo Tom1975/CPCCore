@@ -251,14 +251,121 @@ unsigned int Z80::Opcode_Push()
    return 1;
 }
 
-template<int rlc> unsigned int Z80::Opcode_RLC()
+template<int b> unsigned int Z80::Opcode_RLC()
 {
    int nextcycle;
-   unsigned char btmp = INT_TO_REG(rlc) >> 7;
-   INT_TO_REG(rlc) = (INT_TO_REG(rlc) << 1) + btmp; 
-   q_ = btmp | ((((INT_TO_REG(rlc) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(rlc) & 0x80));
-   q_ |= (INT_TO_REG(rlc) & 0x28); 
-   PARITY_FLAG(INT_TO_REG(rlc)); 
+   unsigned char btmp = INT_TO_REG(b) >> 7;
+   INT_TO_REG(b) = (INT_TO_REG(b) << 1) + btmp; 
+   q_ = btmp | ((((INT_TO_REG(b) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(b) & 0x80));
+   q_ |= (INT_TO_REG(b) & 0x28); 
+   PARITY_FLAG(INT_TO_REG(b)); 
    af_.b.l = q_;
    NEXT_INSTR;
 }
+
+template<int b> unsigned int Z80::Opcode_RRC()
+{
+   int nextcycle;
+   unsigned char btmp;
+   q_ = (INT_TO_REG(b) & 0x1) ? CF : 0; 
+   btmp = INT_TO_REG(b) & 0x1; 
+   INT_TO_REG(b) = (INT_TO_REG(b) >> 1) + btmp * 0x80; 
+   q_ |= ((((INT_TO_REG(b) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(b) & 0x80)); 
+   q_ |= (INT_TO_REG(b) & 0x28); 
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_RL()
+{
+   int nextcycle;
+   unsigned char btmp;
+   btmp = af_.b.l&CF; 
+   q_ = (INT_TO_REG(b) & 0x80) ? CF : 0; 
+   INT_TO_REG(b) = INT_TO_REG(b) << 1; 
+   INT_TO_REG(b) += btmp; 
+   q_ |= ((((INT_TO_REG(b) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(b) & 0x80)); 
+   q_ |= (INT_TO_REG(b) & 0x28); 
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_RR()
+{
+   int nextcycle;
+   unsigned char btmp;
+   btmp = af_.b.l&CF;
+   q_ = (INT_TO_REG(b) & 0x1) ? CF : 0; 
+   INT_TO_REG(b) = INT_TO_REG(b) >> 1; 
+   INT_TO_REG(b) += btmp * 0x80; 
+   q_ |= ((((INT_TO_REG(b) & 0xff) == 0) ? ZF : 0) | (INT_TO_REG(b) & 0x80)); 
+   q_ |= (INT_TO_REG(b) & 0x28); 
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_SLA()
+{
+   int nextcycle;
+   unsigned char btmp;
+   if ((INT_TO_REG(b) & 0x80) == 0x80)
+      q_ |= (CF); 
+   INT_TO_REG(b) = INT_TO_REG(b) << 1; 
+   if (INT_TO_REG(b) == 0x00) 
+      q_ |= (ZF); 
+   q_ |= ((INT_TO_REG(b)&SF) | (INT_TO_REG(b) & 0x28)); 
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_; 
+
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_SRA()
+{
+   int nextcycle;
+   unsigned char btmp;
+   if ((INT_TO_REG(b) & 0x01) == 0x01)
+      q_ |= (CF); 
+   btmp = INT_TO_REG(b) & 0x80;
+   INT_TO_REG(b) = (INT_TO_REG(b) >> 1) | btmp; 
+   if (INT_TO_REG(b) == 0x00)
+      q_ |= (ZF);
+   q_ |= ((INT_TO_REG(b)&SF) | (INT_TO_REG(b) & 0x28));
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_;
+
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_SLL()
+{
+   int nextcycle;
+   unsigned char btmp;
+   if ((INT_TO_REG(b) & 0x80) == 0x80)
+      q_ |= (CF);
+   INT_TO_REG(b) = (INT_TO_REG(b) << 1) + 1; 
+   if (INT_TO_REG(b) == 0x00) q_ |= (ZF); 
+   q_ |= ((INT_TO_REG(b)&SF) | (INT_TO_REG(b) & 0x28));
+   PARITY_FLAG(INT_TO_REG(b)); 
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+template<int b> unsigned int Z80::Opcode_SRL()
+{
+   int nextcycle;
+   unsigned char btmp;
+   if ((INT_TO_REG(b) & 0x01) == 0x01)
+      q_ |= (CF);
+   INT_TO_REG(b) = INT_TO_REG(b) >> 1;
+   if (INT_TO_REG(b) == 0x00) q_ |= (ZF);
+   q_ |= ((INT_TO_REG(b)&SF) | (INT_TO_REG(b) & 0x28));
+   PARITY_FLAG(INT_TO_REG(b));
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+

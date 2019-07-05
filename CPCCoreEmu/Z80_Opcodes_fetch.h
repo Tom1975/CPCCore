@@ -5,7 +5,7 @@ switch (current_opcode_) {
 //////////////////////////////////////////////////////////
 // CB
 /// RLC
-case 0xCB00: RLC(bc_.b.h); NEXT_INSTR; break; // RLC B
+/*case 0xCB00: RLC(bc_.b.h); NEXT_INSTR; break; // RLC B
 case 0xCB01: RLC(bc_.b.l); NEXT_INSTR; break; // RLC C
 case 0xCB02: RLC(de_.b.h); NEXT_INSTR; break; // RLC D
 case 0xCB03: RLC(de_.b.l); NEXT_INSTR; break; // RLC E
@@ -58,6 +58,7 @@ case 0xCB2C:SRA(hl_.b.h); NEXT_INSTR; break; // SRA H
 case 0xCB2D:SRA(hl_.b.l); NEXT_INSTR; break; // SRA L
 case 0xCB2E: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = hl_.w; current_data_ = 0; read_count_ = 0; break;  // SRA (HL)
 case 0xCB2F:SRA(af_.b.h); NEXT_INSTR; break; // SRA A
+   
 /// SLL
 case 0xCB30:SLL(bc_.b.h); NEXT_INSTR; break; // SLL B
 case 0xCB31:SLL(bc_.b.l); NEXT_INSTR; break; // SLL C
@@ -76,6 +77,7 @@ case 0xCB3C:SRL(hl_.b.h); NEXT_INSTR; break; // SRL H
 case 0xCB3D:SRL(hl_.b.l); NEXT_INSTR; break; // SRL L
 case 0xCB3E: machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = hl_.w; current_data_ = 0; read_count_ = 0; break;  // SRL (HL)
 case 0xCB3F:SRL(af_.b.h); NEXT_INSTR; break; // SRL A
+   */
 /// BIT
 case 0xCB40: BIT_B_R(0, bc_.b.h); NEXT_INSTR; break; // BIT 0, B
 case 0xCB41: BIT_B_R(0, bc_.b.l); NEXT_INSTR; break; // BIT 0, C

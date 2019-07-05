@@ -285,13 +285,25 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xFF, &Z80::Opcode_Push_delayed, 1, "RST 38H");
    // Opcode a multiple byte
    // CB
-   FillStructOpcode<CB>(0, &Z80::Opcode_RLC<0>, 1, "RLC %r");
-   FillStructOpcode<CB>(1, &Z80::Opcode_RLC<1>, 1, "RLC %r");
-   FillStructOpcode<CB>(2, &Z80::Opcode_RLC<2>, 1, "RLC %r");
-   FillStructOpcode<CB>(3, &Z80::Opcode_RLC<3>, 1, "RLC %r");
-   FillStructOpcode<CB>(4, &Z80::Opcode_RLC<4>, 1, "RLC %r");
-   FillStructOpcode<CB>(5, &Z80::Opcode_RLC<5>, 1, "RLC %r");
-   FillStructOpcode<CB>(7, &Z80::Opcode_RLC<7>, 1, "RLC %r");
+
+#define FILL_CB_FUNC(base,i,asm)\
+   FillStructOpcode<CB>(base+0, &i<0>, 1, asm);\
+   FillStructOpcode<CB>(base+1, &i<1>, 1, asm);\
+   FillStructOpcode<CB>(base+2, &i<2>, 1, asm);\
+   FillStructOpcode<CB>(base+3, &i<3>, 1, asm);\
+   FillStructOpcode<CB>(base+4, &i<4>, 1, asm);\
+   FillStructOpcode<CB>(base+5, &i<5>, 1, asm);\
+   FillStructOpcode<CB>(base+6, &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, asm);\
+   FillStructOpcode<CB>(base+7, &i<7>, 1, asm);\
+
+   FILL_CB_FUNC(0x00, Z80::Opcode_RLC, "RLC %r");
+   FILL_CB_FUNC(0x08, Z80::Opcode_RRC, "RRC %r");
+   FILL_CB_FUNC(0x10, Z80::Opcode_RL, "RL %r");
+   FILL_CB_FUNC(0x18, Z80::Opcode_RR, "RR %r");
+   FILL_CB_FUNC(0x20, Z80::Opcode_SLA, "SLA %r");
+   FILL_CB_FUNC(0x28, Z80::Opcode_SRA, "SRA %r");
+   FILL_CB_FUNC(0x30, Z80::Opcode_SLL, "SLL %r");
+   FILL_CB_FUNC(0x38, Z80::Opcode_SRL, "SRL %r");
    
    
 #if 0   
