@@ -563,14 +563,11 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
 
 void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, int size)
 {
-#ifndef __circle__
    int nb_breakpoints = size / 5;
-   BreakpointHandler* bph = machine_->GetBreakpointHandler();
-
+  
    for (int i = 0; i < nb_breakpoints; i++)
    {
       unsigned char * buffer = &in_buffer[i * 5];
-      BreakpointPC * break_pc = new BreakpointPC(machine_, (buffer[01] << 8) | buffer[0]);
       // base, or extended ram ?
       // Currently not handled by sbx...
       if (buffer[2] == 1)
@@ -579,10 +576,9 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
 
       }
       // condition
-      bph->AddBreakpoint(break_pc);
+      machine_->AddBreakpoint((buffer[01] << 8) | buffer[0]);
 
    }
-#endif
 }
 
 void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, int size)
@@ -828,7 +824,7 @@ bool CSnapshot::HandleSnr ( FILE* f )
       replay_offset_ += 2;
    }
 
-   machine_->counter_ = 0;
+   machine_->ResetCounter();
    // Set monitor to begining of VSync
    //m_pMachine->GetMonitor()->m_Y = 0;
    //m_pMachine->GetMonitor()->m_VerticalState = CMonitor::Sync;
@@ -935,9 +931,13 @@ void CSnapshot::InitRecord ()
    fwrite  ( "SNR ", 4, 1, record_file_);
 
    // Keyboard state
-   unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
+   for (int i = 0; i < 10; i++)
+   {
+      key_buffer_[i] = machine_->GetKeyboardHandler()->GetKeyboardMap(i);
+   }
+   /*unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
    memcpy ( key_buffer_, current_state, 10);
-
+   */
    fwrite ( key_buffer_, 10, 1, record_file_);
 
    // 0x48 next byte blank

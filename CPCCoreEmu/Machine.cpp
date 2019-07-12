@@ -79,7 +79,7 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
    keyboardhandler_.LoadKeyboardMap("FRENCH");
 
    motherboard_.InitMotherbard(log_, &sna_handler_, display_, notifier_, directories_, configuration_manager_);
-
+   sna_handler_.SetMachine(&motherboard_);
 
    return true;
 }
@@ -748,6 +748,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       if (GetProcFull()->machine_cycle_ == Z80::M_FETCH && GetProcFull()->t_ == 1)
       {
          GetProcFull()->stop_on_fetch_ = false;
+         
          if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
          {
             // We have to stop on :

@@ -5,6 +5,7 @@
 #define BIG_ENDIAN
 #endif
 
+#ifdef _MACOS_
 #define NOFILTER
 #define NOZLIB
 #define MINIMUM_DEPENDENCIES
@@ -12,6 +13,7 @@
 #define NO_RAW_FORMAT
 #define LOG_MIXER 
 #define LOGFDC
+#endif
 
 // Windows Header Files:
 #ifdef _WIN32

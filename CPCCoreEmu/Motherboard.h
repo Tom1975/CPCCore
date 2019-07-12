@@ -122,6 +122,7 @@ public:
 
    unsigned char* GetRamBuffer() { return memory_.GetRamBuffer(); }
 
+   void ResetCounter() { counter_ = 0; }
    void UpdateExternalDevices();
    void InitStartOptimized();
    void InitStartOptimizedPlus();

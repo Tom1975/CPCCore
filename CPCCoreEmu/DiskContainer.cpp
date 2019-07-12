@@ -4,8 +4,6 @@
 #include "FileAccess.h"
 #include "simple_stdio.h"
 
-#define  NOZLIB
-
 #ifndef NOZLIB
 #include "zlib.h"
 
