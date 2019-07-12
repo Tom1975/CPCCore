@@ -7,6 +7,7 @@
 
 #include "simple_stdio.h"
 
+#define NOFILTER
 #ifndef NOFILTER
 
 #include <regex>

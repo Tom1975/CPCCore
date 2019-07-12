@@ -5,6 +5,14 @@
 #define BIG_ENDIAN
 #endif
 
+#define NOFILTER
+#define NOZLIB
+#define MINIMUM_DEPENDENCIES
+#define NO_MULTITHREAD
+#define NO_RAW_FORMAT
+#define LOG_MIXER 
+#define LOGFDC
+
 // Windows Header Files:
 #ifdef _WIN32
 // Big endian on windows.
