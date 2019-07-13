@@ -2,7 +2,7 @@
 #include "IPlayback.h"
 #include "Inotify.h"
 
-class EmulatorEngine;
+class Motherboard;
 
 class CSnapshot : public IPlayback
 {
@@ -28,12 +28,12 @@ public:
    void HandleChunkSYMB(unsigned char* chunk, unsigned char* buffer, int size);
    void LoadStdSna ( unsigned char *header, FILE* f);
 
-   virtual void SetMachine (EmulatorEngine* machine) {machine_ = machine;}
+   virtual void SetMachine (Motherboard* machine) {machine_ = machine;}
    virtual void Playback ();
    void SetNotifier(IFdcNotify * notifier) { notifier_ = notifier; }
 
 protected:
-   EmulatorEngine* machine_;
+   Motherboard* machine_;
    IFdcNotify * notifier_;
 
    void InitRecord ();

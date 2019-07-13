@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Snapshot.h"
-#include "Machine.h"
+#include "Motherboard.h"
 
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
@@ -129,16 +129,16 @@ void CSnapshot::Playback ()
 
       current_frame_to_wait_++;
       // Record the current key state
-      unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
-
+      
       // Compare with the one already in cache
       last_keystroke_size_ = 0;
       for (int i = 0; i < 10; i++)
       {
-         if ( current_state[i] != key_buffer_[i] )
+         unsigned char key_line = machine_->GetKeyboardHandler()->GetKeyboardMap(i);
+         if (key_line != key_buffer_[i] )
          {
             // Compute the key pressed
-            unsigned char key = current_state[i] ^ key_buffer_[i];
+            unsigned char key = key_line ^ key_buffer_[i];
             for (int j = 0; j < 8; j++)
             {
                if ( key & 0x1 )
@@ -149,6 +149,7 @@ void CSnapshot::Playback ()
                }
                key >>= 1;
             }
+            machine_->GetKeyboardHandler();
          }
       }
       // Same ? Just increase frame count
@@ -187,7 +188,8 @@ void CSnapshot::Playback ()
          }
 
          // Reset everything
-         memcpy ( key_buffer_, current_state, 10);
+         machine_->GetKeyboardHandler()->ForceKeyboardState(key_buffer_);
+         //memcpy ( key_buffer_, current_state, 10);
          current_frame_to_wait_ = 0;
       }
    }
@@ -205,30 +207,30 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    // read Version 1
    // Z80 Registers
    machine_->GetProc()->af_.b.l = header[0x11];
-   machine_->GetProcFull()->af_.b.l = header[0x11];
+   //machine_->GetProcFull()->af_.b.l = header[0x11];
    machine_->GetProc()->af_.b.h = header[0x12];
-   machine_->GetProcFull()->af_.b.h = header[0x12];
+   //machine_->GetProcFull()->af_.b.h = header[0x12];
    machine_->GetProc()->bc_.b.l = header[0x13];
-   machine_->GetProcFull()->bc_.b.l = header[0x13];
+   ////machine_->GetProcFull()->bc_.b.l = header[0x13];
    machine_->GetProc()->bc_.b.h = header[0x14];
-   machine_->GetProcFull()->bc_.b.h = header[0x14];
+   //machine_->GetProcFull()->bc_.b.h = header[0x14];
    machine_->GetProc()->de_.b.l = header[0x15];
-   machine_->GetProcFull()->de_.b.l = header[0x15];
+   //machine_->GetProcFull()->de_.b.l = header[0x15];
    machine_->GetProc()->de_.b.h = header[0x16];
-   machine_->GetProcFull()->de_.b.h = header[0x16];
+   //machine_->GetProcFull()->de_.b.h = header[0x16];
    machine_->GetProc()->hl_.b.l = header[0x17];
-   machine_->GetProcFull()->hl_.b.l = header[0x17];
+   //machine_->GetProcFull()->hl_.b.l = header[0x17];
    machine_->GetProc()->hl_.b.h = header[0x18];
-   machine_->GetProcFull()->hl_.b.h = header[0x18];
+   //machine_->GetProcFull()->hl_.b.h = header[0x18];
    machine_->GetProc()->ir_.b.l = header[0x19];
-   machine_->GetProcFull()->ir_.b.l = header[0x19];
+   //machine_->GetProcFull()->ir_.b.l = header[0x19];
    machine_->GetProc()->ir_.b.h = header[0x1A];
-   machine_->GetProcFull()->ir_.b.h = header[0x1A];
+   //machine_->GetProcFull()->ir_.b.h = header[0x1A];
 
    machine_->GetProc()->iff1_ = (header[0x1B]==1);
-   machine_->GetProcFull()->iff1_ = (header[0x1B] == 1);
+   //machine_->GetProcFull()->iff1_ = (header[0x1B] == 1);
    machine_->GetProc()->iff2_ = (header[0x1C]==1);
-   machine_->GetProcFull()->iff2_ = (header[0x1C] == 1);
+   //machine_->GetProcFull()->iff2_ = (header[0x1C] == 1);
 
    //m_pMachine->GetProc()->m_InterruptAuthorized = (m_pMachine->GetProc()->iff1_ == true);
 
@@ -238,11 +240,11 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->pc_ = (header[0x23]|((header[0x24])<<8));
    machine_->GetProc()->interrupt_mode_ = ((header[0x25]));
 
-   machine_->GetProcFull()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
-   machine_->GetProcFull()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
-   machine_->GetProcFull()->sp_ = (header[0x21] | ((header[0x22]) << 8));
-   machine_->GetProcFull()->pc_ = (header[0x23] | ((header[0x24]) << 8));
-   machine_->GetProcFull()->interrupt_mode_ = ((header[0x25]));
+   //machine_->GetProcFull()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
+   //machine_->GetProcFull()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
+   //machine_->GetProcFull()->sp_ = (header[0x21] | ((header[0x22]) << 8));
+   //machine_->GetProcFull()->pc_ = (header[0x23] | ((header[0x24]) << 8));
+   //machine_->GetProcFull()->interrupt_mode_ = ((header[0x25]));
 
    machine_->GetProc()->af_p_.b.l = header[0x26];
    machine_->GetProc()->af_p_.b.h = header[0x27];
@@ -253,14 +255,14 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->hl_p_.b.l = header[0x2C];
    machine_->GetProc()->hl_p_.b.h = header[0x2D];
 
-   machine_->GetProcFull()->af_p_.b.l = header[0x26];
-   machine_->GetProcFull()->af_p_.b.h = header[0x27];
-   machine_->GetProcFull()->bc_p_.b.l = header[0x28];
-   machine_->GetProcFull()->bc_p_.b.h = header[0x29];
-   machine_->GetProcFull()->de_p_.b.l = header[0x2A];
-   machine_->GetProcFull()->de_p_.b.h = header[0x2B];
-   machine_->GetProcFull()->hl_p_.b.l = header[0x2C];
-   machine_->GetProcFull()->hl_p_.b.h = header[0x2D];
+   //machine_->GetProcFull()->af_p_.b.l = header[0x26];
+   //machine_->GetProcFull()->af_p_.b.h = header[0x27];
+   //machine_->GetProcFull()->bc_p_.b.l = header[0x28];
+   //machine_->GetProcFull()->bc_p_.b.h = header[0x29];
+   //machine_->GetProcFull()->de_p_.b.l = header[0x2A];
+   //machine_->GetProcFull()->de_p_.b.h = header[0x2B];
+   //machine_->GetProcFull()->hl_p_.b.l = header[0x2C];
+   //machine_->GetProcFull()->hl_p_.b.h = header[0x2D];
 
    // GA
    machine_->GetVGA()->pen_r_ = header[0x2E] & 0x1F;
@@ -369,9 +371,11 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       // CPC Type : To do ?
       switch (header[0x6D])
       {
+         /*
       case 0:machine_->SetMachineType(0); break;  // 464
       case 1:machine_->SetMachineType(1); break;  // 664
       case 2:machine_->SetMachineType(2); break;  // 6128
+      */
       }
       machine_->SetPlus(false);
 
@@ -382,12 +386,12 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       // CPC Type : To do ?
       switch (header[0x6D])
       {
-      case 0:machine_->SetMachineType(0); machine_->SetPlus(false); break;  // 464
-      case 1:machine_->SetMachineType(1); machine_->SetPlus(false); break;  // 664
-      case 2:machine_->SetMachineType(2); machine_->SetPlus(false); break;  // 6128
-      case 4:machine_->SetMachineType(4); machine_->SetPlus(true); break;  // 6128+
-      case 5:machine_->SetMachineType(3); machine_->SetPlus(true); break;  // 464+
-      case 6:machine_->SetMachineType(5); machine_->SetPlus(true); break;  // GX400
+      case 0:/*machine_->SetMachineType(0); */machine_->SetPlus(false); break;  // 464
+      case 1:/*machine_->SetMachineType(1); */machine_->SetPlus(false); break;  // 664
+      case 2:/*machine_->SetMachineType(2); */machine_->SetPlus(false); break;  // 6128
+      case 4:/*machine_->SetMachineType(4); */machine_->SetPlus(true); break;  // 6128+
+      case 5:/*machine_->SetMachineType(3); */machine_->SetPlus(true); break;  // 464+
+      case 6:/*machine_->SetMachineType(5); */machine_->SetPlus(true); break;  // GX400
       }
 
 
@@ -503,26 +507,19 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    // Lower RAM
    if (bLowRAM)
 	   {
-	   if (!feof(f))
+	   //if (!feof(f))
 	   {
 		  int count = 0;
 		  for (int i = 0; i < 4; i++)
 		  {
 			 count = fread ( machine_->GetMem()->ram_buffer_[i], 1, 0x4000, f);
-
-
-			 int err = ferror(f);
-			 if ( err != 0)
-			 {
-				int dbg = 1;
-			 }
 		  }
 	   }
    }
    // Upper RAM
    if (bUpRAM)
    {
-      if (!feof(f))
+      //if (!feof(f))
       {
          for (int i = 0; i < 4; i++)
          {
@@ -537,7 +534,6 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
 {
    // ACE's breakpoints
    int nb_breakpoints = size / 216;
-   BreakpointHandler* bph = machine_->GetBreakpointHandler();
 
    for (int i = 0; i < nb_breakpoints; i++)
    {
@@ -548,8 +544,8 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
       case 0:
       {
          // Exec breakpoint
-         BreakpointPC * break_pc = new BreakpointPC(machine_, (buffer[04] << 8) | buffer[5]);
-         bph->AddBreakpoint(break_pc);
+         //BreakpointPC * break_pc = new BreakpointPC(machine_, (buffer[04] << 8) | buffer[5]);
+         machine_->AddBreakpoint((buffer[04] << 8) | buffer[5]);
          break;
       }
       case 1:
@@ -568,12 +564,10 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
 void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, int size)
 {
    int nb_breakpoints = size / 5;
-   BreakpointHandler* bph = machine_->GetBreakpointHandler();
-
+  
    for (int i = 0; i < nb_breakpoints; i++)
    {
       unsigned char * buffer = &in_buffer[i * 5];
-      BreakpointPC * break_pc = new BreakpointPC(machine_, (buffer[01] << 8) | buffer[0]);
       // base, or extended ram ?
       // Currently not handled by sbx...
       if (buffer[2] == 1)
@@ -582,7 +576,7 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
 
       }
       // condition
-      bph->AddBreakpoint(break_pc);
+      machine_->AddBreakpoint((buffer[01] << 8) | buffer[0]);
 
    }
 }
@@ -775,6 +769,7 @@ void CSnapshot::HandleChunkMem ( unsigned char* chunk, unsigned char* in_buffer,
 
 bool CSnapshot::HandleSnr ( FILE* f )
 {
+#ifndef __circle__
    // First ten bytes : Should it be the current keyboard state ?
    if ( fread ( key_buffer_, 1, 10, f ) != 10)
       // Wrong !
@@ -829,7 +824,7 @@ bool CSnapshot::HandleSnr ( FILE* f )
       replay_offset_ += 2;
    }
 
-   machine_->counter_ = 0;
+   machine_->ResetCounter();
    // Set monitor to begining of VSync
    //m_pMachine->GetMonitor()->m_Y = 0;
    //m_pMachine->GetMonitor()->m_VerticalState = CMonitor::Sync;
@@ -866,6 +861,7 @@ bool CSnapshot::HandleSnr ( FILE* f )
    // + Mouse
 
    */
+#endif
    return true;
 }
 
@@ -913,6 +909,7 @@ void CSnapshot::StartRecord (char* path_file)
 
 void CSnapshot::InitRecord ()
 {
+#ifndef __circle__
    record_ = true;
    start_record_ = false;
    // Write SNA v3
@@ -934,9 +931,13 @@ void CSnapshot::InitRecord ()
    fwrite  ( "SNR ", 4, 1, record_file_);
 
    // Keyboard state
-   unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
+   for (int i = 0; i < 10; i++)
+   {
+      key_buffer_[i] = machine_->GetKeyboardHandler()->GetKeyboardMap(i);
+   }
+   /*unsigned char* current_state = machine_->GetKeyboardHandler()->GetKeyboardState ();
    memcpy ( key_buffer_, current_state, 10);
-
+   */
    fwrite ( key_buffer_, 10, 1, record_file_);
 
    // 0x48 next byte blank
@@ -945,11 +946,13 @@ void CSnapshot::InitRecord ()
    current_frame_to_wait_ = 0;
 
 
-
+#endif
 }
 
 void CSnapshot::StopRecord ()
 {
+#ifndef __circle__
+
    // Write keystrokes
    fwrite ( record_buffer_, record_buffer_offset_, 1, record_file_);
    delete []record_buffer_;
@@ -960,10 +963,12 @@ void CSnapshot::StopRecord ()
    fclose (record_file_);
 
    record_ = false;
+#endif
 }
 
 bool CSnapshot::LoadSnr (const char* path_file)
 {
+#ifndef __circle__
    snr_filepath_ = path_file;
    start_replay_ = true;
    FILE * f;
@@ -973,10 +978,12 @@ bool CSnapshot::LoadSnr (const char* path_file)
    }
    fclose (f);
    return true;
+#endif
 }
 
 void CSnapshot::InitReplay ()
 {
+#ifndef __circle__
    //
    start_replay_ = false;
    replay_ = false;
@@ -1067,12 +1074,12 @@ void CSnapshot::InitReplay ()
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProcFull()->ReinitProc ();
 
    fclose (f);
 
    if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), 0, -1);
-
+#endif
 }
 
 bool CSnapshot::LoadSnapshot (const char* path_file)
@@ -1134,9 +1141,9 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
    // Chunk
    unsigned char chunk[8];
 
-   while (!feof(f))
+   //while (!feof(f))
    {
-      if (fread (chunk, 8, 1, f ) == 1)
+      while (fread (chunk, 8, 1, f ) == 1)
       {
          // Handle the chunk
          unsigned int length = chunk[ 4 ]
@@ -1195,7 +1202,7 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProcFull()->ReinitProc ();
 
    fclose (f);
 
@@ -1219,35 +1226,9 @@ bool CSnapshot::SaveSnapshot (const char* path_file)
    unsigned char header [0x100] = {0};
    memcpy ( header, "MV - SNA", 8);
 
-   // TEST
-   // 1/ Save Memory
-   /*CMemoire* mem = m_pMachine->GetMem()->CopyMe();
-   // Save CPU
-   IZ80* z80 = m_pMachine->GetProc()->CopyMe();
-   // Save ASIC (if needed) or VGA
-   //ASIC* asic= m_pMachine->GetAsic()->CopyMe();
-   CVGA* vga = m_pMachine->GetVGA()->CopyMe();
-   // Save CRTC
-   //CCRTC* crtc = m_pMachine->GetCRTC()->CopyMe();
-
-   */
-
    WriteSnapshotV3 ( f, header, 8 );
 
    fclose (f);
-
-   // Check saving
-   /*
-   LoadSnapshot(path_file);
-   bool result = m_pMachine->GetMem()->CompareToCopy(mem);
-
-   result = m_pMachine->GetProc()->CompareToCopy(z80);
-   result = m_pMachine->GetVGA()->CompareToCopy(vga);
-
-   CMemoire::DeleteCopy(mem);
-   z80->DeleteCopy(z80);
-   vga->DeleteCopy(vga);
-   */
    return true;
 }
 
@@ -1389,6 +1370,7 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    }
 
    // CPC Type : To do (6128)?
+#if 0
    switch ( machine_->GetMachineType())
    {
    case 0:header[0x6D] = 0; break;  // 464
@@ -1397,6 +1379,9 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    case 3:header[0x6D] = 5; break;  // 464+
    case 4:header[0x6D] = 4; break;  // 6128+
    }
+#else
+   header[0x6D] = 2;
+#endif
 
 
    // MemEnable - Bit 7 set if used. Bit 0 = Bank C4..C7, Bit 1 = Banks C4..DF

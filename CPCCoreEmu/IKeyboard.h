@@ -14,6 +14,7 @@ public:
 
    virtual unsigned char GetKeyboardMap(int index) = 0;
    virtual void Init(bool* register_replaced) = 0;
+   virtual void ForceKeyboardState(unsigned char key_states[10]) = 0;
 }; 
 
 class IKeyboard 

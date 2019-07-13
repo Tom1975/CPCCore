@@ -78,7 +78,8 @@ public:
    void SetNotifier(IFdcNotify* notifier) { fdc_.SetNotifier(notifier); tape_.SetNotifier(notifier); }
    
    ///////////////////////////////////////
-   // Breakpoints 
+   // Breakpoints
+
    void AddBreakpoint(unsigned short addr);
    void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
    void RemoveBreakpoint(unsigned short addr);
@@ -121,6 +122,7 @@ public:
 
    unsigned char* GetRamBuffer() { return memory_.GetRamBuffer(); }
 
+   void ResetCounter() { counter_ = 0; }
    void UpdateExternalDevices();
    void InitStartOptimized();
    void InitStartOptimizedPlus();
