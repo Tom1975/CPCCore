@@ -1,13 +1,14 @@
 #pragma once
 #include "IPlayback.h"
 #include "Inotify.h"
+#include "ILog.h"
 
 class Motherboard;
 
 class CSnapshot : public IPlayback
 {
 public:
-   CSnapshot(void);
+   CSnapshot(ILog* log);
    virtual ~CSnapshot(void);
 
    virtual void StopPlayback (){replay_ = false;}
@@ -35,7 +36,7 @@ public:
 protected:
    Motherboard* machine_;
    IFdcNotify * notifier_;
-
+   ILog* log_;
    void InitRecord ();
    void InitReplay ();
 
