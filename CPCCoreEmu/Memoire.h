@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string.h>
+
 #include "simple_string.h"
 #include "IExpansion.h"
 #include "DMAStop.h"

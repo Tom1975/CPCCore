@@ -328,10 +328,12 @@ Filter::~Filter()
    delete[]coefx_;
    delete[]coefy_;
 
+#ifdef _WIN32
    volatile short int oldcw = oldcw_;
    __asm {
       fldcw oldcw
    }
+#endif
 
 }
 
@@ -351,12 +353,14 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
 {
 
    // Force 53 bits floating points...
+#ifdef _WIN32
    volatile short int oldcw = oldcw_;
    volatile short int  cw = 0x27F;
    __asm {
    fstcw oldcw
    fldcw cw
    }
+#endif
    
    // Lets apply theses values.
    for (unsigned int i = 0; i < nb_samples; i++)
