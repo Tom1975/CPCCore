@@ -35,8 +35,15 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #else
 
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#ifdef MINIMUM_DEPENDENCIES
+#include "simple_filesystem.h"
+#else
+#define MINIMUM_DEPENDENCIES
+#include "simple_filesystem.h"
+#undef MINIMUM_DEPENDENCIES
+#endif
+// fs does not exist there
+namespace fs = std::filesystem;
 
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
@@ -76,7 +83,7 @@ typedef void* HWND;
 #endif
 
 // C RunTime Header Files
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory.h>
 
 #ifdef _DEBUG

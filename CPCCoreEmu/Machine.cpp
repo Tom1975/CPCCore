@@ -33,7 +33,7 @@ const char* CartPath = "\\CART\\";
 #define MAX_SIZE_BUFFER 256
 
 EmulatorEngine::EmulatorEngine() :
-   paste_size_(0), paste_count_(0), media_inserted_(&disk_type_manager_),
+   paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
    do_snapshot_(false), current_settings_(nullptr),
    directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
 {

@@ -594,7 +594,7 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
       Rule(const char* name, const char* ext, const char* autofile) : name_(name), ext_(ext), autofile_(autofile)
       {
       }
-      Rule(Rule& rule) 
+      Rule(const Rule& rule) 
       {
          name_ = rule.name_;
          ext_ = rule.ext_;
