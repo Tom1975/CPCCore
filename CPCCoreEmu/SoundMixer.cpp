@@ -421,7 +421,7 @@ void SoundMixer::PrepareBufferThread()
       current_wav_index_ = 0;
    }
 
-   while (!finished_)
+   //while (!finished_)
    {
       // New buffer is          ready ?
       int index_to_convert = -1;
