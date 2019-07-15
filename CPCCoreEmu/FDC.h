@@ -250,9 +250,9 @@ protected:
 
    // Timing : Counter
    unsigned int delay_for_instruction_;
-#if defined (__unix) || (RASPPI)
+#if defined (__unix) || (RASPPI) || (__APPLE__)
    uint64_t  time_, time_for_bad_instruction_;
-#else
+#else   
    unsigned __int64 time_;
    unsigned __int64 time_for_bad_instruction_;
 #endif

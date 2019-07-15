@@ -8,6 +8,10 @@
 #include "PrinterDefault.h"
 #include "MediaManager.h"
 
+#if defined (__unix) || (RASPPI) || (__APPLE__)
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+
 #ifdef PROF
 #define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
 #define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);
@@ -22,13 +26,18 @@ static char s [1024];
    #define PROF_DISPLAY
 #endif
 
+EmulatorEngine::EmulatorEngine() :
+   paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
+   do_snapshot_(false), current_settings_(nullptr),
+   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
+
+
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
 
 const char* ROMPath = "\\ROM\\";
 const char* CartPath = "\\CART\\";
-
 
 #define MAX_SIZE_BUFFER 256
 
