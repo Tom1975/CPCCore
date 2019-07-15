@@ -14,7 +14,7 @@ public:
    };
 
    char * data_;
-   unsigned long buffer_length_;
+   int buffer_length_;
 
    HDRStatus status_;
 };
