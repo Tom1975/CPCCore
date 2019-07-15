@@ -6,7 +6,7 @@ extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
 
-CSnapshot::CSnapshot(void)
+CSnapshot::CSnapshot(ILog* log) : log_(log)
 {
    machine_ = NULL;
    notifier_ = NULL;
@@ -1085,6 +1085,7 @@ void CSnapshot::InitReplay ()
 bool CSnapshot::LoadSnapshot (const char* path_file)
 {
    //
+   log_->WriteLog("Entering snapshot...");
    FILE * f;
    if ( fopen_s ( &f, path_file, "rb") != 0)
    {
@@ -1092,11 +1093,13 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
       return false;
    }
 
+   log_->WriteLog("Snapshot opened successfully.");
    // Cheack header
    unsigned char header [0x100] = {0};
    fread (header, 0x100, 1, f);
    if (strncmp( (char*)header, "MV - SNA", 8) != 0)
    {
+      log_->WriteLog("Error : Not a valid file...");
       fclose(f);
       if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
       return false;
@@ -1217,8 +1220,10 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 bool CSnapshot::SaveSnapshot (const char* path_file)
 {
    FILE * f;
+   log_->WriteLog("Entering snapshot saving...");
    if ( fopen_s ( &f, path_file, "wb") != 0)
    {
+      log_->WriteLog("ERROR : File is not valid...");
       return false;
    }
 
@@ -1234,6 +1239,7 @@ bool CSnapshot::SaveSnapshot (const char* path_file)
 
 void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigned int headerSize )
 {
+   log_->WriteLog("Writing SNA v3...");
    char header [0x100] = {0};
    memcpy ( header, base_header, headerSize );
 
@@ -1338,25 +1344,7 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    // PPI Control register
    unsigned char data = 0x80;
    data |= machine_->GetPPI()->control_word_.byte;
-   // Mode : bit 5&6
-   /*switch (m_pMachine->GetPPI()->m_ModeA)
-   {
-   case 0: data |= 0x00;break;
-   case 1: data |= 0x20;break;
-   case 2: data |= 0x60;break;
-   }
-
-   // Port A : Entree ou Sortie
-   data |= m_pMachine->GetPPI()->m_EntreeA?0x10:0;
-
-   // Port B
-   data |= m_pMachine->GetPPI()->m_EntreeB?0x02:0;
-   data |= m_pMachine->GetPPI()->m_ModeB?0x04:0;
-
-   // Port C
-   data |= m_pMachine->GetPPI()->m_EntreeCLow?0x01:0;
-   data |= m_pMachine->GetPPI()->m_EntreeCHigh?0x08:0;
-   */
+   
    header[0x59] = data;
 
    // PSG
