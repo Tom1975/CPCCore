@@ -26,12 +26,6 @@ static char s [1024];
    #define PROF_DISPLAY
 #endif
 
-EmulatorEngine::EmulatorEngine() :
-   paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
-   do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
-
-
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
