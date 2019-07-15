@@ -23,6 +23,10 @@ int lround(double d)
 #endif
 #endif
 
+#if defined (__unix) || (RASPPI) || (__APPLE__)
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+
 static unsigned char VendorTrack[9] = {0x41, 0x46, 0x42, 0x47, 0x43, 0x48, 0x44, 0x49, 0x45};
 static unsigned char DataTrack[9] = {0xC1, 0xC6, 0xC2, 0xC7, 0xC3, 0xC8, 0xC4, 0xC9, 0xC5};
 

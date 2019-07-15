@@ -55,6 +55,10 @@ typedef struct
 } Pictrack;
 
 
+#if defined (__unix) || (RASPPI) || (__APPLE__)
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+
 FormatTypeHFE::FormatTypeHFE()
 {
 }

@@ -229,7 +229,7 @@ protected:
 #pragma pack(push)
    typedef struct
    {
-#if defined (__unix) || (RASPPI)
+#if defined (__unix) || (RASPPI) || (__APPLE__)
       uint64_t length;
       uint64_t place;
 #else

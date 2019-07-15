@@ -17,6 +17,10 @@ NodeFS::NodeFS() : buffer_(nullptr), offset_(0), type_(-1)
 {
 }
 
+#if defined (__unix) || (RASPPI) || (__APPLE__)
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+
 NodeFS::~NodeFS()
 {
    for (auto& it : sub_node_)

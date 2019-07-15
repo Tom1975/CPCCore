@@ -76,7 +76,7 @@ typedef void* HWND;
 #endif
 
 // C RunTime Header Files
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory.h>
 
 #ifdef _DEBUG
