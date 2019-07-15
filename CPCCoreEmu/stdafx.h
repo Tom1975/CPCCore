@@ -35,14 +35,9 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #else
 
-#ifdef MINIMUM_DEPENDENCIES
-#include "simple_filesystem.h"
-#else
-#define MINIMUM_DEPENDENCIES
-#include "simple_filesystem.h"
-#undef MINIMUM_DEPENDENCIES
-#endif
 // fs does not exist there
+#include <filesystem>
+// Only for C++17 !
 namespace fs = std::filesystem;
 
 #define stricmp strcasecmp
