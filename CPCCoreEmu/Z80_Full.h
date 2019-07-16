@@ -412,6 +412,11 @@ public:
       R_L
    } Registers;
 
+   const char* REG_TO_STR(Registers reg)
+   {
+      return ((reg == R_A) ? "A" : (reg == R_F) ? "F" : (reg == R_B) ? "B" : (reg == R_C) ? "C" : (reg == R_D) ? "D" : (reg == R_E) ? "E" : (reg == R_H) ? "H" : "L");
+   }
+
    typedef enum
    {
       AND,
@@ -475,6 +480,7 @@ public:
    template<int b> unsigned int Opcode_SRA();
    template<int b> unsigned int Opcode_SLL();
    template<int b> unsigned int Opcode_SRL();
+   template<int b, Z80::Registers reg> unsigned int Opcode_BIT();
 
    unsigned int Opcode_MemoryFromStack();
    unsigned int Opcode_Push_delayed();

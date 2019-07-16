@@ -304,17 +304,36 @@ void Z80::InitOpcodeShortcuts()
    FILL_CB_FUNC(0x28, Z80::Opcode_SRA, "SRA %r");
    FILL_CB_FUNC(0x30, Z80::Opcode_SLL, "SLL %r");
    FILL_CB_FUNC(0x38, Z80::Opcode_SRL, "SRL %r");
+
+   char Buffer_Tmp [64];
+
+
+
+#define FILL_CB_FUNC_GENERIC(str_asm, bit_num, reg, base, func)\
+   sprintf(Buffer_Tmp, #str_asm " %i, %s", bit_num, REG_TO_STR(reg)); FillStructOpcode<CB>(base+ (8 * bit_num), func<bit_num, reg>, 1, Buffer_Tmp);\
+
+#define FILL_CB_FUNC_BIT(bit_num)\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "B"); FillStructOpcode<CB>(0x40 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_B>, 1, Buffer_Tmp);\
+   FILL_CB_FUNC_GENERIC("BIT", bit_num, R_B, 0x40, &Z80::Opcode_BIT) \
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "C"); FillStructOpcode<CB>(0x41 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_C>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "D"); FillStructOpcode<CB>(0x42 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_D>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "E"); FillStructOpcode<CB>(0x43 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_E>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "H"); FillStructOpcode<CB>(0x44 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_H>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "L"); FillStructOpcode<CB>(0x45 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_L>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "(HL)"); FillStructOpcode<CB>(0x46 + (8 * bit_num), &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, Buffer_Tmp);\
+   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "A"); FillStructOpcode<CB>(0x47 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_A>, 1, Buffer_Tmp);
+
+   FILL_CB_FUNC_BIT(0);
+   FILL_CB_FUNC_BIT(1);
+   FILL_CB_FUNC_BIT(2);
+   FILL_CB_FUNC_BIT(3);
+   FILL_CB_FUNC_BIT(4);
+   FILL_CB_FUNC_BIT(5);
+   FILL_CB_FUNC_BIT(6);
+   FILL_CB_FUNC_BIT(7);
    
-   
+
 #if 0   
-   for (j = 0x00; j <= 0x07; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RLC %r");
-   for (j = 0x08; j <= 0x0F; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RRC %r");
-   for (j = 0x10; j <= 0x17; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RL %r");
-   for (j = 0x18; j <= 0x1F; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RR %r");
-   for (j = 0x20; j <= 0x27; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "SLA %r");
-   for (j = 0x28; j <= 0x2F; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "SRA %r");
-   for (j = 0x30; j <= 0x37; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "SLL %r");
-   for (j = 0x38; j <= 0x3F; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "SRL %r");
    DEF_OP_BIT(A); DEF_OP_BIT(B); DEF_OP_BIT(C); DEF_OP_BIT(D); DEF_OP_BIT(E); DEF_OP_BIT(H); DEF_OP_BIT(L); DEF_OP_BIT(HL);
 
    for (j = 0x80; j <= 0xBF; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RES %b,%r");
@@ -706,7 +725,6 @@ unsigned int Z80::Opcode_RLA()
 
 unsigned int Z80::Opcode_RRA()
 {
-   unsigned char btmp;
    int nextcycle;
    q_ = af_.b.l& ~(NF | HF | CF | 0x28); 
    q_ |= (af_.b.h & CF);

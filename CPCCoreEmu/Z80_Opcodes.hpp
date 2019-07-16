@@ -310,7 +310,6 @@ template<int b> unsigned int Z80::Opcode_RR()
 template<int b> unsigned int Z80::Opcode_SLA()
 {
    int nextcycle;
-   unsigned char btmp;
    if ((INT_TO_REG(b) & 0x80) == 0x80)
       q_ |= (CF); 
    INT_TO_REG(b) = INT_TO_REG(b) << 1; 
@@ -343,7 +342,6 @@ template<int b> unsigned int Z80::Opcode_SRA()
 template<int b> unsigned int Z80::Opcode_SLL()
 {
    int nextcycle;
-   unsigned char btmp;
    if ((INT_TO_REG(b) & 0x80) == 0x80)
       q_ |= (CF);
    INT_TO_REG(b) = (INT_TO_REG(b) << 1) + 1; 
@@ -357,7 +355,6 @@ template<int b> unsigned int Z80::Opcode_SLL()
 template<int b> unsigned int Z80::Opcode_SRL()
 {
    int nextcycle;
-   unsigned char btmp;
    if ((INT_TO_REG(b) & 0x01) == 0x01)
       q_ |= (CF);
    INT_TO_REG(b) = INT_TO_REG(b) >> 1;
@@ -368,4 +365,10 @@ template<int b> unsigned int Z80::Opcode_SRL()
    NEXT_INSTR;
 }
 
-
+template<int b, Z80::Registers reg> unsigned int Z80::Opcode_BIT()
+{
+   int nextcycle;
+   q_ = (af_.b.l & CF) | HF | (SzBit[REG(reg) & (1<<b)]& ~(YF|XF)) | ((REG(reg) &(YF|XF)));
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
