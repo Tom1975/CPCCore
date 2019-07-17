@@ -4,13 +4,14 @@
 #ifdef MINIMUM_DEPENDENCIES
 
 #include "circle/fs/fat/fatfs.h"
+#include <stdio.h>
 
 #define SEEK_CUR    1
 #define SEEK_END    2
 #define SEEK_SET    0
 
 typedef int          errno_t;
-typedef unsigned int FILE;
+//typedef unsigned int FILE;
 
 int fclose(FILE* _Stream );
 
@@ -20,11 +21,11 @@ errno_t fopen_s(
    char const* _Mode
 );
 
-int fseek(FILE* _Stream, long  _Offset,int   _Origin);
+//int fseek(FILE* _Stream, long  _Offset,int   _Origin);
 
-void rewind(FILE* _Stream);
-long ftell(FILE* _Stream);
-
+//void rewind(FILE* _Stream);
+//long ftell(FILE* _Stream);
+/*
 size_t fread(
    void* _Buffer,
    size_t _ElementSize,
@@ -37,7 +38,7 @@ unsigned int fwrite(
    unsigned int _ElementSize,
    unsigned int _ElementCount,
    FILE* _Stream
-);
+);*/
 
 #else
 

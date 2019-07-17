@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DiskGen.h"
-#include "rand.h"
+//#include "rand.h"
+#include <stdlib.h>
 #include "simple_vector.hpp"
 #include "MediaManager.h"
 
@@ -217,7 +218,7 @@ void DiskGen::Tick()
             if (encode_scheme_ == CODE_FM)
             {
                // TODO : Not supported now
-               b = (rand() & 0x1) | (b & BIT_INDEX);
+               b = ( rand() & 0x1) | (b & BIT_INDEX);
             }
 
 

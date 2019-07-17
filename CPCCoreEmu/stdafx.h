@@ -46,16 +46,21 @@ namespace fs = std::filesystem;
 #endif
 
 #ifdef __circle__
-typedef unsigned int FILE;
+//typedef unsigned int FILE;
+#include <stdio.h>
+
 #else
 #include <stdlib.h>
 #include <stdio.h>
 #endif
 
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
+#ifdef MINIMUM_DEPENDENCIES
+#else
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
 #endif
 
 

@@ -3,9 +3,6 @@
 #include "CAPSFile.h"
 #include "simple_stdio.h"
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
 
 FormatTypeCTRAW::FormatTypeCTRAW()
 {

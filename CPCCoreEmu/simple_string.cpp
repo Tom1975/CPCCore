@@ -1,7 +1,8 @@
 
 #ifdef MINIMUM_DEPENDENCIES
 
-#include "simple_string.h"
+//#include "simple_string.h"
+#include <stdlib.h>
 
 std::string::string() : inner_string_(nullptr)
 {

@@ -4,7 +4,8 @@
 
 #include "simple_filesystem.h"
 #include "simple_stdio.h"
-#include "rand.h"
+//#include "rand.h"
+#include <stdlib.h>
 #include "simple_vector.hpp"
 
 #ifdef __MORPHOS__
@@ -21,10 +22,6 @@ int lround(double d)
   return (int)std::floor(d + 0.5);
 }
 #endif
-#endif
-
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
 
 static unsigned char VendorTrack[9] = {0x41, 0x46, 0x42, 0x47, 0x43, 0x48, 0x44, 0x49, 0x45};

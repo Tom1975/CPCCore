@@ -5,6 +5,7 @@
 #include "circle/util.h"
 #include "circle/string.h"
 #include "circle/stdarg.h"
+#include <stdlib.h>
 
 namespace std
 {
@@ -26,11 +27,18 @@ namespace std
       CString *inner_string_;
    };
 }
-int sprintf(char* buf, const char* fmt, ...);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//int sprintf(char* buf, const char* fmt, ...);
 
 int stricmp(char const* _String1, char const* _String2);
 int strnicmp(char const* _String1, char const* _String2, unsigned int _MaxCount);
 
+#ifdef __cplusplus
+}
+#endif
 
 #else
 

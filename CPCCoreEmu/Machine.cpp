@@ -8,10 +8,6 @@
 #include "PrinterDefault.h"
 #include "MediaManager.h"
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
-
 #ifdef PROF
 #define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
 #define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);

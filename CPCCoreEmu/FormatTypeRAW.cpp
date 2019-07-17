@@ -13,10 +13,6 @@ using namespace std;
 
 #define DEFAULT_FLUX_SIZE     6500
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
-
 FormatTypeRAW::FormatTypeRAW()
 {
    mck_ /*Master Clock Frequency	 */ = ((18432000 * 73) / 14) / 2;

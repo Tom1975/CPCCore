@@ -4,10 +4,6 @@
 
 #include "DiskBuilder.h"
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
-
 class FormatTypeIPF : public FormatType
 {
 public:
