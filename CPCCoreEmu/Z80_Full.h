@@ -268,7 +268,7 @@ public:
    // Current state : T state and Machine Cycle
    int t_;
 
-   enum {
+   typedef enum {
       M_FETCH = 0x10,
       M_MEMORY_R = 0x20,
       M_MEMORY_W = 0x30,
@@ -278,7 +278,8 @@ public:
       M_M1_INT = 0x70,
       M_M1_NMI = 0x80,
       M_IO_R_INT = 0x90
-   } machine_cycle_;
+   } MachineCycle; 
+   MachineCycle machine_cycle_;
 
    // Inner helper attributes
    unsigned int counter_;
@@ -402,6 +403,7 @@ public:
 
    typedef enum
    {
+      R_0,
       R_A,
       R_F,
       R_B,
@@ -424,11 +426,17 @@ public:
       OR,
    } OperationType;
 
-   template<AddressRegisters reg>
-   unsigned int Opcode_Memory_Read_REGW();
+   typedef enum
+   {
+      MEMORY_OP,
+      IO_OP
+   } OperationSource;
 
-   template<AddressRegisters addr, Registers reg>
-   unsigned int Opcode_Memory_Write_Addr_Reg();
+   template<MachineCycle operation_source, AddressRegisters reg>
+   unsigned int Opcode_Read_REGW();
+
+   template<MachineCycle operation_source, AddressRegisters addr, Registers reg>
+   unsigned int Opcode_Write_Addr_Reg();
 
    template<Z80::Registers reg, bool reset_ptr>
    unsigned int Opcode_Inc_Reg();

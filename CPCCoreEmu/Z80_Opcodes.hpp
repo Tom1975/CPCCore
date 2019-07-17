@@ -7,14 +7,36 @@
 
 #define INT_TO_REG(i) ((i==0)?bc_.b.h:(i==1)?bc_.b.l:(i==2)?de_.b.h:(i==3)?de_.b.l:(i==4)?hl_.b.h:(i==5)?hl_.b.l:af_.b.h)
 
-template<Z80::AddressRegisters addr, Z80::Registers reg>
-unsigned int Z80::Opcode_Memory_Write_Addr_Reg()
+template<Z80::MachineCycle operation_source, Z80::AddressRegisters addr, Z80::Registers reg>
+unsigned int Z80::Opcode_Write_Addr_Reg()
 {
-   machine_cycle_ = M_MEMORY_W;
+   machine_cycle_ = operation_source;
    t_ = 1;
    current_address_ = REGW(addr);
-   current_data_ = REG(reg);
-   read_count_ = 0;
+   if (reg == R_0)
+   {
+      current_data_ = 0;
+   }
+   else
+   {
+      current_data_ = REG(reg);
+   }
+   
+   if (machine_cycle_ == M_MEMORY_W)
+   {
+      read_count_ = 0;
+   }
+   else if (machine_cycle_ == M_IO_W)
+   {
+      q_ = af_.b.l | ((REG(reg) & 0x80) ? NF : 0);
+      af_.b.l = q_;
+      if (reg == R_A)
+      {
+         mem_ptr_.w = bc_.w + 1;
+      }
+   }
+
+      
    return 1;
 }
 
@@ -91,14 +113,18 @@ unsigned int Z80::Opcode_ADD_REGW()
    return 7;
 }
 
-template<Z80::AddressRegisters reg>
-unsigned int Z80::Opcode_Memory_Read_REGW()
+template<Z80::MachineCycle operation_source, Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Read_REGW()
 {
-   machine_cycle_ = M_MEMORY_R;
+   //machine_cycle_ = M_MEMORY_R;
+   machine_cycle_ = operation_source;
    t_ = 1;
    current_address_ = REGW(reg);
-   current_data_ = 0;
-   read_count_ = 0;
+   if (machine_cycle_ == M_MEMORY_R)
+   {
+      current_data_ = 0;
+      read_count_ = 0;
+   }
    return 1;
 }
 
