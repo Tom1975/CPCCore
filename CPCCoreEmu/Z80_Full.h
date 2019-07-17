@@ -500,6 +500,8 @@ public:
    unsigned int Opcode_CCF();
    unsigned int Opcode_SCF();
 
+   unsigned int Opcode_NEG();
+
    unsigned int Opcode_DAA();
    unsigned int Opcode_RLA();
    unsigned int Opcode_RLCA();
