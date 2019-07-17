@@ -481,6 +481,8 @@ public:
    template<int b> unsigned int Opcode_SLL();
    template<int b> unsigned int Opcode_SRL();
    template<int b, Z80::Registers reg> unsigned int Opcode_BIT();
+   template<int b, Z80::Registers reg> unsigned int Opcode_RES();
+   template<int b, Z80::Registers reg> unsigned int Opcode_SET();
 
    unsigned int Opcode_MemoryFromStack();
    unsigned int Opcode_Push_delayed();

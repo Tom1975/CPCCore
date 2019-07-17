@@ -372,3 +372,17 @@ template<int b, Z80::Registers reg> unsigned int Z80::Opcode_BIT()
    af_.b.l = q_;
    NEXT_INSTR;
 }
+
+template<int b, Z80::Registers reg> unsigned int Z80::Opcode_RES()
+{
+   int nextcycle;
+   REG(reg) &= ~(1<<b);
+   NEXT_INSTR;
+}
+
+template<int b, Z80::Registers reg> unsigned int Z80::Opcode_SET()
+{
+   int nextcycle;
+   REG(reg) |= (1 << b);
+   NEXT_INSTR;
+}

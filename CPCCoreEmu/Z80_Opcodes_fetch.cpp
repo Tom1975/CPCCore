@@ -312,30 +312,34 @@ void Z80::InitOpcodeShortcuts()
 #define FILL_CB_FUNC_GENERIC(str_asm, bit_num, reg, base, func)\
    sprintf(Buffer_Tmp, #str_asm " %i, %s", bit_num, REG_TO_STR(reg)); FillStructOpcode<CB>(base+ (8 * bit_num), func<bit_num, reg>, 1, Buffer_Tmp);\
 
-#define FILL_CB_FUNC_BIT(bit_num)\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "B"); FillStructOpcode<CB>(0x40 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_B>, 1, Buffer_Tmp);\
-   FILL_CB_FUNC_GENERIC("BIT", bit_num, R_B, 0x40, &Z80::Opcode_BIT) \
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "C"); FillStructOpcode<CB>(0x41 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_C>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "D"); FillStructOpcode<CB>(0x42 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_D>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "E"); FillStructOpcode<CB>(0x43 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_E>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "H"); FillStructOpcode<CB>(0x44 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_H>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "L"); FillStructOpcode<CB>(0x45 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_L>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "(HL)"); FillStructOpcode<CB>(0x46 + (8 * bit_num), &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, Buffer_Tmp);\
-   sprintf(Buffer_Tmp, "BIT %i, %s", bit_num, "A"); FillStructOpcode<CB>(0x47 + (8 * bit_num), &Z80::Opcode_BIT<bit_num, R_A>, 1, Buffer_Tmp);
+#define FILL_CB_FUNC_BIT(str_asm, bit_num, base, func)\
+   /*FILL_CB_FUNC_GENERIC("BIT", bit_num, R_B, 0x40, &Z80::Opcode_BIT) */\
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_B, base, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_C, base+1, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_D, base+2, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_E, base+3, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_H, base+4, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_L, base+5, func) \
+   FILL_CB_FUNC_GENERIC(str_asm, bit_num, R_A, base+7, func) \
+   sprintf(Buffer_Tmp, #str_asm " %i, %s", bit_num, "(HL)"); FillStructOpcode<CB>(base+6 + (8 * bit_num), &Z80::Opcode_Memory_Read_REGW<ADDR_HL>, 1, Buffer_Tmp);\
 
-   FILL_CB_FUNC_BIT(0);
-   FILL_CB_FUNC_BIT(1);
-   FILL_CB_FUNC_BIT(2);
-   FILL_CB_FUNC_BIT(3);
-   FILL_CB_FUNC_BIT(4);
-   FILL_CB_FUNC_BIT(5);
-   FILL_CB_FUNC_BIT(6);
-   FILL_CB_FUNC_BIT(7);
+#define FILL_CB_FUNC_GEN(str_asm, base, func)\
+   FILL_CB_FUNC_BIT(str_asm,0,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,1,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,2,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,3,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,4,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,5,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,6,base,func)\
+   FILL_CB_FUNC_BIT(str_asm,7,base,func)
+
+   FILL_CB_FUNC_GEN("BIT", 0x40, &Z80::Opcode_BIT);
+   FILL_CB_FUNC_GEN("RES", 0x80, &Z80::Opcode_RES);
+   FILL_CB_FUNC_GEN("SES", 0xC0, &Z80::Opcode_SET);
+
    
 
 #if 0   
-   DEF_OP_BIT(A); DEF_OP_BIT(B); DEF_OP_BIT(C); DEF_OP_BIT(D); DEF_OP_BIT(E); DEF_OP_BIT(H); DEF_OP_BIT(L); DEF_OP_BIT(HL);
-
    for (j = 0x80; j <= 0xBF; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "RES %b,%r");
    for (j = 0xC0; j <= 0xFF; j++) liste_opcodes_cb_[j] = FillStructOpcode<CB>(nullptr, 1, "SET %b,%r");
 
