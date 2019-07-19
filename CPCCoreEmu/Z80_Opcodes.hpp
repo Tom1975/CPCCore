@@ -1,7 +1,7 @@
 
 #define REGW(reg) \
    ((reg==ADDR_PC)?pc_:(reg==ADDR_AF)?af_.w:(reg==ADDR_BC)?bc_.w:(reg==ADDR_DE)?de_.w:(reg==ADDR_HL)?hl_.w:(reg==ADDR_IX)?ix_.w:(reg==ADDR_IY)?iy_.w:(reg==ADDR_SP)?sp_:(reg==ADDR_AFP)?af_p_.w:(reg==ADDR_BCP)?bc_p_.w:(reg==ADDR_DEP)?de_p_.w:(reg==ADDR_HLP)?hl_p_.w:hl_p_.w)
-#define REG(reg) ((reg==R_A)?af_.b.h:(reg==R_F)?af_.b.l:(reg==R_B)?bc_.b.h:(reg==R_C)?bc_.b.l:(reg==R_D)?de_.b.h:(reg==R_E)?de_.b.l:(reg==R_H)?hl_.b.h:/*(reg==R_L)?*/hl_.b.l/*:(reg==R_I)?ir_.b.h:ir_.b.l*/)
+#define REG(reg) ((reg==R_A)?af_.b.h:(reg==R_F)?af_.b.l:(reg==R_B)?bc_.b.h:(reg==R_C)?bc_.b.l:(reg==R_D)?de_.b.h:(reg==R_E)?de_.b.l:(reg==R_H)?hl_.b.h:(reg==R_L)?hl_.b.l:(reg==R_I)?ir_.b.h:ir_.b.l)
 #define REG_First(reg) \
    (reg==ADDR_AF)?af_.b.h:(reg==ADDR_BC)?bc_.b.h:(reg==ADDR_DE)?de_.b.h:(reg==ADDR_HL)?hl_.b.h:(reg==ADDR_IX)?ix_.b.h:iy_.b.h
 
@@ -173,7 +173,9 @@ unsigned int Z80::Opcode_Ld_Delayed_Reg()
    if ( reg1 == R_A && (reg2 == R_I || reg2 == R_R) )
    {
       if (t_ == 5) {
-         af_.b.h = ir_.b.h; q_ = af_.b.l; q_ &= ~(HF | NF | 0x28); 
+         af_.b.h = REG(reg2);
+         q_ = af_.b.l; 
+         q_ &= ~(HF | NF | 0x28); 
          ZERO_FLAG(af_.b.h); 
          SIGN_FLAG(af_.b.h); 
          if (iff2_)
@@ -182,7 +184,9 @@ unsigned int Z80::Opcode_Ld_Delayed_Reg()
             q_ &= ~(PF);
          q_ |= (af_.b.h & 0x28);
          af_.b.l = q_;
-         carry_set_ = true;
+
+         if (reg2 == R_I)
+            carry_set_ = true;
          NEXT_INSTR_LDAIR
       }
       else { ++t_; };
@@ -201,8 +205,7 @@ unsigned int Z80::Opcode_Ld_Delayed_Reg()
          return t_tmp;
       }
    }
-
-   NEXT_INSTR;
+   return 1;
 }
 
 template<Z80::Registers reg, bool Carry>
@@ -237,12 +240,20 @@ unsigned int Z80::Opcode_Sub_Reg()
 template<Z80::AddressRegisters reg>
 unsigned int Z80::Opcode_Sub_Reg()
 {
-   mem_ptr_.w = hl_.w + 1; 
-   SUB_FLAG_CARRY_W(hl_.w, REGW(reg));
+   unsigned int res;
+   mem_ptr_.w = hl_.w + 1;
+
+   res = hl_.w - (REGW(reg) + (af_.b.l&CF));
+   q_ = ((res >> 8) & 0x28);
+   q_ |= NF | (((res & 0xffff) == 0) ? ZF : 0) | ((res >> 16)&CF) | ((res & 0x8000) ? SF : 0) | (((hl_.w^res^REGW(reg)) >> 8)&HF);
+   if ((((hl_.w & 0x8000) ^ (REGW(reg) & 0x8000)) != 0) && (((hl_.w & 0x8000) ^ (res & 0x8000)) != 0))
+      q_ |= PF;
+   hl_.w = res; af_.b.l = q_;
+
    machine_cycle_ = M_Z80_WORK; 
    t_ = 4 + 3;
+   return 1;
 }
-
 
 template<Z80::Registers reg, Z80::OperationType op>
 unsigned int Z80::Opcode_BOOL_Reg()
@@ -469,3 +480,4 @@ template<int mode> unsigned int Z80::Opcode_IM()
    interrupt_mode_ = mode;
    NEXT_INSTR;
 }
+

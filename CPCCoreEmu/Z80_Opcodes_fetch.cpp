@@ -338,12 +338,12 @@ void Z80::InitOpcodeShortcuts()
    // ED  
    FillStructOpcode<ED>(0x40, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN B, (C)");
    FillStructOpcode<ED>(0x41, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_B>, 1, "OUT (C), B");
-   FillStructOpcode<ED>(0x42, &Z80::DefaultFetch, 1, "SBC HL, BC");
+   FillStructOpcode<ED>(0x42, &Z80::Opcode_Sub_Reg<ADDR_BC>, 1, "SBC HL, BC");
    FillStructOpcode<ED>(0x43, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD (%nn__), BC");
    FillStructOpcode<ED>(0x44, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x45, &Z80::Opcode_MemoryFromStack, 1, "RETN");
    FillStructOpcode<ED>(0x46, &Z80::Opcode_IM<0>, 1, "IM 0");
-   FillStructOpcode<ED>(0x47, &Z80::DefaultFetch, 1, "LD I, A");
+   FillStructOpcode<ED>(0x47, &Z80::Opcode_Ld_Delayed_Reg<R_I, R_A>, 1, "LD I, A");
    FillStructOpcode<ED>(0x48, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN C, (C)");
    FillStructOpcode<ED>(0x49, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_C>, 1, "OUT (C), C");
    FillStructOpcode<ED>(0x4A, &Z80::DefaultFetch, 1, "ADC HL, BC");
@@ -351,15 +351,15 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0x4C, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x4D, &Z80::Opcode_MemoryFromStack, 1, "RETI");
    FillStructOpcode<ED>(0x4E, &Z80::Opcode_IM<0>, 1, "IM 0");
-   FillStructOpcode<ED>(0x4F, &Z80::DefaultFetch, 1, "LD R, A");
+   FillStructOpcode<ED>(0x4F, &Z80::Opcode_Ld_Delayed_Reg<R_R, R_A>, 1, "LD R, A");
    FillStructOpcode<ED>(0x50, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN D, (C)");
    FillStructOpcode<ED>(0x51, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_D>, 1, "OUT (C), D");
-   FillStructOpcode<ED>(0x52, &Z80::DefaultFetch, 1, "SBC HL, DE");
+   FillStructOpcode<ED>(0x52, &Z80::Opcode_Sub_Reg<ADDR_DE>, 1, "SBC HL, DE");
    FillStructOpcode<ED>(0x53, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD (%nn__), DE");
    FillStructOpcode<ED>(0x54, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x55, &Z80::Opcode_MemoryFromStack, 1, "RETN");
    FillStructOpcode<ED>(0x56, &Z80::Opcode_IM<1>, 1, "IM 1");
-   FillStructOpcode<ED>(0x57, &Z80::DefaultFetch, 1, "LD A, I");
+   FillStructOpcode<ED>(0x57, &Z80::Opcode_Ld_Delayed_Reg<R_A, R_I>, 1, "LD A, I");
    FillStructOpcode<ED>(0x58, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN E, (C)");
    FillStructOpcode<ED>(0x59, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_E>, 1, "OUT (C), E");
    FillStructOpcode<ED>(0x5A, &Z80::DefaultFetch, 1, "ADC HL, DE");
@@ -367,10 +367,10 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0x5C, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x5D, &Z80::Opcode_MemoryFromStack, 1, "RETN");
    FillStructOpcode<ED>(0x5E, &Z80::Opcode_IM<2>, 1, "IM2");
-   FillStructOpcode<ED>(0x5F, &Z80::DefaultFetch, 1, "LD A, R");
+   FillStructOpcode<ED>(0x5F, &Z80::Opcode_Ld_Delayed_Reg<R_A, R_R>, 1, "LD A, R");
    FillStructOpcode<ED>(0x60, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN H, (C)");
    FillStructOpcode<ED>(0x61, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_H>, 1, "OUT (C), H");
-   FillStructOpcode<ED>(0x62, &Z80::DefaultFetch, 1, "SBC HL, HL");
+   FillStructOpcode<ED>(0x62, &Z80::Opcode_Sub_Reg<ADDR_HL>, 1, "SBC HL, HL");
    FillStructOpcode<ED>(0x63, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LN (%nn__), HL");
    FillStructOpcode<ED>(0x64, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x65, &Z80::Opcode_MemoryFromStack, 1, "RETN");
@@ -386,12 +386,12 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0x6F, &Z80::DefaultFetch, 1, "RLD");
    FillStructOpcode<ED>(0x70, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN (C)");
    FillStructOpcode<ED>(0x71, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_0>, 1, "OUT (C), 0");
-   FillStructOpcode<ED>(0x72, &Z80::DefaultFetch, 1, "SBC HL, SP");
+   FillStructOpcode<ED>(0x72, &Z80::Opcode_Sub_Reg<ADDR_SP>, 1, "SBC HL, SP");
    FillStructOpcode<ED>(0x73, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD (%nn__), SP");
    FillStructOpcode<ED>(0x74, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x75, &Z80::Opcode_MemoryFromStack, 1, "RETN");
    FillStructOpcode<ED>(0x76, &Z80::Opcode_IM<1>, 1, "IM 1");
-   FillStructOpcode<ED>(0x77, &Z80::DefaultFetch, 1, "NOP");
+   FillStructOpcode<ED>(0x77, &Z80::Opcode_NOP, 1, "NOP");
    FillStructOpcode<ED>(0x78, &Z80::Opcode_Read_REGW<M_IO_R, ADDR_BC>, 1, "IN A, (C)");
    FillStructOpcode<ED>(0x79, &Z80::Opcode_Write_Addr_Reg<M_IO_W, ADDR_BC, R_A>, 1, "OUT (C), A");
    FillStructOpcode<ED>(0x7A, &Z80::DefaultFetch, 1, "ADC HL, SP");
@@ -399,7 +399,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0x7C, &Z80::Opcode_NEG, 1, "NEG");
    FillStructOpcode<ED>(0x7D, &Z80::Opcode_MemoryFromStack, 1, "RETN");
    FillStructOpcode<ED>(0x7E, &Z80::Opcode_IM<2>, 1, "IM 2");
-   FillStructOpcode<ED>(0x7F, &Z80::DefaultFetch, 1, "NOP");
+   FillStructOpcode<ED>(0x7F, &Z80::Opcode_NOP, 1, "NOP");
    FillStructOpcode<ED>(0xA0, &Z80::DefaultFetch, 1, "LDI");
    FillStructOpcode<ED>(0xA1, &Z80::DefaultFetch, 1, "CPI");
    FillStructOpcode<ED>(0xA2, &Z80::DefaultFetch, 1, "INI");
@@ -416,7 +416,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0xB9, &Z80::DefaultFetch, 1, "CPDR");
    FillStructOpcode<ED>(0xBA, &Z80::DefaultFetch, 1, "INDR");
    FillStructOpcode<ED>(0xBB, &Z80::DefaultFetch, 1, "OTDR");
-   FillStructOpcode<ED>(0xED, &Z80::DefaultFetch, 1, "%ED");
+   FillStructOpcode<ED>(0xED, &Z80::Opcode_NOP, 1, "%ED");
 
    //////////////////
    // DD
