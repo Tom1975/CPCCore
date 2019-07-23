@@ -31,7 +31,7 @@ namespace std
 extern "C" {
 #endif
 
-//int sprintf(char* buf, const char* fmt, ...);
+int sprintf(char* buf, const char* fmt, ...);
 
 int stricmp(char const* _String1, char const* _String2);
 int strnicmp(char const* _String1, char const* _String2, unsigned int _MaxCount);

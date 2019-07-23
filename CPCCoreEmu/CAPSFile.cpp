@@ -1053,21 +1053,6 @@ unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_si
       }
    }
 
-
-   if (cyl == 0x12)
-   {
-      int nbDens = (usize >> 2);
-      for (int i = 0; i < nbDens; i++)
-      {
-         if (buf[i] >= 0x11 || buf[i] <= 0x0C)
-         {
-            char buff[128];
-            sprintf(buff, " index = %i - Valeur = %2.2X ", i, buf[i]);
-            OutputDebugString (buff);
-         }
-      }
-   }
-
    return buf;
 }
 

@@ -46,8 +46,8 @@ namespace fs = std::filesystem;
 #endif
 
 #ifdef __circle__
-//typedef unsigned int FILE;
-#include <stdio.h>
+typedef unsigned int FILE;
+//#include <stdio.h>
 
 #else
 #include <stdlib.h>
@@ -84,7 +84,6 @@ typedef void* HWND;
 #endif
 
 // C RunTime Header Files
-#include <stdlib.h>
 #include <memory.h>
 
 #ifdef _DEBUG

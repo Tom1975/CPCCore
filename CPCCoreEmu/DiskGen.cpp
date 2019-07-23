@@ -674,7 +674,7 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
                   ext_binbas = bnewbinbas;
 
                   correct_hidden = it->c_str()[9] & 0x80;
-                  sprintf(buffer, "%8.8s", it->c_str() /*, (char*)&pTrackData[offset+8]*/);
+                  memcpy(buffer, it->c_str(), 8);
                   for (int i = 7; i >= 0; i--)
                   {
                      if (buffer[i] == 0x20) buffer[i] = 0x00;
