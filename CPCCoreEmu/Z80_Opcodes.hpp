@@ -129,6 +129,29 @@ unsigned int Z80::Opcode_Read_REGW()
 }
 
 
+template<Z80::MachineCycle operation_source, Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Delayed_Read_REG()
+{
+   if (t_ == 5) 
+   {
+      machine_cycle_ = operation_source;
+      t_ = 1; 
+      current_address_ = REGW(reg);
+      if (machine_cycle_ == M_MEMORY_R)
+      {
+         current_data_ = 0;
+         read_count_ = 0;
+      }
+      return 1;
+   }
+   else 
+   { 
+      int t_tmp = 5 - t_;
+      t_ = 5;
+      return t_tmp;
+   }
+}
+
 template<Z80::AddressRegisters reg, int t_val>
 unsigned int Z80::Opcode_Memory_Read_Delayed()
 {
@@ -221,6 +244,25 @@ unsigned int Z80::Opcode_Add_Reg()
    af_.b.l = q_;
    
    NEXT_INSTR
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Add_Reg()
+{
+   unsigned int res;
+   mem_ptr_.w = hl_.w + 1; 
+   
+   res = hl_.w + REGW(reg) + (af_.b.l&CF);
+   q_ = ((res >> 8) & 0x28);
+   q_ |= (((res & 0xffff) == 0) ? ZF : 0) | ((res >> 16)&CF) | ((res & 0x8000) ? SF : 0) | (((hl_.w^res^REGW(reg)) >> 8)&HF);
+   if ((((hl_.w & 0x8000) ^ (REGW(reg) & 0x8000)) == 0) && (((hl_.w & 0x8000) ^ (res & 0x8000)) != 0)) 
+      q_ |= PF;
+   af_.b.l = q_; 
+   hl_.w = res; 
+
+   machine_cycle_ = M_Z80_WORK; 
+   t_ = 4 + 3;
+   return 1;
 }
 
 template<Z80::Registers reg, bool Carry>
@@ -480,4 +522,3 @@ template<int mode> unsigned int Z80::Opcode_IM()
    interrupt_mode_ = mode;
    NEXT_INSTR;
 }
-

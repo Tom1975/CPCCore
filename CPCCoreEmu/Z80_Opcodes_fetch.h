@@ -102,6 +102,7 @@ case 0xDDF9: if (t_ == 6) { sp_ = ix_.w; NEXT_INSTR; }
              else { ++t_; }break;// LD SP, IX
 //////////////////////////////////////////////////////////
 // ED
+   /*
 case 0xED40: machine_cycle_ = M_IO_R; t_ = 1; current_address_ = bc_.w; break; // IN B, (C)
 case 0xED41: machine_cycle_ = M_IO_W; t_ = 1; current_address_ = bc_.w; current_data_ = bc_.b.h; q_ = af_.b.l | ((bc_.b.h & 0x80) ? NF : 0); af_.b.l = q_; break; // OUT (C), B
 case 0xED42: mem_ptr_.w = hl_.w + 1; SUB_FLAG_CARRY_W(hl_.w, bc_.w); machine_cycle_ = M_Z80_WORK; t_ = 4 + 3; break;// SBC HL,BC
@@ -213,7 +214,10 @@ case 0xEDBA: if (t_ == 5) { machine_cycle_ = M_IO_R; t_ = 1; current_address_ = 
              else { ++t_; }; break;       // INDR
 case 0xEDBB: if (t_ == 5) { machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = hl_.w; current_data_ = 0; read_count_ = 0; }
              else { ++t_; };  break; // OTDR
-case 0xEDED: NEXT_INSTR; break;                                                                  // ED Extension opcode
+case 0xEDED: NEXT_INSTR; break;     
+   */
+   
+  // ED Extension opcode
    //////////////////////////////////////////////////////////
    // FD
 case 0xFD09: ADD_FLAG_W(iy_.w, bc_.w); t_ = 4 + 3; machine_cycle_ = M_Z80_WORK; break; // ADD IY, BC
