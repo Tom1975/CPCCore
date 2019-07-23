@@ -369,14 +369,14 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    if (snaType == 1)
    {
       // CPC Type : To do ?
-      switch (header[0x6D])
+      /*switch (header[0x6D])
       {
-         /*
+         
       case 0:machine_->SetMachineType(0); break;  // 464
       case 1:machine_->SetMachineType(1); break;  // 664
       case 2:machine_->SetMachineType(2); break;  // 6128
-      */
-      }
+      
+      }*/
       machine_->SetPlus(false);
 
       // Other values are unused

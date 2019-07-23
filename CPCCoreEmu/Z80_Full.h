@@ -411,7 +411,9 @@ public:
       R_D,
       R_E,
       R_H,
-      R_L
+      R_L,
+      R_I,
+      R_R
    } Registers;
 
    const char* REG_TO_STR(Registers reg)
@@ -434,6 +436,9 @@ public:
 
    template<MachineCycle operation_source, AddressRegisters reg>
    unsigned int Opcode_Read_REGW();
+
+   template<Z80::MachineCycle operation_source, Z80::AddressRegisters reg>
+   unsigned int Opcode_Delayed_Read_REG();
 
    template<MachineCycle operation_source, AddressRegisters addr, Registers reg>
    unsigned int Opcode_Write_Addr_Reg();
@@ -462,10 +467,19 @@ public:
    template<Z80::Registers reg1, Z80::Registers reg2>
    unsigned int Opcode_Ld_Reg();
 
+   template<Z80::Registers reg1, Z80::Registers reg2>
+   unsigned int Opcode_Ld_Delayed_Reg();
+
    template<Z80::Registers reg, bool Carry>
    unsigned int Opcode_Add_Reg();
 
+   template<Z80::AddressRegisters reg>
+   unsigned int Opcode_Add_Reg();
+
    template<Z80::Registers reg, bool Carry>
+   unsigned int Opcode_Sub_Reg();
+   
+   template<Z80::AddressRegisters reg>
    unsigned int Opcode_Sub_Reg();
 
    template<Z80::Registers reg, Z80::OperationType op>
@@ -491,6 +505,8 @@ public:
    template<int b, Z80::Registers reg> unsigned int Opcode_BIT();
    template<int b, Z80::Registers reg> unsigned int Opcode_RES();
    template<int b, Z80::Registers reg> unsigned int Opcode_SET();
+   
+   template<int mode> unsigned int Opcode_IM();
 
    unsigned int Opcode_MemoryFromStack();
    unsigned int Opcode_Push_delayed();
