@@ -412,6 +412,10 @@ public:
       R_E,
       R_H,
       R_L,
+      R_IXh,
+      R_IXl,
+      R_IYh,
+      R_IYl,
       R_I,
       R_R
    } Registers;
@@ -529,8 +533,9 @@ public:
    unsigned int Opcode_DI();
    unsigned int Opcode_EI();
 
-   unsigned int Opcode_JP_HL();
-   unsigned int Opcode_LD_SP_HL();
+   template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
+
+   template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
 };
 
 #include "Z80_Opcodes.hpp"
