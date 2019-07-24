@@ -437,13 +437,20 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<DD>(0x26, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD IXh, %n");
    FillStructOpcode<DD>(0x29, &Z80::Opcode_ADD_REGW<ADDR_IX, ADDR_IX>, 1, "ADD IX, IX");
    FillStructOpcode<DD>(0x2A, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD IX, (%nn__)");
-   FillStructOpcode<DD>(0x2B, &Z80::DefaultFetch/*Opcode_Dec_RegW<ADDR_IX>*/, 1, "DEC IX");
-   FillStructOpcode<DD>(0x2C, &Z80::DefaultFetch/*Opcode_Inc_Reg<R_IXl, false>*/, 1, "INC IXl");
-   FillStructOpcode<DD>(0x2D, &Z80::DefaultFetch/*Opcode_Inc_Reg<R_IXl, false>*/, 1, "DEC IXl");
-   FillStructOpcode<DD>(0x2E, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 2, "LD IXl, %n");
-   FillStructOpcode<DD>(0x34, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 1, "INC (IX+%n)");
-   FillStructOpcode<DD>(0x35, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 1, "DEC (IX+%n)");
-   FillStructOpcode<DD>(0x36, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 3, "LD (IX+%n), %n");
+
+   // Above here : All tests are ok 
+
+   // ERREUR !!!
+   FillStructOpcode<DD>(0x2B, &Z80::Opcode_Dec_RegWI<ADDR_IX>, 1, "DEC IX");
+   // FIN DE L'ERREUR
+   FillStructOpcode<DD>(0x2C, &Z80::Opcode_Inc_Reg<R_IXl, false>, 1, "INC IXl");
+   FillStructOpcode<DD>(0x2D, &Z80::Opcode_Inc_Reg<R_IXl, false>, 1, "DEC IXl");
+   FillStructOpcode<DD>(0x2E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD IXl, %n");
+   FillStructOpcode<DD>(0x34, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 1, "INC (IX+%n)");
+   FillStructOpcode<DD>(0x35, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 1, "DEC (IX+%n)");
+   FillStructOpcode<DD>(0x36, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD (IX+%n), %n");
+   
+
    FillStructOpcode<DD>(0x39, &Z80::DefaultFetch/*Opcode_ADD_REGW<ADDR_IX, ADDR_SP>*/, 1, "ADD IX, SP");
    FillStructOpcode<DD>(0x44, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_B, R_IXh>*/, 2, "LD B, IXh");
    FillStructOpcode<DD>(0x45, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_B, R_IXl>*/, 2, "LD B, IXl");

@@ -116,6 +116,19 @@ unsigned int Z80::Opcode_Dec_RegW()
    return 2;
 }
 
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Dec_RegWI()
+{
+   if (t_ == 6) 
+   {
+      int nextcycle;
+      --REGW(reg); 
+      NEXT_INSTR; 
+   }
+   else { ++t_; };
+   return 1;
+}
+
 template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
 unsigned int Z80::Opcode_EX()
 {

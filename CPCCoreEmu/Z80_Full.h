@@ -459,6 +459,10 @@ public:
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Dec_RegW();
 
+   template<Z80::AddressRegisters reg>
+   unsigned int Opcode_Dec_RegWI();
+
+
    template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
    unsigned int Opcode_EX();
 
