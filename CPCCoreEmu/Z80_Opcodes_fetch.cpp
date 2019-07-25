@@ -577,39 +577,41 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<FD>(0x75, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD (IY+%n), L");
    FillStructOpcode<FD>(0x77, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD (IY+%n), A");
 
-   FillStructOpcode<FD>(0x7C, &Z80::DefaultFetch, 2, "LD A, IYh");
-   FillStructOpcode<FD>(0x7D, &Z80::DefaultFetch, 1, "LD A, IYl");
+   FillStructOpcode<FD>(0x7C, &Z80::Opcode_Ld_Reg<R_A, R_IYh>, 2, "LD A, IYh");
+   FillStructOpcode<FD>(0x7D, &Z80::Opcode_Ld_Reg<R_A, R_IYl>, 1, "LD A, IYl");
    FillStructOpcode<FD>(0x7E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD A, (IY+%n)");
-   FillStructOpcode<FD>(0x84, &Z80::DefaultFetch, 2, "ADD A, IYh");
-   FillStructOpcode<FD>(0x85, &Z80::DefaultFetch, 2, "ADD A, IYl");
+   FillStructOpcode<FD>(0x84, &Z80::Opcode_Add_Reg<R_IYh, false>, 2, "ADD A, IYh");
+   FillStructOpcode<FD>(0x85, &Z80::Opcode_Add_Reg<R_IYl, false>, 2, "ADD A, IYl");
    FillStructOpcode<FD>(0x86, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "ADD A, (IY+%n)");
-   FillStructOpcode<FD>(0x8C, &Z80::DefaultFetch, 2, "ADC A, IYh");
-   FillStructOpcode<FD>(0x8D, &Z80::DefaultFetch, 2, "ADC A, IYl");
+   FillStructOpcode<FD>(0x8C, &Z80::Opcode_Add_Reg<R_IYh, true>, 2, "ADC A, IYh");
+   FillStructOpcode<FD>(0x8D, &Z80::Opcode_Add_Reg<R_IYl, true>, 2, "ADC A, IYl");
    FillStructOpcode<FD>(0x8E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "ADC A, (IY+%n)");
-   FillStructOpcode<FD>(0x94, &Z80::DefaultFetch, 2, "SUB A, IYh");
-   FillStructOpcode<FD>(0x95, &Z80::DefaultFetch, 2, "SUB A, IYl");
+
+   FillStructOpcode<FD>(0x94, &Z80::Opcode_Sub_Reg<R_IYh, false>, 2, "SUB A, IYh");
+   FillStructOpcode<FD>(0x95, &Z80::Opcode_Sub_Reg<R_IYl, false>, 2, "SUB A, IYl");
    FillStructOpcode<FD>(0x96, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "SUB A, (IY+%n)");
-   FillStructOpcode<FD>(0x9C, &Z80::DefaultFetch, 2, "SBC A, IYh");
-   FillStructOpcode<FD>(0x9D, &Z80::DefaultFetch, 2, "SBC A, IYl");
+   FillStructOpcode<FD>(0x9C, &Z80::Opcode_Sub_Reg<R_IYh, true>, 2, "SBC A, IYh");
+   FillStructOpcode<FD>(0x9D, &Z80::Opcode_Sub_Reg<R_IYl, true>, 2, "SBC A, IYl");
    FillStructOpcode<FD>(0x9E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "SBC A, (IY+%n)");
-   FillStructOpcode<FD>(0xA4, &Z80::DefaultFetch, 2, "AND A, IYh");
-   FillStructOpcode<FD>(0xA5, &Z80::DefaultFetch, 2, "AND A, IYl");
+   FillStructOpcode<FD>(0xA4, &Z80::Opcode_BOOL_Reg<R_IYh, AND>, 2, "AND A, IYh");
+   FillStructOpcode<FD>(0xA5, &Z80::Opcode_BOOL_Reg<R_IYl, AND>, 2, "AND A, IYl");
    FillStructOpcode<FD>(0xA6, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "AND (IY+%n)");
-   FillStructOpcode<FD>(0xAC, &Z80::DefaultFetch, 2, "XOR A, IYh");
-   FillStructOpcode<FD>(0xAD, &Z80::DefaultFetch, 2, "XOR A, IYl");
+   FillStructOpcode<FD>(0xAC, &Z80::Opcode_BOOL_Reg<R_IYh, XOR>, 2, "XOR A, IYh");
+   FillStructOpcode<FD>(0xAD, &Z80::Opcode_BOOL_Reg<R_IYl, XOR>, 2, "XOR A, IYl");
    FillStructOpcode<FD>(0xAE, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "XOR (IY+%n)");
-   FillStructOpcode<FD>(0xB4, &Z80::DefaultFetch, 2, "OR A, IYh");
-   FillStructOpcode<FD>(0xB5, &Z80::DefaultFetch, 2, "OR A, IYl");
+   FillStructOpcode<FD>(0xB4, &Z80::Opcode_BOOL_Reg<R_IYh, OR>, 2, "OR A, IYh");
+   FillStructOpcode<FD>(0xB5, &Z80::Opcode_BOOL_Reg<R_IYl, OR>, 2, "OR A, IYl");
    FillStructOpcode<FD>(0xB6, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "OR (IY+%n)");
-   FillStructOpcode<FD>(0xBC, &Z80::DefaultFetch, 2, "CP IYh");
-   FillStructOpcode<FD>(0xBD, &Z80::DefaultFetch, 2, "CP (IYl");
+   FillStructOpcode<FD>(0xBC, &Z80::Opcode_CP_Reg<R_IYh>, 2, "CP IYh");
+   FillStructOpcode<FD>(0xBD, &Z80::Opcode_CP_Reg<R_IYl>, 2, "CP (IYl");
    FillStructOpcode<FD>(0xBE, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "CP (IY+%n)");
    FillStructOpcode<FD>(0xCB, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "RES %b, (IY+%n)");
-   FillStructOpcode<FD>(0xE1, &Z80::DefaultFetch, 1, "POP_IY");
-   FillStructOpcode<FD>(0xE3, &Z80::DefaultFetch, 1, "EX (SP), IY");
-   FillStructOpcode<FD>(0xE5, &Z80::DefaultFetch, 1, "PUSH_IY");
-   FillStructOpcode<FD>(0xE9, &Z80::DefaultFetch, 1, "JP (IY)");
-   FillStructOpcode<FD>(0xF9, &Z80::DefaultFetch, 1, "LD SP, IY");
+
+   FillStructOpcode<FD>(0xE1, &Z80::Opcode_MemoryFromStack, 1, "POP_IY");
+   FillStructOpcode<FD>(0xE3, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_SP>, 1, "EX (SP), IY");
+   FillStructOpcode<FD>(0xE5, &Z80::Opcode_Push<ADDR_IY>, 1, "PUSH_IY");
+   FillStructOpcode<FD>(0xE9, &Z80::Opcode_JP_REGW<ADDR_IY>, 1, "JP (IY)");
+   FillStructOpcode<FD>(0xF9, &Z80::Opcode_LD_SP_REGW< ADDR_IY>, 1, "LD SP, IY");
 }
 
 
