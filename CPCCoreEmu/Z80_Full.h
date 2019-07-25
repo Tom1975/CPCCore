@@ -222,7 +222,6 @@ public:
    virtual unsigned int GetCurrentOpcode () { return current_opcode_;};
    virtual unsigned short GetPC();
 
-   int OpcodeFetch();
    int OpcodeIOR();
    int OpcodeIOW();
    int OpcodeMEMR();
