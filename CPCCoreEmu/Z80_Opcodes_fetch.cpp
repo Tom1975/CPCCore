@@ -437,33 +437,29 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<DD>(0x26, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD IXh, %n");
    FillStructOpcode<DD>(0x29, &Z80::Opcode_ADD_REGW<ADDR_IX, ADDR_IX>, 1, "ADD IX, IX");
    FillStructOpcode<DD>(0x2A, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD IX, (%nn__)");
-
-   // Above here : All tests are ok 
-
-   // ERREUR !!!
    FillStructOpcode<DD>(0x2B, &Z80::Opcode_Dec_RegWI<ADDR_IX>, 1, "DEC IX");
-   // FIN DE L'ERREUR
    FillStructOpcode<DD>(0x2C, &Z80::Opcode_Inc_Reg<R_IXl, false>, 1, "INC IXl");
-   FillStructOpcode<DD>(0x2D, &Z80::Opcode_Inc_Reg<R_IXl, false>, 1, "DEC IXl");
+   FillStructOpcode<DD>(0x2D, &Z80::Opcode_Dec_Reg<R_IXl, false>, 1, "DEC IXl");
    FillStructOpcode<DD>(0x2E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD IXl, %n");
    FillStructOpcode<DD>(0x34, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 1, "INC (IX+%n)");
    FillStructOpcode<DD>(0x35, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 1, "DEC (IX+%n)");
    FillStructOpcode<DD>(0x36, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD (IX+%n), %n");
-   
+   FillStructOpcode<DD>(0x39, &Z80::Opcode_ADD_REGW<ADDR_IX, ADDR_SP>, 1, "ADD IX, SP");
+   FillStructOpcode<DD>(0x44, &Z80::Opcode_Ld_Reg<R_B, R_IXh>, 2, "LD B, IXh");
+   FillStructOpcode<DD>(0x45, &Z80::Opcode_Ld_Reg<R_B, R_IXl>, 2, "LD B, IXl");
+   FillStructOpcode<DD>(0x46, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD B, (IX+%n)");
+   FillStructOpcode<DD>(0x4C, &Z80::Opcode_Ld_Reg<R_C, R_IXh>, 2, "LD C, IXh");
+   FillStructOpcode<DD>(0x4D, &Z80::Opcode_Ld_Reg<R_C, R_IXl>, 2, "LD C, IXl");
+   FillStructOpcode<DD>(0x4E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD C, (IX+%n)");
+   FillStructOpcode<DD>(0x54, &Z80::Opcode_Ld_Reg<R_D, R_IXh>, 2, "LD D, IXh");
+   FillStructOpcode<DD>(0x55, &Z80::Opcode_Ld_Reg<R_D, R_IXl>, 2, "LD D, IXl");
+   FillStructOpcode<DD>(0x56, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD D, (IX+%n)");
+   FillStructOpcode<DD>(0x5C, &Z80::Opcode_Ld_Reg<R_E, R_IXh>, 2, "LD E, IXh");
+   FillStructOpcode<DD>(0x5D, &Z80::Opcode_Ld_Reg<R_E, R_IXl>, 2, "LD E, IXl");
+   FillStructOpcode<DD>(0x5E, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "LD E, (IX+%n)");
 
-   FillStructOpcode<DD>(0x39, &Z80::DefaultFetch/*Opcode_ADD_REGW<ADDR_IX, ADDR_SP>*/, 1, "ADD IX, SP");
-   FillStructOpcode<DD>(0x44, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_B, R_IXh>*/, 2, "LD B, IXh");
-   FillStructOpcode<DD>(0x45, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_B, R_IXl>*/, 2, "LD B, IXl");
-   FillStructOpcode<DD>(0x46, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 2, "LD B, (IX+%n)");
-   FillStructOpcode<DD>(0x4C, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_C, R_IXh>*/, 2, "LD C, IXh");
-   FillStructOpcode<DD>(0x4D, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_C, R_IXl>*/, 2, "LD C, IXl");
-   FillStructOpcode<DD>(0x4E, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 2, "LD C, (IX+%n)");
-   FillStructOpcode<DD>(0x54, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_D, R_IXh>*/, 2, "LD D, IXh");
-   FillStructOpcode<DD>(0x55, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_D, R_IXl>*/, 2, "LD D, IXl");
-   FillStructOpcode<DD>(0x56, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 2, "LD D, (IX+%n)");
-   FillStructOpcode<DD>(0x5C, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_E, R_IXh>*/, 2, "LD E, IXh");
-   FillStructOpcode<DD>(0x5D, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_E, R_IXl>*/, 2, "LD E, IXl");
-   FillStructOpcode<DD>(0x5E, &Z80::DefaultFetch/*Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>*/, 2, "LD E, (IX+%n)");
+   // Above here : All tests are ok 
+   // Above here : z80 tests are ok
    FillStructOpcode<DD>(0x60, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_IXh, R_B>*/, 2, "LD IXh, B");
    FillStructOpcode<DD>(0x61, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_IXh, R_C>*/, 2, "LD IXh, C");
    FillStructOpcode<DD>(0x62, &Z80::DefaultFetch/*Opcode_Ld_Reg<R_IXh, R_D>*/, 2, "LD IXh, D");

@@ -119,7 +119,7 @@ unsigned int Z80::Opcode_Dec_RegW()
 template<Z80::AddressRegisters reg>
 unsigned int Z80::Opcode_Dec_RegWI()
 {
-   if (t_ == 6) 
+   if (t_ == 6)
    {
       int nextcycle;
       --REGW(reg); 
