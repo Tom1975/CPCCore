@@ -1,7 +1,35 @@
 
 #define REGW(reg) \
-   ((reg==ADDR_PC)?pc_:(reg==ADDR_AF)?af_.w:(reg==ADDR_BC)?bc_.w:(reg==ADDR_DE)?de_.w:(reg==ADDR_HL)?hl_.w:(reg==ADDR_IX)?ix_.w:(reg==ADDR_IY)?iy_.w:(reg==ADDR_SP)?sp_:(reg==ADDR_AFP)?af_p_.w:(reg==ADDR_BCP)?bc_p_.w:(reg==ADDR_DEP)?de_p_.w:(reg==ADDR_HLP)?hl_p_.w:hl_p_.w)
-#define REG(reg) ((reg==R_A)?af_.b.h:(reg==R_F)?af_.b.l:(reg==R_B)?bc_.b.h:(reg==R_C)?bc_.b.l:(reg==R_D)?de_.b.h:(reg==R_E)?de_.b.l:(reg==R_H)?hl_.b.h:(reg==R_L)?hl_.b.l:(reg==R_I)?ir_.b.h:ir_.b.l)
+  ((reg==ADDR_PC)?pc_:\
+   (reg==ADDR_AF)?af_.w:\
+   (reg==ADDR_BC)?bc_.w:\
+   (reg==ADDR_DE)?de_.w:\
+   (reg==ADDR_HL)?hl_.w:\
+   (reg==ADDR_IX)?ix_.w:\
+   (reg==ADDR_IY)?iy_.w:\
+   (reg==ADDR_SP)?sp_:\
+   (reg==ADDR_AFP)?af_p_.w:\
+   (reg==ADDR_BCP)?bc_p_.w:\
+   (reg==ADDR_DEP)?de_p_.w:\
+   (reg==ADDR_HLP)?hl_p_.w:\
+   hl_p_.w)
+
+#define REG(reg) \
+   ((reg==R_A)?af_.b.h:\
+   (reg==R_F)?af_.b.l:\
+   (reg==R_B)?bc_.b.h:\
+   (reg==R_C)?bc_.b.l:\
+   (reg==R_D)?de_.b.h:\
+   (reg==R_E)?de_.b.l:\
+   (reg==R_H)?hl_.b.h:\
+   (reg==R_L)?hl_.b.l:\
+   (reg==R_I)?ir_.b.h:\
+   (reg==R_IXh)?ix_.b.h:\
+   (reg==R_IXl)?ix_.b.l:\
+   (reg==R_IYh)?iy_.b.h:\
+   (reg==R_IYl)?iy_.b.l:\
+   ir_.b.l)
+
 #define REG_First(reg) \
    (reg==ADDR_AF)?af_.b.h:(reg==ADDR_BC)?bc_.b.h:(reg==ADDR_DE)?de_.b.h:(reg==ADDR_HL)?hl_.b.h:(reg==ADDR_IX)?ix_.b.h:iy_.b.h
 
@@ -86,6 +114,19 @@ unsigned int Z80::Opcode_Dec_RegW()
    counter_ += (2 - 1);
    t_ = 1;
    return 2;
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_Dec_RegWI()
+{
+   if (t_ == 6)
+   {
+      int nextcycle;
+      --REGW(reg); 
+      NEXT_INSTR; 
+   }
+   else { ++t_; };
+   return 1;
 }
 
 template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
@@ -521,4 +562,28 @@ template<int mode> unsigned int Z80::Opcode_IM()
    int nextcycle;
    interrupt_mode_ = mode;
    NEXT_INSTR;
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_JP_REGW()
+{
+   int nextcycle;
+   pc_ = REGW(reg);
+   NEXT_INSTR
+}
+
+template<Z80::AddressRegisters reg>
+unsigned int Z80::Opcode_LD_SP_REGW()
+{
+   if (t_ == 6)
+   {
+      int nextcycle;
+      sp_ = REGW(reg);
+      NEXT_INSTR;
+   }
+   else
+   {
+      ++t_;
+   }
+   return 1;
 }

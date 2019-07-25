@@ -222,7 +222,6 @@ public:
    virtual unsigned int GetCurrentOpcode () { return current_opcode_;};
    virtual unsigned short GetPC();
 
-   int OpcodeFetch();
    int OpcodeIOR();
    int OpcodeIOW();
    int OpcodeMEMR();
@@ -412,6 +411,10 @@ public:
       R_E,
       R_H,
       R_L,
+      R_IXh,
+      R_IXl,
+      R_IYh,
+      R_IYl,
       R_I,
       R_R
    } Registers;
@@ -454,6 +457,10 @@ public:
 
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Dec_RegW();
+
+   template<Z80::AddressRegisters reg>
+   unsigned int Opcode_Dec_RegWI();
+
 
    template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
    unsigned int Opcode_EX();
@@ -529,8 +536,9 @@ public:
    unsigned int Opcode_DI();
    unsigned int Opcode_EI();
 
-   unsigned int Opcode_JP_HL();
-   unsigned int Opcode_LD_SP_HL();
+   template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
+
+   template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
 };
 
 #include "Z80_Opcodes.hpp"
