@@ -415,8 +415,6 @@ unsigned int Z80::Tick()
    case M_FETCH + 11:
    case M_FETCH + 12:
    {
-      //#include "Z80_Opcodes_fetch.h"
-      //int val = OpcodeFetch();
       int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
       if (pc_ == 0x61D || pc_ == 0x628)
       {
@@ -563,27 +561,10 @@ unsigned int Z80::Tick()
    return 1;
 }
 
-
-int Z80::OpcodeFetch()
-{
-   return (this->*(*current_function_)[current_opcode_ & 0xFF])();
-}
-
 unsigned int Z80::DefaultFetch()
 {
-   unsigned int res;
-   unsigned char btmp;
    int nextcycle;
-
-#include "Z80_Opcodes_fetch.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
+   NEXT_INSTR;
 }
 
 int Z80::OpcodeIOR()
