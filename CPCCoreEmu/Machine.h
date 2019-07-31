@@ -220,8 +220,7 @@ public:
    Memory* GetMem () { return motherboard_.GetMem();};
    Asic* GetAsic() { return motherboard_.GetAsic(); }
 
-   IZ80* GetProc () { return motherboard_.GetProc();};
-   Z80* GetProcFull() { return motherboard_.GetProc();};
+   Z80* GetProc () { return motherboard_.GetProc();};
 
    Ay8912* GetPSG() {return motherboard_.GetPSG();};
    CRTC* GetCRTC () { return motherboard_.GetCRTC();}

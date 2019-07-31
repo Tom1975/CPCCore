@@ -952,37 +952,3 @@ DMA* GateArray::GetDMAChannel(int channel)
 {
    return &dma_list_[channel];
 }
-
-GateArray * GateArray::CopyMe()
-{
-   GateArray * new_vga = new GateArray();
-   *new_vga = *this;
-   return new_vga;
-}
-
-void GateArray::DeleteCopy(GateArray*vga)
-{
-   delete vga;
-}
-bool GateArray::CompareToCopy(GateArray* other)
-{
-   if (other->interrupt_counter_ != interrupt_counter_) return false;
-   if (other->wait_for_hsync_ != wait_for_hsync_) return false;
-   if (other->hsync_ != hsync_) return false;
-   if (other->vsync_ != vsync_) return false;
-   if (other->dispen_buffered_ != dispen_buffered_) return false;
-
-   if (other->pen_r_ != pen_r_) return false;
-   if (memcmp( other->ink_list_, ink_list_, sizeof(ink_list_)) != 0 )return false;
-   if (memcmp(other->sprite_ink_list_, sprite_ink_list_, sizeof(sprite_ink_list_)) != 0)return false;
-
-   if (other->dispen_buffered_ != dispen_buffered_) return false;
-   if (other->screen_mode_ != screen_mode_) return false;
-
-   if (other->hsync_counter_ != hsync_counter_) return false;
-   if (other->vsync_counter_ != vsync_counter_) return false;
-   if (other->screen_mode_ != screen_mode_) return false;
-
-
-   return true;
-}
