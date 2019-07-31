@@ -38,10 +38,6 @@ public:
    GateArray(void);
    virtual ~GateArray(void);
 
-   virtual GateArray * CopyMe();
-   virtual void DeleteCopy(GateArray*);
-   virtual bool CompareToCopy(GateArray* source);
-
 
    void Reset ();
 

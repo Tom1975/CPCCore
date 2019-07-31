@@ -30,10 +30,6 @@ public:
    Memory(Monitor* monitor);
    ~Memory(void);
 
-   Memory* CopyMe();
-   static void DeleteCopy(Memory*);
-   bool CompareToCopy(Memory*);
-
    void InitMemory();
    void Initialisation  ();
    void SetPlus(bool plus) { plus_ = plus; }

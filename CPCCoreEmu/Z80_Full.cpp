@@ -68,34 +68,6 @@ Z80::~Z80(void)
 {
 }
 
-IZ80* Z80::CopyMe()
-{
-   IZ80* new_z80 = new Z80();
-   *new_z80 = *this;
-
-   return new_z80;
-}
-
-void Z80::DeleteCopy(IZ80* z80)
-{
-   delete z80;
-}
-
-bool Z80::CompareToCopy(IZ80* z80)
-{
-   if (IZ80::CompareToCopy(z80) == false) return false;
-
-   Z80* other = (Z80*)z80;
-
-   if (machine_cycle_ != other->machine_cycle_) return false;
-   if (counter_ != other->counter_) return false;
-   if (carry_set_ != other->carry_set_) return false;
-   if (current_opcode_ != other->current_opcode_) return false;
-
-   return true;
-}
-
-
 void Z80::ReinitProc()
 {
 

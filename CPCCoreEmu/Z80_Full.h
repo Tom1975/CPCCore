@@ -194,15 +194,11 @@ af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0
 // Z80 full implementation
 ///////////////////////////////////////////////////////////////////
 
-class Z80 : public IZ80 , public IComponent
+class Z80 : /*public IZ80 , */public IComponent
 {
 public:
    Z80(void);
    virtual ~Z80(void);
-
-   virtual IZ80 * CopyMe();
-   virtual void DeleteCopy(IZ80*);
-   virtual bool CompareToCopy(IZ80*);
 
    void Init(Memory * memory, CSig* sig, ILog* log) {
       memory_ = memory; sig_ = sig; log_ = log;
@@ -228,12 +224,48 @@ public:
    int OpcodeMEMW();
    int OpcodeWAIT();
 
-   virtual void Copy(IZ80* source)
-   {
-      IZ80::Copy(source);
-   }
    //////////////////////////////////////
    // Externel pins
+
+
+   // Registres
+   union Register
+   {
+      struct {
+         unsigned char l;
+         unsigned char h;
+      } b;
+      unsigned short w;
+   };
+
+   Register af_;
+   Register bc_;
+   Register de_;
+   Register hl_;
+
+   Register af_p_;
+   Register bc_p_;
+   Register de_p_;
+   Register hl_p_;
+
+   Register ix_;    // IX
+   Register iy_;    // IY
+
+   Register ir_;
+
+   unsigned short sp_;
+   unsigned short pc_;
+
+   bool iff1_;
+   bool iff2_;
+
+   unsigned char q_;
+   Register mem_ptr_;
+
+   // Mode d'interruption
+   char interrupt_mode_;
+
+
    unsigned short address_;
    unsigned char data_;
 

@@ -748,9 +748,9 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
 
    if (do_snapshot_)
    {
-      if (GetProcFull()->machine_cycle_ == Z80::M_FETCH && GetProcFull()->t_ == 1)
+      if (GetProc()->machine_cycle_ == Z80::M_FETCH && GetProc()->t_ == 1)
       {
-         GetProcFull()->stop_on_fetch_ = false;
+         GetProc()->stop_on_fetch_ = false;
          
          if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
          {
@@ -935,7 +935,7 @@ bool EmulatorEngine::SaveSnapshot (const char* path_file)
 {
    do_snapshot_ = true;
    snapshot_file_ = path_file;
-   GetProcFull()->stop_on_fetch_ = true;
+   GetProc()->stop_on_fetch_ = true;
    return true;
 }
 
@@ -1070,8 +1070,8 @@ bool EmulatorEngine::LoadBinInt(unsigned char* buffer, unsigned int size)
       dest[0xBF06] = 0x16;
       dest[0xBF07] = 0xBD;
 
-      GetProcFull()->pc_ = 0xBF00;
-      GetProcFull()->ReinitProc();
+      GetProc()->pc_ = 0xBF00;
+      GetProc()->ReinitProc();
 
       return true;
    }

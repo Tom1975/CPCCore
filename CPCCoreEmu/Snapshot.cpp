@@ -207,30 +207,30 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    // read Version 1
    // Z80 Registers
    machine_->GetProc()->af_.b.l = header[0x11];
-   //machine_->GetProcFull()->af_.b.l = header[0x11];
+   //machine_->GetProc()->af_.b.l = header[0x11];
    machine_->GetProc()->af_.b.h = header[0x12];
-   //machine_->GetProcFull()->af_.b.h = header[0x12];
+   //machine_->GetProc()->af_.b.h = header[0x12];
    machine_->GetProc()->bc_.b.l = header[0x13];
-   ////machine_->GetProcFull()->bc_.b.l = header[0x13];
+   ////machine_->GetProc()->bc_.b.l = header[0x13];
    machine_->GetProc()->bc_.b.h = header[0x14];
-   //machine_->GetProcFull()->bc_.b.h = header[0x14];
+   //machine_->GetProc()->bc_.b.h = header[0x14];
    machine_->GetProc()->de_.b.l = header[0x15];
-   //machine_->GetProcFull()->de_.b.l = header[0x15];
+   //machine_->GetProc()->de_.b.l = header[0x15];
    machine_->GetProc()->de_.b.h = header[0x16];
-   //machine_->GetProcFull()->de_.b.h = header[0x16];
+   //machine_->GetProc()->de_.b.h = header[0x16];
    machine_->GetProc()->hl_.b.l = header[0x17];
-   //machine_->GetProcFull()->hl_.b.l = header[0x17];
+   //machine_->GetProc()->hl_.b.l = header[0x17];
    machine_->GetProc()->hl_.b.h = header[0x18];
-   //machine_->GetProcFull()->hl_.b.h = header[0x18];
+   //machine_->GetProc()->hl_.b.h = header[0x18];
    machine_->GetProc()->ir_.b.l = header[0x19];
-   //machine_->GetProcFull()->ir_.b.l = header[0x19];
+   //machine_->GetProc()->ir_.b.l = header[0x19];
    machine_->GetProc()->ir_.b.h = header[0x1A];
-   //machine_->GetProcFull()->ir_.b.h = header[0x1A];
+   //machine_->GetProc()->ir_.b.h = header[0x1A];
 
    machine_->GetProc()->iff1_ = (header[0x1B]==1);
-   //machine_->GetProcFull()->iff1_ = (header[0x1B] == 1);
+   //machine_->GetProc()->iff1_ = (header[0x1B] == 1);
    machine_->GetProc()->iff2_ = (header[0x1C]==1);
-   //machine_->GetProcFull()->iff2_ = (header[0x1C] == 1);
+   //machine_->GetProc()->iff2_ = (header[0x1C] == 1);
 
    //m_pMachine->GetProc()->m_InterruptAuthorized = (m_pMachine->GetProc()->iff1_ == true);
 
@@ -240,11 +240,11 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->pc_ = (header[0x23]|((header[0x24])<<8));
    machine_->GetProc()->interrupt_mode_ = ((header[0x25]));
 
-   //machine_->GetProcFull()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
-   //machine_->GetProcFull()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
-   //machine_->GetProcFull()->sp_ = (header[0x21] | ((header[0x22]) << 8));
-   //machine_->GetProcFull()->pc_ = (header[0x23] | ((header[0x24]) << 8));
-   //machine_->GetProcFull()->interrupt_mode_ = ((header[0x25]));
+   //machine_->GetProc()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
+   //machine_->GetProc()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
+   //machine_->GetProc()->sp_ = (header[0x21] | ((header[0x22]) << 8));
+   //machine_->GetProc()->pc_ = (header[0x23] | ((header[0x24]) << 8));
+   //machine_->GetProc()->interrupt_mode_ = ((header[0x25]));
 
    machine_->GetProc()->af_p_.b.l = header[0x26];
    machine_->GetProc()->af_p_.b.h = header[0x27];
@@ -255,14 +255,14 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->hl_p_.b.l = header[0x2C];
    machine_->GetProc()->hl_p_.b.h = header[0x2D];
 
-   //machine_->GetProcFull()->af_p_.b.l = header[0x26];
-   //machine_->GetProcFull()->af_p_.b.h = header[0x27];
-   //machine_->GetProcFull()->bc_p_.b.l = header[0x28];
-   //machine_->GetProcFull()->bc_p_.b.h = header[0x29];
-   //machine_->GetProcFull()->de_p_.b.l = header[0x2A];
-   //machine_->GetProcFull()->de_p_.b.h = header[0x2B];
-   //machine_->GetProcFull()->hl_p_.b.l = header[0x2C];
-   //machine_->GetProcFull()->hl_p_.b.h = header[0x2D];
+   //machine_->GetProc()->af_p_.b.l = header[0x26];
+   //machine_->GetProc()->af_p_.b.h = header[0x27];
+   //machine_->GetProc()->bc_p_.b.l = header[0x28];
+   //machine_->GetProc()->bc_p_.b.h = header[0x29];
+   //machine_->GetProc()->de_p_.b.l = header[0x2A];
+   //machine_->GetProc()->de_p_.b.h = header[0x2B];
+   //machine_->GetProc()->hl_p_.b.l = header[0x2C];
+   //machine_->GetProc()->hl_p_.b.h = header[0x2D];
 
    // GA
    machine_->GetVGA()->pen_r_ = header[0x2E] & 0x1F;
@@ -1074,7 +1074,7 @@ void CSnapshot::InitReplay ()
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   //machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProc()->ReinitProc ();
 
    fclose (f);
 
@@ -1205,7 +1205,7 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   //machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProc()->ReinitProc ();
 
    fclose (f);
 
