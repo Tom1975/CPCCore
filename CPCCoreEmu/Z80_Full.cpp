@@ -407,7 +407,6 @@ unsigned int Z80::Tick()
    case M_MEMORY_R + 7:
    case M_MEMORY_R + 8:
    {
-      //#include "Z80_Opcodes_memr.h"
       return OpcodeMEMR();
    }
 
@@ -519,86 +518,6 @@ unsigned int Z80::DefaultFetch()
 {
    int nextcycle;
    NEXT_INSTR;
-}
-
-int Z80::OpcodeIOR()
-{
-   unsigned char btmp;
-   int nextcycle;
-
-#include "Z80_Opcodes_ior.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
-}
-
-int Z80::OpcodeIOW()
-{
-   unsigned short utmp;
-   int nextcycle;
-
-#include "Z80_Opcodes_iow.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
-}
-
-int Z80::OpcodeMEMR()
-{
-   unsigned int res; unsigned char btmp;
-   int nextcycle;
-
-#include "Z80_Opcodes_memr.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
-}
-
-int Z80::OpcodeMEMW()
-{
-   unsigned char btmp; unsigned short utmp;
-   int nextcycle;
-
-#include "Z80_Opcodes_memw.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
-}
-
-int Z80::OpcodeWAIT()
-{
-   unsigned char btmp;
-   int nextcycle;
-
-#include "Z80_Opcodes_z80wait.h"
-   if (machine_cycle_ == M_Z80_WORK)
-   {
-      int ret = t_;
-      counter_ += (ret - 1);
-      t_ = 1;
-      return ret;
-   }
-   return 1;
 }
 
 bool Z80::IsCallInstruction(unsigned short Addr_P)
