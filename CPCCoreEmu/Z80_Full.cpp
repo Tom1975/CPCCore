@@ -611,8 +611,6 @@ void Z80::TraceTape(unsigned short pc, unsigned char value)
 
 }
 
-
-
 unsigned int Z80::Opcode_CB()
 {
    current_function_ = &fetch_func_cb_;

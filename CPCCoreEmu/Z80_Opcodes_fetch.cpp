@@ -1,9 +1,5 @@
 #include "stdafx.h"
-
 #include "Z80_Full.h"
-#include "Sig.h"
-#include "Memoire.h"
-
 
 void Z80::InitOpcodeShortcuts()
 {
@@ -18,14 +14,12 @@ void Z80::InitOpcodeShortcuts()
       FillStructOpcode<DD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<FD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
    }
-
    current_function_ = &fetch_func;
 
    FillStructOpcode<None>(0xCB, &Z80::Opcode_CB, 1, "%CB");
    FillStructOpcode<None>(0xED, &Z80::Opcode_ED, 1, "%ED");
    FillStructOpcode<None>(0xDD, &Z80::Opcode_DD, 1, "%DD");
    FillStructOpcode<None>(0xFD, &Z80::Opcode_FD, 1, "%FD");
-
 
    // Opcodes standards
    ///////////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +227,6 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<None>(0xC8, &Z80::Opcode_Ret_Cond< ZF, true>, 1, "RET Z");
    FillStructOpcode<None>(0xC9, &Z80::Opcode_MemoryFromStack, 1, "RET");
    FillStructOpcode<None>(0xCA, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "JP Z %nn__");
-
    FillStructOpcode<None>(0xCC, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "CALL Z %nn__");
    FillStructOpcode<None>(0xCD, &Z80::Opcode_Call_fetch, 3, "CALL %nn__");
    FillStructOpcode<None>(0xCE, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 2, "ADC A, %n");
@@ -297,15 +290,6 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<CB>(base+6, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_HL>, 1, asm);\
    FillStructOpcode<CB>(base+7, &i<7>, 1, asm);\
 
-   FILL_CB_FUNC(0x00, Z80::Opcode_RLC, "RLC %r");
-   FILL_CB_FUNC(0x08, Z80::Opcode_RRC, "RRC %r");
-   FILL_CB_FUNC(0x10, Z80::Opcode_RL, "RL %r");
-   FILL_CB_FUNC(0x18, Z80::Opcode_RR, "RR %r");
-   FILL_CB_FUNC(0x20, Z80::Opcode_SLA, "SLA %r");
-   FILL_CB_FUNC(0x28, Z80::Opcode_SRA, "SRA %r");
-   FILL_CB_FUNC(0x30, Z80::Opcode_SLL, "SLL %r");
-   FILL_CB_FUNC(0x38, Z80::Opcode_SRL, "SRL %r");
-
    char Buffer_Tmp [64];
 #define FILL_CB_FUNC_GENERIC(str_asm, bit_num, reg, base, func)\
    sprintf(Buffer_Tmp, #str_asm " %i, %s", bit_num, REG_TO_STR(reg)); FillStructOpcode<CB>(base+ (8 * bit_num), func<bit_num, reg>, 1, Buffer_Tmp);\
@@ -329,6 +313,15 @@ void Z80::InitOpcodeShortcuts()
    FILL_CB_FUNC_BIT(str_asm,5,base,func)\
    FILL_CB_FUNC_BIT(str_asm,6,base,func)\
    FILL_CB_FUNC_BIT(str_asm,7,base,func)
+
+   FILL_CB_FUNC(0x00, Z80::Opcode_RLC, "RLC %r");
+   FILL_CB_FUNC(0x08, Z80::Opcode_RRC, "RRC %r");
+   FILL_CB_FUNC(0x10, Z80::Opcode_RL, "RL %r");
+   FILL_CB_FUNC(0x18, Z80::Opcode_RR, "RR %r");
+   FILL_CB_FUNC(0x20, Z80::Opcode_SLA, "SLA %r");
+   FILL_CB_FUNC(0x28, Z80::Opcode_SRA, "SRA %r");
+   FILL_CB_FUNC(0x30, Z80::Opcode_SLL, "SLL %r");
+   FILL_CB_FUNC(0x38, Z80::Opcode_SRL, "SRL %r");
 
    FILL_CB_FUNC_GEN("BIT", 0x40, &Z80::Opcode_BIT);
    FILL_CB_FUNC_GEN("RES", 0x80, &Z80::Opcode_RES);
@@ -426,7 +419,6 @@ void Z80::InitOpcodeShortcuts()
       liste_opcodes_dd_[j] = liste_opcodes_[j];
       fetch_func_dd_[j] = &Z80::Opcode_DefaultToSimple;
    }
-
    FillStructOpcode<DD>(0x09, &Z80::Opcode_ADD_REGW<ADDR_IX, ADDR_BC>, 1, "ADD IX, BC");
    FillStructOpcode<DD>(0x19, &Z80::Opcode_ADD_REGW<ADDR_IX, ADDR_DE>, 1, "ADD IX, DE");
    FillStructOpcode<DD>(0x21, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD IX, %nn__");
@@ -522,7 +514,6 @@ void Z80::InitOpcodeShortcuts()
       liste_opcodes_fd_[j] = liste_opcodes_[j];
       fetch_func_fd_[j] = &Z80::Opcode_DefaultToSimple;
    }
-
    FillStructOpcode<FD>(0x09, &Z80::Opcode_ADD_REGW<ADDR_IY, ADDR_BC>, 1, "ADD IY, BC");
    FillStructOpcode<FD>(0x19, &Z80::Opcode_ADD_REGW<ADDR_IY, ADDR_DE>, 1, "ADD IY, DE");
    FillStructOpcode<FD>(0x21, &Z80::Opcode_Read_REGW<M_MEMORY_R, ADDR_PC>, 3, "LD IY, %nn__");
