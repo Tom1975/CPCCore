@@ -4,52 +4,6 @@
 #include "Sig.h"
 #include "Memoire.h"
 
-static unsigned char GetBitOpcode(unsigned char b, const char* r)
-{
-   unsigned char op = 0;
-   switch (*r)
-   {
-   case 'B': op = 0; break;
-   case 'C': op = 1; break;
-   case 'D': op = 2; break;
-   case 'E': op = 3; break;
-   case 'L': op = 5; break;
-   case 'A': op = 7; break;
-   case 'H':
-   {
-      if (r[1] == 0)
-      {
-         op = 4;
-      }
-      else
-      {
-         op = 6;// HL !
-      }
-      break;
-   };
-   }
-   op += (b << 3);
-   return op;
-}
-
-
-#define DEF_OP_BIT_CPLT(o,b,r)\
-{char *Buffer_Tmp = new char[64];sprintf(Buffer_Tmp, "BIT %i, %s", b,  #r);   \
-   liste_opcodes_cb_[o] = FillStructOpcode(nullptr,  1, Buffer_Tmp);delete []Buffer_Tmp;\
-   }
-
-#define DEF_OP_BIT(r)\
-   {\
-      unsigned opcode = GetBitOpcode (0, #r);DEF_OP_BIT_CPLT( opcode|0x40, 0, r);\
-      opcode = GetBitOpcode (1, #r);DEF_OP_BIT_CPLT( opcode|0x40, 1, r);\
-      opcode = GetBitOpcode (2, #r);DEF_OP_BIT_CPLT( opcode|0x40, 2, r);\
-      opcode = GetBitOpcode (3, #r);DEF_OP_BIT_CPLT( opcode|0x40, 3, r);\
-      opcode = GetBitOpcode (4, #r);DEF_OP_BIT_CPLT( opcode|0x40, 4, r);\
-      opcode = GetBitOpcode (5, #r);DEF_OP_BIT_CPLT( opcode|0x40, 5, r);\
-      opcode = GetBitOpcode (6, #r);DEF_OP_BIT_CPLT( opcode|0x40, 6, r);\
-      opcode = GetBitOpcode (7, #r);DEF_OP_BIT_CPLT( opcode|0x40, 7, r);\
-   }
-
 
 Z80::Z80(void) : 
    stop_on_fetch_(false), 
