@@ -1,0 +1,18 @@
+#include "stdafx.h"
+#include "MediaContainer.h"
+
+//#include "Shlwapi.h"
+#include "zlib.h"
+
+/////////////////////////////////////////////////////////////////
+// DiskContainer Implementation
+/////////////////////////////////////////////////////////////////
+Media::Media()
+{
+
+}
+
+Media::~Media(void)
+{
+
+}
