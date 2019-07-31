@@ -737,3 +737,248 @@ void Z80::TraceTape(unsigned short pc, unsigned char value)
    }
 
 }
+
+
+
+unsigned int Z80::Opcode_CB()
+{
+   current_function_ = &fetch_func_cb_;
+   machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_ED()
+{
+   current_function_ = &fetch_func_ed_;
+   machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_DD()
+{
+   current_function_ = &fetch_func_dd_;
+   machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_DefaultToSimple()
+{
+   current_function_ = &fetch_func;
+   current_opcode_ &= 0xFF;
+   return (this->*(fetch_func)[current_opcode_])();
+   return 1;
+}
+
+unsigned int Z80::Opcode_FD()
+{
+   current_function_ = &fetch_func_fd_;
+   machine_cycle_ = M_FETCH; t_ = 1;
+   return 1;
+}
+
+unsigned int Z80::Opcode_NOP()
+{
+   int nextcycle;
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_DAA()
+{
+   unsigned char btmp;
+   int nextcycle;
+   btmp = af_.b.h;
+   if (af_.b.l & NF)
+   {
+      if ((af_.b.l&HF) | ((af_.b.h & 0xf) > 9)) btmp -= 6;
+      if ((af_.b.l&CF) | (af_.b.h > 0x99)) btmp -= 0x60;
+   }
+   else
+   {
+      if ((af_.b.l&HF) | ((af_.b.h & 0xf) > 9)) btmp += 6;
+      if ((af_.b.l&CF) | (af_.b.h > 0x99)) btmp += 0x60;
+   }
+   q_ = (af_.b.l&(CF | NF)) | (af_.b.h > 0x99) | ((af_.b.h^btmp)&HF) | Szp[btmp];
+   af_.b.l = q_;
+   af_.b.h = btmp;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RLCA()
+{
+   unsigned char btmp;
+   int nextcycle;
+
+   q_ = af_.b.l& ~(NF | HF | CF | 0x28);
+   btmp = af_.b.h >> 7;
+   af_.b.h = (af_.b.h << 1) | btmp;
+   q_ |= (af_.b.h & 0x28) | btmp;
+
+   af_.b.l = q_;
+   NEXT_INSTR_RES(current_opcode_ & 0xFFFF00);
+}
+
+unsigned int Z80::Opcode_RRCA()
+{
+   unsigned char btmp;
+   int nextcycle;
+
+   btmp = af_.b.h & CF;
+   q_ = af_.b.l & ~(NF | HF | CF | 0x28);
+   q_ |= btmp;
+   af_.b.h = (af_.b.h >> 1) + (btmp << 7);
+   q_ |= (af_.b.h & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RLA()
+{
+   unsigned char btmp;
+   int nextcycle;
+   btmp = af_.b.l&CF;
+   q_ = af_.b.l & ~(NF | HF | CF | 0x28);
+
+   if (af_.b.h & 0x80) q_ |= CF;
+   af_.b.h = af_.b.h << 1;
+   af_.b.h |= btmp;
+   q_ |= (af_.b.h & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RRA()
+{
+   int nextcycle;
+   q_ = af_.b.l& ~(NF | HF | CF | 0x28);
+   q_ |= (af_.b.h & CF);
+   af_.b.h = af_.b.h >> 1;
+   af_.b.h |= (af_.b.l&CF) * 0x80;
+   q_ |= (af_.b.h & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_CPL()
+{
+   int nextcycle;
+   af_.b.h = ~af_.b.h;
+   q_ = af_.b.l & (~0x28);
+   q_ |= (af_.b.h & 0x28) | (NF | HF);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_SCF()
+{
+   int nextcycle;
+   q_ = (CF | (((q_^af_.b.l) | af_.b.h) & 0x28)) | (af_.b.l&(PF | SF | ZF));
+   af_.b.l = q_;
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_CCF()
+{
+   int nextcycle;
+   q_ = ((((q_^af_.b.l) | af_.b.h) & 0x28)) | (af_.b.l&(PF | SF | ZF));
+   q_ |= (af_.b.l&CF) ? HF : CF;
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+
+unsigned int Z80::Opcode_HALT()
+{
+   int nextcycle;
+   if (sig_->nmi_) { SET_NMI; }
+   else {
+      if (sig_->int_ && iff1_) { SET_INT; }
+      else { --pc_; SET_NOINT; }
+   }
+
+   current_opcode_ = 0;
+   int ret = t_;
+   counter_ += (ret - 1);
+   t_ = 1;
+   return ret;
+}
+
+unsigned int Z80::Opcode_MemoryFromStack()
+{
+   machine_cycle_ = M_MEMORY_R;
+   t_ = 1;
+   current_address_ = sp_++;
+   current_data_ = 0;
+   read_count_ = 0;
+   return 1;
+}
+
+unsigned int Z80::Opcode_Push_delayed()
+{
+   if (t_ == 5) {
+      machine_cycle_ = M_MEMORY_W;
+      t_ = 1;
+      current_address_ = --sp_;
+      current_data_ = pc_ >> 8;
+      read_count_ = 0;
+      return 1;
+   }
+   else
+   {
+      ++t_;
+   }
+   return 1;
+}
+
+unsigned int Z80::Opcode_Call_fetch()
+{
+   machine_cycle_ = M_MEMORY_W;
+   t_ = 1;
+   current_address_ = --sp_;
+   current_data_ = (pc_ + 2) >> 8;
+   read_count_ = 0;
+   return 1;
+}
+
+unsigned int Z80::Opcode_Exx()
+{
+   int nextcycle;
+   unsigned short t;
+   t = bc_.w;
+   bc_.w = bc_p_.w;
+   bc_p_.w = t;
+   t = de_.w;
+   de_.w = de_p_.w;
+   de_p_.w = t;
+   t = hl_.w;
+   hl_.w = hl_p_.w;
+   hl_p_.w = t;
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_DI()
+{
+   int nextcycle;
+   iff1_ = false;
+   iff2_ = false;
+   NEXT_INSTR
+}
+
+unsigned int Z80::Opcode_EI()
+{
+   int nextcycle;
+   iff1_ = true;
+   iff2_ = true;
+   NEXT_INSTR_EI
+}
+
+unsigned int Z80::Opcode_NEG()
+{
+   int nextcycle;
+   unsigned int res;
+   res = 0 - af_.b.h;
+   q_ = NF | (((res & 0xff) == 0) ? ZF : 0) | (res & 0x80) | ((af_.b.h != 0) ? CF : 0) | ((af_.b.h == 0x80) ? PF : 0) | ((af_.b.h^res)&HF);
+   q_ |= (res & 0x28);
+   af_.b.l = q_;
+   af_.b.h = res;
+   NEXT_INSTR;
+}
