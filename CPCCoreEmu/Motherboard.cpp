@@ -306,7 +306,7 @@ void Motherboard::Resync()
    // PSG
    ForceTick(&psg_, 0);
 
-   // VDU
+   // z80
    ForceTick(&z80_, 0);
 
    // CRTC§Asic
@@ -345,15 +345,12 @@ void Motherboard::ForceTick(IComponent* component, int ticks)
          // Found ? Just set the "current" value to 0
          if (ticks == 0)
          {
-            //m_ListOfComponents[i].ThisTickTime -= (m_ListOfComponents[i].ElapsedTime-1);
             component_list_[i]->this_tick_time_ -= (component_elapsed_time_[i] - 1);
-            //m_ListOfComponents[i].ElapsedTime = 1;
             component_elapsed_time_[i] = 1;
          }
          else
          {
             component_list_[i]->this_tick_time_ = ticks;
-            //m_ListOfComponents[i].ElapsedTime = ticks;
             component_elapsed_time_[i] = ticks;
          }
 
@@ -373,7 +370,6 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
    unsigned int next_cycle = nb_cycles;
    unsigned int index = 0;
    unsigned int elapsed_time_psg = component_elapsed_time_[index++];
-
    unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
    unsigned int elapsed_time_tape = component_elapsed_time_[index++];
    unsigned int elapsed_time_fdc = component_elapsed_time_[index++];

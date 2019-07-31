@@ -1,7 +1,6 @@
 #pragma once
 
 #include "IComponent.h"
-#include "IZ80.h"
 #include "Memoire.h"
 #include "Sig.h"
 
@@ -13,9 +12,6 @@
 
                             // Next instruction is ready
 #define SYNC_Z80 current_opcode_ = 0;
-
-#define VAR_DECL  unsigned int res;unsigned char btmp;unsigned short utmp;\
-                  int sres;char sbtmp;short stmp;int nextcycle;
 
 #define SET_NMI machine_cycle_=M_M1_NMI;t_ = 1;SYNC_Z80;return 1;
 #define SET_INT machine_cycle_=M_M1_INT;t_ = 1;SYNC_Z80;return 1;
@@ -35,8 +31,6 @@
       {SET_INT;}\
    }else {SET_NMI;}
 
-
-
 #define NEXT_INSTR_LDAIR   current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {carry_set_ = false;SET_NOINT;}else{carry_set_ = true;SET_INT;}}else{carry_set_ = true;SET_NMI;}
 #define NEXT_INSTR_EI      current_function_ = &fetch_func;if (!sig_->nmi_)SET_NOINT;{SET_NMI;}
 
@@ -53,17 +47,6 @@
    if ( (((af_.b.h&0x80)^(r&0x80)) == 0) && (((r&0x80)^(res&0x80))!=0) ) q_|= PF;/*else af_.b.l &= ~(PF);*/ /*P/V : Set if sign is same betwen r & A(before), and not the same as result*/\
    af_.b.l=q_;\
    af_.b.h=res;\
-
-// ADC
-
-#define ADD_FLAG_CARRY_W(re, wo) \
-   res = re+wo+(af_.b.l&CF);\
-   mem_ptr_.w = hl_.w+1;\
-   q_ = ((res>>8)&0x28);\
-   q_ |= (((res&0xffff)==0)?ZF:0) | ((res >>16)&CF) | ((res&0x8000)?SF:0) | (((re^res^wo)>>8)&HF);\
-   if ( (((re&0x8000)^(wo&0x8000)) == 0) && (((re&0x8000)^(res&0x8000))!=0) ) q_|= PF;/*else af_.b.l &= ~(PF);*/\
-   af_.b.l = q_;\
-   re = res;\
 
 // Compare
 #define CP_FLAGS(c) \
@@ -90,16 +73,6 @@ af_.b.l = q_;
    af_.b.h=res;\
    af_.b.l = q_;
 
-
-#define ADD_FLAG_W(re, wo) \
-   res = re+wo;\
-   mem_ptr_.w = re+1;\
-   btmp = (res>>8)&0x28;\
-   q_ = (af_.b.l&(SF|ZF|PF))|btmp|(((re^res^wo)>>8)&HF) | ((res >>16)&CF);\
-   /*q_ &= ~(0x28|NF|HF|CF);af_.b.l |= (btmp|(((re^res^wo)>>8)&HF) | ((res >>16)&CF) ); */\
-   af_.b.l = q_;\
-   re=res;
-
 #define SUB_FLAG(r) \
    res = af_.b.h-r;\
    q_ = NF | (((res&0xff)==0)?ZF:0) | ((res >>8)&CF) | (res&0x80) | ((af_.b.h^res^r)&HF);\
@@ -113,23 +86,11 @@ af_.b.l = q_;
    if ( (((af_.b.h&0x80)^(r&0x80)) != 0) && (((af_.b.h&0x80)^(res&0x80))!=0) ) q_|= PF;/*else af_.b.l &= ~(PF);*/\
    af_.b.h=res;q_ |=(res&0x28);af_.b.l = q_;\
 
-
-#define SUB_FLAG_CARRY_W(r, w) \
-   res = r - (w+(af_.b.l&CF));\
-   q_ = ((res>>8)&0x28);\
-   q_ |= NF | (((res&0xffff)==0)?ZF:0) | ((res >>16)&CF) | ((res&0x8000)?SF:0) | (((r^res^w)>>8)&HF);\
-   if ( (((r&0x8000)^(w&0x8000)) != 0) && (((r&0x8000)^(res&0x8000))!=0) ) q_|= PF;/*else af_.b.l &= ~(PF);*/\
-   r = res;af_.b.l = q_;\
-
-
 // Increment
 #define INC_FLAGS(dest) \
 dest ++;\
 q_ = (af_.b.l&CF)|((dest==0)?ZF:0) | (dest & 0x80 ) | ((dest == 0x80)?PF:0)|(((dest&0x0F)==0x00)?HF:0);q_ |= (dest&0x28);\
 af_.b.l = q_;
-
-#define INC_FLAGS_IND(addr) \
-unsigned char d = memory_->Get(addr);INC_FLAGS(d)memory_->Set(addr, d);
 
 // Decrement
 #define DEC_FLAGS(dest) \
@@ -157,12 +118,6 @@ af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0
 #define TST(c)  if ((af_.b.l & c) == c)
 #define TSTN(c)  if ((af_.b.l & c) == 0)
 
-// Exchange
-#define EXCHANGE(a,b) \
-{unsigned short t = a; a = b;b = t;}
-
-#define NEG res = 0-af_.b.h;q_ = NF |(((res&0xff)==0)?ZF:0) | (res &0x80) | ((af_.b.h!=0)?CF:0) | ((af_.b.h==0x80)?PF:0)|((af_.b.h^res)&HF);q_ |= (res&0x28);af_.b.l = q_;af_.b.h = res;
-
 // BIT operations
 #define RL(c) btmp = af_.b.l&CF;q_ = (c&0x80)?CF:0;c=c<<1;c+=btmp;q_ |= ((((c&0xff)==0)?ZF:0)|(c&0x80));q_ |= (c&0x28);PARITY_FLAG(c);af_.b.l = q_;
 #define RR(c) btmp = af_.b.l&CF;q_ = (c&0x1)?CF:0;c=c>>1;c+=btmp*0x80;q_ |= ((((c&0xff)==0)?ZF:0)|(c&0x80));q_ |= (c&0x28);PARITY_FLAG(c);af_.b.l = q_;
@@ -189,12 +144,13 @@ af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0
 #define ZF       0x40
 #define SF       0x80
 
+#define MAX_DISASSEMBLY_SIZE 32
 
 ///////////////////////////////////////////////////////////////////
 // Z80 full implementation
 ///////////////////////////////////////////////////////////////////
 
-class Z80 : /*public IZ80 , */public IComponent
+class Z80 : public IComponent
 {
 public:
    Z80(void);
@@ -214,9 +170,9 @@ public:
    void Reset ();
    void InterruptInit ();
 
-   virtual void ReinitProc ();
-   virtual unsigned int GetCurrentOpcode () { return current_opcode_;};
-   virtual unsigned short GetPC();
+   void ReinitProc ();
+   unsigned int GetCurrentOpcode () { return current_opcode_;};
+   unsigned short GetPC();
 
    int OpcodeIOR();
    int OpcodeIOW();
@@ -226,7 +182,6 @@ public:
 
    //////////////////////////////////////
    // Externel pins
-
 
    // Registres
    union Register
@@ -268,27 +223,7 @@ public:
 
    unsigned short address_;
    unsigned char data_;
-
-   // ALL PINS : 1 = ACTIVE ; 0 = INACTIVE ; OTHER = UNDEFINED (tri states)
-   // System Control
-   struct {
-      unsigned char m1     : 1;
-      unsigned char mreq   : 2;
-      unsigned char iorq   : 2;
-      unsigned char rd     : 2;
-      unsigned char wr     : 2;
-      unsigned char rfsh   : 1;
-   } system_ctrl_;
-
-   // CPU Control
-   struct {
-      unsigned char halt : 1;
-      unsigned char wait : 1;
-      unsigned char ctrl_int  : 1;
-      unsigned char nmi  : 1;
-      unsigned char reset: 1;
-   } cpu_ctrl_;
-
+   
    bool stop_on_fetch_;
 
    unsigned int current_opcode_ ;
@@ -324,15 +259,10 @@ public:
    // Vectorized Interrupt Bug : Detect opcodes that perform read/write memory
    bool rw_opcode_;
 
-
-#define MAX_MSTATE_NB 6
-#define MAX_DISASSEMBLY_SIZE 32
    typedef struct
    {
-      //unsigned short (Z80::* func)();
       unsigned char size;
       char disassembly[MAX_DISASSEMBLY_SIZE];
-
    }Opcode;
 
    typedef unsigned int (Z80::*Func)();
@@ -492,7 +422,6 @@ public:
 
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Dec_RegWI();
-
 
    template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
    unsigned int Opcode_EX();

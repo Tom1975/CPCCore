@@ -84,7 +84,6 @@ void Z80::Reset()
 {
 
    rw_opcode_ = false;
-   memset(&system_ctrl_, 0, sizeof(system_ctrl_));
 
    machine_cycle_ = M_FETCH;
    pc_ = 0x0000;
@@ -103,8 +102,6 @@ void Z80::Reset()
    //ir_.w = 0;
 
    t_ = 1;
-   cpu_ctrl_.halt = 0;
-   //m_CurrentListOpcodes = ListeOpcodes;
 
    interrupt_mode_ = 0;
 
@@ -113,7 +110,6 @@ void Z80::Reset()
 }
 
 
-//#define WAIT_TEST if ( !cpu_ctrl_.WAIT)
 #define WAIT_TEST if ((counter_&0x3) == 0)
 
 void Z80::InterruptInit()
@@ -156,9 +152,6 @@ void Z80::PreciseTick()
 unsigned int Z80::Tick()
 {
    int nextcycle;
-   // TODO : This should be handled by the GA
-   //counter_ = (++counter_) & 0x3;
-   //cpu_ctrl_.WAIT = counter_ != 0;
    ++counter_;
 
    switch (machine_cycle_ | t_)
@@ -353,9 +346,6 @@ unsigned int Z80::Tick()
    {
       rw_opcode_ = true;
       address_ = current_address_;
-      //system_ctrl_.MREQ = 1;
-      //system_ctrl_.RD = 1;
-      //t_++;
       data_ = memory_->Get(address_);
 
       nextcycle = 3 - (counter_ & 0x3);
@@ -387,7 +377,6 @@ unsigned int Z80::Tick()
       rw_opcode_ = true;
       address_ = current_address_;
       data_ = current_data_ & 0xFF;// >> (read_count_ * 8);
-      //system_ctrl_.MREQ = 1;
 
       nextcycle = 3 - (counter_ & 0x3);
 
@@ -401,7 +390,6 @@ unsigned int Z80::Tick()
       WAIT_TEST
       {
          t_++;
-      //system_ctrl_.WR = 1;
       }
       break;
    }
@@ -409,9 +397,6 @@ unsigned int Z80::Tick()
    case M_MEMORY_W + 3:
       memory_->Set(address_, data_);
       // WRITE the data
-      //data_ = current_data_;
-      //system_ctrl_.MREQ = 0;
-      //system_ctrl_.WR = 0;
    case M_MEMORY_W + 4:
    case M_MEMORY_W + 5:
    case M_MEMORY_W + 6:
@@ -429,11 +414,7 @@ unsigned int Z80::Tick()
 
    case M_IO_R + 2:
    {
-      //
-      //system_ctrl_.RD = 1;
-      //system_ctrl_.IORQ = 1;
       sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF);
-      //t_++;
       nextcycle = 3 - (counter_ & 0x3);
       t_ = 4;
       counter_ += nextcycle + 1;
