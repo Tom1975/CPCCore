@@ -243,7 +243,8 @@ public:
       M_Z80_WORK = 0x60,
       M_M1_INT = 0x70,
       M_M1_NMI = 0x80,
-      M_IO_R_INT = 0x90
+      M_IO_R_INT = 0x90,
+      M_Z80_WAIT = 0xA0,
    } MachineCycle; 
    MachineCycle machine_cycle_;
 
@@ -337,6 +338,7 @@ public:
    ListFunction fetch_func_fd_;
 
    ListFunction * current_function_;
+   Func next_function_;
 
    unsigned int DefaultFetch();
    unsigned int Opcode_DefaultToSimple();

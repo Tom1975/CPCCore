@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.0)
 project(CPCCoreEmu)
 
 file( GLOB SRCS
-	"*.cpp"
+	"*.cpp" 
 	)
 
 file( GLOB HEADERS
-	"*.h"
+	"*.h" "*.hpp"
 )
 
 

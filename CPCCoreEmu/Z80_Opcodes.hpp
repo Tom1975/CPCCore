@@ -109,7 +109,7 @@ unsigned int Z80::Opcode_Inc_RegW()
 template<Z80::AddressRegisters reg>
 unsigned int Z80::Opcode_Dec_RegW()
 {
-   machine_cycle_ = M_Z80_WORK;
+   machine_cycle_ = M_Z80_WAIT;
    REGW(reg)--;
    counter_ += (2 - 1);
    t_ = 1;
@@ -148,7 +148,7 @@ unsigned int Z80::Opcode_ADD_REGW()
    af_.b.l = q_;
    REGW(reg1) = res;
 
-   machine_cycle_ = M_Z80_WORK; 
+   machine_cycle_ = M_Z80_WAIT;
    counter_ += 6;
    t_ = 1;
    return 7;
@@ -301,7 +301,7 @@ unsigned int Z80::Opcode_Add_Reg()
    af_.b.l = q_; 
    hl_.w = res; 
 
-   machine_cycle_ = M_Z80_WORK; 
+   machine_cycle_ = M_Z80_WAIT;
    t_ = 4 + 3;
    return 1;
 }
@@ -333,7 +333,7 @@ unsigned int Z80::Opcode_Sub_Reg()
       q_ |= PF;
    hl_.w = res; af_.b.l = q_;
 
-   machine_cycle_ = M_Z80_WORK; 
+   machine_cycle_ = M_Z80_WAIT;
    t_ = 4 + 3;
    return 1;
 }
