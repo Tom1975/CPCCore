@@ -430,6 +430,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             {
                sprite_info_[num_sprite].y = (-1 * ((~sprite_info_[num_sprite].y) & 0xFF))-1;
             }
+            monitor_->gate_array_->ComputeSpritePerLine(num_sprite);
          }
          else if ((addr & 0x7) == 4)
          {
@@ -441,6 +442,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
                sprite_info_[num_sprite].sizex = 16 << (sprite_info_[num_sprite].zoomx - 1);
                sprite_info_[num_sprite].sizey = 16 << (sprite_info_[num_sprite].zoomy - 1);
             }
+            monitor_->gate_array_->ComputeSpritePerLine(num_sprite);
          }
 
       }
@@ -600,7 +602,8 @@ void Memory::Initialisation  ()
    rom_dis_ = ram_dis_ = false;
 
    memset(sprite_info_, 0, sizeof(sprite_info_));
-
+   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
+   
    // Initial configuraiton
    for (int i = 0; i < 4; i++)
    {
