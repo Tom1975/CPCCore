@@ -895,16 +895,18 @@ void GateArray::ComputeSpritePerLine(int sprite_number)
    //for (int i = 0; i < 0x10; i++)
    {
       int sprite_nb = sprite_number;
-      for (int i = 0; i < 16 && sprite_col_begin[sprite_nb] + i < 0x100; i++)
-         sprite_lines_[sprite_col_begin[sprite_nb]+ i] &= ~(1<<sprite_nb);
+      //for (int i = 0; i < 16 && sprite_col_begin[sprite_nb] + i < 0x200; i++)
+      for (int i = 0; i < 0x200; i++)
+         sprite_lines_[i]/*sprite_col_begin[sprite_nb]+ i]*/ &= ~(1<<sprite_nb);
       Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
       if (sprite->displayed )
       {
          sprite_col_begin[sprite_nb] = sprite->y;
          int magy = sprite->sizey;
-         for (int col = sprite->y; col < sprite->y+magy && col < 0x100; col++)
+         for (int col = sprite->y; col < sprite->y+magy ; col++)
          {
-            sprite_lines_[col] |= (1 << sprite_number);
+            if (col > 0 && col < 0x200)
+               sprite_lines_[col] |= (1 << sprite_number);
          }
       }
    }
@@ -920,13 +922,14 @@ void GateArray::DrawSprites(int * buffer_display)
    if (sprite_lines_[y] == 0) return;
    short x = (crtc_->hcc_ - 1) << 4;
    // Check every sprite
+   unsigned short sprite_to_draw = sprite_lines_[y];
    for (int i = 15; i >= 0; i--)
    {
       // Check if sprite "i" should render here something different than 0
-      if (sprite_lines_[y] & (1 << i))
+      if (sprite_to_draw & 0x8000)
       {
          Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
-         if (sprite->displayed)
+         //if (sprite->displayed)
          {
             short disp_y = (y - sprite->y);
             short disp_x = (x - sprite->x);
@@ -934,7 +937,7 @@ void GateArray::DrawSprites(int * buffer_display)
             int magx = sprite->sizex;
             int magy = sprite->sizey;
 
-            if (disp_x + 16 >= 0 && disp_x < (magx) && disp_y >= 0 && disp_y < (magy))
+            if (disp_x + 16 >= 0 && disp_x < (magx) /*&& disp_y >= 0 && disp_y < (magy)*/)
             {
                unsigned char magnification_x = sprite->zoomx - 1;
                unsigned char* sprite_data = memory_->GetSprite(i) + (disp_y >> (sprite->zoomy - 1)) * 16;
@@ -955,6 +958,7 @@ void GateArray::DrawSprites(int * buffer_display)
             }
          }
       }
+      sprite_to_draw <<= 1;
    }
 }
 

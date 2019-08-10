@@ -173,7 +173,7 @@ public:
    unsigned short ssa_;
 
    // Precomputed sprite (for faster sprite drawing)
-   unsigned short sprite_lines_[0x100];
-   unsigned char sprite_col_begin[0x10];
+   unsigned short sprite_lines_[0x200];
+   short sprite_col_begin[0x10];
 };
 
