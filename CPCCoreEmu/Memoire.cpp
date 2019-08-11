@@ -422,6 +422,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             {
                sprite_info_[num_sprite].x = (-1 * ((~sprite_info_[num_sprite].x) & 0xFF)) - 1;
             }
+            monitor_->gate_array_->ComputeSpritePerColumn(num_sprite);
          }
          else if ((addr & 0x6) == 2)
          {
@@ -443,6 +444,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
                sprite_info_[num_sprite].sizey = 16 << (sprite_info_[num_sprite].zoomy - 1);
             }
             monitor_->gate_array_->ComputeSpritePerLine(num_sprite);
+            monitor_->gate_array_->ComputeSpritePerColumn(num_sprite);
          }
 
       }

@@ -474,7 +474,9 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                         if (i == 0 && buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
                      }
                      // Sprite
-                     DrawSprites(buffer_to_display);
+
+                     if ((sprite_lines_[((crtc_->vcc_)<<3)+ crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
+                        DrawSprites(buffer_to_display);
 
                   }
                   else
@@ -569,6 +571,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                         }
                      }
                      // Sprite
+                     if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                      DrawSprites(buffer_to_display);
 
                   }
@@ -655,6 +658,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                      }
                      // Sprite
+                     if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                      DrawSprites(buffer_to_display);
 
 
@@ -707,6 +711,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                if (plus_)
                {
                   // Sprite
+                  if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                   DrawSprites(buffer_to_display);
 
                   END_OF_DISPLAY
@@ -890,6 +895,7 @@ void GateArray::TickDisplays()
 {
 }
 
+
 void GateArray::ComputeSpritePerLine(int sprite_number)
 {
    //for (int i = 0; i < 0x10; i++)
@@ -901,7 +907,7 @@ void GateArray::ComputeSpritePerLine(int sprite_number)
       Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
       if (sprite->displayed )
       {
-         sprite_col_begin[sprite_nb] = sprite->y;
+         sprite_line_begin[sprite_nb] = sprite->y;
          int magy = sprite->sizey;
          for (int col = sprite->y; col < sprite->y+magy ; col++)
          {
@@ -912,53 +918,73 @@ void GateArray::ComputeSpritePerLine(int sprite_number)
    }
 }
 
+void GateArray::ComputeSpritePerColumn(int sprite_number)
+{
+   Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
+   for (int i = 0; i < 0x100; i++)
+      sprite_column_[i] &= ~(1 << sprite_number);
+   if (sprite->displayed)
+   {
+      int offset = sprite->x >> 4;
+      int i;
+      for (i = offset; i < offset + (1<<(sprite->zoomx )); i++)
+      {
+         if (i >= 0) sprite_column_[i] |= (1 << sprite_number);
+      }
+      if ((sprite->x & 0xF) != 0 && (sprite->x >> 4) < 0xFF)
+      {
+         if (i >= 0) sprite_column_[i] |= (1 << sprite_number);
+      }
+   }
+}
+
 void GateArray::DrawSprites(int * buffer_display)
 {
-
    short y = (crtc_->vcc_);
    short sc = crtc_->vlc_;
    y = (y << 3) + sc;
-
-   if (sprite_lines_[y] == 0) return;
    short x = (crtc_->hcc_ - 1) << 4;
    // Check every sprite
-   unsigned short sprite_to_draw = sprite_lines_[y];
-   for (int i = 15; i >= 0; i--)
+   unsigned int sprite_to_draw = (sprite_lines_[y]<<16)| sprite_column_[crtc_->hcc_ - 1];
+   //for (int i = 15; i >= 0; i--)
+   int i = 15;
+   while (sprite_to_draw != 0)
    {
-      // Check if sprite "i" should render here something different than 0
-      if (sprite_to_draw & 0x8000)
+      while ((sprite_to_draw & 0x80008000) == 0)
+      {
+         sprite_to_draw <<= 1;
+         i--;
+      }
+      if ((sprite_to_draw & 0x80008000) == 0x80008000)
       {
          Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
-         //if (sprite->displayed)
+
+         short disp_x = (x - sprite->x);
+         int magx = sprite->sizex;
+
+         if (disp_x + 16 >= 0 && disp_x < (magx))
          {
-            short disp_y = (y - sprite->y);
-            short disp_x = (x - sprite->x);
-
-            int magx = sprite->sizex;
-            int magy = sprite->sizey;
-
-            if (disp_x + 16 >= 0 && disp_x < (magx) /*&& disp_y >= 0 && disp_y < (magy)*/)
+            unsigned char magnification_x = sprite->zoomx - 1;
+            unsigned char* sprite_data = memory_->GetSprite(i) + ((y - sprite->y) >> (sprite->zoomy - 1)) * 16;
+            for (int buff_x = 0; buff_x < 16; buff_x++)
             {
-               unsigned char magnification_x = sprite->zoomx - 1;
-               unsigned char* sprite_data = memory_->GetSprite(i) + (disp_y >> (sprite->zoomy - 1)) * 16;
-               for (int buff_x = 0; buff_x < 16; buff_x++)
+               if (disp_x >= 0 && disp_x < (magx))
                {
-                  if (disp_x >= 0 && disp_x < (magx))
-                  {
-                     // Display colour
-                     int col = sprite_data[(disp_x >> magnification_x) /*+ index_y*/] & 0xF;
+                  // Display colour
+                  int col = sprite_data[(disp_x >> magnification_x) /*+ index_y*/] & 0xF;
 
-                     if (col != 0)
-                     {
-                        buffer_display[buff_x] = sprite_ink_list_[col];
-                     }
+                  if (col != 0)
+                  {
+                     buffer_display[buff_x] = sprite_ink_list_[col];
                   }
-                  disp_x++;
                }
+               disp_x++;
             }
          }
       }
       sprite_to_draw <<= 1;
+      i--;
+   
    }
 }
 
