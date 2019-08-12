@@ -945,43 +945,37 @@ void GateArray::DrawSprites(int * buffer_display)
    y = (y << 3) + sc;
    short x = (crtc_->hcc_ - 1) << 4;
    // Check every sprite
-   unsigned int sprite_to_draw = (sprite_lines_[y]<<16)| sprite_column_[crtc_->hcc_ - 1];
-   //for (int i = 15; i >= 0; i--)
+   unsigned short sprite_to_draw = (sprite_lines_[y])& sprite_column_[crtc_->hcc_ - 1];
    int i = 15;
    while (sprite_to_draw != 0)
    {
-      while ((sprite_to_draw & 0x80008000) == 0)
+      while ((sprite_to_draw & 0x8000) == 0)
       {
          sprite_to_draw <<= 1;
          i--;
       }
-      if ((sprite_to_draw & 0x80008000) == 0x80008000)
+      
+      Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
+
+      short disp_x = (x - sprite->x);
+      int magx = sprite->sizex;
+      unsigned char magnification_x = sprite->zoomx - 1;
+      unsigned char* sprite_data = memory_->GetSprite(i) + ((y - sprite->y) >> (sprite->zoomy - 1)) * 16;
+      for (int buff_x = 0; buff_x < 16; buff_x++)
       {
-         Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
-
-         short disp_x = (x - sprite->x);
-         int magx = sprite->sizex;
-
-         if (disp_x + 16 >= 0 && disp_x < (magx))
+         if (disp_x >= 0 && disp_x < (magx))
          {
-            unsigned char magnification_x = sprite->zoomx - 1;
-            unsigned char* sprite_data = memory_->GetSprite(i) + ((y - sprite->y) >> (sprite->zoomy - 1)) * 16;
-            for (int buff_x = 0; buff_x < 16; buff_x++)
-            {
-               if (disp_x >= 0 && disp_x < (magx))
-               {
-                  // Display colour
-                  int col = sprite_data[(disp_x >> magnification_x) /*+ index_y*/] & 0xF;
+            // Display colour
+            int col = sprite_data[(disp_x >> magnification_x) ] & 0xF;
 
-                  if (col != 0)
-                  {
-                     buffer_display[buff_x] = sprite_ink_list_[col];
-                  }
-               }
-               disp_x++;
+            if (col != 0)
+            {
+               buffer_display[buff_x] = sprite_ink_list_[col];
             }
          }
+         disp_x++;
       }
+     
       sprite_to_draw <<= 1;
       i--;
    
