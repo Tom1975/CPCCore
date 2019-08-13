@@ -28,6 +28,7 @@ public:
    } TypeCRTC;
 
    void SetPlayback (IPlayback* playback) { play_back_ = playback;}
+   void DefinirTypeCRTC(TypeCRTC type_crtc);
    void Reset ();
    void SetLog ( ILog* log ) {log_ = log;};
    void SetSig ( CSig* sig ) {signals_ = sig;signals_->h_sync_ = false;signals_->v_sync_ = false;};
@@ -41,7 +42,6 @@ public:
 
    unsigned char In ( unsigned short address );
 
-   void DefinirTypeCRTC (TypeCRTC typeCRTC){type_crtc_ = typeCRTC;};
 
 
    TypeCRTC type_crtc_;
@@ -98,6 +98,8 @@ public:
    bool even_field_;
    int sscr_bit_8_;
 
+   typedef void (CRTC::*Func)();
+   Func TickFunction;
 
 protected:
 

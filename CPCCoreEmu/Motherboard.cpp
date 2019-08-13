@@ -399,7 +399,8 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          elapsed_time_psg += psg_.Tick();
       }
       RUN_COMPOSANT_N(tape_, elapsed_time_tape);
-      RUN_COMPOSANT_N(asic_, elapsed_time_asic);
+      //RUN_COMPOSANT_N(asic_., elapsed_time_asic);
+      if (elapsed_time_asic <= next_cycle) elapsed_time_asic += asic_.crtc_->Tick();
       RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
       RUN_COMPOSANT_N((z80_), elapsed_time_z80);
 

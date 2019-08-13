@@ -425,12 +425,12 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       //   4 = 6845 in Pre-ASIC
       switch (header[0xA4])
       {
-      case 0 : machine_->GetCRTC()->type_crtc_ = CRTC::HD6845S;break;
-         case 1 : machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break;
-         case 2 : machine_->GetCRTC()->type_crtc_ = CRTC::MC6845;break;
-         case 3 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40489;break;
-         case 4 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40226;break;
-         default: machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break; // defautl is 1
+      case 0 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::HD6845S);break;
+         case 1 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break;
+         case 2 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::MC6845);break;
+         case 3 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40489);break;
+         case 4 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40226);break;
+         default: machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break; // defautl is 1
       }
 
       //   A9	 1	 CRTC horizontal character counter register (note 11)
