@@ -361,79 +361,9 @@ void Motherboard::ForceTick(IComponent* component, int ticks)
 }
 
 
-#define  RUN_COMPOSANT_N(c,v) if (v <= next_cycle ) v += c.Tick ();
-
 // New
 
-void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
-{
-   unsigned int next_cycle = nb_cycles;
-   unsigned int index = 0;
-   unsigned int elapsed_time_psg = component_elapsed_time_[index++];
-   unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
-   unsigned int elapsed_time_tape = component_elapsed_time_[index++];
-   unsigned int elapsed_time_fdc = component_elapsed_time_[index++];
-   unsigned int elapsed_time_asic = component_elapsed_time_[index++];
-   unsigned int elapsed_time_dma = component_elapsed_time_[index++];
-
-   unsigned int elapsed_components[16];
-   for (int i = 0; i < signals_.nb_expansion_; i++)
-   {
-      elapsed_components[i] = component_elapsed_time_[index++];
-   }
-
-   unsigned int* elapsed = component_elapsed_time_;
-   for (unsigned int i = 0; i < index; ++i)
-   {
-      if (*elapsed < next_cycle)
-      {
-         next_cycle = *elapsed;
-      }
-      ++elapsed;
-   }
-
-   while (next_cycle < nb_cycles)
-   {
-      if (elapsed_time_psg == next_cycle)
-      {
-         elapsed_time_psg += psg_.Tick();
-      }
-      RUN_COMPOSANT_N(tape_, elapsed_time_tape);
-      //RUN_COMPOSANT_N(asic_., elapsed_time_asic);
-      if (elapsed_time_asic <= next_cycle) elapsed_time_asic += asic_.crtc_->Tick();
-      RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
-      RUN_COMPOSANT_N((z80_), elapsed_time_z80);
-
-      /*if (elapsed_time_dma <= next_cycle)
-      {
-         dma_[0].Tick();
-         dma_[1].Tick();
-         elapsed_time_dma += dma_[2].Tick();
-      }*/
-
-      for (int i = 0; i < signals_.nb_expansion_; i++)
-      {
-         if (elapsed_components[i] <= next_cycle) elapsed_components[i] += signals_.exp_list_[i]->Tick();
-      }
-
-      // Propagate SIG
-      signals_.Propagate();
-      ++next_cycle;
-   }
-   index = 0;
-   component_elapsed_time_[index++] = elapsed_time_psg - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_z80 - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_tape - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_fdc - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_asic - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_dma - nb_cycles;
-
-   for (int i = 0; i < signals_.nb_expansion_; i++)
-   {
-      component_elapsed_time_[index++] = elapsed_components[i] - nb_cycles;
-   }
-}
-
+/*
 void Motherboard::StartOptimized(unsigned int NbCycles)
 {
    unsigned int next_cycle = NbCycles;
@@ -493,7 +423,7 @@ void Motherboard::StartOptimized(unsigned int NbCycles)
       component_elapsed_time_[index++] = elapsed_components[i] - NbCycles;
    }
 }
-
+*/
 
 int Motherboard::DebugNew(unsigned int nb_cycles)
 {

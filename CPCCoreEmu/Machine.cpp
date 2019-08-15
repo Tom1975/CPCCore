@@ -728,10 +728,59 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
 
       run_time = time_slice_ * 4000;
       if (motherboard_.IsPLUS())
-         motherboard_.StartOptimizedPlus(run_time);
+      {
+         if (current_settings_->FDCPlugged())
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<true, true, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<true, true, true>(run_time);
+            }
+            
+         }
+         else
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<true, false, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<true, false, true>(run_time);
+            }
+            
+         }
+            
+      }
       else
       {
-         motherboard_.StartOptimized(run_time);
+         if (current_settings_->FDCPlugged())
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<false, true, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<false, true, true>(run_time);
+            }
+
+         }
+         else
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<false, false, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<false, false, true>(run_time);
+            }
+
+         }
       }
    }
    else

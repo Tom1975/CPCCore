@@ -9,7 +9,6 @@ file( GLOB HEADERS
 	"*.h" "*.hpp"
 )
 
-
 list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
 
 #Fichier ressource
