@@ -263,7 +263,8 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
    component_elapsed_time_[index++] = elapsed_time_psg - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_z80 - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_tape - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_fdc - nb_cycles;
+   if (fdc_present)
+      component_elapsed_time_[index++] = elapsed_time_fdc - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_asic - nb_cycles;
 
    for (int i = 0; i < signals_.nb_expansion_; i++)
