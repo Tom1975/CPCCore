@@ -56,6 +56,9 @@ public:
    void SetScanlines ( int scan ) {scanline_type_ = scan;}
    int GetScanlines ( ) {return scanline_type_ ;}
    
+
+   void ComputeSpritePerLine(int sprite_number );
+   void ComputeSpritePerColumn(int sprite_number);
    void DrawSprites(int * buffer_display);
    void HandleDMA();
    unsigned short GetSSA() { return ssa_; }
@@ -169,5 +172,12 @@ public:
    unsigned short ssa_new_counter_;
    unsigned short ssa_new_;
    unsigned short ssa_;
+
+   // Precomputed sprite (for faster sprite drawing)
+   unsigned short sprite_lines_[0x200];
+   short sprite_line_begin[0x10];
+
+   unsigned short sprite_column_[0x100];
+
 };
 

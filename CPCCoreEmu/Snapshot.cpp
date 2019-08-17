@@ -425,12 +425,12 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       //   4 = 6845 in Pre-ASIC
       switch (header[0xA4])
       {
-      case 0 : machine_->GetCRTC()->type_crtc_ = CRTC::HD6845S;break;
-         case 1 : machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break;
-         case 2 : machine_->GetCRTC()->type_crtc_ = CRTC::MC6845;break;
-         case 3 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40489;break;
-         case 4 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40226;break;
-         default: machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break; // defautl is 1
+      case 0 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::HD6845S);break;
+         case 1 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break;
+         case 2 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::MC6845);break;
+         case 3 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40489);break;
+         case 4 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40226);break;
+         default: machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break; // defautl is 1
       }
 
       //   A9	 1	 CRTC horizontal character counter register (note 11)
@@ -1085,7 +1085,7 @@ void CSnapshot::InitReplay ()
 bool CSnapshot::LoadSnapshot (const char* path_file)
 {
    //
-   log_->WriteLog("Entering snapshot...");
+   if (log_)log_->WriteLog("Entering snapshot...");
    FILE * f;
    if ( fopen_s ( &f, path_file, "rb") != 0)
    {
@@ -1093,13 +1093,13 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
       return false;
    }
 
-   log_->WriteLog("Snapshot opened successfully.");
+   if (log_)log_->WriteLog("Snapshot opened successfully.");
    // Cheack header
    unsigned char header [0x100] = {0};
    fread (header, 0x100, 1, f);
    if (strncmp( (char*)header, "MV - SNA", 8) != 0)
    {
-      log_->WriteLog("Error : Not a valid file...");
+      if (log_)log_->WriteLog("Error : Not a valid file...");
       fclose(f);
       if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
       return false;
@@ -1220,10 +1220,10 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 bool CSnapshot::SaveSnapshot (const char* path_file)
 {
    FILE * f;
-   log_->WriteLog("Entering snapshot saving...");
+   if (log_)log_->WriteLog("Entering snapshot saving...");
    if ( fopen_s ( &f, path_file, "wb") != 0)
    {
-      log_->WriteLog("ERROR : File is not valid...");
+      if (log_)log_->WriteLog("ERROR : File is not valid...");
       return false;
    }
 
@@ -1239,7 +1239,7 @@ bool CSnapshot::SaveSnapshot (const char* path_file)
 
 void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigned int headerSize )
 {
-   log_->WriteLog("Writing SNA v3...");
+   if (log_)log_->WriteLog("Writing SNA v3...");
    char header [0x100] = {0};
    memcpy ( header, base_header, headerSize );
 

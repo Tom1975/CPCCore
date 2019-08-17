@@ -64,7 +64,7 @@ CRTCRegistersAcces CRTCAccess[32] = {
 
 CRTC::CRTC(void) : cursor_line_(nullptr)
 {
-   type_crtc_ = UM6845R;
+   DefinirTypeCRTC(UM6845R);
 
    signals_ = NULL;
    log_ = NULL;
@@ -441,24 +441,29 @@ void CRTC::Out (unsigned short address, unsigned char data)
 
 }
 
-unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
 {
-
-   switch (type_crtc_ )
+   type_crtc_ = type_crtc;
+   switch (type_crtc_)
    {
    case 0:
-      ClockTick0 ();
+      TickFunction = &CRTC::ClockTick0;
       break;
    case 1:
-      ClockTick1 ();
+      TickFunction = &CRTC::ClockTick1;
       break;
    case 2:
-      ClockTick2();
+      TickFunction = &CRTC::ClockTick2;
       break;
    default:
-      ClockTick34 ();
+      TickFunction = &CRTC::ClockTick34;
    }
+   
+}
 
+unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+{
+   (this->*(TickFunction))();
 
    /////////////////////////
    // DISPMSG
@@ -474,7 +479,7 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
    // Lightgun :
    // If X/Y is in the current zone => do something
    gate_array_->Tick();
-
+   
    // Cursor
    if ( vlc_ >= registers_list_[10] && vlc_ <= registers_list_[11]
       && ma_ == registers_list_[15] + ((registers_list_[14] & 0x3F) << 8))

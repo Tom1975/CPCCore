@@ -461,6 +461,7 @@ unsigned int Z80::Tick()
    case M_Z80_WORK + 5:
       //if (t_>=4) if (sig_->ctrl_int != 1) rw_opcode_ = false;
       --t_;
+      return 1;
    case M_Z80_WAIT:
    case M_Z80_WAIT + 1:
       NEXT_INSTR;

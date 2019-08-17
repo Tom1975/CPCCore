@@ -8,9 +8,9 @@
 // MACRO de profilage
 
 
-extern unsigned int Mode0ExtendedLut [0x100][0x8];
-extern unsigned int Mode1ExtendedLut [0x100][0x8];
-extern unsigned int Mode2ExtendedLut [0x100][0x8];
+extern unsigned int Mode0ExtendedLut[0x100][0x8];
+extern unsigned int Mode1ExtendedLut[0x100][0x8];
+extern unsigned int Mode2ExtendedLut[0x100][0x8];
 
 extern unsigned char Mode0Lut[0x100][0x10];
 extern unsigned char Mode1Lut[0x100][0x10];
@@ -27,11 +27,11 @@ extern unsigned char Mode2Lut[0x100][0x10];
 
 static __int64 s1, s2, freq;
 static DWORD t;
-static char s [1024];
+static char s[1024];
 #else
-   #define START_CHRONO
-   #define STOP_CHRONO
-   #define PROF_DISPLAY
+#define START_CHRONO
+#define STOP_CHRONO
+#define PROF_DISPLAY
 #endif
 
 
@@ -88,7 +88,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr)
    // Init index of colors
    int i;
    buffered_ink_available_ = false;
-   for (i =0; i < 32; i++)
+   for (i = 0; i < 32; i++)
    {
       ListeColorsIndex[ListeColorsIndexConvert[i]] = ListeColors[i];
    }
@@ -116,9 +116,10 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr)
    //m_VideoBuffer = NULL;
    //m_Screen = NULL;
 
-   Reset ();
-   type_gate_array_ = GA_40010 ;
-START_CHRONO
+   Reset();
+   type_gate_array_ = GA_40010;
+
+   START_CHRONO
 }
 
 
@@ -127,7 +128,7 @@ GateArray::~GateArray(void)
 {
 }
 
-void GateArray::Reset ()
+void GateArray::Reset()
 {
    ssa_new_ = ssa_new_counter_ = ssa_ = 0;
 
@@ -138,14 +139,14 @@ void GateArray::Reset ()
    interrupt_raised_ = false;
    interrupt_counter_ = 0;
    wait_for_hsync_ = 0;
-//   m_X = 0;
-//   m_Y = 0;
+   //   m_X = 0;
+   //   m_Y = 0;
 
-   /*if (m_Screen!= NULL)
-      m_BeginingOfLine = m_VideoBuffer = m_Screen->GetVideoBuffer (m_Y);*/
+      /*if (m_Screen!= NULL)
+         m_BeginingOfLine = m_VideoBuffer = m_Screen->GetVideoBuffer (m_Y);*/
 
-   screen_mode_ = 0 ; // TODO : Check this
-   buffered_screen_mode_ = screen_mode_ ;
+   screen_mode_ = 0; // TODO : Check this
+   buffered_screen_mode_ = screen_mode_;
    activation_mode_ = 2;
 
    hsync_counter_ = 0;
@@ -154,7 +155,7 @@ void GateArray::Reset ()
    vsync_ = false;
 }
 
-void GateArray::SetBus (Bus* address, Bus* data)
+void GateArray::SetBus(Bus* address, Bus* data)
 {
    address_bus_ = address;
    data_bus_ = data;
@@ -163,7 +164,7 @@ void GateArray::SetBus (Bus* address, Bus* data)
 
 //////////////////////////////////////////
 //
-void GateArray::PreciseTick ()
+void GateArray::PreciseTick()
 {
    // Up
    // Clock divisions
@@ -171,12 +172,12 @@ void GateArray::PreciseTick ()
    if ((clock_count_ & 0x01) == 0x0)
    {
       // 4 Mhz Clock inversion
-      clock_4_mhz_.Tick ();
+      clock_4_mhz_.Tick();
 
       if ((clock_count_ & 0x07) == 0)
       {
          // 1 Mhz Clock inversion
-         clock_1_mhz_.Tick ();
+         clock_1_mhz_.Tick();
       }
    }
 
@@ -187,7 +188,7 @@ void GateArray::PreciseTick ()
 
 }
 
-unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
+unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 {
    // MAJ SPLT ?
    if (ssa_new_counter_ > 0)
@@ -201,13 +202,13 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
    //TickDisplays ();
 // Something to do ?
    // Falling edge of HSync
-   if ( sig_handler_->hsync_fall_)
-   //if ( HOldSync == true && m_Sig->HSync == false )
+   if (sig_handler_->hsync_fall_)
+      //if ( HOldSync == true && m_Sig->HSync == false )
    {
-      interrupt_counter_ = (interrupt_counter_+1)&0x3F;
+      interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
 
       // Plus ?
-      if (plus_ && memory_->GetPRI() !=  0)
+      if (plus_ && memory_->GetPRI() != 0)
       {
          if (interrupt_counter_ == 52)interrupt_counter_ = 0;
 
@@ -272,10 +273,10 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
          }
       }
 
-      if(vsync_)
+      if (vsync_)
          vsync_counter_++;
 
-      if ( vsync_  && (vsync_counter_ == 26))
+      if (vsync_ && (vsync_counter_ == 26))
       {
          vsync_ = false;
       }
@@ -298,8 +299,8 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
             // Raster interrupt ?
             unsigned char pri = memory_->GetPRI();
 
-            if ((crtc_->vcc_ &0x3F) == (pri >> 3)
-               && (crtc_->vlc_ &07)== (pri & 0x7))
+            if ((crtc_->vcc_ & 0x3F) == (pri >> 3)
+               && (crtc_->vlc_ & 07) == (pri & 0x7))
 
             {
                // Set interrupt vector
@@ -333,7 +334,7 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
    }
    sig_handler_->pri_changed_ = false;
    // Begin of HSYNC
-   if ( (h_old_sync_ == false && sig_handler_->h_sync_ == true ))
+   if ((h_old_sync_ == false && sig_handler_->h_sync_ == true))
    {
       hsync_ = true;
       hsync_counter_ = 0;
@@ -374,7 +375,7 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
       m_Interruptcounter &= 0x1F; // Bit 5 reset
    }*/
 
-   if ( v_old_sync_ == false && sig_handler_->v_sync_ == true )
+   if (v_old_sync_ == false && sig_handler_->v_sync_ == true)
    {
       // Wait for two HSync
       wait_for_hsync_ = 2;
@@ -393,10 +394,10 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
       sig_handler_->hsync_raise_ = false;
    }
 
-   
+
 #ifdef __NoOffset
-   display_short_ = *(short*)(memory_->ram_buffer_[0]+ADDRESS);
-  dispen_buffered_ = sig_handler_->DISPEN;
+   display_short_ = *(short*)(memory_->ram_buffer_[0] + ADDRESS);
+   dispen_buffered_ = sig_handler_->DISPEN;
 #endif
 
 #define MA unsigned short ma = (crtc_->ma_);
@@ -412,36 +413,36 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
    unsigned char extended_border = 0;
    if (plus_)
    {
-      vertical_shift = (memory_->GetSSCR()&0x7F) >> 4;
+      vertical_shift = (memory_->GetSSCR() & 0x7F) >> 4;
       horizontal_shift = memory_->GetSSCR() & 0xF;
       extended_border = (memory_->GetSSCR() & 0x80) ? 16 : 0;
    }
 
    // Fill the byte for the memory buffer
    // 16 pixels should be defined
-   int* buffer_to_display = monitor_->GetVideoBufferForInc ();
+   int* buffer_to_display = monitor_->GetVideoBufferForInc();
    if (buffer_to_display == 0)
    {
       END_OF_DISPLAY
    }
    else
    {
-      if ( hsync_
+      if (hsync_
          || vsync_)
       {
-         memset ( buffer_to_display, 0, 16);
+         memset(buffer_to_display, 0, 16);
          if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
          END_OF_DISPLAY
       }
       else
       {
-         if ( dispen_buffered_/*m_Sig->DISPEN*/ )
+         if (dispen_buffered_/*m_Sig->DISPEN*/)
          {
             switch (buffered_screen_mode_)
             {
             case 0:
             {
-               if ( plus_)
+               if (plus_)
                {
                   // get color palette number from pixels
                   unsigned short c1 = 0;
@@ -473,7 +474,9 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                         if (i == 0 && buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
                      }
                      // Sprite
-                     DrawSprites(buffer_to_display);
+
+                     if ((sprite_lines_[((crtc_->vcc_)<<3)+ crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
+                        DrawSprites(buffer_to_display);
 
                   }
                   else
@@ -499,7 +502,7 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
 
                      //END_OF_DISPLAY
                      monitor_->IncVideoBuffer();
-                     unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->vlc_ ) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
+                     unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->vlc_) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
                      display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
                      if (horizontal_shift > 0)
                      {
@@ -529,9 +532,9 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                {
                   // get color palette number from pixels
                   unsigned short c1 = ((display_short_.byte.l & 0x80) ? 0x80 : 0) + ((display_short_.byte.l & 0x8) ? 0x40 : 0)
-                  + ((display_short_.byte.l & 0x40) ? 0x20 : 0) + ((display_short_.byte.l & 0x4) ? 0x10 : 0)
-                  + ((display_short_.byte.l & 0x20) ? 0x8 : 0) + ((display_short_.byte.l & 0x2) ? 0x4 : 0)
-                  + ((display_short_.byte.l & 0x10) ? 0x2 : 0) + ((display_short_.byte.l & 0x1) ? 0x1 : 0);
+                     + ((display_short_.byte.l & 0x40) ? 0x20 : 0) + ((display_short_.byte.l & 0x4) ? 0x10 : 0)
+                     + ((display_short_.byte.l & 0x20) ? 0x8 : 0) + ((display_short_.byte.l & 0x2) ? 0x4 : 0)
+                     + ((display_short_.byte.l & 0x10) ? 0x2 : 0) + ((display_short_.byte.l & 0x1) ? 0x1 : 0);
                   c1 <<= 8;
                   c1 += ((display_short_.byte.h & 0x80) ? 0x80 : 0) + ((display_short_.byte.h & 0x8) ? 0x40 : 0)
                      + ((display_short_.byte.h & 0x40) ? 0x20 : 0) + ((display_short_.byte.h & 0x4) ? 0x10 : 0)
@@ -568,6 +571,7 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                         }
                      }
                      // Sprite
+                     if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                      DrawSprites(buffer_to_display);
 
                   }
@@ -633,8 +637,8 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
 
                   for (int i = 0; i < 8; ++i)
                   {
-                     Mode2ExtendedLut[c1&0xFF][i] = ink_list_[Mode2Lut[c1 & 0xFF][i]];
-                     Mode2ExtendedLut[c1>>8][i] = ink_list_[Mode2Lut[c1 >> 8][i]];
+                     Mode2ExtendedLut[c1 & 0xFF][i] = ink_list_[Mode2Lut[c1 & 0xFF][i]];
+                     Mode2ExtendedLut[c1 >> 8][i] = ink_list_[Mode2Lut[c1 >> 8][i]];
                   }
 
                   if (crtc_->sscr_bit_8_)
@@ -648,12 +652,13 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                      }
                      for (int i = 0; i < 8; i++)
                      {
-                        unsigned char c = (c1 >> (8 - (i+1))) & 0x1;
-                        buffer_to_display[i+8] = ink_list_[c];
+                        unsigned char c = (c1 >> (8 - (i + 1))) & 0x1;
+                        buffer_to_display[i + 8] = ink_list_[c];
 
 
                      }
                      // Sprite
+                     if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                      DrawSprites(buffer_to_display);
 
 
@@ -706,6 +711,7 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
                if (plus_)
                {
                   // Sprite
+                  if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                   DrawSprites(buffer_to_display);
 
                   END_OF_DISPLAY
@@ -743,10 +749,10 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
          }
          else
          {
-            memcpy (buffer_to_display, video_border_, 4* NB_BYTE_BORDER);
+            memcpy(buffer_to_display, video_border_, 4 * NB_BYTE_BORDER);
             memcpy(&buffer_to_display[NB_BYTE_BORDER], video_border_, 4 * NB_BYTE_BORDER);
             if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
-            memcpy(&buffer_to_display [NB_BYTE_BORDER*2], video_border_, 4 * NB_BYTE_BORDER);
+            memcpy(&buffer_to_display[NB_BYTE_BORDER * 2], video_border_, 4 * NB_BYTE_BORDER);
             memcpy(&buffer_to_display[NB_BYTE_BORDER * 3], video_border_, 4 * NB_BYTE_BORDER);
             END_OF_DISPLAY
          }
@@ -757,19 +763,19 @@ unsigned int GateArray::Tick (/*unsigned int nbTicks*/)
 }
 
 
-void GateArray::TickIO ()
+void GateArray::TickIO()
 {
    // Something on IO Port ?
    // IORQ = 1 and Adress = 7F00 (01 for adress bit 15-14)
-   unsigned char data = data_bus_->GetByteBus ();
-   if (( address_bus_->GetShortBus () & 0xC000) == 0x4000)
+   unsigned char data = data_bus_->GetByteBus();
+   if ((address_bus_->GetShortBus() & 0xC000) == 0x4000)
    {
       // Decodage
       switch (data & 0xE0)
       {
 
-      case 0x00 :  // PENR
-      case 0x20 :  // PENR
+      case 0x00:  // PENR
+      case 0x20:  // PENR
          pen_r_ = data & 0x1F;
          /*if ( m_bSpeed)
          {
@@ -777,8 +783,8 @@ void GateArray::TickIO ()
          }*/
 
          break;
-      case 0x40 :  // INKR
-      case 0x60 :  // INKR
+      case 0x40:  // INKR
+      case 0x60:  // INKR
          // TODO : Decaller le changement de couleur par 8 pixels (9 sur 40010 en mode 2)
          if ((pen_r_ & 0x10) == 0x10)
          {
@@ -789,9 +795,9 @@ void GateArray::TickIO ()
          }
          else
          {
-            if (monitor_->screen_->IsDisplayed () )
+            if (monitor_->screen_->IsDisplayed())
             {
-               buffered_ink_ = ListeColorsIndex [data & 0x5F];
+               buffered_ink_ = ListeColorsIndex[data & 0x5F];
 
                memory_->UpdateAsicPalette(pen_r_, data - 0x40);
                buffered_ink_available_ = true;
@@ -802,15 +808,15 @@ void GateArray::TickIO ()
             }
             else
             {
-               ink_list_ [pen_r_] = ListeColorsIndex [data & 0x5F];
+               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
             }
 
          }
 
          break;
 
-      case 0x80 :  // RMR
-      case 0xA0 :  // RMR
+      case 0x80:  // RMR
+      case 0xA0:  // RMR
          if ((data & 0x20) == 0x20 && unlocked_)
          {
             memory_->SetRmr2(data & 0x1F);
@@ -840,95 +846,139 @@ void GateArray::TickIO ()
       case 0xC0:
       case 0xE0:
          // MMR
-         {
-         }
-         break;
+      {
+      }
+      break;
 
       }
 
    }
    // PAL
 
-   if (pal_present_  && (( address_bus_->GetShortBus () & 0x8000) == 0x0000))
+   if (pal_present_ && ((address_bus_->GetShortBus() & 0x8000) == 0x0000))
    {
       // todo
       switch (data & 0xE0)
       {
       case 0xC0:  // Memory management
       case 0xE0:  // Memory management
-         {
-            // Decode 64k page
-            unsigned char p = data&0x38;
-            p = p>>3;
-            unsigned char b = data & 0x3;
-            unsigned char s = data & 0x4;
-            s = s >>2;
-            memory_->ConnectBank ( p, s, b);
+      {
+         // Decode 64k page
+         unsigned char p = data & 0x38;
+         p = p >> 3;
+         unsigned char b = data & 0x3;
+         unsigned char s = data & 0x4;
+         s = s >> 2;
+         memory_->ConnectBank(p, s, b);
 
-            break;
-         }
-      default:
-         {
          break;
+      }
+      default:
+      {
+         break;
+      }
+      }
+   }
+   //m_Sig->IORW = false;
+
+   if ((address_bus_->GetShortBus() & 0x2000) == 0x0000)
+   {
+      // Numero de ROM logique
+      unsigned char data = data_bus_->GetByteBus();
+      memory_->SetLogicalROM(data);
+      // Already read
+      //m_Sig->IORW = false;
+   }
+}
+
+void GateArray::TickDisplays()
+{
+}
+
+
+void GateArray::ComputeSpritePerLine(int sprite_number)
+{
+   //for (int i = 0; i < 0x10; i++)
+   {
+      int sprite_nb = sprite_number;
+      //for (int i = 0; i < 16 && sprite_col_begin[sprite_nb] + i < 0x200; i++)
+      for (int i = 0; i < 0x200; i++)
+         sprite_lines_[i]/*sprite_col_begin[sprite_nb]+ i]*/ &= ~(1<<sprite_nb);
+      Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
+      if (sprite->displayed )
+      {
+         sprite_line_begin[sprite_nb] = sprite->y;
+         int magy = sprite->sizey;
+         for (int col = sprite->y; col < sprite->y+magy ; col++)
+         {
+            if (col > 0 && col < 0x200)
+               sprite_lines_[col] |= (1 << sprite_number);
          }
       }
    }
-      //m_Sig->IORW = false;
-
-      if (( address_bus_->GetShortBus () & 0x2000) == 0x0000)
-      {
-         // Numero de ROM logique
-         unsigned char data = data_bus_->GetByteBus ();
-         memory_->SetLogicalROM ( data );
-         // Already read
-         //m_Sig->IORW = false;
-      }
 }
 
-void GateArray::TickDisplays ()
+void GateArray::ComputeSpritePerColumn(int sprite_number)
 {
+   Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
+   for (int i = 0; i < 0x100; i++)
+      sprite_column_[i] &= ~(1 << sprite_number);
+   if (sprite->displayed)
+   {
+      int offset = sprite->x >> 4;
+      int i;
+      for (i = offset; i < offset + (1<<(sprite->zoomx )); i++)
+      {
+         if (i >= 0) sprite_column_[i] |= (1 << sprite_number);
+      }
+      if ((sprite->x & 0xF) != 0 && (sprite->x >> 4) < 0xFF)
+      {
+         if (i >= 0) sprite_column_[i] |= (1 << sprite_number);
+      }
+   }
 }
 
 void GateArray::DrawSprites(int * buffer_display)
 {
-   short x = (crtc_->hcc_ - 1) << 4;
    short y = (crtc_->vcc_);
    short sc = crtc_->vlc_;
    y = (y << 3) + sc;
-
+   short x = (crtc_->hcc_ - 1) << 4;
    // Check every sprite
-   for (int i = 15; i >= 0; i--)
+   unsigned short sprite_to_draw = (sprite_lines_[y])& sprite_column_[crtc_->hcc_ - 1];
+   int i = 15;
+   while (sprite_to_draw != 0)
    {
-      // Check if sprite "i" should render here something different than 0
-      Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
-      if (sprite->displayed)
+      while ((sprite_to_draw & 0x8000) == 0)
       {
-         short disp_y = (y - sprite->y);
-         short disp_x = (x - sprite->x);
+         sprite_to_draw <<= 1;
+         i--;
+      }
+      
+      Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
 
-         int magx = sprite->sizex;
-         int magy = sprite->sizey;
-
-         if (disp_x+16 >= 0 && disp_x < (magx) && disp_y >= 0 && disp_y < (magy))
+      short disp_x = (x - sprite->x);
+      int magx = sprite->sizex;
+      unsigned char magnification_x = sprite->zoomx - 1;
+      unsigned char* sprite_data = memory_->GetSprite(i) + ((y - sprite->y) >> (sprite->zoomy - 1)) * 16;
+      for (int buff_x = 0; buff_x < 16; buff_x++)
+      {
+         if (disp_x >= 0 && disp_x < (magx))
          {
-            unsigned char magnification_x = sprite->zoomx - 1;
-            unsigned char* sprite_data = memory_->GetSprite(i) + (disp_y >> (sprite->zoomy - 1)) * 16;
-            for (int buff_x = 0; buff_x < 16; buff_x++)
-            {
-               if (disp_x >= 0 && disp_x < (magx))
-               {
-                  // Display colour
-                  int col = sprite_data[(disp_x >> magnification_x) /*+ index_y*/] & 0xF;
+            // Display colour
+            int col = sprite_data[(disp_x >> magnification_x) ] & 0xF;
 
-                  if (col != 0)
-                  {
-                     buffer_display[buff_x] = sprite_ink_list_[col];
-                  }
-               }
-               disp_x++;
+            if (col != 0)
+            {
+               buffer_display[buff_x] = sprite_ink_list_[col];
             }
          }
+         disp_x++;
       }
+     
+      sprite_to_draw <<= 1;
+      i--;
+   
    }
 }
 
