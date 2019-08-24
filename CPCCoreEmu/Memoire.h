@@ -47,7 +47,7 @@ public:
    inline unsigned char Get(unsigned short i) {
 
       // plus feature ?
-      if (asic_io_enabled_ && i >= 0x4000 && i <= 0x7FFF)
+      if (asic_io_enabled_ && /*i >= 0x4000 && i <= 0x7FFF*/ ((i & 0xC000 ) == 0x4000))
       {
          return last_value_read_ = ReadAsicRegister(i);
       }

@@ -17,7 +17,7 @@
 
 class GateArray;
 
-class CPCCOREEMU_API Monitor : public IComponent
+class CPCCOREEMU_API Monitor //: public IComponent
 {
 public:
    Monitor(void);
@@ -29,7 +29,7 @@ public:
 
    void SetScreen ( IDisplay* screen) {screen_ = screen;video_buffer_ = screen_->GetVideoBuffer (0); };
    void Reset ();
-   unsigned int Tick ( /*unsigned int nbTicks*/);
+   void Tick ( );
 
    int* GetVideoBufferForInc () const { if(video_buffer_ != nullptr && x_ < 1024-16) return video_buffer_; else return nullptr;}
    void IncVideoBuffer(){video_buffer_ += 16;};
