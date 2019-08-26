@@ -205,7 +205,9 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
    unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
    unsigned int elapsed_time_tape = component_elapsed_time_[index++];
    unsigned int elapsed_time_asic = component_elapsed_time_[index++];
-   unsigned int elapsed_time_fdc = component_elapsed_time_[index++];
+   unsigned int elapsed_time_fdc = 0;
+   if (fdc_present)
+      elapsed_time_fdc = component_elapsed_time_[index++];
 
    unsigned int elapsed_components[16];
    for (int i = 0; i < signals_.nb_expansion_; i++)
