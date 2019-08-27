@@ -400,12 +400,12 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    dispen_buffered_ = sig_handler_->DISPEN;
 #endif
 
-#define MA unsigned short ma = (crtc_->ma_);
-#define RA unsigned char ra = crtc_->vlc_+vertical_shift;/*if (ra > 7) ma += monitor_->m_pCRTC->m_Register[1];*/
-#define ADDRESS  ((((ma )& 0x3FF)<<1) | (ra & 0x7) <<11| ((ma& 0x3000)<<2))
+//#define MA unsigned short ma = (crtc_->ma_);
+//#define RA unsigned char ra = crtc_->vlc_+vertical_shift;/*if (ra > 7) ma += monitor_->m_pCRTC->m_Register[1];*/
+#define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->vlc_+vertical_shift) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
 #define DISPEN_TEST dispen_buffered_ = (crtc_->ff3_ & crtc_->ff1_ /*& m_pCRTC->mb_SSCR_Bit_8*/)
-#define END_OF_DISPLAY   {monitor_->IncVideoBuffer();MA ; RA; display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
+#define END_OF_DISPLAY   {monitor_->IncVideoBuffer();/*MA ; RA*/; display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
 
    // PLUS : Handle the SSCR register
    unsigned char vertical_shift = 0;
@@ -624,7 +624,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   for (int i = 0; i < 8; ++i)
                   {
                      c1 += (((display_short_.byte.h &(0x80 >> i)) ? 0x80 : 0) >> i);
-                     //c1 += Mode2Lut[m_DisplayShort._byte.h][i];
                   }
 
                   // Shift it
@@ -635,38 +634,51 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   c1 |= (prev_col_ << (16 - horizontal_shift));
                   prev_col_ = oldcol;
 
-                  for (int i = 0; i < 8; ++i)
-                  {
-                     Mode2ExtendedLut[c1 & 0xFF][i] = ink_list_[Mode2Lut[c1 & 0xFF][i]];
-                     Mode2ExtendedLut[c1 >> 8][i] = ink_list_[Mode2Lut[c1 >> 8][i]];
-                  }
-
                   if (crtc_->sscr_bit_8_)
                   {
+                     /*
+                     unsigned int col0 = ink_list_[0];
+                     unsigned int col1 = ink_list_[1];
 
-                     for (int i = 0; i < 8; i++)
-                     {
-                        unsigned char c = (c1 >> (16 - (i + 1))) & 0x1;
-                        buffer_to_display[i] = ink_list_[c];
-                        if (i == 3 && buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
-                     }
-                     for (int i = 0; i < 8; i++)
-                     {
-                        unsigned char c = (c1 >> (8 - (i + 1))) & 0x1;
-                        buffer_to_display[i + 8] = ink_list_[c];
-
-
-                     }
+                     buffer_to_display[0] = (c1 & 0x8000)?col1:col0;
+                     buffer_to_display[1] = (c1 & 0x4000) ? col1 : col0;
+                     buffer_to_display[2] = (c1 & 0x2000) ? col1 : col0;
+                     buffer_to_display[3] = (c1 & 0x1000) ? col1 : col0;
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     buffer_to_display[4] = (c1 & 0x800) ? col1 : col0;
+                     buffer_to_display[5] = (c1 & 0x400) ? col1 : col0;
+                     buffer_to_display[6] = (c1 & 0x200) ? col1 : col0;
+                     buffer_to_display[7] = (c1 & 0x100) ? col1 : col0;
+                     buffer_to_display[8] = (c1 & 0x80) ? col1 : col0;
+                     buffer_to_display[9] = (c1 & 0x40) ? col1 : col0;
+                     buffer_to_display[10] = (c1 & 0x20) ? col1 : col0;
+                     buffer_to_display[11] = (c1 & 0x10) ? col1 : col0;
+                     buffer_to_display[12] = (c1 & 0x8) ? col1 : col0;
+                     buffer_to_display[13] = (c1 & 0x4) ? col1 : col0;
+                     buffer_to_display[14] = (c1 & 0x2) ? col1 : col0;
+                     buffer_to_display[15] = (c1 & 0x1) ? col1 : col0;
+                     */
+                     buffer_to_display[0] = ink_list_[(c1 >> (16 - (0 + 1))) & 0x1];
+                     buffer_to_display[1] = ink_list_[(c1 >> (16 - (1 + 1))) & 0x1];
+                     buffer_to_display[2] = ink_list_[(c1 >> (16 - (2 + 1))) & 0x1];
+                     buffer_to_display[3] = ink_list_[(c1 >> (16 - (3 + 1))) & 0x1];
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     buffer_to_display[4] = ink_list_[(c1 >> (16 - (4 + 1))) & 0x1];
+                     buffer_to_display[5] = ink_list_[(c1 >> (16 - (5 + 1))) & 0x1];
+                     buffer_to_display[6] = ink_list_[(c1 >> (16 - (6 + 1))) & 0x1];
+                     buffer_to_display[7] = ink_list_[(c1 >> (16 - (7 + 1))) & 0x1];
+                     buffer_to_display[0 + 8] = ink_list_[(c1 >> (8 - (0 + 1))) & 0x1];
+                     buffer_to_display[1 + 8] = ink_list_[(c1 >> (8 - (1 + 1))) & 0x1];
+                     buffer_to_display[2 + 8] = ink_list_[(c1 >> (8 - (2 + 1))) & 0x1];
+                     buffer_to_display[3 + 8] = ink_list_[(c1 >> (8 - (3 + 1))) & 0x1];
+                     buffer_to_display[4 + 8] = ink_list_[(c1 >> (8 - (4 + 1))) & 0x1];
+                     buffer_to_display[5 + 8] = ink_list_[(c1 >> (8 - (5 + 1))) & 0x1];
+                     buffer_to_display[6 + 8] = ink_list_[(c1 >> (8 - (6 + 1))) & 0x1];
+                     buffer_to_display[7 + 8] = ink_list_[(c1 >> (8 - (7 + 1))) & 0x1];
+                     
                      // Sprite
                      if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                      DrawSprites(buffer_to_display);
-
-
-                     /*memcpy(pBufferToDisplay, &Mode2ExtendedLut[c1 & 0xFF], 4 * sizeof(int));
-
-                     if (m_bCachedInk) { monitor_->RecomputeColors(); m_bCachedInk = false; }
-                     memcpy(&pBufferToDisplay[4], &Mode2ExtendedLut[c1 & 0xFF][4], 4 * sizeof(int));
-                     memcpy(&pBufferToDisplay[8], &Mode2ExtendedLut[c1 >> 8], 8 * sizeof(int));*/
                   }
                   else
                   {
