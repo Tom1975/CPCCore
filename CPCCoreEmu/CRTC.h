@@ -76,7 +76,7 @@ public:
    bool r4_reached_;
 
    bool ff1_; 
-   bool ff2_;
+   //bool ff2_;
    bool ff3_;
    bool ff4_;
    bool mux_;

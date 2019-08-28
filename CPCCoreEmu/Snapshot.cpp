@@ -453,7 +453,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       //   0	 if "1" VSYNC is active, if "0" VSYNC is inactive (note 8)
       machine_->GetCRTC()->ff4_ = ((header[0xB0]&0x01)==0x01);
       //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
-      machine_->GetCRTC()->ff2_ = ((header[0xB0]&0x02)==0x02);
+      machine_->GetSig()->h_sync_ = ((header[0xB0]&0x02)==0x02);
       //   2-7	 reserved
       //   7	 if "1" Vertical Total Adjust is active, if "0" Vertical Total Adjust is inactive (note 10)
       machine_->GetCRTC()->r4_reached_ = ((header[0xB0]&0x80)==0x80);
@@ -1421,7 +1421,7 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    //   CRTC state flags. (note 7)
    //   Bit	 Function
    //   0	 if "1" VSYNC is active, if "0" VSYNC is inactive (note 8)
-   data |= machine_->GetCRTC()->ff2_?0x01:0;
+   data |= machine_->GetSig()->h_sync_ ?0x01:0;
    //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
    data |= machine_->GetCRTC()->ff4_?0x02:0;
    //   2-7	 reserved

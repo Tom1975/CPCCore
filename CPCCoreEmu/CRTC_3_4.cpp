@@ -60,7 +60,7 @@ void CRTC::ClockTick34 ()
    }
 
 
-   if (ff2_ )
+   if (signals_->h_sync_)
    {
       horinzontal_pulse_ = (++horinzontal_pulse_) & 0xF;
    }
@@ -234,9 +234,9 @@ void CRTC::ClockTick34 ()
       h_no_sync_ = true;
    }
 
-   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (ff2_|| signals_->hsync_raise_));
+   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (signals_->h_sync_ || signals_->hsync_raise_));
 
-   if ((horinzontal_pulse_ == horizontal_sync_width_) && (ff2_||signals_->hsync_raise_))
+   if ((horinzontal_pulse_ == horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
    {
       signals_->hsync_fall_ = true;
       //ff2_reset = true;
@@ -251,7 +251,7 @@ void CRTC::ClockTick34 ()
 
       if (!ff2_set)
       {
-         ff2_ = false;
+         signals_->h_sync_ = false;
       }
       else 
       {
@@ -262,7 +262,7 @@ void CRTC::ClockTick34 ()
    }
    else if (ff2_set)
    {
-      ff2_ = true;
+      signals_->h_sync_ = true;
    }
 
    if (hcc_ == registers_list_[1])
@@ -332,30 +332,36 @@ void CRTC::ClockTick34 ()
    {
       ff4_ = false;
    }
-   else if ( !ff4_reset && ff4_set)
+   else
    {
-      ff4_ = true;
-   }
-   else if ( ff4_reset && ff4_set)
-   {
-      // Nothing .
-      int dbg=1;
+      if (!ff4_reset && ff4_set)
+      {
+         ff4_ = true;
+         if ((scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
+      }
+      else if (ff4_reset && ff4_set)
+      {
+         // Nothing .
+         int dbg = 1;
+         if (ff4_ && (scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
+      }
+      
    }
 
    // Status 1:
    // Bit 7	(function of this bit is unknown)
    // Bit 6	(function of this bit is unknown)
    // Bit 5	0 : CRTC is on last line of VSYNC
-   if (ff4_ && (scanline_vbl_+1 == vertical_sync_width_)) status1_ &= ~0x20;
+   //if (ff4_ && (scanline_vbl_+1 == vertical_sync_width_)) status1_ &= ~0x20;
    // Bit 1	0 : CRTC Horizontal Count == (Horizontal Total / 2)
    if (hcc_ == registers_list_[0]/2) status1_ &= ~0x02;
    // Bit 0	0 : CRTC Horizontal Count != Horizontal Total
    if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
 
    // Status 2:
-   status2_ = 0xFF;
+   status2_ = (vlc_ == 0)? (~0x80):0xFF;
    // Bit 7	0: when RC!=0
-   if (vlc_ != 0) status2_ &= ~0x80;
+   //if (vlc_ != 0) status2_ &= ~0x80;
    // Bit 5	0 : when RC == R9
    if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
    // Other : unknown

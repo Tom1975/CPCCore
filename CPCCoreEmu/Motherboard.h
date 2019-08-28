@@ -241,7 +241,9 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          RUN_COMPOSANT_N(crtc_, elapsed_time_asic);
       }
 
-      if (fdc_present)RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
+      if (fdc_present)
+         RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
+
       RUN_COMPOSANT_N((z80_), elapsed_time_z80);
 
       /*if (elapsed_time_dma <= next_cycle)
@@ -254,7 +256,8 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       if (components_present)
       for (int i = 0; i < signals_.nb_expansion_; i++)
       {
-         if (elapsed_components[i] <= next_cycle) elapsed_components[i] += signals_.exp_list_[i]->Tick();
+         if (elapsed_components[i] <= next_cycle) 
+            elapsed_components[i] += signals_.exp_list_[i]->Tick();
       }
 
       // Propagate SIG

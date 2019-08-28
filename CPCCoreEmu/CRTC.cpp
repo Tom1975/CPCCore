@@ -471,7 +471,7 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
 
    /////////////////////////
    // HSYNC
-   signals_->h_sync_ = ff2_;
+   //signals_->h_sync_ = ff2_;
    /////////////////////////
    // VSYNC
    signals_->v_sync_ = ff4_;
