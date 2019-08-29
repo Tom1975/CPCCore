@@ -723,6 +723,15 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       motherboard_.run_ = true;
 
       run_time = time_slice_ * 4000;
+
+      unsigned int hardware_spec = 0;
+      if (motherboard_.IsPLUS())                      hardware_spec |= Motherboard::HW_PLUS;
+      if (current_settings_->FDCPlugged())            hardware_spec |= Motherboard::HW_FDC;
+      if (current_settings_->TapePlugged())           hardware_spec |= Motherboard::HW_TAPE;
+      if (motherboard_.GetSig()->nb_expansion_ > 0)   hardware_spec |= Motherboard::HW_COMP;
+
+      motherboard_.Start(hardware_spec, run_time);
+      /*
       if (motherboard_.IsPLUS())
       {
          if (current_settings_->FDCPlugged())
@@ -777,7 +786,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
             }
 
          }
-      }
+      }*/
    }
    else
    {

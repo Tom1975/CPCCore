@@ -25,6 +25,11 @@ Motherboard::~Motherboard()
 
 void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* display, IFdcNotify* notifier, IDirectories * directories, IConfiguration * configuration_manager)
 {
+   // 
+   /*(*(&list_start_))[0x0] = &Motherboard::StartOptimizedPlus<0>;
+   (*(&list_start_))[0x01] = &Motherboard::StartOptimizedPlus<0x01>;*/
+   Init<HW_FULL>();
+
    // Initialisation des donnes interne
    z80_.Init(&memory_, &signals_, log);
 
@@ -549,4 +554,11 @@ void Motherboard::RemoveBreakpoint(unsigned short addr)
 void Motherboard::CleanBreakpoints()
 {
    breakpoint_index_ = 0;
+}
+
+void Motherboard::Start(unsigned int config, unsigned int nb_cycles)
+{
+   // Call correct function from config
+   //int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
+   (this->*(list_start_)[config])(nb_cycles);
 }
