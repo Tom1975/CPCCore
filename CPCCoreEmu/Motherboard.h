@@ -124,7 +124,7 @@ public:
    }Hardware_Specific;
 
    typedef void (Motherboard::*Func)(unsigned int nb_cycles);
-   typedef Func StartFunction[0x10];
+   typedef Func StartFunction[HW_FULL];
    StartFunction list_start_;
 
    void Start(unsigned int config, unsigned int nb_cycles);
@@ -208,28 +208,17 @@ protected:
    int z80_index_;
 
 
-   template <int MAX_VAL>void Init()
+   template <int MAX_VAL>void InitTemplate()
    {
-      Init<MAX_VAL - 1>();
+      if constexpr (MAX_VAL > 0) InitTemplate<MAX_VAL - 1>();
       (*(&list_start_))[MAX_VAL] = &Motherboard::StartOptimizedPlus<MAX_VAL>;
    }
-   template<>
-   void Init<0>()
-   {
-      (*(&list_start_))[0x0] = &Motherboard::StartOptimizedPlus<0>;
-   }
+
 };
 
 
 #define  RUN_COMPOSANT_N(c,v) if (v <= next_cycle ) v += c.Tick ();
-/*
-template<>
-void Motherboard::Init<0>()
-{
-   (*(&list_start_))[0x0] = &Motherboard::StartOptimizedPlus<0>;
-}*/
 
-//template <bool plus, bool fdc_present, bool components_present>
 template <unsigned int config>
 void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 {
@@ -281,13 +270,6 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
 
       RUN_COMPOSANT_N((z80_), elapsed_time_z80);
-
-      /*if (elapsed_time_dma <= next_cycle)
-      {
-         dma_[0].Tick();
-         dma_[1].Tick();
-         elapsed_time_dma += dma_[2].Tick();
-      }*/
 
       if constexpr (config & HW_COMP)
       for (int i = 0; i < signals_.nb_expansion_; i++)

@@ -28,7 +28,7 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    // 
    /*(*(&list_start_))[0x0] = &Motherboard::StartOptimizedPlus<0>;
    (*(&list_start_))[0x01] = &Motherboard::StartOptimizedPlus<0x01>;*/
-   Init<HW_FULL>();
+   InitTemplate<HW_FULL>();
 
    // Initialisation des donnes interne
    z80_.Init(&memory_, &signals_, log);
