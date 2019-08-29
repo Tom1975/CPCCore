@@ -261,7 +261,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
    return max_size;
 }
 
-unsigned char Memory::ReadAsicRegister(unsigned short i)
+unsigned char Memory::ReadAsicRegister(const unsigned short i)
 {
    // Ok access here ?
    if ((asic_io_rw_[i - 0x4000] & R) == R)

@@ -43,8 +43,8 @@ public:
    bool LoadLowerROM (unsigned char* rom_from, unsigned int size);
 
    unsigned char* GetAsicRegisters() {return asic_io_;}
-   unsigned char ReadAsicRegister(unsigned short i);
-   inline unsigned char Get(unsigned short i) {
+   unsigned char ReadAsicRegister(const unsigned short i);
+   unsigned char Get(const unsigned short i) {
 
       // plus feature ?
       if (asic_io_enabled_ && i >= 0x4000 && i <= 0x7FFF /* ((i & 0xC000 ) == 0x4000)*/)
@@ -56,7 +56,8 @@ public:
 
       return last_value_read_ = (*ram_read_[i>>14]) [ i & 0x3FFF];
    };
-   inline unsigned short GetWord(unsigned short i)
+   
+   unsigned short GetWord(const unsigned short i)
    {
       if (i!=0x3FFF)
       {
@@ -65,14 +66,13 @@ public:
       else return ( (Get ( i+1 )<<8)|Get(i)  );
    };
 
-
-   inline unsigned char GetWrite(unsigned short i)  {return (*ram_write_[i>>14]) [ i & 0x3FFF];};
-   inline unsigned short GetWordWrite(unsigned short i) {return ((GetWrite ( i+1 )<<8) | (GetWrite(i)));};
+   unsigned char GetWrite(unsigned short i)  {return (*ram_write_[i>>14]) [ i & 0x3FFF];};
+   unsigned short GetWordWrite(unsigned short i) {return ((GetWrite ( i+1 )<<8) | (GetWrite(i)));};
 
    void WriteAsicRegister(unsigned short addr, unsigned char data);
    void UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color );
 
-   inline void Set ( unsigned short addr, unsigned char data ) {
+   void Set ( unsigned short addr, unsigned char data ) {
       last_value_read_ = data;
       if (asic_io_enabled_ && addr >= 0x4000 && addr <= 0x7FFF /* (addr & 0xC000) == 0x4000)*/)
       {
@@ -84,29 +84,29 @@ public:
       if ( !ram_dis_ || !expansion_ || expansion_->CanWrite (addr))
          (*ram_write_[addr>>14])[addr & 0x3FFF] = data;
    };
-   inline void SetWord ( unsigned short addr, unsigned short data )
+   void SetWord ( unsigned short addr, unsigned short data )
    {   Set( addr, data&0xff);Set( addr+1, data>>8);};
 
 
    // Debug methods :
-   inline unsigned char GetDbg(unsigned short i, unsigned int ram_bank)  {return (*ram_read_[ram_bank]) [ i & 0x3FFF];};
-   inline unsigned short GetWordDbg(unsigned short i, unsigned int ram_bank) {return ((GetDbg ( i+1 , ram_bank)<<8) + (GetDbg(i, ram_bank)));};
-   inline unsigned char GetWriteDbg(unsigned short i, unsigned int ram_bank)  {return (*ram_write_[ram_bank]) [ i & 0x3FFF];};
-   inline unsigned short GetWWriteDbg(unsigned short i, unsigned int ram_bank) {return ((GetWriteDbg ( i+1 , ram_bank)<<8) + (GetWriteDbg(i, ram_bank)));};
-   inline void SetDbg ( unsigned short addr, unsigned char data , unsigned int ram_bank) {(*ram_write_[ram_bank])[addr & 0x3FFF] = data;};
-   inline void SetWordDbg ( unsigned short addr, unsigned short data , unsigned int ram_bank){   SetDbg( addr, data&0xff, ram_bank);SetDbg( addr+1, data>>8, ram_bank);};
-   inline unsigned char *GetRamRead(unsigned int ram_bank) { return *ram_read_[ram_bank]; }
+   unsigned char GetDbg(unsigned short i, unsigned int ram_bank)  {return (*ram_read_[ram_bank]) [ i & 0x3FFF];};
+   unsigned short GetWordDbg(unsigned short i, unsigned int ram_bank) {return ((GetDbg ( i+1 , ram_bank)<<8) + (GetDbg(i, ram_bank)));};
+   unsigned char GetWriteDbg(unsigned short i, unsigned int ram_bank)  {return (*ram_write_[ram_bank]) [ i & 0x3FFF];};
+   unsigned short GetWWriteDbg(unsigned short i, unsigned int ram_bank) {return ((GetWriteDbg ( i+1 , ram_bank)<<8) + (GetWriteDbg(i, ram_bank)));};
+   void SetDbg ( unsigned short addr, unsigned char data , unsigned int ram_bank) {(*ram_write_[ram_bank])[addr & 0x3FFF] = data;};
+   void SetWordDbg ( unsigned short addr, unsigned short data , unsigned int ram_bank){   SetDbg( addr, data&0xff, ram_bank);SetDbg( addr+1, data>>8, ram_bank);};
+   unsigned char *GetRamRead(unsigned int ram_bank) { return *ram_read_[ram_bank]; }
    //
-   inline unsigned char* GetRomBuffer() {return rom_[0];};
-   inline unsigned char* GetCartridge(int index) {
+   unsigned char* GetRomBuffer() {return rom_[0];};
+   unsigned char* GetCartridge(int index) {
       cart_available_[index] = true; return cartridge_[index];
 };
    void EjectCartridge() {
       memset (cartridge_, 0, sizeof(cartridge_)); memset(cart_available_, 0, sizeof(cart_available_)); SetMemoryMap();
    }
 
-   inline unsigned char* GetRomBuffer(int rom_index) { return rom_[rom_index]; };
-   inline unsigned char* GetRamBuffer() {return ram_buffer_[0];};
+   unsigned char* GetRomBuffer(int rom_index) { return rom_[rom_index]; };
+   unsigned char* GetRamBuffer() {return ram_buffer_[0];};
 
    bool* GetAvailableCartridgeSlot() { return cart_available_; }
    bool* GetAvailableROM() {
@@ -133,14 +133,6 @@ public:
    unsigned int GetDebugValue(unsigned char * address_buffer, unsigned short adress_start, unsigned int size_of_buffer, DbgMemAccess acces, unsigned int data = 0);
    unsigned short GetDebugMaxAdress(DbgMemAccess acces);
 
-   // RAM
-   RamBank rom_[256];
-   RamBank ram_buffer_[4];
-
-   RamBank cartridge_[32]; // Plugged cartridge
-   bool cart_available_[32];
-   bool lower_rom_available_;
-
    void SetInfROMConnected (bool set );
    void SetSupROMConnected (bool set );
    void SetRmr2(unsigned char rmr2) {
@@ -154,12 +146,6 @@ public:
    void ConnectBank  (unsigned char page, unsigned s, unsigned char bank);
 
    void SetMemoryMap();
-
-   unsigned short last_address_read_[4];
-   unsigned short last_address_write_[4];
-   void ResetStockAddress (){index_addr_write_ = index_addr_read_ = 0;memset ( last_address_read_, 0, sizeof last_address_read_);memset ( last_address_write_, 0, sizeof last_address_write_);};
-   unsigned int index_addr_read_;
-   unsigned int index_addr_write_;
 
    // Asic registers
    unsigned char GetDCSR() { return asic_io_[0x2C0F]; }
@@ -194,16 +180,30 @@ public:
    virtual void DMAStop(int channel);
 
    unsigned char GetLastValueRead() { return last_value_read_; };
+   void ResetStockAddress() { index_addr_write_ = index_addr_read_ = 0; memset(last_address_read_, 0, sizeof last_address_read_); memset(last_address_write_, 0, sizeof last_address_write_); };
 
+   // RAM
+   RamBank rom_[256];
+   RamBank ram_buffer_[4];
+
+   RamBank cartridge_[32]; // Plugged cartridge
+   bool cart_available_[32];
+
+   bool lower_rom_available_;
+   unsigned short last_address_read_[4];
+   unsigned short last_address_write_[4];
+   unsigned int index_addr_read_;
+   unsigned int index_addr_write_;
    IExpansion* expansion_;
 
 protected:
+   bool LoadROM(unsigned char* rom, unsigned char* rom_from, unsigned int size);
+
    // Memoires disponibles :
    bool ram_dis_ ;
    bool rom_dis_ ;
 
    unsigned char connected_bank_;
-   bool LoadROM(unsigned char* rom, unsigned char* rom_from, unsigned int size);
    bool inf_rom_connected_;
    bool sup_rom_connected_;
 
@@ -214,8 +214,6 @@ protected:
    RamBank asic_io_;
    unsigned char asic_mask_w_[0x4000];
    unsigned char asic_io_rw_[0x4000];
-
-
 
    // Extension
    bool extended_pal_;
