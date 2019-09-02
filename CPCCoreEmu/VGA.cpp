@@ -101,6 +101,8 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr)
       byte_to_pixel01_[i] = ((i & 0x40) ? 1 : 0) + ((i & 0x4) ? 2 : 0) + ((i & 0x10) ? 4 : 0) + ((i & 0x1) ? 8 : 0);
       byte_to_pixel03_[i] = ((i & 0x80) ? 1 : 0) + ((i & 0x8) ? 2 : 0);
       byte_to_pixel03_b_[i] = ((i & 0x40) ? 1 : 0) + ((i & 0x4) ? 2 : 0);
+      byte_to_pixel_mode01[i] = ((i & 0x80) ? 0x40 : 0) + ((i & 0x8) ? 0x80 : 0) + ((i & 0x40) ? 0x10 : 0) + ((i & 0x4) ? 0x20 : 0)
+                              + ((i & 0x20) ? 0x4 : 0) + ((i & 0x2) ? 0x8 : 0)+ ((i & 0x10) ? 0x1 : 0) + ((i & 0x1) ? 0x2 : 0);
    }
 
    // Init mode 0
@@ -439,21 +441,23 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                {
                   horizontal_shift = memory_->GetSSCR() & 0xF;
                   // get color palette number from pixels
-                  unsigned short c1 = 0;
-                  c1 += byte_to_pixel00_[display_short_.byte.l];
+                  unsigned int c1 = prev_col_;
                   c1 <<= 4;
-                  c1 += byte_to_pixel01_[display_short_.byte.l];
+                  c1 |= byte_to_pixel00_[display_short_.byte.l];
                   c1 <<= 4;
-                  c1 += byte_to_pixel00_[display_short_.byte.h];
+                  c1 |= byte_to_pixel01_[display_short_.byte.l];
                   c1 <<= 4;
-                  c1 += byte_to_pixel01_[display_short_.byte.h];
+                  c1 |= byte_to_pixel00_[display_short_.byte.h];
+                  c1 <<= 4;
+                  c1 |= byte_to_pixel01_[display_short_.byte.h];
                   // Shift it
-                  unsigned short oldcol = c1;
+                  //unsigned short oldcol = c1;
+                  prev_col_ = c1;
                   c1 >>= horizontal_shift;
 
                   // Add left remaining
-                  c1 |= (prev_col_ << (16 - horizontal_shift));
-                  prev_col_ = oldcol;
+                  //c1 |= (prev_col_ << (16 - horizontal_shift));
+                  //prev_col_ = oldcol;
 
                   if (crtc_->sscr_bit_8_)
                   {
@@ -462,7 +466,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      buffer_to_display[0 + 2] = buffer_to_display[0 * 4];
                      buffer_to_display[0 + 3] = buffer_to_display[0 * 4];
 
-                     if (/*i == 0 && */buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
 
                      buffer_to_display[1 * 4] = ink_list_[(c1 >> (16 - (1 * 4 + 4))) & 0xF];
                      buffer_to_display[1 * 4 + 1] = buffer_to_display[1 * 4];
@@ -536,34 +540,40 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                if (plus_)
                {
                   // get color palette number from pixels
-                  unsigned short c1 = ((display_short_.byte.l & 0x80) ? 0x80 : 0) + ((display_short_.byte.l & 0x8) ? 0x40 : 0)
+                  unsigned int c1 = prev_col_;
+                  c1 <<= 8;
+                  /*
+                  c1 |= ((display_short_.byte.l & 0x80) ? 0x80 : 0) + ((display_short_.byte.l & 0x8) ? 0x40 : 0)
                      + ((display_short_.byte.l & 0x40) ? 0x20 : 0) + ((display_short_.byte.l & 0x4) ? 0x10 : 0)
                      + ((display_short_.byte.l & 0x20) ? 0x8 : 0) + ((display_short_.byte.l & 0x2) ? 0x4 : 0)
                      + ((display_short_.byte.l & 0x10) ? 0x2 : 0) + ((display_short_.byte.l & 0x1) ? 0x1 : 0);
+                     */
+                  c1 |= byte_to_pixel_mode01[display_short_.byte.l];
                   c1 <<= 8;
-                  c1 += ((display_short_.byte.h & 0x80) ? 0x80 : 0) + ((display_short_.byte.h & 0x8) ? 0x40 : 0)
+                  /*c1 += ((display_short_.byte.h & 0x80) ? 0x80 : 0) + ((display_short_.byte.h & 0x8) ? 0x40 : 0)
                      + ((display_short_.byte.h & 0x40) ? 0x20 : 0) + ((display_short_.byte.h & 0x4) ? 0x10 : 0)
                      + ((display_short_.byte.h & 0x20) ? 0x8 : 0) + ((display_short_.byte.h & 0x2) ? 0x4 : 0)
-                     + ((display_short_.byte.h & 0x10) ? 0x2 : 0) + ((display_short_.byte.h & 0x1) ? 0x1 : 0);
-
+                     + ((display_short_.byte.h & 0x10) ? 0x2 : 0) + ((display_short_.byte.h & 0x1) ? 0x1 : 0);*/
+                  c1 |= byte_to_pixel_mode01[display_short_.byte.h];
                   // Shift it
-                  unsigned short oldcol = c1;
+                  //unsigned short oldcol = c1;
+                  prev_col_ = c1;
                   horizontal_shift = memory_->GetSSCR() & 0xF;
                   c1 >>= horizontal_shift;
 
                   // Add left remaining
-                  c1 |= (prev_col_ << (16 - horizontal_shift));
-                  prev_col_ = oldcol;
+                  //c1 |= (prev_col_ << (16 - horizontal_shift));
+                  //prev_col_ = oldcol;
 
                   if (crtc_->sscr_bit_8_)
                   {
                      for (int i = 0; i < 8; i++)
                      {
                         // todo : optimize this awfull fix !!!
-                        unsigned char c = (c1 >> (16 - ((i + 1) * 2))) & 0x3;
-                        unsigned char c01 = c & 1;
+                        unsigned char c =  (c1 >> (16 - ((i + 1) * 2))) & 0x3;
+                        /*unsigned char c01 = c & 1;
                         unsigned char c02 = c & 2;
-                        c = (c02 >> 1) + (c01 << 1);
+                        c = (c02 >> 1) + (c01 << 1);*/
 
                         buffer_to_display[i * 2] = ink_list_[c];
                         buffer_to_display[i * 2 + 1] = ink_list_[c];

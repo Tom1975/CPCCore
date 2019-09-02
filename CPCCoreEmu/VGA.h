@@ -160,6 +160,7 @@ public:
    unsigned int byte_to_pixel01_[0x100];
    unsigned int byte_to_pixel03_[0x100];
    unsigned int byte_to_pixel03_b_[0x100];
+   unsigned int byte_to_pixel_mode01[0x100];
 
    bool unlocked_;
    bool plus_;
