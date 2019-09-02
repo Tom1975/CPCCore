@@ -198,9 +198,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
          ssa_ = ssa_new_;
    }
 
-
-   //TickDisplays ();
-// Something to do ?
    // Falling edge of HSync
    if (sig_handler_->hsync_fall_)
       //if ( HOldSync == true && m_Sig->HSync == false )
@@ -288,7 +285,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
    //m_VSync = m_Sig->VSync;
    // Seems that it should occur either on HSync fall or when Monitor hsync is falling (ie 6us after hsync start at most)
-   if ((sig_handler_->hsync_raise_/*HOldSync == false && m_Sig->HSync == true*/)
+   if ((sig_handler_->hsync_raise_)
       || (sig_handler_->h_sync_on_begining_of_line_)
       || (sig_handler_->pri_changed_ && sig_handler_->h_sync_ == true))
    {
@@ -344,9 +341,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       hsync_counter_++;
    }
 
-
-
-
    // TODO : This is incorrect : the mode changing should occur after the 2nd us APRES la reception du HSYNC.
    // Mais ca empeche "Imperial Mahjong" de fonctionner correctement
    if (hsync_)
@@ -387,10 +381,11 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    v_old_sync_ = sig_handler_->v_sync_;
    h_old_sync_ = sig_handler_->h_sync_;
 
-   if (plus_ && sig_handler_->hsync_raise_)
+   if (sig_handler_->hsync_raise_)
    {
       // DMA ?
-      HandleDMA();
+      if(plus_)
+         HandleDMA();
       sig_handler_->hsync_raise_ = false;
    }
 
@@ -463,15 +458,33 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   if (crtc_->sscr_bit_8_)
                   {
 
-                     for (int i = 0; i < 4; i++)
+                     //for (int i = 0; i < 4; i++)
                      {
-                        buffer_to_display[i * 4] = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];
+                        /*buffer_to_display[i * 4] = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];
                         buffer_to_display[i * 4 + 1] = buffer_to_display[i * 4];
                         buffer_to_display[i * 4 + 2] = buffer_to_display[i * 4];
-                        buffer_to_display[i * 4 + 3] = buffer_to_display[i * 4];
+                        buffer_to_display[i * 4 + 3] = buffer_to_display[i * 4];*/
+                        buffer_to_display[0] = ink_list_[(c1 >> (16 - (0 * 4 + 4))) & 0xF];
+                        buffer_to_display[0 + 1] = buffer_to_display[0 * 4];
+                        buffer_to_display[0 + 2] = buffer_to_display[0 * 4];
+                        buffer_to_display[0 + 3] = buffer_to_display[0 * 4];
 
-                        if (i == 0 && buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
-                     }
+                        if (/*i == 0 && */buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+
+                        buffer_to_display[1 * 4] = ink_list_[(c1 >> (16 - (1 * 4 + 4))) & 0xF];
+                        buffer_to_display[1 * 4 + 1] = buffer_to_display[1 * 4];
+                        buffer_to_display[1 * 4 + 2] = buffer_to_display[1 * 4];
+                        buffer_to_display[1 * 4 + 3] = buffer_to_display[1 * 4];
+
+                        buffer_to_display[2 * 4] = ink_list_[(c1 >> (16 - (2 * 4 + 4))) & 0xF];
+                        buffer_to_display[2 * 4 + 1] = buffer_to_display[2 * 4];
+                        buffer_to_display[2 * 4 + 2] = buffer_to_display[2 * 4];
+                        buffer_to_display[2 * 4 + 3] = buffer_to_display[2 * 4];
+
+                        buffer_to_display[3 * 4] = ink_list_[(c1 >> (16 - (3 * 4 + 4))) & 0xF];
+                        buffer_to_display[3 * 4 + 1] = buffer_to_display[3 * 4];
+                        buffer_to_display[3 * 4 + 2] = buffer_to_display[3 * 4];
+                        buffer_to_display[3 * 4 + 3] = buffer_to_display[3 * 4];                     }
                      // Sprite
 
                      if ((sprite_lines_[((crtc_->vcc_)<<3)+ crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)

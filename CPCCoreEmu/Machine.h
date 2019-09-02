@@ -260,6 +260,7 @@ public:
    bool LoadBinInt(const char* path_file);
 
    DMA* GetDMA(int i) { return motherboard_.GetDMA(i); }
+   Motherboard * GetMotherboard() {return &motherboard_;}
 
 protected:
 
