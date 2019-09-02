@@ -457,34 +457,27 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                   if (crtc_->sscr_bit_8_)
                   {
+                     buffer_to_display[0] = ink_list_[(c1 >> (16 - (0 * 4 + 4))) & 0xF];
+                     buffer_to_display[0 + 1] = buffer_to_display[0 * 4];
+                     buffer_to_display[0 + 2] = buffer_to_display[0 * 4];
+                     buffer_to_display[0 + 3] = buffer_to_display[0 * 4];
 
-                     //for (int i = 0; i < 4; i++)
-                     {
-                        /*buffer_to_display[i * 4] = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];
-                        buffer_to_display[i * 4 + 1] = buffer_to_display[i * 4];
-                        buffer_to_display[i * 4 + 2] = buffer_to_display[i * 4];
-                        buffer_to_display[i * 4 + 3] = buffer_to_display[i * 4];*/
-                        buffer_to_display[0] = ink_list_[(c1 >> (16 - (0 * 4 + 4))) & 0xF];
-                        buffer_to_display[0 + 1] = buffer_to_display[0 * 4];
-                        buffer_to_display[0 + 2] = buffer_to_display[0 * 4];
-                        buffer_to_display[0 + 3] = buffer_to_display[0 * 4];
+                     if (/*i == 0 && */buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
 
-                        if (/*i == 0 && */buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     buffer_to_display[1 * 4] = ink_list_[(c1 >> (16 - (1 * 4 + 4))) & 0xF];
+                     buffer_to_display[1 * 4 + 1] = buffer_to_display[1 * 4];
+                     buffer_to_display[1 * 4 + 2] = buffer_to_display[1 * 4];
+                     buffer_to_display[1 * 4 + 3] = buffer_to_display[1 * 4];
 
-                        buffer_to_display[1 * 4] = ink_list_[(c1 >> (16 - (1 * 4 + 4))) & 0xF];
-                        buffer_to_display[1 * 4 + 1] = buffer_to_display[1 * 4];
-                        buffer_to_display[1 * 4 + 2] = buffer_to_display[1 * 4];
-                        buffer_to_display[1 * 4 + 3] = buffer_to_display[1 * 4];
+                     buffer_to_display[2 * 4] = ink_list_[(c1 >> (16 - (2 * 4 + 4))) & 0xF];
+                     buffer_to_display[2 * 4 + 1] = buffer_to_display[2 * 4];
+                     buffer_to_display[2 * 4 + 2] = buffer_to_display[2 * 4];
+                     buffer_to_display[2 * 4 + 3] = buffer_to_display[2 * 4];
 
-                        buffer_to_display[2 * 4] = ink_list_[(c1 >> (16 - (2 * 4 + 4))) & 0xF];
-                        buffer_to_display[2 * 4 + 1] = buffer_to_display[2 * 4];
-                        buffer_to_display[2 * 4 + 2] = buffer_to_display[2 * 4];
-                        buffer_to_display[2 * 4 + 3] = buffer_to_display[2 * 4];
-
-                        buffer_to_display[3 * 4] = ink_list_[(c1 >> (16 - (3 * 4 + 4))) & 0xF];
-                        buffer_to_display[3 * 4 + 1] = buffer_to_display[3 * 4];
-                        buffer_to_display[3 * 4 + 2] = buffer_to_display[3 * 4];
-                        buffer_to_display[3 * 4 + 3] = buffer_to_display[3 * 4];                     }
+                     buffer_to_display[3 * 4] = ink_list_[(c1 >> (16 - (3 * 4 + 4))) & 0xF];
+                     buffer_to_display[3 * 4 + 1] = buffer_to_display[3 * 4];
+                     buffer_to_display[3 * 4 + 2] = buffer_to_display[3 * 4];
+                     buffer_to_display[3 * 4 + 3] = buffer_to_display[3 * 4];
                      // Sprite
 
                      if ((sprite_lines_[((crtc_->vcc_)<<3)+ crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
