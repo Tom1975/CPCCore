@@ -28,7 +28,7 @@ set(CompilerFlags
         CMAKE_C_FLAGS_RELEASE
         )
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 
 IF(MSVC)
    set_property(TARGET CPCCoreEmu APPEND PROPERTY LINK_FLAGS /DEBUG)
