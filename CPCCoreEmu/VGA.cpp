@@ -80,7 +80,7 @@ unsigned int ListeColors[] =
 };
 
 
-GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr)
+GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
 {
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
@@ -147,6 +147,7 @@ void GateArray::Reset()
       /*if (m_Screen!= NULL)
          m_BeginingOfLine = m_VideoBuffer = m_Screen->GetVideoBuffer (m_Y);*/
 
+   prev_col_ = 0;
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
    activation_mode_ = 2;
