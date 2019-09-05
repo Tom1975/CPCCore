@@ -277,7 +277,12 @@ int IDisk::AddByteWithCrc(unsigned char* track, int index, unsigned char b, CRC&
 void IDisk::ChangeTrack(int side, int newTrack)
 {
    // Adjust head
-   if (head_position_ >= side_[side].tracks[newTrack].size)
+   if ( newTrack >= side_[side].nb_tracks)
+   {
+      head_position_ = 0;
+      
+   }
+   else if (head_position_ >= side_[side].tracks[newTrack].size)
    {
       if (side_[side].tracks[newTrack].size == 0)
       {

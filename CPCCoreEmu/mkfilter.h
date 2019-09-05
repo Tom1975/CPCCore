@@ -4,6 +4,8 @@
    September 1992 */
 
 /* Header file */
+#ifndef _MKFILTER_
+#define _MKFILTER_
 
 #define global
 #define unless(x)   if(!(x))
@@ -49,3 +51,5 @@ inline double fix(double x)
   { /* nearest integer */
     return (x >= 0.0) ? floor(0.5+x) : -floor(0.5-x);
   }
+
+#endif //_MKFILTER_

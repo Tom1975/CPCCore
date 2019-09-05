@@ -121,7 +121,16 @@ void DiskGen::SetCurrentTrack(int track)
       disk_->ChangeTrack(current_side_, track);
       ComputeSpeed(0);
    }
-   current_track_ = track;
+
+   if (track <= disk_->side_[current_side_].nb_tracks)
+   {
+      current_track_ = track;
+   }
+   else
+   {
+      current_track_ = disk_->side_[current_side_].nb_tracks-1;
+   }
+   
 }
 
 void DiskGen::Write(unsigned char byte, bool bSync)
