@@ -106,7 +106,7 @@ SoundMixer::SoundMixer() :
    buffer_list_[0].sample_number_ = sample_number_++;
    index_current_buffer_ = 0;
 
-   for (int i = 1; i < 16; i++)
+   for (int i = 1; i < NB_BUFFERS; i++)
    {
       buffer_list_[i].Init();
    }
@@ -429,7 +429,7 @@ void SoundMixer::PrepareBufferThread()
 
       // Synchronise (todo)
 
-      for (int i = 0; i < 16; i++)
+      for (int i = 0; i < NB_BUFFERS; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::TO_PLAY && (sample_number == -1 || buffer_list_[i].sample_number_ <= sample_number))
          {
@@ -603,7 +603,7 @@ unsigned int SoundMixer::Tick()
    {
       // Synchronize
       int next_to_play = -1;
-      for (int i = 0; i < 16; i++)
+      for (int i = 0; i < NB_BUFFERS; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::FREE)
          {
