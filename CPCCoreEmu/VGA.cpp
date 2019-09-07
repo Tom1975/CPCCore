@@ -961,25 +961,27 @@ void GateArray::DrawSprites(int * buffer_display)
       {
          sprite_to_draw <<= 1;
          i--;
-      }
+      } 
       
       Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(i);
 
       short disp_x = (x - sprite->x);
-      int magx = sprite->sizex;
       unsigned char magnification_x = sprite->zoomx - 1;
       unsigned char* sprite_data = memory_->GetSprite(i) + ((y - sprite->y) >> (sprite->zoomy - 1)) * 16;
-      for (int buff_x = 0; buff_x < 16; buff_x++)
-      {
-         if (disp_x >= 0 && disp_x < (magx))
-         {
-            // Display colour
-            int col = sprite_data[(disp_x >> magnification_x) ] & 0xF;
 
-            if (col != 0)
-            {
-               buffer_display[buff_x] = sprite_ink_list_[col];
-            }
+      int buff_x = (x > sprite->x) ? 0: (sprite->x-x);
+      int buff_max_x = ((sprite->sizex - disp_x)>16)?16: sprite->sizex - disp_x;
+
+      disp_x += buff_x;
+
+      for (buff_x; buff_x < buff_max_x; buff_x++)
+      {
+         // Display colour
+         int col = sprite_data[(disp_x >> magnification_x) ] & 0xF;
+
+         if (col != 0)
+         {
+            buffer_display[buff_x] = sprite_ink_list_[col];
          }
          disp_x++;
       }
