@@ -321,8 +321,8 @@ unsigned int Z80::Tick()
       return 1;
    case M_FETCH + 4:
    {
-      if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
-         //if ((current_opcode_ & 0xF7) != 0xF7)
+      //if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
+      if ((current_opcode_ & 0xF7) != 0x37)
          q_ = 0;
    }
    case M_FETCH + 5:
