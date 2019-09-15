@@ -182,6 +182,9 @@ public:
 
    //////////////////////////////////////
    // Externel pins
+   typedef unsigned int (Z80::*Func)();
+   typedef Func ListFunction[0x100];
+
 
    // Registres
    union Register
@@ -227,6 +230,8 @@ public:
    bool stop_on_fetch_;
 
    unsigned int current_opcode_ ;
+   ListFunction * current_function_;
+   Func next_function_;
 
    unsigned short current_address_;
    unsigned short current_data_;
@@ -265,9 +270,6 @@ public:
       unsigned char size;
       char disassembly[MAX_DISASSEMBLY_SIZE];
    }Opcode;
-
-   typedef unsigned int (Z80::*Func)();
-   typedef Func ListFunction[0x100];
 
    typedef enum
    {
@@ -336,9 +338,6 @@ public:
    ListFunction fetch_func_ed_;
    ListFunction fetch_func_dd_;
    ListFunction fetch_func_fd_;
-
-   ListFunction * current_function_;
-   Func next_function_;
 
    unsigned int DefaultFetch();
    unsigned int Opcode_DefaultToSimple();

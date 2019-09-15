@@ -206,7 +206,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
    unsigned int elapsed_time_tape = component_elapsed_time_[index++];
    unsigned int elapsed_time_asic = component_elapsed_time_[index++];
    unsigned int elapsed_time_fdc = 0;
-   if (fdc_present)
+   if constexpr (fdc_present)
       elapsed_time_fdc = component_elapsed_time_[index++];
 
    unsigned int elapsed_components[16];
@@ -232,7 +232,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          elapsed_time_psg += psg_.Tick();
       }
       RUN_COMPOSANT_N(tape_, elapsed_time_tape);
-      if (plus)
+      if constexpr (plus)
       {
          if (elapsed_time_asic <= next_cycle) elapsed_time_asic += asic_.crtc_->Tick();
       }
@@ -241,7 +241,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          RUN_COMPOSANT_N(crtc_, elapsed_time_asic);
       }
 
-      if (fdc_present)
+      if constexpr (fdc_present)
          RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
 
       RUN_COMPOSANT_N((z80_), elapsed_time_z80);
@@ -253,7 +253,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          elapsed_time_dma += dma_[2].Tick();
       }*/
 
-      if (components_present)
+      if constexpr (components_present)
       for (int i = 0; i < signals_.nb_expansion_; i++)
       {
          if (elapsed_components[i] <= next_cycle) 
