@@ -587,3 +587,23 @@ unsigned int Z80::Opcode_LD_SP_REGW()
    }
    return 1;
 }
+
+////////////////////////////////// MEMR
+template<Z80::AddressRegisters reg>
+unsigned int Z80::MEMR_Read_REGW_()
+{
+   ++pc_; 
+   t_ = 1; 
+   if (read_count_ == 0)
+   {
+      current_address_ = pc_; 
+      ++read_count_; 
+   }
+   else 
+   {
+      int nextcycle;
+      REGW(reg) = current_data_;
+      NEXT_INSTR 
+   }
+   return 1;
+}

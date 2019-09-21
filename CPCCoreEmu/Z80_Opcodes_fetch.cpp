@@ -13,6 +13,8 @@ void Z80::InitOpcodeShortcuts()
       FillStructOpcode<ED>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<DD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<FD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
+
+      FillStructOpcodeMemr(i, &Z80::OpcodeMEMR);
    }
    current_function_ = &fetch_func;
 
@@ -600,4 +602,12 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<FD>(0xE5, &Z80::Opcode_Push<ADDR_IY>, 1, "PUSH_IY");
    FillStructOpcode<FD>(0xE9, &Z80::Opcode_JP_REGW<ADDR_IY>, 1, "JP (IY)");
    FillStructOpcode<FD>(0xF9, &Z80::Opcode_LD_SP_REGW< ADDR_IY>, 1, "LD SP, IY");
+
+   ///////////////////////////////////////////////////////////////
+   // MEMR
+   FillStructOpcodeMemr(0x01, &Z80::MEMR_Read_REGW_<ADDR_BC>);
+   FillStructOpcodeMemr(0x11, &Z80::MEMR_Read_REGW_<ADDR_DE>);
+   FillStructOpcodeMemr(0x21, &Z80::MEMR_Read_REGW_<ADDR_HL>);
+   FillStructOpcodeMemr(0x31, &Z80::MEMR_Read_REGW_<ADDR_SP>);
+
 }

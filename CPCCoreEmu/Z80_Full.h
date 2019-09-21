@@ -176,7 +176,7 @@ public:
 
    int OpcodeIOR();
    int OpcodeIOW();
-   int OpcodeMEMR();
+   unsigned int OpcodeMEMR();
    int OpcodeMEMW();
    int OpcodeWAIT();
 
@@ -313,11 +313,17 @@ public:
       (*fetch)[opcode] = func;
    };
 
+   void FillStructOpcodeMemr(unsigned char opcode, unsigned int(Z80::* func)())
+   {
+      (*(&memr_func_))[opcode] = func;
+   }
+
    Opcode liste_opcodes_[256];
    Opcode liste_opcodes_cb_[256];
    Opcode liste_opcodes_ed_[256];
    Opcode liste_opcodes_dd_[256];
    Opcode liste_opcodes_fd_[256];
+
 
    void TraceTape(unsigned short pc, unsigned char value);
    ILog* log_;
@@ -338,6 +344,7 @@ public:
    ListFunction fetch_func_ed_;
    ListFunction fetch_func_dd_;
    ListFunction fetch_func_fd_;
+   ListFunction memr_func_;
 
    unsigned int DefaultFetch();
    unsigned int Opcode_DefaultToSimple();
@@ -501,6 +508,9 @@ public:
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
    template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
+
+   template<Z80::AddressRegisters reg> unsigned int MEMR_Read_REGW_();
+
 };
 
 #include "Z80_Opcodes.hpp"

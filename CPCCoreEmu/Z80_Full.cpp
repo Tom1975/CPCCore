@@ -334,11 +334,7 @@ unsigned int Z80::Tick()
    case M_FETCH + 11:
    case M_FETCH + 12:
    {
-      int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
-      if (pc_ == 0x61D || pc_ == 0x628)
-      {
-      }
-      return val;
+      return (this->*(*current_function_)[current_opcode_ & 0xFF])();
    }
    /////////////////////////////////////////////////
    // MEMORY IO
@@ -369,7 +365,11 @@ unsigned int Z80::Tick()
    case M_MEMORY_R + 7:
    case M_MEMORY_R + 8:
    {
-      return OpcodeMEMR();
+      //return OpcodeMEMR();
+      if (current_opcode_ < 0x100)
+         return (this->*(memr_func_)[current_opcode_ & 0xFF])();
+      else
+         return OpcodeMEMR();
    }
 
    case M_MEMORY_W + 1:

@@ -1,29 +1,29 @@
 #include "Z80_Full.h"
 
-int Z80::OpcodeMEMR()
+unsigned int Z80::OpcodeMEMR()
 {
    unsigned int res; unsigned char btmp;
    int nextcycle;
 
    switch (current_opcode_)
    {
-   case 0x01: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { bc_.w = current_data_; NEXT_INSTR }break;// LD BC NN
+   /*case 0x01: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+              else { bc_.w = current_data_; NEXT_INSTR }break;// LD BC NN*/
    case 0x06: ++pc_; bc_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD B, n
    case 0x0E: ++pc_; bc_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD C, n
    case 0x0A: af_.b.h = current_data_ & 0xFF; mem_ptr_.w = bc_.w + 1; NEXT_INSTR; break; // LD A, (BC)
    case 0x10: ++pc_; --bc_.b.h; if (bc_.b.h != 0) { pc_ += (char)data_; mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }
               else { NEXT_INSTR; } break; // DJNZ e
-   case 0x11: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { de_.w = current_data_; NEXT_INSTR }break;// LD DE NN
+   /*case 0x11: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+              else { de_.w = current_data_; NEXT_INSTR }break;// LD DE NN*/
    case 0x16: ++pc_; de_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD D, n
    case 0x18: ++pc_; pc_ += (char)(current_data_ & 0xFF); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; break;// JR e
    case 0x1A: af_.b.h = current_data_ & 0xFF; mem_ptr_.w = de_.w + 1; NEXT_INSTR; break; // LD A, (DE)
    case 0x1E: ++pc_; de_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD E, n
    case 0x20: ++pc_; TSTN(ZF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }
    else { NEXT_INSTR }; break; // JR NZ, e
-   case 0x21: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { hl_.w = current_data_; NEXT_INSTR }break;// LD HL NN
+   /*case 0x21: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+              else { hl_.w = current_data_; NEXT_INSTR }break;// LD HL NN*/
    case 0x22: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = current_data_; current_data_ = hl_.b.l; read_count_ = 0; }break;// LD (NN), HL
    case 0x26: ++pc_; hl_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD H, n
@@ -38,8 +38,8 @@ int Z80::OpcodeMEMR()
    case 0x2E: ++pc_; hl_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD L, n
    case 0x30: ++pc_; TSTN(CF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }
    else { NEXT_INSTR; }; break;// JR NC, e
-   case 0x31: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { sp_ = current_data_ & 0xFFFF; NEXT_INSTR }break;// LD SP NN
+   /*case 0x31: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+              else { sp_ = current_data_ & 0xFFFF; NEXT_INSTR }break;// LD SP NN*/
    case 0x32: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { current_address_ = current_data_; current_data_ = af_.b.h; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0; }break;// LD SP NN
    case 0x34: if (t_ == 4) {
