@@ -510,6 +510,8 @@ public:
    template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
 
    template<Z80::AddressRegisters reg> unsigned int MEMR_Read_REGW_();
+   template<Z80::Registers reg> unsigned int MEMR_Read_REG_();
+   template<Z80::Registers reg, Z80::AddressRegisters regw> unsigned int MEMR_Read_REG_REGW();
 
 };
 

@@ -607,3 +607,22 @@ unsigned int Z80::MEMR_Read_REGW_()
    }
    return 1;
 }
+
+template<Z80::Registers reg>
+unsigned int Z80::MEMR_Read_REG_()
+{
+   int nextcycle;
+   ++pc_;
+   REG(reg) = current_data_ & 0xFF; 
+   NEXT_INSTR
+}
+
+
+template<Z80::Registers reg, Z80::AddressRegisters regw> 
+unsigned int Z80::MEMR_Read_REG_REGW()
+{
+   int nextcycle;
+   REG(reg) = current_data_ & 0xFF; 
+   mem_ptr_.w = REGW(regw) + 1;
+   NEXT_INSTR;
+}
