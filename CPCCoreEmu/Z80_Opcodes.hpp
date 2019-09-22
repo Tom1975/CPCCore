@@ -634,7 +634,7 @@ unsigned int Z80::MEMR_JR_Cond()
    if ( (positive && ((af_.b.l & cond) == cond))
       ||(!positive && ((af_.b.l & cond) == 0))
       )
-   TSTN(ZF)
+   //TSTN(ZF)
    {
       pc_ += ((char)(current_data_ & 0xFF)); 
       mem_ptr_.w = pc_; 
