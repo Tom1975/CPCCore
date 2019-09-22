@@ -832,3 +832,14 @@ unsigned int Z80::MEMR_DJNZ()
       NEXT_INSTR;
    }
 }
+
+unsigned int Z80::MEMR_JR()
+{
+   ++pc_; 
+   pc_ += (char)(current_data_ & 0xFF); 
+   mem_ptr_.w = pc_; 
+   machine_cycle_ = M_Z80_WAIT; 
+   counter_ += (4);
+   t_ = 1;
+   return 5;
+}

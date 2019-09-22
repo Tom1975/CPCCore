@@ -613,7 +613,8 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr(0x10, &Z80::MEMR_DJNZ); //
    FillStructOpcodeMemr(0x11, &Z80::MEMR_Read_REGW_<ADDR_DE>);
    FillStructOpcodeMemr(0x16, &Z80::MEMR_Read_REG_<R_D>);
-
+   FillStructOpcodeMemr(0x18, &Z80::MEMR_JR);
+   
    FillStructOpcodeMemr(0x1A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_DE>);
    FillStructOpcodeMemr(0x1E, &Z80::MEMR_Read_REG_<R_E>);
    FillStructOpcodeMemr(0x21, &Z80::MEMR_Read_REGW_<ADDR_HL>);
