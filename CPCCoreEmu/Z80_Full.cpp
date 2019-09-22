@@ -812,3 +812,23 @@ unsigned int Z80::Opcode_NEG()
    af_.b.h = res;
    NEXT_INSTR;
 }
+
+unsigned int Z80::MEMR_DJNZ()
+{
+   ++pc_;
+   --bc_.b.h;
+   if (bc_.b.h != 0) 
+   {
+      pc_ += (char)data_;
+      mem_ptr_.w = pc_;
+      machine_cycle_ = M_Z80_WAIT;
+      counter_ += (5 - 1);
+      t_ = 1;
+      return 5;
+   }
+   else 
+   { 
+      int nextcycle;
+      NEXT_INSTR;
+   }
+}

@@ -505,6 +505,8 @@ public:
    unsigned int Opcode_DI();
    unsigned int Opcode_EI();
 
+   unsigned int MEMR_DJNZ();
+
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
    template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();

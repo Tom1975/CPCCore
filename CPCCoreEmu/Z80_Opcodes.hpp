@@ -602,7 +602,7 @@ unsigned int Z80::MEMR_Read_REGW_()
    else 
    {
       int nextcycle;
-      REGW(reg) = current_data_;
+      REGW(reg) = current_data_ & 0xFFFF;
       NEXT_INSTR 
    }
    return 1;
