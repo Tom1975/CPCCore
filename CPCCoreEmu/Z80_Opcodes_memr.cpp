@@ -7,8 +7,8 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   case 0x20: ++pc_; TSTN(ZF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }
-   else { NEXT_INSTR }; break; // JR NZ, e
+   //case 0x20: ++pc_; TSTN(ZF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }
+   //else { NEXT_INSTR }; break; // JR NZ, e
    case 0x22: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = current_data_; current_data_ = hl_.b.l; read_count_ = 0; }break;// LD (NN), HL
    case 0x28: ++pc_; TST(ZF) { pc_ += ((char)(current_data_ & 0xFF)); mem_ptr_.w = pc_; machine_cycle_ = M_Z80_WAIT; t_ = 5; }

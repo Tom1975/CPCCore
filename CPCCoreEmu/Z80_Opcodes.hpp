@@ -626,3 +626,27 @@ unsigned int Z80::MEMR_Read_REG_REGW()
    mem_ptr_.w = REGW(regw) + 1;
    NEXT_INSTR;
 }
+
+template<bool positive, int cond>
+unsigned int Z80::MEMR_JR_Cond()
+{
+   ++pc_;
+   if ( (positive && ((af_.b.l & cond) == cond))
+      ||(!positive && ((af_.b.l & cond) == 0))
+      )
+   TSTN(ZF)
+   {
+      pc_ += ((char)(current_data_ & 0xFF)); 
+      mem_ptr_.w = pc_; 
+      machine_cycle_ = M_Z80_WAIT; 
+      counter_ += (4);
+      t_ = 1;
+      return 5;
+
+   }
+   else 
+   {
+      int nextcycle;
+      NEXT_INSTR 
+   }
+}
