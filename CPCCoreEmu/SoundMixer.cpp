@@ -101,6 +101,7 @@ SoundMixer::SoundMixer() :
    log_(nullptr)
 {
    // Everything, except firt, is on the "free buffer" list
+   buffer_list_ = new BufferItem[NB_BUFFERS];
    buffer_list_[0].Init();
    buffer_list_[0].status_ = BufferItem::IN_USE;
    buffer_list_[0].sample_number_ = sample_number_++;
@@ -173,6 +174,7 @@ SoundMixer::~SoundMixer()
    finished_ = true;
 #endif
 
+   delete[]buffer_list_;
    delete[]xv_left_;
    delete[]xv_right_;
    delete[]yv_left_;

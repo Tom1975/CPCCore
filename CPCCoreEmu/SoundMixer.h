@@ -118,7 +118,7 @@ protected:
       int sample_number_;
    };
 
-   BufferItem buffer_list_[NB_BUFFERS];
+   BufferItem *buffer_list_;
    // Current buffer lists
    int index_current_buffer_;
 
