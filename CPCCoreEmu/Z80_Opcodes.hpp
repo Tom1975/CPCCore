@@ -650,3 +650,24 @@ unsigned int Z80::MEMR_JR_Cond()
       NEXT_INSTR 
    }
 }
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_Read_NN_HL()
+{
+   ++pc_;
+   t_ = 1;
+   if (read_count_ == 0) 
+   {
+      current_address_ = pc_; 
+      ++read_count_; 
+   }
+   else 
+   {
+      machine_cycle_ = M_MEMORY_W; 
+      t_ = 1; 
+      current_address_ = current_data_; 
+      current_data_ = REGW(regw); 
+      read_count_ = 0; 
+   }
+   return 1;
+}
