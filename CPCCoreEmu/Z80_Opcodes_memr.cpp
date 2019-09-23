@@ -7,14 +7,12 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   //case 0x22: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-   //           else { machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = current_data_; current_data_ = hl_.b.l; read_count_ = 0; }break;// LD (NN), HL
-   case 0x2A: t_ = 1; switch (read_count_) {
+/*   case 0x2A: t_ = 1; switch (read_count_) {
    case 0: { ++pc_; current_address_ = pc_; ++read_count_; break; }
    case 1: { ++pc_; current_address_ = current_data_ & 0xFFFF; ++read_count_; break; }
    case 2: { hl_.b.l = data_; ++read_count_; mem_ptr_.w = ++current_address_; break; }
    case 3: { hl_.b.h = data_; NEXT_INSTR; }
-   }; break; //  LD HL, (nn)
+   }; break; //  LD HL, (nn)*/
    case 0x32: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { current_address_ = current_data_; current_data_ = af_.b.h; machine_cycle_ = M_MEMORY_W; t_ = 1; read_count_ = 0; }break;// LD SP NN
    case 0x34: if (t_ == 4) {

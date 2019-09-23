@@ -518,6 +518,11 @@ public:
    template<bool positive, int cond> unsigned int MEMR_JR_Cond();
    template<Z80::AddressRegisters regw> unsigned int MEMR_Read_NN_HL();
 
+   template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_0();
+   template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_1();
+   template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_2();
+   template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_3();
+
 };
 
 #include "Z80_Opcodes.hpp"

@@ -671,3 +671,57 @@ unsigned int Z80::MEMR_Read_NN_HL()
    }
    return 1;
 }
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_HL_NN_0()
+{
+   t_ = 1;
+   ++pc_; 
+   current_address_ = pc_;
+   ++read_count_;
+   (*(&memr_func_))[current_opcode_&0xFF] = &Z80::MEMR_HL_NN_1<regw>;
+   return 1;
+}
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_HL_NN_1()
+{
+   t_ = 1;
+   ++pc_; 
+   current_address_ = current_data_ & 0xFFFF;
+   ++read_count_;
+   (*(&memr_func_))[current_opcode_ & 0xFF] = &Z80::MEMR_HL_NN_2<regw>;
+   return 1;
+}
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_HL_NN_2()
+{
+   t_ = 1;
+   if (regw == ADDR_AF) af_.b.l = data_;
+   if (regw == ADDR_BC) bc_.b.l = data_;
+   if (regw == ADDR_DE) de_.b.l = data_;
+   if (regw == ADDR_HL) hl_.b.l = data_;
+   if (regw == ADDR_IX) ix_.b.l = data_;
+   if (regw == ADDR_IY) iy_.b.l = data_;
+   ++read_count_;
+   mem_ptr_.w = ++current_address_;
+   (*(&memr_func_))[current_opcode_ & 0xFF] = &Z80::MEMR_HL_NN_3<regw>;
+   return 1;
+}
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_HL_NN_3()
+{
+   int nextcycle;
+   if (regw == ADDR_AF) af_.b.h = data_;
+   if (regw == ADDR_BC) bc_.b.h = data_;
+   if (regw == ADDR_DE) de_.b.h = data_;
+   if (regw == ADDR_HL) hl_.b.h = data_;
+   if (regw == ADDR_IX) ix_.b.h = data_;
+   if (regw == ADDR_IY) iy_.b.h = data_;
+
+   mem_ptr_.w = ++current_address_;
+   (*(&memr_func_))[current_opcode_ & 0xFF] = &Z80::MEMR_HL_NN_0<regw>;
+   NEXT_INSTR;
+}
