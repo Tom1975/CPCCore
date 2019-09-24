@@ -725,3 +725,23 @@ unsigned int Z80::MEMR_HL_NN_3()
    (*(&memr_func_))[current_opcode_ & 0xFF] = &Z80::MEMR_HL_NN_0<regw>;
    NEXT_INSTR;
 }
+
+template<Z80::Registers reg>
+unsigned int Z80::MEMR_Read_REG_NN()
+{
+   ++pc_;
+   t_ = 1;
+   if (read_count_ == 0)
+   {
+      current_address_ = pc_;
+      ++read_count_;
+   }
+   else
+   {
+      current_address_ = current_data_;
+      current_data_ = REG(reg);
+      machine_cycle_ = M_MEMORY_W;
+      read_count_ = 0;
+   }
+   return 1;
+}

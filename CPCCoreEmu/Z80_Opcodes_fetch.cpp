@@ -14,7 +14,11 @@ void Z80::InitOpcodeShortcuts()
       FillStructOpcode<DD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<FD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
 
-      FillStructOpcodeMemr(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<None>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<CB>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<ED>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<DD>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<FD>(i, &Z80::OpcodeMEMR);
    }
    current_function_ = &fetch_func;
 
@@ -605,28 +609,30 @@ void Z80::InitOpcodeShortcuts()
 
    ///////////////////////////////////////////////////////////////
    // MEMR
-   FillStructOpcodeMemr(0x01, &Z80::MEMR_Read_REGW_<ADDR_BC>);
-   FillStructOpcodeMemr(0x06, &Z80::MEMR_Read_REG_<R_B>);
-   FillStructOpcodeMemr(0x0A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_BC>);
-   FillStructOpcodeMemr(0x0E, &Z80::MEMR_Read_REG_<R_C>);
-   FillStructOpcodeMemr(0x10, &Z80::MEMR_DJNZ); //
-   FillStructOpcodeMemr(0x11, &Z80::MEMR_Read_REGW_<ADDR_DE>);
-   FillStructOpcodeMemr(0x16, &Z80::MEMR_Read_REG_<R_D>);
-   FillStructOpcodeMemr(0x18, &Z80::MEMR_JR);
-   FillStructOpcodeMemr(0x1A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_DE>);
-   FillStructOpcodeMemr(0x1E, &Z80::MEMR_Read_REG_<R_E>);
-   FillStructOpcodeMemr(0x20, &Z80::MEMR_JR_Cond<false, ZF>);
-   FillStructOpcodeMemr(0x21, &Z80::MEMR_Read_REGW_<ADDR_HL>);
-   FillStructOpcodeMemr(0x22, &Z80::MEMR_Read_NN_HL<ADDR_HL>);
-   FillStructOpcodeMemr(0x26, &Z80::MEMR_Read_REG_<R_H>);
-   FillStructOpcodeMemr(0x28, &Z80::MEMR_JR_Cond<true, ZF>);
-   
-   FillStructOpcodeMemr(0x2A, &Z80::MEMR_HL_NN_0<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x01, &Z80::MEMR_Read_REGW_<ADDR_BC>);
+   FillStructOpcodeMemr<None>(0x06, &Z80::MEMR_Read_REG_<R_B>);
+   FillStructOpcodeMemr<None>(0x0A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_BC>);
+   FillStructOpcodeMemr<None>(0x0E, &Z80::MEMR_Read_REG_<R_C>);
+   FillStructOpcodeMemr<None>(0x10, &Z80::MEMR_DJNZ); //
+   FillStructOpcodeMemr<None>(0x11, &Z80::MEMR_Read_REGW_<ADDR_DE>);
+   FillStructOpcodeMemr<None>(0x16, &Z80::MEMR_Read_REG_<R_D>);
+   FillStructOpcodeMemr<None>(0x18, &Z80::MEMR_JR);
+   FillStructOpcodeMemr<None>(0x1A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_DE>);
+   FillStructOpcodeMemr<None>(0x1E, &Z80::MEMR_Read_REG_<R_E>);
+   FillStructOpcodeMemr<None>(0x20, &Z80::MEMR_JR_Cond<false, ZF>);
+   FillStructOpcodeMemr<None>(0x21, &Z80::MEMR_Read_REGW_<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x22, &Z80::MEMR_Read_NN_HL<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x26, &Z80::MEMR_Read_REG_<R_H>);
+   FillStructOpcodeMemr<None>(0x28, &Z80::MEMR_JR_Cond<true, ZF>);   
+   FillStructOpcodeMemr<None>(0x2A, &Z80::MEMR_HL_NN_0<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x2E, &Z80::MEMR_Read_REG_<R_L>);
+   FillStructOpcodeMemr<None>(0x30, &Z80::MEMR_JR_Cond<false, CF>);
+   FillStructOpcodeMemr<None>(0x31, &Z80::MEMR_Read_REGW_<ADDR_SP>);
+   FillStructOpcodeMemr<None>(0x32, &Z80::MEMR_Read_REG_NN<R_A>);
+   FillStructOpcodeMemr<None>(0x34, &Z80::MEMR_Inc_REGW);
 
-   FillStructOpcodeMemr(0x2E, &Z80::MEMR_Read_REG_<R_L>);
-   FillStructOpcodeMemr(0x30, &Z80::MEMR_JR_Cond<false, CF>);
-   FillStructOpcodeMemr(0x31, &Z80::MEMR_Read_REGW_<ADDR_SP>);
-   FillStructOpcodeMemr(0x38, &Z80::MEMR_JR_Cond<true, CF>);
-   FillStructOpcodeMemr(0x3E, &Z80::MEMR_Read_REG_<R_A>);
+
+   FillStructOpcodeMemr<None>(0x38, &Z80::MEMR_JR_Cond<true, CF>);
+   FillStructOpcodeMemr<None>(0x3E, &Z80::MEMR_Read_REG_<R_A>);
    
 }

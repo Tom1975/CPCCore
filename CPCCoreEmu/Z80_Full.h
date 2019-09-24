@@ -313,9 +313,29 @@ public:
       (*fetch)[opcode] = func;
    };
 
+   template<OpcodeType type>
    void FillStructOpcodeMemr(unsigned char opcode, unsigned int(Z80::* func)())
    {
-      (*(&memr_func_))[opcode] = func;
+      ListFunction* memr;
+      switch (type)
+      {
+      case None:
+         memr = &memr_func_;
+         break;
+      case CB:
+         memr = &memr_func_cb_;
+         break;
+      case ED:
+         memr = &memr_func_ed_;
+         break;
+      case DD:
+         memr = &memr_func_dd_;
+         break;
+      case FD:
+         memr = &memr_func_fd_;
+         break;
+      }
+      (*memr)[opcode] = func;
    }
 
    Opcode liste_opcodes_[256];
@@ -345,6 +365,10 @@ public:
    ListFunction fetch_func_dd_;
    ListFunction fetch_func_fd_;
    ListFunction memr_func_;
+   ListFunction memr_func_cb_;
+   ListFunction memr_func_ed_;
+   ListFunction memr_func_dd_;
+   ListFunction memr_func_fd_;
 
    unsigned int DefaultFetch();
    unsigned int Opcode_DefaultToSimple();
@@ -508,6 +532,8 @@ public:
    unsigned int MEMR_DJNZ();
    unsigned int MEMR_JR();
 
+   unsigned int MEMR_Inc_REGW();
+
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
    template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
@@ -522,7 +548,8 @@ public:
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_1();
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_2();
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_3();
-
+   template<Z80::Registers reg> unsigned int MEMR_Read_REG_NN();
+   
 };
 
 #include "Z80_Opcodes.hpp"

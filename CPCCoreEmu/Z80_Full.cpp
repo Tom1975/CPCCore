@@ -844,3 +844,20 @@ unsigned int Z80::MEMR_JR()
    return 5;
 }
 
+
+unsigned int Z80::MEMR_Inc_REGW()
+{
+   if (t_ == 4) {
+      INC_FLAGS(data_);
+      current_data_ = data_;
+      machine_cycle_ = M_MEMORY_W;
+      t_ = 1;
+      read_count_ = 0;
+   }
+   else
+   {
+      ++t_;
+   };
+   return 1;
+}
+
