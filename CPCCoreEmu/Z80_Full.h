@@ -532,8 +532,6 @@ public:
    unsigned int MEMR_DJNZ();
    unsigned int MEMR_JR();
 
-   unsigned int MEMR_Inc_REGW();
-
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
    template<AddressRegisters reg>unsigned int Opcode_LD_SP_REGW();
@@ -550,6 +548,8 @@ public:
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_3();
    template<Z80::Registers reg> unsigned int MEMR_Read_REG_NN();
    
+   template<bool inc> unsigned int MEMR_Inc_REGW();
+
 };
 
 #include "Z80_Opcodes.hpp"

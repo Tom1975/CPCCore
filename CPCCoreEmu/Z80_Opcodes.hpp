@@ -745,3 +745,29 @@ unsigned int Z80::MEMR_Read_REG_NN()
    }
    return 1;
 }
+
+template<bool inc>
+unsigned int Z80::MEMR_Inc_REGW()
+{
+   if (t_ == 4) {
+      if (inc)
+      {
+         INC_FLAGS(data_);
+      }
+      else
+      {
+         DEC_FLAGS(data_);
+      }
+         
+      current_data_ = data_;
+      machine_cycle_ = M_MEMORY_W;
+      t_ = 1;
+      read_count_ = 0;
+   }
+   else
+   {
+      ++t_;
+   };
+   return 1;
+}
+
