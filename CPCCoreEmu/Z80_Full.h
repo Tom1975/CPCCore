@@ -156,7 +156,7 @@ public:
    Z80(void);
    virtual ~Z80(void);
 
-   void Init(Memory * memory, CSig* sig, ILog* log) {
+   void Init(Memory* memory, CSig* sig, ILog* log) {
       memory_ = memory; sig_ = sig; log_ = log;
    }
 
@@ -166,12 +166,12 @@ public:
 
 
    unsigned int Tick( /*unsigned int nbTicks = 1*/); /*{ return 1;};*/
-   void PreciseTick ( );
-   void Reset ();
-   void InterruptInit ();
+   void PreciseTick();
+   void Reset();
+   void InterruptInit();
 
-   void ReinitProc ();
-   unsigned int GetCurrentOpcode () { return current_opcode_;};
+   void ReinitProc();
+   unsigned int GetCurrentOpcode() { return current_opcode_; };
    unsigned short GetPC();
 
    int OpcodeIOR();
@@ -182,7 +182,7 @@ public:
 
    //////////////////////////////////////
    // Externel pins
-   typedef unsigned int (Z80::*Func)();
+   typedef unsigned int (Z80::* Func)();
    typedef Func ListFunction[0x100];
 
 
@@ -226,11 +226,11 @@ public:
 
    unsigned short address_;
    unsigned char data_;
-   
+
    bool stop_on_fetch_;
 
-   unsigned int current_opcode_ ;
-   ListFunction * current_function_;
+   unsigned int current_opcode_;
+   ListFunction* current_function_;
    Func next_function_;
 
    unsigned short current_address_;
@@ -250,7 +250,7 @@ public:
       M_M1_NMI = 0x80,
       M_IO_R_INT = 0x90,
       M_Z80_WAIT = 0xA0,
-   } MachineCycle; 
+   } MachineCycle;
    MachineCycle machine_cycle_;
 
    // Inner helper attributes
@@ -259,7 +259,7 @@ public:
 
    // Optimize functions
    bool carry_set_;
-   Memory * memory_;
+   Memory* memory_;
    CSig* sig_;
 
    // Vectorized Interrupt Bug : Detect opcodes that perform read/write memory
@@ -274,7 +274,7 @@ public:
    typedef enum
    {
       None,
-      CB, 
+      CB,
       ED,
       DD,
       FD,
@@ -283,9 +283,9 @@ public:
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
    {
-      Opcode *op;
+      Opcode* op;
       ListFunction* fetch;
-      switch( type )
+      switch (type)
       {
       case None:
          op = &liste_opcodes_[opcode];
@@ -478,13 +478,13 @@ public:
 
    template<Z80::Registers reg, bool Carry>
    unsigned int Opcode_Sub_Reg();
-   
+
    template<Z80::AddressRegisters reg>
    unsigned int Opcode_Sub_Reg();
 
    template<Z80::Registers reg, Z80::OperationType op>
    unsigned int Opcode_BOOL_Reg();
-      
+
    template<Z80::Registers reg>
    unsigned int Opcode_CP_Reg();
 
@@ -505,7 +505,7 @@ public:
    template<int b, Z80::Registers reg> unsigned int Opcode_BIT();
    template<int b, Z80::Registers reg> unsigned int Opcode_RES();
    template<int b, Z80::Registers reg> unsigned int Opcode_SET();
-   
+
    template<int mode> unsigned int Opcode_IM();
 
    unsigned int Opcode_MemoryFromStack();
@@ -531,6 +531,7 @@ public:
 
    unsigned int MEMR_DJNZ();
    unsigned int MEMR_JR();
+   unsigned int MEMR_Ld_A_NN();
 
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
@@ -547,9 +548,10 @@ public:
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_2();
    template<Z80::AddressRegisters regw> unsigned int MEMR_HL_NN_3();
    template<Z80::Registers reg> unsigned int MEMR_Read_REG_NN();
-   
+
    template<bool inc> unsigned int MEMR_Inc_REGW();
    template<Z80::AddressRegisters regw> unsigned int MEMR_REGW_N();
+   template<Z80::Registers reg> unsigned int MEMR_Ld_Reg_Regw();
 };
 
 #include "Z80_Opcodes.hpp"

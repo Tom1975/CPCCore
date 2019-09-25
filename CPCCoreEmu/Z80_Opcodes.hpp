@@ -781,3 +781,11 @@ unsigned int Z80::MEMR_REGW_N()
    read_count_ = 0;
    return 1;
 }
+
+template<Z80::Registers reg>
+unsigned int Z80::MEMR_Ld_Reg_Regw()
+{
+   int nextcycle;
+   REG(reg) = current_data_ & 0xFF; 
+   NEXT_INSTR;
+}

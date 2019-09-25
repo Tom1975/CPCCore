@@ -7,16 +7,6 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   //case 0x36: ++pc_; t_ = 1; current_address_ = hl_.w; machine_cycle_ = M_MEMORY_W; read_count_ = 0; break;   // LD (HL), n
-   case 0x3A: if (read_count_ == 2) { af_.b.h = data_; NEXT_INSTR; }
-              else { ++pc_; t_ = 1; if (read_count_++ == 0) { current_address_ = pc_; } else { machine_cycle_ = M_MEMORY_R; t_ = 1; current_address_ = current_data_; mem_ptr_.w = current_address_ + 1; current_data_ = 0; }; }break; // LD A, (nn)
-   case 0x46: bc_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD B, (HL)
-   case 0x4E: bc_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD C, (HL)
-   case 0x56: de_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD D, (HL)
-   case 0x5E: de_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD E, (HL)
-   case 0x66: hl_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD H, (HL)
-   case 0x6E: hl_.b.l = current_data_ & 0xFF; NEXT_INSTR; break; // LD L, (HL)
-   case 0x7E: af_.b.h = current_data_ & 0xFF; NEXT_INSTR; break; // LD A, (HL)
    case 0x86: ADD_FLAG(data_); NEXT_INSTR; break; // ADD A, (HL)
    case 0x8E: ADD_FLAG_CARRY(data_); NEXT_INSTR; break; // ADC A, (HL)
    case 0x96: SUB_FLAG(data_); NEXT_INSTR; break; // SUB (HL)

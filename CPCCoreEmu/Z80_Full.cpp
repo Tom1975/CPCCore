@@ -843,3 +843,30 @@ unsigned int Z80::MEMR_JR()
    t_ = 1;
    return 5;
 }
+
+unsigned int Z80::MEMR_Ld_A_NN()
+{
+   if (read_count_ == 2)
+   {
+      int nextcycle;
+      af_.b.h = data_;
+      NEXT_INSTR;
+   }
+   else
+   {
+      ++pc_;
+      t_ = 1;
+      if (read_count_++ == 0)
+      {
+         current_address_ = pc_;
+      }
+      else
+      {
+         machine_cycle_ = M_MEMORY_R;
+         current_address_ = current_data_;
+         mem_ptr_.w = current_address_ + 1;
+         current_data_ = 0;
+      }
+   }
+   return 1;
+}

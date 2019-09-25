@@ -633,7 +633,15 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0x35, &Z80::MEMR_Inc_REGW<false>);
    FillStructOpcodeMemr<None>(0x36, &Z80::MEMR_REGW_N<ADDR_HL>);
    FillStructOpcodeMemr<None>(0x38, &Z80::MEMR_JR_Cond<true, CF>);
-
+   FillStructOpcodeMemr<None>(0x3A, &Z80::MEMR_Ld_A_NN);
    FillStructOpcodeMemr<None>(0x3E, &Z80::MEMR_Read_REG_<R_A>);
+   FillStructOpcodeMemr<None>(0x46, &Z80::MEMR_Ld_Reg_Regw<R_B>);
+   FillStructOpcodeMemr<None>(0x4E, &Z80::MEMR_Ld_Reg_Regw<R_C>);
+   FillStructOpcodeMemr<None>(0x56, &Z80::MEMR_Ld_Reg_Regw<R_D>);
+   FillStructOpcodeMemr<None>(0x5E, &Z80::MEMR_Ld_Reg_Regw<R_E>);
+   FillStructOpcodeMemr<None>(0x66, &Z80::MEMR_Ld_Reg_Regw<R_H>);
+   FillStructOpcodeMemr<None>(0x6E, &Z80::MEMR_Ld_Reg_Regw<R_L>);
+   FillStructOpcodeMemr<None>(0x7E, &Z80::MEMR_Ld_Reg_Regw<R_A>);
+
    
 }
