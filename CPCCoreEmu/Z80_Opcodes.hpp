@@ -771,3 +771,13 @@ unsigned int Z80::MEMR_Inc_REGW()
    return 1;
 }
 
+template<Z80::AddressRegisters regw>
+unsigned int Z80::MEMR_REGW_N()
+{
+   ++pc_; 
+   t_ = 1; 
+   current_address_ = REGW(regw);
+   machine_cycle_ = M_MEMORY_W; 
+   read_count_ = 0;
+   return 1;
+}

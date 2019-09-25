@@ -549,7 +549,7 @@ public:
    template<Z80::Registers reg> unsigned int MEMR_Read_REG_NN();
    
    template<bool inc> unsigned int MEMR_Inc_REGW();
-
+   template<Z80::AddressRegisters regw> unsigned int MEMR_REGW_N();
 };
 
 #include "Z80_Opcodes.hpp"
