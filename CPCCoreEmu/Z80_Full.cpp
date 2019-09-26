@@ -870,3 +870,33 @@ unsigned int Z80::MEMR_Ld_A_NN()
    }
    return 1;
 }
+
+unsigned int Z80::Opcode_CP_Data()
+{
+   int nextcycle;
+   unsigned int res = af_.b.h - data_;
+   q_ = NF | (((res & 0xff) == 0) ? ZF : 0) | (res & 0x80) | ((res >> 8) & CF) | ((af_.b.h ^ res ^ data_) & HF);
+   if ((((af_.b.h & 0x80) ^ (data_ & 0x80)) != 0) && (((af_.b.h & 0x80) ^ (res & 0x80)) != 0)) q_ |= PF;
+   q_ |= (data_ & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RET()
+{
+   if (read_count_ == 0) 
+   {
+      t_ = 1; 
+      current_address_ = sp_++; 
+      ++read_count_; 
+   }
+   else 
+   {
+      int nextcycle;
+      pc_ = current_data_ & 0xFFFF;
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR 
+   }
+   return 1;
+}
+

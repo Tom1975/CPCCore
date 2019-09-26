@@ -532,6 +532,8 @@ public:
    unsigned int MEMR_DJNZ();
    unsigned int MEMR_JR();
    unsigned int MEMR_Ld_A_NN();
+   unsigned int Opcode_CP_Data();
+   unsigned int Opcode_RET();
 
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
