@@ -642,6 +642,12 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0x66, &Z80::MEMR_Ld_Reg_Regw<R_H>);
    FillStructOpcodeMemr<None>(0x6E, &Z80::MEMR_Ld_Reg_Regw<R_L>);
    FillStructOpcodeMemr<None>(0x7E, &Z80::MEMR_Ld_Reg_Regw<R_A>);
+   FillStructOpcodeMemr<None>(0x86, &Z80::Opcode_AddSub_Reg<true, false>);
+   FillStructOpcodeMemr<None>(0x8E, &Z80::Opcode_AddSub_Reg<true, true>);
+   FillStructOpcodeMemr<None>(0x96, &Z80::Opcode_AddSub_Reg<false, false>);
+   FillStructOpcodeMemr<None>(0x9E, &Z80::Opcode_AddSub_Reg<false, true>);
+   FillStructOpcodeMemr<None>(0xA6, &Z80::Opcode_BOOL_data<AND>);
+   FillStructOpcodeMemr<None>(0xAE, &Z80::Opcode_BOOL_data<XOR>);
+   FillStructOpcodeMemr<None>(0xB6, &Z80::Opcode_BOOL_data<OR>);
 
-   
 }

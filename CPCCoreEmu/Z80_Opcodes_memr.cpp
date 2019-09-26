@@ -7,13 +7,6 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   case 0x86: ADD_FLAG(data_); NEXT_INSTR; break; // ADD A, (HL)
-   case 0x8E: ADD_FLAG_CARRY(data_); NEXT_INSTR; break; // ADC A, (HL)
-   case 0x96: SUB_FLAG(data_); NEXT_INSTR; break; // SUB (HL)
-   case 0x9E: SUB_FLAG_CARRY(data_); NEXT_INSTR; break; // SBC (HL)
-   case 0xA6: {t_ = 1; AND_FLAGS(data_); NEXT_INSTR; break; } // AND (HL)
-   case 0xAE: {t_ = 1; XOR_FLAGS(data_); NEXT_INSTR; break; } // XOR (HL)
-   case 0xB6: OR_FLAGS((current_data_ & 0xFF)); NEXT_INSTR; break;// OR (HL)
    case 0xBE: CP_FLAGS(data_); NEXT_INSTR; break;// CP (HL)
    case 0xC0: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
               else { pc_ = current_data_ & 0xFFFF; mem_ptr_.w = pc_; NEXT_INSTR }; break;  // RET NZ

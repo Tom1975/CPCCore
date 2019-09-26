@@ -552,6 +552,9 @@ public:
    template<bool inc> unsigned int MEMR_Inc_REGW();
    template<Z80::AddressRegisters regw> unsigned int MEMR_REGW_N();
    template<Z80::Registers reg> unsigned int MEMR_Ld_Reg_Regw();
+
+   template<bool add, bool Carry> unsigned int Opcode_AddSub_Reg();
+   template<Z80::OperationType op> unsigned int Opcode_BOOL_data();
 };
 
 #include "Z80_Opcodes.hpp"

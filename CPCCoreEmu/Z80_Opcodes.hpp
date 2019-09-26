@@ -789,3 +789,57 @@ unsigned int Z80::MEMR_Ld_Reg_Regw()
    REG(reg) = current_data_ & 0xFF; 
    NEXT_INSTR;
 }
+
+template<bool add, bool Carry>
+unsigned int Z80::Opcode_AddSub_Reg()
+{
+   int nextcycle;
+   unsigned int res;
+   if constexpr (add)
+   {
+      if constexpr (Carry)
+      {
+         ADD_FLAG_CARRY(data_);
+      }
+      else
+      {
+         ADD_FLAG(data_);
+      }
+   }
+   else
+   {
+      if constexpr (Carry)
+      {
+         SUB_FLAG_CARRY(data_);
+      }
+      else
+      {
+         SUB_FLAG(data_);
+      }
+   }
+
+   NEXT_INSTR
+}
+
+template<Z80::OperationType op>
+unsigned int Z80::Opcode_BOOL_data()
+{
+   int nextcycle;
+   if (op == AND)
+   {
+      af_.b.h &= data_;
+      q_ = FlagAnd[af_.b.h];
+   }
+   else if (op == OR)
+   {
+      af_.b.h |= data_;
+      q_ = FlagOr[af_.b.h];
+   }
+   else if (op == XOR)
+   {
+      af_.b.h ^= data_;
+      q_ = FlagXor[af_.b.h];
+   }
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
