@@ -7,17 +7,17 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   case 0xC1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
-              else { bc_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP BC
-   case 0xC2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TSTN(ZF) { pc_ = current_data_; }NEXT_INSTR }break;// JP NZ nn
+   //case 0xC1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
+   //           else { bc_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP BC
+   //case 0xC2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TSTN(ZF) { pc_ = current_data_; }NEXT_INSTR }break;// JP NZ nn
    case 0xC3: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { pc_ = current_data_; mem_ptr_.w = pc_; NEXT_INSTR }break;// JP nn
    case 0xC4: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TSTN(ZF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL NZ
    case 0xC6: ++pc_; ADD_FLAG(current_data_); NEXT_INSTR; break;                                                                                    // ADD A,n
-   case 0xCA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TST(ZF) { pc_ = current_data_; }NEXT_INSTR }break; // JP Z nn
+   //case 0xCA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TST(ZF) { pc_ = current_data_; }NEXT_INSTR }break; // JP Z nn
    case 0xCC: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TST(ZF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL Z nn
    case 0xCD: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
@@ -27,43 +27,43 @@ unsigned int Z80::OpcodeMEMR()
                  pc_ = current_data_; mem_ptr_.w = pc_; NEXT_INSTR
               }break;   // CALL nn
    case 0xCE: ++pc_; ADD_FLAG_CARRY(current_data_); NEXT_INSTR; break;                                                                                    // ADC A,n
-   case 0xD1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
-              else { de_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP DE
-   case 0xD2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TSTN(CF) { pc_ = current_data_; }NEXT_INSTR }break;// JP NC nn
+   //case 0xD1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
+   //           else { de_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP DE
+   //case 0xD2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TSTN(CF) { pc_ = current_data_; }NEXT_INSTR }break;// JP NC nn
    case 0xD3: ++pc_; q_ = af_.b.l; q_ |= (data_ & 0x80) ? NF : 0; af_.b.l = q_; mem_ptr_.b.l = data_; mem_ptr_.b.h = af_.b.h; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = mem_ptr_.w;mem_ptr_.b.l++; current_data_ = af_.b.h; break; // OUT (n), A
    case 0xD4: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TSTN(CF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL NC nn
    case 0xD6: ++pc_; SUB_FLAG(data_); NEXT_INSTR; break; // SUB n
-   case 0xDA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TST(CF) { pc_ = current_data_; }NEXT_INSTR }break;// JP C nn
+   //case 0xDA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TST(CF) { pc_ = current_data_; }NEXT_INSTR }break;// JP C nn
    case 0xDB: ++pc_; mem_ptr_.b.l = data_; mem_ptr_.b.h = af_.b.h; machine_cycle_ = M_IO_R; t_ = 1; current_address_ = mem_ptr_.w++; current_data_ = 0; break; // IN (n), A
    case 0xDC: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TST(CF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL C nn
    case 0xDE: ++pc_; SUB_FLAG_CARRY(data_); NEXT_INSTR; break; // SBC n
-   case 0xE1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
-              else { hl_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP HL
-   case 0xE2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TSTN(PF) { pc_ = current_data_; }NEXT_INSTR }break;// JP PO nn
+   //case 0xE1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
+   //              else { hl_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP HL
+   //case 0xE2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //              else { mem_ptr_.w = current_data_; TSTN(PF) { pc_ = current_data_; }NEXT_INSTR }break;// JP PO nn
    case 0xE3: if (read_count_ == 0) { t_ = 1; current_address_ = sp_ + 1; ++read_count_; }
               else { if (t_ == 4) { mem_ptr_.w = current_data_ & 0xFFFF; machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = sp_+1; current_data_ = hl_.b.h; read_count_ = 0; } else { ++t_; } }; break;// EX (SP), HL
    case 0xE4: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TSTN(PF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL PO nn
    case 0xE6: {++pc_; t_ = 1; AND_FLAGS(current_data_ & 0xFF); NEXT_INSTR; break; } // AND n
-   case 0xEA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TST(PF) { pc_ = current_data_; }NEXT_INSTR }break;// JP PE nn
+   //case 0xEA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TST(PF) { pc_ = current_data_; }NEXT_INSTR }break;// JP PE nn
    case 0xEC: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TST(PF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL PE nn
    case 0xEE: {++pc_; t_ = 1; XOR_FLAGS(current_data_ & 0xFF); NEXT_INSTR; break; } // AND n
-   case 0xF1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
-              else { af_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP DEAF
-   case 0xF2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TSTN(SF) { pc_ = current_data_; }NEXT_INSTR }break;// JP P nn
+   //case 0xF1: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
+   //           else { af_.w = current_data_ & 0xFFFF; NEXT_INSTR }; break;  // POP DEAF
+   //case 0xF2: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TSTN(SF) { pc_ = current_data_; }NEXT_INSTR }break;// JP P nn
    case 0xF4: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TSTN(SF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL P nn
    case 0xF6: ++pc_; OR_FLAGS(current_data_); NEXT_INSTR; break;                                                                                    // OR n
-   case 0xFA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else { mem_ptr_.w = current_data_; TST(SF) { pc_ = current_data_; }NEXT_INSTR }break; // JP M nn
+   //case 0xFA: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
+   //           else { mem_ptr_.w = current_data_; TST(SF) { pc_ = current_data_; }NEXT_INSTR }break; // JP M nn
    case 0xFC: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
               else { mem_ptr_.w = current_data_; TST(SF) { t_ = 1; machine_cycle_ = M_Z80_WORK; } else { NEXT_INSTR } }break;// CALL M
    case 0xFE: ++pc_; CP_FLAGS(data_); NEXT_INSTR; break;// break;

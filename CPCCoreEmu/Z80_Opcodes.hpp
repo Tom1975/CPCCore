@@ -843,3 +843,46 @@ unsigned int Z80::Opcode_BOOL_data()
    af_.b.l = q_;
    NEXT_INSTR;
 }
+
+template<Z80::AddressRegisters regw>
+unsigned int Z80::Opcode_Pop_Regw()
+{
+   if (read_count_ == 0) 
+   {
+      t_ = 1; 
+      current_address_ = sp_++; 
+      ++read_count_; 
+      return 1;
+   }
+   else 
+   {
+      int nextcycle;
+      REGW(regw) = current_data_ & 0xFFFF;
+      NEXT_INSTR 
+   }
+}
+
+template<bool positive, int cond>
+unsigned int Z80::MEMR_JP_Cond()
+{
+   ++pc_; 
+   t_ = 1; 
+   if (read_count_ == 0) 
+   {
+      current_address_ = pc_; 
+      ++read_count_;
+      return 1;
+   }
+   else 
+   {
+      int nextcycle;
+      mem_ptr_.w = current_data_;
+      if ((positive && ((af_.b.l & cond) == cond))
+         || (!positive && ((af_.b.l & cond) == 0))
+         )
+      {
+         pc_ = current_data_; 
+      }
+      NEXT_INSTR 
+   }
+}

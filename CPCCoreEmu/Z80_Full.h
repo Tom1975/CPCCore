@@ -557,6 +557,9 @@ public:
 
    template<bool add, bool Carry> unsigned int Opcode_AddSub_Reg();
    template<Z80::OperationType op> unsigned int Opcode_BOOL_data();
+   template<Z80::AddressRegisters regw> unsigned int Opcode_Pop_Regw();
+   template<bool positive, int cond> unsigned int MEMR_JP_Cond();
+
 };
 
 #include "Z80_Opcodes.hpp"
