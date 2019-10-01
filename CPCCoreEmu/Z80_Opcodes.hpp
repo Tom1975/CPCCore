@@ -886,3 +886,33 @@ unsigned int Z80::MEMR_JP_Cond()
       NEXT_INSTR 
    }
 }
+
+template<bool positive, int cond>
+unsigned int Z80::MEMR_Call_Cond()
+{
+   ++pc_; 
+   
+   if (read_count_ == 0)
+   {
+      t_ = 1; 
+      current_address_ = pc_; 
+      ++read_count_; 
+   }
+   else 
+   {
+      mem_ptr_.w = current_data_; 
+      if ((positive && ((af_.b.l & cond) == cond))
+         || (!positive && ((af_.b.l & cond) == 0))
+         )
+      { 
+         t_ = 1; 
+         machine_cycle_ = M_Z80_WORK; 
+      } 
+      else 
+      {
+         int nextcycle;
+         NEXT_INSTR 
+      } 
+   }
+   return 1;
+}

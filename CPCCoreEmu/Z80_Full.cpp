@@ -900,3 +900,21 @@ unsigned int Z80::Opcode_RET()
    return 1;
 }
 
+unsigned int Z80::Opcode_Jp()
+{
+   if (read_count_ == 0)
+   { 
+      ++pc_; 
+      t_ = 1; 
+      current_address_ = pc_; 
+      ++read_count_; 
+   }
+   else 
+   { 
+      int nextcycle;
+      pc_ = current_data_; 
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR 
+   }
+   return 1;
+}

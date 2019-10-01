@@ -534,6 +534,7 @@ public:
    unsigned int MEMR_Ld_A_NN();
    unsigned int Opcode_CP_Data();
    unsigned int Opcode_RET();
+   unsigned int Opcode_Jp();
 
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
@@ -559,7 +560,7 @@ public:
    template<Z80::OperationType op> unsigned int Opcode_BOOL_data();
    template<Z80::AddressRegisters regw> unsigned int Opcode_Pop_Regw();
    template<bool positive, int cond> unsigned int MEMR_JP_Cond();
-
+   template<bool positive, int cond> unsigned int MEMR_Call_Cond();
 };
 
 #include "Z80_Opcodes.hpp"
