@@ -916,3 +916,36 @@ unsigned int Z80::MEMR_Call_Cond()
    }
    return 1;
 }
+
+
+template<bool add, bool Carry>
+unsigned int Z80::Opcode_AddSub_n()
+{
+   ++pc_;
+   int nextcycle;
+   unsigned int res;
+   if constexpr (add)
+   {
+      if constexpr (Carry)
+      {
+         ADD_FLAG_CARRY(data_);
+      }
+      else
+      {
+         ADD_FLAG(data_);
+      }
+   }
+   else
+   {
+      if constexpr (Carry)
+      {
+         SUB_FLAG_CARRY(data_);
+      }
+      else
+      {
+         SUB_FLAG(data_);
+      }
+   }
+
+   NEXT_INSTR
+}

@@ -561,6 +561,7 @@ public:
    template<Z80::AddressRegisters regw> unsigned int Opcode_Pop_Regw();
    template<bool positive, int cond> unsigned int MEMR_JP_Cond();
    template<bool positive, int cond> unsigned int MEMR_Call_Cond();
+   template<bool add, bool Carry> unsigned int Opcode_AddSub_n();
 };
 
 #include "Z80_Opcodes.hpp"
