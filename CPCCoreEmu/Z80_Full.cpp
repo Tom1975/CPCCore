@@ -918,3 +918,114 @@ unsigned int Z80::Opcode_Jp()
    }
    return 1;
 }
+
+unsigned int Z80::Memr_Call_nn()
+{
+   if (read_count_ == 0) 
+   {
+      ++pc_;
+      t_ = 1;
+      current_address_ = pc_;
+      ++read_count_; 
+      return 1;
+   }
+   else
+   {
+      int nextcycle;
+      TraceTape(pc_, hl_.b.l);
+      pc_ = current_data_; 
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR
+   }
+}
+
+unsigned int Z80::Memr_Out_n()
+{
+   ++pc_;
+   q_ = af_.b.l; 
+   q_ |= (data_ & 0x80) ? NF : 0; 
+   af_.b.l = q_; 
+   mem_ptr_.b.l = data_; 
+   mem_ptr_.b.h = af_.b.h; 
+   machine_cycle_ = M_IO_W; 
+   t_ = 1; 
+   current_address_ = mem_ptr_.w; 
+   mem_ptr_.b.l++; 
+   current_data_ = af_.b.h; 
+   return 1;
+}
+
+unsigned int Z80::Memr_In_n()
+{
+   ++pc_; 
+   mem_ptr_.b.l = data_; 
+   mem_ptr_.b.h = af_.b.h; 
+   machine_cycle_ = M_IO_R; 
+   t_ = 1; 
+   current_address_ = mem_ptr_.w++; 
+   current_data_ = 0; 
+   return 1;
+}
+
+unsigned int Z80::Memr_Ex_Sp_Hl()
+{
+   if (read_count_ == 0) 
+   { 
+      t_ = 1; 
+      current_address_ = sp_ + 1; 
+      ++read_count_; 
+   }
+   else 
+   { 
+      if (t_ == 4) 
+      { 
+         mem_ptr_.w = current_data_ & 0xFFFF; 
+         machine_cycle_ = M_MEMORY_W; 
+         t_ = 1; 
+         current_address_ = sp_ + 1; 
+         current_data_ = hl_.b.h; 
+         read_count_ = 0; 
+      } 
+      else 
+      { 
+         ++t_; 
+      } 
+   }
+   return 1;
+}
+
+unsigned int Z80::Memr_And_n()
+{
+   int nextcycle; 
+   unsigned int res;
+   ++pc_;
+   AND_FLAGS(current_data_ & 0xFF); 
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Memr_Xor_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   XOR_FLAGS(current_data_ & 0xFF); 
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Memr_Or_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   OR_FLAGS(current_data_); 
+   NEXT_INSTR
+}
+
+unsigned int Z80::Memr_Cp_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   CP_FLAGS(data_); 
+   NEXT_INSTR
+}

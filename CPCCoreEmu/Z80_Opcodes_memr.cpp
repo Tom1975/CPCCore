@@ -7,21 +7,6 @@ unsigned int Z80::OpcodeMEMR()
 
    switch (current_opcode_)
    {
-   case 0xCD: ++pc_; t_ = 1; if (read_count_ == 0) { current_address_ = pc_; ++read_count_; }
-              else
-              {
-                 TraceTape(pc_, hl_.b.l);
-                 pc_ = current_data_; mem_ptr_.w = pc_; NEXT_INSTR
-              }break;   // CALL nn
-   case 0xD3: ++pc_; q_ = af_.b.l; q_ |= (data_ & 0x80) ? NF : 0; af_.b.l = q_; mem_ptr_.b.l = data_; mem_ptr_.b.h = af_.b.h; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = mem_ptr_.w;mem_ptr_.b.l++; current_data_ = af_.b.h; break; // OUT (n), A
-   case 0xDB: ++pc_; mem_ptr_.b.l = data_; mem_ptr_.b.h = af_.b.h; machine_cycle_ = M_IO_R; t_ = 1; current_address_ = mem_ptr_.w++; current_data_ = 0; break; // IN (n), A
-   case 0xE3: if (read_count_ == 0) { t_ = 1; current_address_ = sp_ + 1; ++read_count_; }
-              else { if (t_ == 4) { mem_ptr_.w = current_data_ & 0xFFFF; machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = sp_+1; current_data_ = hl_.b.h; read_count_ = 0; } else { ++t_; } }; break;// EX (SP), HL
-   case 0xE6: {++pc_; t_ = 1; AND_FLAGS(current_data_ & 0xFF); NEXT_INSTR; break; } // AND n
-   case 0xEE: {++pc_; t_ = 1; XOR_FLAGS(current_data_ & 0xFF); NEXT_INSTR; break; } // AND n
-   case 0xF6: ++pc_; OR_FLAGS(current_data_); NEXT_INSTR; break;                                                                                    // OR n
-   case 0xFE: ++pc_; CP_FLAGS(data_); NEXT_INSTR; break;// break;
-
    case 0xCB06: if (t_ == 4) { RLC(data_); current_data_ = data_; read_count_ = 0; machine_cycle_ = M_MEMORY_W; t_ = 1; }
                 else { ++t_; }; break; // RLC (HL)
    case 0xCB0E: if (t_ == 4) { RRC(data_); current_data_ = data_; read_count_ = 0; machine_cycle_ = M_MEMORY_W; t_ = 1; }

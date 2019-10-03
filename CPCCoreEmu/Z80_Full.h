@@ -535,6 +535,14 @@ public:
    unsigned int Opcode_CP_Data();
    unsigned int Opcode_RET();
    unsigned int Opcode_Jp();
+   unsigned int Memr_Call_nn();
+   unsigned int Memr_Out_n();
+   unsigned int Memr_In_n();
+   unsigned int Memr_Ex_Sp_Hl();
+   unsigned int Memr_And_n();
+   unsigned int Memr_Xor_n();
+   unsigned int Memr_Or_n();
+   unsigned int Memr_Cp_n();
 
    template<AddressRegisters reg>unsigned int Opcode_JP_REGW();
 
