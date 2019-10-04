@@ -694,3 +694,21 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0xFC, &Z80::MEMR_Call_Cond<true, SF>);
    FillStructOpcodeMemr<None>(0xFE, &Z80::Memr_Cp_n);
 }
+
+void Z80::InitTickFunctions()
+{
+   for (int i = 0; i < 0xAF; i++)
+   {
+      tick_functions_[i] = &Z80::DefaultTick;
+   }
+
+   tick_functions_[M_FETCH + 1] = &Z80::Tick_Fetch_1;
+   tick_functions_[M_FETCH + 2] = &Z80::Tick_Fetch_2;
+   tick_functions_[M_FETCH + 3] = &Z80::Tick_Fetch_3;
+   tick_functions_[M_FETCH + 4] = &Z80::Tick_Fetch_4;
+   for (int i = 5  ; i < 0x10; i++)
+   {
+      tick_functions_[M_FETCH + i] = &Z80::Tick_Fetch_X;
+   }
+   
+}

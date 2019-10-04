@@ -161,11 +161,17 @@ public:
    }
 
    void InitOpcodeShortcuts();
+   void InitTickFunctions();
    unsigned char GetOpcodeSize(unsigned short address);
    bool IsCallInstruction(unsigned short address);
 
 
-   unsigned int Tick( /*unsigned int nbTicks = 1*/); /*{ return 1;};*/
+   inline unsigned int Tick( ) 
+   {
+      ++counter_;
+      return (this->*(tick_functions_)[machine_cycle_ | t_])();
+   }
+
    void PreciseTick();
    void Reset();
    void InterruptInit();
@@ -370,6 +376,17 @@ public:
    ListFunction memr_func_dd_;
    ListFunction memr_func_fd_;
 
+   Func tick_functions_[0xAF];
+
+   // tick generic functions
+   unsigned int DefaultTick();
+   unsigned int Tick_Fetch_1();
+   unsigned int Tick_Fetch_2();
+   unsigned int Tick_Fetch_3();
+   unsigned int Tick_Fetch_4();
+   unsigned int Tick_Fetch_X();
+
+   //
    unsigned int DefaultFetch();
    unsigned int Opcode_DefaultToSimple();
    unsigned int Opcode_NOP();

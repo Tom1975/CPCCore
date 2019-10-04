@@ -13,6 +13,7 @@ Z80::Z80(void) :
 {
 
    InitOpcodeShortcuts();
+   InitTickFunctions();
    int i, p;
    for (i = 0; i < 256; i++)
    {
@@ -149,11 +150,58 @@ void Z80::PreciseTick()
 {
 }
 
-unsigned int Z80::Tick()
+/*unsigned int Z80::Tick()
+{
+   ++counter_;   
+   return (this->*(tick_functions_)[machine_cycle_ | t_])();
+}*/
+
+unsigned int Z80::Tick_Fetch_1()
+{
+   INC_R
+   // Set PC to address bus
+   address_ = pc_++;
+
+   data_ = memory_->Get(address_);
+
+   // Compute to avoid waiting cycles :
+   // t_++;
+   current_opcode_ <<= 8;
+   current_opcode_ |= data_;
+   int nextcycle = 4 - (counter_ & 0x3);
+
+   t_ = 4;
+   counter_ += nextcycle + 1;
+   return nextcycle + 2;
+}
+
+unsigned int Z80::Tick_Fetch_2() 
+{
+   WAIT_TEST;  t_++; return 1;
+}
+      
+unsigned int Z80::Tick_Fetch_3()
+{
+   t_++; return 1;
+}
+
+unsigned int Z80::Tick_Fetch_4()
+{
+   //if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
+   if ((current_opcode_ & 0xF7) != 0x37)
+      q_ = 0;
+   return (this->*(*current_function_)[current_opcode_ & 0xFF])();
+}
+
+unsigned int Z80::Tick_Fetch_X()
+{
+   return (this->*(*current_function_)[current_opcode_ & 0xFF])();
+}
+
+
+unsigned int Z80::DefaultTick()
 {
    int nextcycle;
-   ++counter_;
-
    switch (machine_cycle_ | t_)
    {
    case M_M1_NMI + 1:
@@ -293,7 +341,7 @@ unsigned int Z80::Tick()
 
    /////////////////////////////////////////////////
    // FETCH
-   case M_FETCH + 1:
+   /*case M_FETCH + 1:
    {
       INC_R
 
@@ -335,7 +383,7 @@ unsigned int Z80::Tick()
    case M_FETCH + 12:
    {
       return (this->*(*current_function_)[current_opcode_ & 0xFF])();
-   }
+   }*/
    /////////////////////////////////////////////////
    // MEMORY IO
    case M_MEMORY_R + 1:
