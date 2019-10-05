@@ -675,7 +675,7 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0xD4, &Z80::MEMR_Call_Cond<false, CF>);
    FillStructOpcodeMemr<None>(0xD6, &Z80::Opcode_AddSub_n<false, false>);
    FillStructOpcodeMemr<None>(0xDA, &Z80::MEMR_JP_Cond<true, CF>);
-   FillStructOpcodeMemr<None>(0xDB, &Z80::Memr_In_n);
+   FillStructOpcodeMemr<None>(0xDB, &Z80::Memr_In_n); 
    FillStructOpcodeMemr<None>(0xDC, &Z80::MEMR_Call_Cond<true, CF>);
    FillStructOpcodeMemr<None>(0xDE, &Z80::Opcode_AddSub_n<false, true>);
    FillStructOpcodeMemr<None>(0xE1, &Z80::Opcode_Pop_Regw<ADDR_HL>);
@@ -695,12 +695,41 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0xFE, &Z80::Memr_Cp_n);
 }
 
+#define SET_FUNC(i)\
+   tick_functions_[i] = &Z80::DefaultTick<i>;\
+   tick_functions_[i+1] = &Z80::DefaultTick<i+1>;\
+   tick_functions_[i+2] = &Z80::DefaultTick<i+2>;\
+   tick_functions_[i+3] = &Z80::DefaultTick<i+3>;\
+tick_functions_[i+4] = &Z80::DefaultTick<i+4>;\
+tick_functions_[i+5] = &Z80::DefaultTick<i+5>;\
+tick_functions_[i+6] = &Z80::DefaultTick<i+6>;\
+tick_functions_[i+7] = &Z80::DefaultTick<i+7>;\
+tick_functions_[i+8] = &Z80::DefaultTick<i+8>;\
+tick_functions_[i+9] = &Z80::DefaultTick<i+9>;\
+tick_functions_[i+10] = &Z80::DefaultTick<i+10>;\
+tick_functions_[i+11] = &Z80::DefaultTick<i+11>;\
+tick_functions_[i+12] = &Z80::DefaultTick<i+12>;\
+tick_functions_[i+13] = &Z80::DefaultTick<i+13>;\
+tick_functions_[i+14] = &Z80::DefaultTick<i+14>;\
+tick_functions_[i+15] = &Z80::DefaultTick<i+15>;\
+
 void Z80::InitTickFunctions()
 {
-   for (int i = 0; i < 0xAF; i++)
+   /*for (int i = 0; i < 0xAF; i++)
    {
-      tick_functions_[i] = &Z80::DefaultTick;
-   }
+      tick_functions_[i] = &Z80::DefaultTick<i>;
+   }*/
+   SET_FUNC(0);
+   SET_FUNC(0x10);
+   SET_FUNC(0x20);
+   SET_FUNC(0x30);
+   SET_FUNC(0x40);
+   SET_FUNC(0x50);
+   SET_FUNC(0x60);
+   SET_FUNC(0x70);
+   SET_FUNC(0x80);
+   SET_FUNC(0x90);
+   SET_FUNC(0xA0);
 
    tick_functions_[M_FETCH + 1] = &Z80::Tick_Fetch_1;
    tick_functions_[M_FETCH + 2] = &Z80::Tick_Fetch_2;
@@ -710,5 +739,9 @@ void Z80::InitTickFunctions()
    {
       tick_functions_[M_FETCH + i] = &Z80::Tick_Fetch_X;
    }
-   
+   tick_functions_[M_M1_NMI + 1] = &Z80::Tick_NMI_1;
+   tick_functions_[M_M1_NMI + 2] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 3] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 4] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 5] = &Z80::Tick_NMI_5;
 }

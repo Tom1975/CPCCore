@@ -379,12 +379,18 @@ public:
    Func tick_functions_[0xAF];
 
    // tick generic functions
-   unsigned int DefaultTick();
+   //unsigned int DefaultTick();
+   template <int state> unsigned int DefaultTick();
+
    unsigned int Tick_Fetch_1();
    unsigned int Tick_Fetch_2();
    unsigned int Tick_Fetch_3();
    unsigned int Tick_Fetch_4();
    unsigned int Tick_Fetch_X();
+
+   unsigned int Tick_NMI_1();
+   unsigned int Tick_NMI_2_4();
+   unsigned int Tick_NMI_5();
 
    //
    unsigned int DefaultFetch();
