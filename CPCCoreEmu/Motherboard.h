@@ -244,7 +244,12 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       if constexpr (fdc_present)
          RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
 
-      RUN_COMPOSANT_N((z80_), elapsed_time_z80);
+      //RUN_COMPOSANT_N((z80_), elapsed_time_z80);
+      if (elapsed_time_z80 <= next_cycle)
+      {
+         z80_.counter_++;
+         elapsed_time_z80 += (z80_.*(z80_.tick_functions_)[z80_.machine_cycle_ | z80_.t_])();
+      }
 
       /*if (elapsed_time_dma <= next_cycle)
       {

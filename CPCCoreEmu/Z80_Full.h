@@ -166,6 +166,7 @@ public:
    bool IsCallInstruction(unsigned short address);
 
 
+   // Don't use : Force an inline usage for more efficiency
    inline unsigned int Tick( ) 
    {
       ++counter_;
