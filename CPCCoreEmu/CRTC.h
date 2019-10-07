@@ -101,7 +101,7 @@ public:
    typedef void (CRTC::*Func)();
    Func TickFunction;
 
-protected:
+//protected:
 
    IPlayback* play_back_ ;
    ILog* log_ ;

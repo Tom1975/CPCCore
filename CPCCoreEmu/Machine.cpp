@@ -723,7 +723,8 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       motherboard_.run_ = true;
 
       run_time = time_slice_ * 4000;
-      if (motherboard_.IsPLUS())
+      //if (motherboard_.IsPLUS())
+      if(current_settings_->TapePlugged())
       {
          if (current_settings_->FDCPlugged())
          {

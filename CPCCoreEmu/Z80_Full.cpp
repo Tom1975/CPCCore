@@ -150,11 +150,6 @@ void Z80::PreciseTick()
 {
 }
 
-/*unsigned int Z80::Tick()
-{
-   ++counter_;   
-   return (this->*(tick_functions_)[machine_cycle_ | t_])();
-}*/
 
 unsigned int Z80::Tick_Fetch_1()
 {

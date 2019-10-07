@@ -115,7 +115,7 @@ public:
    //void StartOptimized(unsigned int nb_cycles);
 
 
-   template <bool plus, bool fdc_present, bool components_present>
+   template <bool tape_present, bool fdc_present, bool components_present>
    void StartOptimizedPlus(unsigned int nb_cycles);
    int DebugNew(unsigned int nb_cycles);
    unsigned int GetSpeed() { return speed_percent_; }
@@ -196,14 +196,16 @@ protected:
 
 #define  RUN_COMPOSANT_N(c,v) if (v <= next_cycle ) v += c.Tick ();
 
-template <bool plus, bool fdc_present, bool components_present>
+template <bool tape_present, bool fdc_present, bool components_present>
 void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 {
    unsigned int next_cycle = nb_cycles;
    unsigned int index = 0;
    unsigned int elapsed_time_psg = component_elapsed_time_[index++];
    unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
-   unsigned int elapsed_time_tape = component_elapsed_time_[index++];
+   unsigned int elapsed_time_tape = 0;
+   if constexpr (tape_present)
+      elapsed_time_tape = component_elapsed_time_[index++];
    unsigned int elapsed_time_asic = component_elapsed_time_[index++];
    unsigned int elapsed_time_fdc = 0;
    if constexpr (fdc_present)
@@ -231,20 +233,56 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       {
          elapsed_time_psg += psg_.Tick();
       }
-      RUN_COMPOSANT_N(tape_, elapsed_time_tape);
-      if constexpr (plus)
+      if constexpr (tape_present)
+         RUN_COMPOSANT_N(tape_, elapsed_time_tape);
+
+      if (elapsed_time_asic <= next_cycle)
       {
-         if (elapsed_time_asic <= next_cycle) elapsed_time_asic += asic_.crtc_->Tick();
+         (crtc_.*(crtc_.TickFunction))();
+
+         signals_.v_sync_ = crtc_.ff4_;
+
+         // Lightgun :
+         // If X/Y is in the current zone => do something
+         crtc_.gate_array_->Tick();
+
+         // Cursor
+         if (crtc_.vlc_ >= crtc_.registers_list_[10] && crtc_.vlc_ <= crtc_.registers_list_[11]
+            && crtc_.ma_ == crtc_.registers_list_[15] + ((crtc_.registers_list_[14] & 0x3F) << 8))
+         {
+            // Set CURSOR
+            if (crtc_.cursor_line_) crtc_.cursor_line_->Tick();
+         }
+
+         if (crtc_.gun_button_ == 1)
+         {
+            if (((((crtc_.gate_array_)->monitor_)->x_ + 16 - crtc_.gun_x_) & 0x7FFFFFFF) < 16
+               && ((crtc_.gate_array_)->monitor_)->y_ * 2 == crtc_.gun_y_
+               )
+            {
+               // Found
+               // GUNSTICK : Joystick down
+               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
+               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
+            }
+         }
+         else
+         {
+            // todo : this rand is too expensive !
+            //if (rand() & 1)
+            {
+               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
+               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
+            }
+         }
+
+         elapsed_time_asic += 4;// asic_.crtc_->Tick();
       }
-      else
-      {
-         RUN_COMPOSANT_N(crtc_, elapsed_time_asic);
-      }
+
 
       if constexpr (fdc_present)
          RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
 
-      //RUN_COMPOSANT_N((z80_), elapsed_time_z80);
       if (elapsed_time_z80 <= next_cycle)
       {
          z80_.counter_++;
@@ -272,9 +310,10 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
    index = 0;
    component_elapsed_time_[index++] = elapsed_time_psg - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_z80 - nb_cycles;
-   component_elapsed_time_[index++] = elapsed_time_tape - nb_cycles;
+   if constexpr (tape_present) 
+      component_elapsed_time_[index++] = elapsed_time_tape - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_asic - nb_cycles;
-   if (fdc_present)
+   if constexpr (fdc_present)
       component_elapsed_time_[index++] = elapsed_time_fdc - nb_cycles;
    
    for (int i = 0; i < signals_.nb_expansion_; i++)

@@ -427,7 +427,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
          || vsync_)
       {
          memset(buffer_to_display, 0, 16);
-         if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+         if (buffered_ink_available_) { monitor_->RecomputeColors(); }
          END_OF_DISPLAY
       }
       else
@@ -471,7 +471,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                         buffer_to_display[i * 4 + 2] = buffer_to_display[i * 4];
                         buffer_to_display[i * 4 + 3] = buffer_to_display[i * 4];
 
-                        if (i == 0 && buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                        if (i == 0 && buffered_ink_available_) { monitor_->RecomputeColors(); }
                         /*i++;
                         buffer_to_display[i * 4] = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];
                         buffer_to_display[i * 4 + 1] = buffer_to_display[i * 4];
@@ -498,7 +498,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   {
                      memcpy(buffer_to_display, video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER], video_border_, 4 * NB_BYTE_BORDER);
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 2], video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 3], video_border_, 4 * NB_BYTE_BORDER);
 
@@ -512,7 +512,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   if (!crtc_->de_bug_)
                   {
                      memcpy(buffer_to_display, Mode0ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
 
                      //END_OF_DISPLAY
@@ -534,7 +534,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      *buffer_to_display = video_border_[0];
                      crtc_->de_bug_ = false;
                      memcpy(&buffer_to_display[1], &Mode0ExtendedLut[display_short_.byte.l][1], 7 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
 
                      END_OF_DISPLAY
@@ -589,7 +589,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                         if (i == 1 && buffered_ink_available_)
                         {
-                           monitor_->RecomputeColors(); buffered_ink_available_ = false;
+                           monitor_->RecomputeColors(); 
                         }
                      }
                      // Sprite
@@ -601,7 +601,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   {
                      memcpy(buffer_to_display, video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER], video_border_, 4 * NB_BYTE_BORDER);
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 2], video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 3], video_border_, 4 * NB_BYTE_BORDER);
 
@@ -616,7 +616,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   {
                      memcpy(&buffer_to_display[0], &Mode1ExtendedLut[(display_short_.byte.l)], 8 * sizeof(int));
 
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
                      END_OF_DISPLAY
                   }
@@ -625,7 +625,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      buffer_to_display[0] = video_border_[0];
                      crtc_->de_bug_ = false;
                      memcpy(&buffer_to_display[1], &Mode1ExtendedLut[(display_short_.byte.l)][1], 7 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
                      END_OF_DISPLAY
                   }
@@ -663,7 +663,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      buffer_to_display[1] = ink_list_[(c1 >> (16 - (1 + 1))) & 0x1];
                      buffer_to_display[2] = ink_list_[(c1 >> (16 - (2 + 1))) & 0x1];
                      buffer_to_display[3] = ink_list_[(c1 >> (16 - (3 + 1))) & 0x1];
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      buffer_to_display[4] = ink_list_[(c1 >> (16 - (4 + 1))) & 0x1];
                      buffer_to_display[5] = ink_list_[(c1 >> (16 - (5 + 1))) & 0x1];
                      buffer_to_display[6] = ink_list_[(c1 >> (16 - (6 + 1))) & 0x1];
@@ -685,7 +685,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   {
                      memcpy(buffer_to_display, video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER], video_border_, 4 * NB_BYTE_BORDER);
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 2], video_border_, 4 * NB_BYTE_BORDER);
                      memcpy(&buffer_to_display[NB_BYTE_BORDER * 3], video_border_, 4 * NB_BYTE_BORDER);
 
@@ -700,7 +700,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   {
                      memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
 
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
 
                      END_OF_DISPLAY
@@ -711,7 +711,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      crtc_->de_bug_ = false;
                      memcpy(&buffer_to_display[1], &Mode2ExtendedLut[display_short_.byte.l][1], 7 * sizeof(int));
 
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
 
                      END_OF_DISPLAY
@@ -764,7 +764,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
          {
             memcpy(buffer_to_display, video_border_, 4 * NB_BYTE_BORDER);
             memcpy(&buffer_to_display[NB_BYTE_BORDER], video_border_, 4 * NB_BYTE_BORDER);
-            if (buffered_ink_available_) { monitor_->RecomputeColors(); buffered_ink_available_ = false; }
+            if (buffered_ink_available_) { monitor_->RecomputeColors(); }
             memcpy(&buffer_to_display[NB_BYTE_BORDER * 2], video_border_, 4 * NB_BYTE_BORDER);
             memcpy(&buffer_to_display[NB_BYTE_BORDER * 3], video_border_, 4 * NB_BYTE_BORDER);
             END_OF_DISPLAY

@@ -239,6 +239,13 @@ unsigned char CRTC::In ( unsigned short address )
          case 18:
          case 26:
          {
+            // Compute status
+            if (type_crtc_ == 3 || type_crtc_ == 4)
+            {
+               if (hcc_ == registers_list_[1]) status1_ &= ~0x04;
+               if (hcc_ == registers_list_[0] / 2) status1_ &= ~0x02;
+               if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
+            }
             return status1_;
          }
 
@@ -246,6 +253,12 @@ unsigned char CRTC::In ( unsigned short address )
          case 11:
          case 19:
          case 27:
+            if (type_crtc_ == 3 || type_crtc_ == 4)
+            {
+               status2_ = (vlc_ == 0) ? (~0x80) : 0xFF;
+               if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
+
+            }
             return status2_;
 
          case 0:// REG 16
