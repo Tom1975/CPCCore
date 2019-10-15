@@ -10,6 +10,7 @@ MachineSettings::MachineSettings() :configuration_manager_(nullptr), loaded_(fal
    ram_cfg_ = M128_K;
    cartridge_path_ = "CART\\plus_en.cpr";
    fdc_present_ = true;
+   tape_present_ = true;
    pal_present_ = true;
    type_crtc_ = CRTC::AMS40226;
 }
@@ -92,6 +93,7 @@ bool MachineSettings::Load(bool force_reload)
    type_crtc_ = static_cast<CRTC::TypeCRTC>(configuration_manager_->GetConfigurationInt("Hardware", "Type_CRTC", 0, file_path_.c_str()));
    pal_present_ = (configuration_manager_->GetConfigurationInt("Hardware", "PAL", 1, file_path_.c_str()) == 1);
    fdc_present_ = (configuration_manager_->GetConfigurationInt("Hardware", "FDC", 1, file_path_.c_str()) == 1);
+   tape_present_ = (configuration_manager_->GetConfigurationInt("Hardware", "Tape", 1, file_path_.c_str()) == 1);
 
    ram_cfg_ = static_cast<RamCfg>(configuration_manager_->GetConfigurationInt("Memory", "RAM", M128_K, file_path_.c_str()));
 
@@ -140,6 +142,7 @@ bool MachineSettings::Save(const char* new_name)
    configuration_manager_->SetConfiguration("Hardware", "Type_CRTC", crtc_type_str.str().c_str(), file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "PAL", pal_present_ ? "1" : "0", file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "FDC", fdc_present_ ? "1" : "0", file_path_.c_str());
+   configuration_manager_->SetConfiguration("Hardware", "Tape", tape_present_ ? "1" : "0", file_path_.c_str());
 
    // Keyboard
    configuration_manager_->SetConfiguration("Keyboard", "Type", keyboard_config_.c_str(), file_path_.c_str());

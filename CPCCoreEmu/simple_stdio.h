@@ -1,7 +1,7 @@
 #pragma once
 
 
-#ifdef MINIMUM_DEPENDENCIES
+#ifdef __circle__
 
 #include "circle/fs/fat/fatfs.h"
 

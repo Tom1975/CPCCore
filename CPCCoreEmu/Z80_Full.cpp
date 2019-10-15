@@ -13,6 +13,7 @@ Z80::Z80(void) :
 {
 
    InitOpcodeShortcuts();
+   InitTickFunctions();
    int i, p;
    for (i = 0; i < 256; i++)
    {
@@ -68,34 +69,6 @@ Z80::~Z80(void)
 {
 }
 
-IZ80* Z80::CopyMe()
-{
-   IZ80* new_z80 = new Z80();
-   *new_z80 = *this;
-
-   return new_z80;
-}
-
-void Z80::DeleteCopy(IZ80* z80)
-{
-   delete z80;
-}
-
-bool Z80::CompareToCopy(IZ80* z80)
-{
-   if (IZ80::CompareToCopy(z80) == false) return false;
-
-   Z80* other = (Z80*)z80;
-
-   if (machine_cycle_ != other->machine_cycle_) return false;
-   if (counter_ != other->counter_) return false;
-   if (carry_set_ != other->carry_set_) return false;
-   if (current_opcode_ != other->current_opcode_) return false;
-
-   return true;
-}
-
-
 void Z80::ReinitProc()
 {
 
@@ -112,7 +85,6 @@ void Z80::Reset()
 {
 
    rw_opcode_ = false;
-   memset(&system_ctrl_, 0, sizeof(system_ctrl_));
 
    machine_cycle_ = M_FETCH;
    pc_ = 0x0000;
@@ -131,8 +103,6 @@ void Z80::Reset()
    //ir_.w = 0;
 
    t_ = 1;
-   cpu_ctrl_.halt = 0;
-   //m_CurrentListOpcodes = ListeOpcodes;
 
    interrupt_mode_ = 0;
 
@@ -141,7 +111,6 @@ void Z80::Reset()
 }
 
 
-//#define WAIT_TEST if ( !cpu_ctrl_.WAIT)
 #define WAIT_TEST if ((counter_&0x3) == 0)
 
 void Z80::InterruptInit()
@@ -181,336 +150,75 @@ void Z80::PreciseTick()
 {
 }
 
-unsigned int Z80::Tick()
+
+unsigned int Z80::Tick_Fetch_1()
 {
-   int nextcycle;
-   // TODO : This should be handled by the GA
-   //counter_ = (++counter_) & 0x3;
-   //cpu_ctrl_.WAIT = counter_ != 0;
-   ++counter_;
+   INC_R
+   // Set PC to address bus
+   address_ = pc_++;
 
-   switch (machine_cycle_ | t_)
-   {
-   case M_M1_NMI + 1:
-   {
-      INC_R;
+   data_ = memory_->Get(address_);
 
+   // Compute to avoid waiting cycles :
+   // t_++;
+   current_opcode_ <<= 8;
+   current_opcode_ |= data_;
+   int nextcycle = 4 - (counter_ & 0x3);
+
+   t_ = 4;
+   counter_ += nextcycle + 1;
+   return nextcycle + 2;
+}
+
+unsigned int Z80::Tick_Fetch_2() 
+{
+   WAIT_TEST;  t_++; return 1;
+}
+      
+unsigned int Z80::Tick_Fetch_3()
+{
+   t_++; return 1;
+}
+
+unsigned int Z80::Tick_Fetch_4()
+{
+   //if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
+   if ((current_opcode_ & 0xF7) != 0x37)
       q_ = 0;
-      iff2_ = iff1_;
-      iff1_ = 0;
-      sig_->nmi_ = false;
-      sig_->M1();
-      ++t_; return 1;
-   }
-   case M_M1_NMI + 2:
-   case M_M1_NMI + 3:
-   case M_M1_NMI + 4:
-      ++t_; break;
-   case M_M1_NMI + 5:
-   {
-      machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; read_count_ = 0;
-      current_opcode_ = 0xFF12; // NMI
-      break;
-   }
-   /////////////////////////////////////////////////
-   // M1 Interrupt
-   case M_M1_INT + 1:
-   {
-      switch (interrupt_mode_)
-      {
-      case 0:
-      {
-         InterruptInit();
-         nextcycle = 4 - ((counter_ + 3) & 0x3);
-         t_ = 6;
-         counter_ += nextcycle + 3;
-         return nextcycle + 4;
-      }
-      case 1:
-      {
-         InterruptInit();
+   return (this->*(*current_function_)[current_opcode_ & 0xFF])();
+}
 
-         nextcycle = 4 - ((counter_ + 2) & 0x3);
-         t_ = 7;
-         counter_ += nextcycle + 4;
-         return nextcycle + 5;
+unsigned int Z80::Tick_Fetch_X()
+{
+   return (this->*(*current_function_)[current_opcode_ & 0xFF])();
+}
 
-         //++t_;
-      }
-      case 2:
-      {
-         InterruptInit();
+unsigned int Z80::Tick_NMI_1()
+{
+   INC_R;
+   q_ = 0;
+   iff2_ = iff1_;
+   iff1_ = 0;
+   sig_->nmi_ = false;
+   sig_->M1();
+   ++t_; 
+   return 1;
+}
 
-         /*int nextcycle = 4 - ((counter_ + 2) & 0x3);
-         t_ = 7;
-         counter_ += nextcycle + 4;
-         return nextcycle + 5;*/
-         t_++;
-         return 1;
-      }
-      }
-   }
-   case M_M1_INT + 2:
-   case M_M1_INT + 3:
-      ++t_; return 1;
-   case M_M1_INT + 4:
-   {
-      WAIT_TEST
-         t_++;
-      return 1;
-   }
+unsigned int Z80::Tick_NMI_2_4()
+{
+   ++t_; 
+   return 1;
+}
 
-   case M_M1_INT + 5:
-   case M_M1_INT + 6:
-   {
-      if (interrupt_mode_ == 2)
-      {
-         ++t_; return 1;
-      }
-      else if (interrupt_mode_ == 0)
-      {
-         // Read from databus
-         sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF, true);
-         t_++;
-         return 1;
-      }
-   }
-
-   case M_M1_INT + 7:
-   {
-      if (interrupt_mode_ == 0)
-      {
-         //INC_R
-         machine_cycle_ = M_FETCH; t_ = 4; current_opcode_ = data_;
-         return 1;
-      }
-      else if (interrupt_mode_ == 1)
-      {
-         machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; read_count_ = 0;
-         current_opcode_ = 0xFF; // Opcode is RST &38
-         return 1;
-      }
-      else if (interrupt_mode_ == 2)
-      {
-         // Depends :
-         // On OLD = 0xFF
-         // On PLUS : If ASIC is not enabled = 0
-         // Otherwise, interrupt_io_data_
-
-         // The Vectored Interrupt Bug
-
-         // This bug occurs when :
-         // PREVENT SHMUP TO WORK !!!
-         if (((pc_ & 0x2000) == 0) && rw_opcode_)
-         {
-            // A13 of PC = 0
-            // last opcode perform a Read/Write memory
-            // DMA interrupt are not used
-            if (((sig_->interrupt_io_data_ & 0x6) == 0x6)
-               || (sig_->interrupt_io_data_ == 0))
-            {
-               sig_->interrupt_io_data_ &= ~0x06;
-               sig_->interrupt_io_data_ |= 0x04;
-            }
-
-            // Happens for Raster interrupt, or DMA with autoclear enabled
-         }
-
-         // End of vectorized Interrupt Bug
-         current_data_ = data_ = sig_->interrupt_io_data_;
-
-         machine_cycle_ = M_IO_R; t_ = 5;
-         current_opcode_ = 0xFF02; // Interrupt Mode 2
-         return 5;
-
-      }
-   }
-
-   /////////////////////////////////////////////////
-   // FETCH
-   case M_FETCH + 1:
-   {
-      INC_R
-
-         // Set PC to address bus
-         address_ = pc_++;
-
-      data_ = memory_->Get(address_);
-
-      // Compute to avoid waiting cycles :
-      // t_++;
-      current_opcode_ <<= 8;
-      current_opcode_ |= data_;
-      nextcycle = 4 - (counter_ & 0x3);
-
-      t_ = 4;
-      counter_ += nextcycle + 1;
-      return nextcycle + 2;
-   }
-   case M_FETCH + 2:
-      WAIT_TEST
-         t_++;
-      return 1;
-   case M_FETCH + 3:
-      t_++;
-      return 1;
-   case M_FETCH + 4:
-   {
-      if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
-         //if ((current_opcode_ & 0xF7) != 0xF7)
-         q_ = 0;
-   }
-   case M_FETCH + 5:
-   case M_FETCH + 6:
-   case M_FETCH + 7:
-   case M_FETCH + 8:
-   case M_FETCH + 9:
-   case M_FETCH + 10:
-   case M_FETCH + 11:
-   case M_FETCH + 12:
-   {
-      int val = (this->*(*current_function_)[current_opcode_ & 0xFF])();
-      if (pc_ == 0x61D || pc_ == 0x628)
-      {
-      }
-      return val;
-   }
-   /////////////////////////////////////////////////
-   // MEMORY IO
-   case M_MEMORY_R + 1:
-   {
-      rw_opcode_ = true;
-      address_ = current_address_;
-      //system_ctrl_.MREQ = 1;
-      //system_ctrl_.RD = 1;
-      //t_++;
-      data_ = memory_->Get(address_);
-
-      nextcycle = 3 - (counter_ & 0x3);
-
-      t_ = 3;
-      counter_ += nextcycle + 1;
-      return nextcycle + 2;
-   }
-   case M_MEMORY_R + 2:
-   {
-      WAIT_TEST
-         t_++;
-      return 1;
-   }
-
-   case M_MEMORY_R + 3:
-      current_data_ |= (data_ << (read_count_ * 8));
-   case M_MEMORY_R + 4:
-   case M_MEMORY_R + 5:
-   case M_MEMORY_R + 6:
-   case M_MEMORY_R + 7:
-   case M_MEMORY_R + 8:
-   {
-      return OpcodeMEMR();
-   }
-
-   case M_MEMORY_W + 1:
-   {
-      rw_opcode_ = true;
-      address_ = current_address_;
-      data_ = current_data_ & 0xFF;// >> (read_count_ * 8);
-      //system_ctrl_.MREQ = 1;
-
-      nextcycle = 3 - (counter_ & 0x3);
-
-      t_ = 3;
-      counter_ += nextcycle + 1;
-      return nextcycle + 2;
-   }
-   case M_MEMORY_W + 2:
-   {
-      // Sample WAIT
-      WAIT_TEST
-      {
-         t_++;
-      //system_ctrl_.WR = 1;
-      }
-      break;
-   }
-
-   case M_MEMORY_W + 3:
-      memory_->Set(address_, data_);
-      // WRITE the data
-      //data_ = current_data_;
-      //system_ctrl_.MREQ = 0;
-      //system_ctrl_.WR = 0;
-   case M_MEMORY_W + 4:
-   case M_MEMORY_W + 5:
-   case M_MEMORY_W + 6:
-   case M_MEMORY_W + 7:
-   case M_MEMORY_W + 8:
-      // Execute next of the instruction
-      return OpcodeMEMW();
-
-      /////////////////////////////////////////////////
-   // I/O
-   case M_IO_R + 1:
-      address_ = current_address_;
-      t_++;
-      return 1;
-
-   case M_IO_R + 2:
-   {
-      //
-      //system_ctrl_.RD = 1;
-      //system_ctrl_.IORQ = 1;
-      sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF);
-      //t_++;
-      nextcycle = 3 - (counter_ & 0x3);
-      t_ = 4;
-      counter_ += nextcycle + 1;
-      return nextcycle + 2;
-
-   }
-   case M_IO_R + 4:
-      current_data_ = data_;
-   case M_IO_R + 5:
-   case M_IO_R + 6:
-   case M_IO_R + 7:
-   case M_IO_R + 8:
-      return OpcodeIOR();
-
-   case M_IO_W + 1:
-   {
-      address_ = current_address_;
-      data_ = current_data_ & 0xFF;
-      t_++;
-      break;
-   case M_IO_W + 2:
-   {
-      sig_->Out(address_, data_);
-      nextcycle = 3 - (counter_ & 0x3);
-
-      t_ = 4;
-      counter_ += nextcycle + 1;
-      return nextcycle + 2;
-
-   }
-   case M_IO_W + 4:
-   case M_IO_W + 5:
-   case M_IO_W + 6:
-   case M_IO_W + 7:
-   case M_IO_W + 8:
-      return OpcodeIOW();
-   }
-   case M_Z80_WORK:
-   case M_Z80_WORK + 1:
-      return OpcodeWAIT();
-   case M_Z80_WORK + 2:
-   case M_Z80_WORK + 3:
-   case M_Z80_WORK + 4:
-   case M_Z80_WORK + 5:
-      //if (t_>=4) if (sig_->ctrl_int != 1) rw_opcode_ = false;
-   default:
-      --t_;
-      return 1;
-   }
+unsigned int Z80::Tick_NMI_5()
+{
+   machine_cycle_ = M_MEMORY_W; 
+   t_ = 1; 
+   current_address_ = --sp_; 
+   current_data_ = pc_ >> 8; 
+   read_count_ = 0;
+   current_opcode_ = 0xFF12;
    return 1;
 }
 
@@ -852,4 +560,221 @@ unsigned int Z80::Opcode_NEG()
    af_.b.l = q_;
    af_.b.h = res;
    NEXT_INSTR;
+}
+
+unsigned int Z80::MEMR_DJNZ()
+{
+   ++pc_;
+   --bc_.b.h;
+   if (bc_.b.h != 0) 
+   {
+      pc_ += (char)data_;
+      mem_ptr_.w = pc_;
+      machine_cycle_ = M_Z80_WAIT;
+      counter_ += (5 - 1);
+      t_ = 1;
+      return 5;
+   }
+   else 
+   { 
+      int nextcycle;
+      NEXT_INSTR;
+   }
+}
+
+unsigned int Z80::MEMR_JR()
+{
+   ++pc_; 
+   pc_ += (char)(current_data_ & 0xFF); 
+   mem_ptr_.w = pc_; 
+   machine_cycle_ = M_Z80_WAIT; 
+   counter_ += (4);
+   t_ = 1;
+   return 5;
+}
+
+unsigned int Z80::MEMR_Ld_A_NN()
+{
+   if (read_count_ == 2)
+   {
+      int nextcycle;
+      af_.b.h = data_;
+      NEXT_INSTR;
+   }
+   else
+   {
+      ++pc_;
+      t_ = 1;
+      if (read_count_++ == 0)
+      {
+         current_address_ = pc_;
+      }
+      else
+      {
+         machine_cycle_ = M_MEMORY_R;
+         current_address_ = current_data_;
+         mem_ptr_.w = current_address_ + 1;
+         current_data_ = 0;
+      }
+   }
+   return 1;
+}
+
+unsigned int Z80::Opcode_CP_Data()
+{
+   int nextcycle;
+   unsigned int res = af_.b.h - data_;
+   q_ = NF | (((res & 0xff) == 0) ? ZF : 0) | (res & 0x80) | ((res >> 8) & CF) | ((af_.b.h ^ res ^ data_) & HF);
+   if ((((af_.b.h & 0x80) ^ (data_ & 0x80)) != 0) && (((af_.b.h & 0x80) ^ (res & 0x80)) != 0)) q_ |= PF;
+   q_ |= (data_ & 0x28);
+   af_.b.l = q_;
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Opcode_RET()
+{
+   if (read_count_ == 0) 
+   {
+      t_ = 1; 
+      current_address_ = sp_++; 
+      ++read_count_; 
+   }
+   else 
+   {
+      int nextcycle;
+      pc_ = current_data_ & 0xFFFF;
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR 
+   }
+   return 1;
+}
+
+unsigned int Z80::Opcode_Jp()
+{
+   if (read_count_ == 0)
+   { 
+      ++pc_; 
+      t_ = 1; 
+      current_address_ = pc_; 
+      ++read_count_; 
+   }
+   else 
+   { 
+      int nextcycle;
+      pc_ = current_data_; 
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR 
+   }
+   return 1;
+}
+
+unsigned int Z80::Memr_Call_nn()
+{
+   if (read_count_ == 0) 
+   {
+      ++pc_;
+      t_ = 1;
+      current_address_ = pc_;
+      ++read_count_; 
+      return 1;
+   }
+   else
+   {
+      int nextcycle;
+      TraceTape(pc_, hl_.b.l);
+      pc_ = current_data_; 
+      mem_ptr_.w = pc_; 
+      NEXT_INSTR
+   }
+}
+
+unsigned int Z80::Memr_Out_n()
+{
+   ++pc_;
+   q_ = af_.b.l; 
+   q_ |= (data_ & 0x80) ? NF : 0; 
+   af_.b.l = q_; 
+   mem_ptr_.b.l = data_; 
+   mem_ptr_.b.h = af_.b.h; 
+   machine_cycle_ = M_IO_W; 
+   t_ = 1; 
+   current_address_ = mem_ptr_.w; 
+   mem_ptr_.b.l++; 
+   current_data_ = af_.b.h; 
+   return 1;
+}
+
+unsigned int Z80::Memr_In_n()
+{
+   ++pc_; 
+   mem_ptr_.b.l = data_; 
+   mem_ptr_.b.h = af_.b.h; 
+   machine_cycle_ = M_IO_R; 
+   t_ = 1; 
+   current_address_ = mem_ptr_.w++; 
+   current_data_ = 0; 
+   return 1;
+}
+
+unsigned int Z80::Memr_Ex_Sp_Hl()
+{
+   if (read_count_ == 0) 
+   { 
+      t_ = 1; 
+      current_address_ = sp_ + 1; 
+      ++read_count_; 
+   }
+   else 
+   { 
+      if (t_ == 4) 
+      { 
+         mem_ptr_.w = current_data_ & 0xFFFF; 
+         machine_cycle_ = M_MEMORY_W; 
+         t_ = 1; 
+         current_address_ = sp_ + 1; 
+         current_data_ = hl_.b.h; 
+         read_count_ = 0; 
+      } 
+      else 
+      { 
+         ++t_; 
+      } 
+   }
+   return 1;
+}
+
+unsigned int Z80::Memr_And_n()
+{
+   int nextcycle; 
+   unsigned int res;
+   ++pc_;
+   AND_FLAGS(current_data_ & 0xFF); 
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Memr_Xor_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   XOR_FLAGS(current_data_ & 0xFF); 
+   NEXT_INSTR;
+}
+
+unsigned int Z80::Memr_Or_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   OR_FLAGS(current_data_); 
+   NEXT_INSTR
+}
+
+unsigned int Z80::Memr_Cp_n()
+{
+   int nextcycle;
+   unsigned int res;
+   ++pc_; 
+   CP_FLAGS(data_); 
+   NEXT_INSTR
 }

@@ -1,5 +1,5 @@
 
-#ifdef MINIMUM_DEPENDENCIES
+#ifdef __circle__
 
 #include "simple_stdio.h"
 

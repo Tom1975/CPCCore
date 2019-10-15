@@ -8,10 +8,6 @@
 #include "PrinterDefault.h"
 #include "MediaManager.h"
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
-
 #ifdef PROF
 #define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
 #define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);
@@ -727,11 +723,61 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       motherboard_.run_ = true;
 
       run_time = time_slice_ * 4000;
-      if (motherboard_.IsPLUS())
-         motherboard_.StartOptimizedPlus(run_time);
+      //if (motherboard_.IsPLUS())
+      if(current_settings_->TapePlugged())
+      {
+         if (current_settings_->FDCPlugged())
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<true, true, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<true, true, true>(run_time);
+            }
+            
+         }
+         else
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<true, false, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<true, false, true>(run_time);
+            }
+            
+         }
+            
+      }
       else
       {
-         motherboard_.StartOptimized(run_time);
+         if (current_settings_->FDCPlugged())
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<false, true, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<false, true, true>(run_time);
+            }
+
+         }
+         else
+         {
+            if (motherboard_.GetSig()->nb_expansion_ == 0)
+            {
+               motherboard_.StartOptimizedPlus<false, false, false>(run_time);
+            }
+            else
+            {
+               motherboard_.StartOptimizedPlus<false, false, true>(run_time);
+            }
+
+         }
       }
    }
    else
@@ -748,9 +794,9 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
 
    if (do_snapshot_)
    {
-      if (GetProcFull()->machine_cycle_ == Z80::M_FETCH && GetProcFull()->t_ == 1)
+      if (GetProc()->machine_cycle_ == Z80::M_FETCH && GetProc()->t_ == 1)
       {
-         GetProcFull()->stop_on_fetch_ = false;
+         GetProc()->stop_on_fetch_ = false;
          
          if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
          {
@@ -935,7 +981,7 @@ bool EmulatorEngine::SaveSnapshot (const char* path_file)
 {
    do_snapshot_ = true;
    snapshot_file_ = path_file;
-   GetProcFull()->stop_on_fetch_ = true;
+   GetProc()->stop_on_fetch_ = true;
    return true;
 }
 
@@ -1070,8 +1116,8 @@ bool EmulatorEngine::LoadBinInt(unsigned char* buffer, unsigned int size)
       dest[0xBF06] = 0x16;
       dest[0xBF07] = 0xBD;
 
-      GetProcFull()->pc_ = 0xBF00;
-      GetProcFull()->ReinitProc();
+      GetProc()->pc_ = 0xBF00;
+      GetProc()->ReinitProc();
 
       return true;
    }

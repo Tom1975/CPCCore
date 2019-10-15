@@ -234,8 +234,7 @@ Monitor::~Monitor(void)
 {
 }
 
-
-unsigned int Monitor::Tick( /*unsigned int nbTicks*/)
+void Monitor::Tick( )
 {
 
    START_CHRONO
@@ -498,7 +497,7 @@ unsigned int Monitor::Tick( /*unsigned int nbTicks*/)
 
    STOP_CHRONO
 
-      return this_tick_time_ = NBPIXELADDED / 4;
+//      return this_tick_time_ = NBPIXELADDED / 4;
 
 }
 

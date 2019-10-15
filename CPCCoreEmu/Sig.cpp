@@ -63,8 +63,15 @@ void CSig::Reset ()
 // This method propagate signal, so they can be used by other components
 void CSig::Propagate()
 {
+
+   int_ |= req_int_;
+   req_int_ = false;
+
+   nmi_ |= req_nmi_;
+   req_nmi_ = false;
+
    // ctrl_int
-   if (req_int_)
+   /*if (req_int_)
    {
       int_ = true;
       req_int_ = false;
@@ -74,7 +81,8 @@ void CSig::Propagate()
    {
       nmi_ = true;
       req_nmi_ = false;
-   }
+   }*/
+
 }
 
 void CSig::M1()

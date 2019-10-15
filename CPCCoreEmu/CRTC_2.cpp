@@ -32,7 +32,7 @@ void CRTC::ClockTick2 ()
    }
 
 
-   if (ff2_ )
+   if (signals_->h_sync_)
    {
       horinzontal_pulse_++;
    }
@@ -201,7 +201,7 @@ void CRTC::ClockTick2 ()
       h_no_sync_ = true;
    }
 
-   if ((horinzontal_pulse_ >= horizontal_sync_width_) && (ff2_||signals_->hsync_raise_))
+   if ((horinzontal_pulse_ >= horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
    {
       //m_Sig->HsyncFallWr = true;
       signals_->hsync_fall_ = true;
@@ -238,11 +238,11 @@ void CRTC::ClockTick2 ()
    // Flip flop computation
    if ( ff2_reset && !ff2_set)
    {
-      ff2_ = false;
+      signals_->h_sync_ = false;
    }
    else if ( !ff2_reset && ff2_set)
    {
-      ff2_ = true;
+      signals_->h_sync_ = true;
    }
    else if ( ff2_reset && ff2_set)
    {

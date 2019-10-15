@@ -26,10 +26,6 @@ static int AddIntToBuffer(unsigned char* buff, int index, unsigned int value)
    return index;
 }
 
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
-
 FormatTypeSCP::FormatTypeSCP()
 {
 }

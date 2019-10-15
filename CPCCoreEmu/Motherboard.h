@@ -112,7 +112,10 @@ public:
    void OnOff();
    void Resync();
    void ForceTick(IComponent* component, int ticks);
-   void StartOptimized(unsigned int nb_cycles);
+   //void StartOptimized(unsigned int nb_cycles);
+
+
+   template <bool tape_present, bool fdc_present, bool components_present>
    void StartOptimizedPlus(unsigned int nb_cycles);
    int DebugNew(unsigned int nb_cycles);
    unsigned int GetSpeed() { return speed_percent_; }
@@ -189,3 +192,132 @@ protected:
    int z80_index_;
 
 };
+
+
+#define  RUN_COMPOSANT_N(c,v) if (v <= next_cycle ) v += c.Tick ();
+
+template <bool tape_present, bool fdc_present, bool components_present>
+void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
+{
+   unsigned int next_cycle = nb_cycles;
+   unsigned int index = 0;
+   unsigned int elapsed_time_psg = component_elapsed_time_[index++];
+   unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
+   unsigned int elapsed_time_tape = 0;
+   if constexpr (tape_present)
+      elapsed_time_tape = component_elapsed_time_[index++];
+   unsigned int elapsed_time_asic = component_elapsed_time_[index++];
+   unsigned int elapsed_time_fdc = 0;
+   if constexpr (fdc_present)
+      elapsed_time_fdc = component_elapsed_time_[index++];
+
+   unsigned int elapsed_components[16];
+   for (int i = 0; i < signals_.nb_expansion_; i++)
+   {
+      elapsed_components[i] = component_elapsed_time_[index++];
+   }
+
+   unsigned int* elapsed = component_elapsed_time_;
+   for (unsigned int i = 0; i < index; ++i)
+   {
+      if (*elapsed < next_cycle)
+      {
+         next_cycle = *elapsed;
+      }
+      ++elapsed;
+   }
+
+   while (next_cycle < nb_cycles)
+   {
+      if (elapsed_time_psg == next_cycle)
+      {
+         elapsed_time_psg += psg_.Tick();
+      }
+      if constexpr (tape_present)
+         RUN_COMPOSANT_N(tape_, elapsed_time_tape);
+
+      if (elapsed_time_asic <= next_cycle)
+      {
+         (crtc_.*(crtc_.TickFunction))();
+
+         signals_.v_sync_ = crtc_.ff4_;
+
+         // Lightgun :
+         // If X/Y is in the current zone => do something
+         crtc_.gate_array_->Tick();
+
+         // Cursor
+         if (crtc_.vlc_ >= crtc_.registers_list_[10] && crtc_.vlc_ <= crtc_.registers_list_[11]
+            && crtc_.ma_ == crtc_.registers_list_[15] + ((crtc_.registers_list_[14] & 0x3F) << 8))
+         {
+            // Set CURSOR
+            if (crtc_.cursor_line_) crtc_.cursor_line_->Tick();
+         }
+
+         if (crtc_.gun_button_ == 1)
+         {
+            if (((((crtc_.gate_array_)->monitor_)->x_ + 16 - crtc_.gun_x_) & 0x7FFFFFFF) < 16
+               && ((crtc_.gate_array_)->monitor_)->y_ * 2 == crtc_.gun_y_
+               )
+            {
+               // Found
+               // GUNSTICK : Joystick down
+               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
+               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
+            }
+         }
+         else
+         {
+            // todo : this rand is too expensive !
+            //if (rand() & 1)
+            {
+               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
+               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
+            }
+         }
+
+         elapsed_time_asic += 4;// asic_.crtc_->Tick();
+      }
+
+
+      if constexpr (fdc_present)
+         RUN_COMPOSANT_N((fdc_), elapsed_time_fdc);
+
+      if (elapsed_time_z80 <= next_cycle)
+      {
+         z80_.counter_++;
+         elapsed_time_z80 += (z80_.*(z80_.tick_functions_)[z80_.machine_cycle_ | z80_.t_])();
+      }
+
+      /*if (elapsed_time_dma <= next_cycle)
+      {
+         dma_[0].Tick();
+         dma_[1].Tick();
+         elapsed_time_dma += dma_[2].Tick();
+      }*/
+
+      if constexpr (components_present)
+      for (int i = 0; i < signals_.nb_expansion_; i++)
+      {
+         if (elapsed_components[i] <= next_cycle) 
+            elapsed_components[i] += signals_.exp_list_[i]->Tick();
+      }
+
+      // Propagate SIG
+      signals_.Propagate();
+      ++next_cycle;
+   }
+   index = 0;
+   component_elapsed_time_[index++] = elapsed_time_psg - nb_cycles;
+   component_elapsed_time_[index++] = elapsed_time_z80 - nb_cycles;
+   if constexpr (tape_present) 
+      component_elapsed_time_[index++] = elapsed_time_tape - nb_cycles;
+   component_elapsed_time_[index++] = elapsed_time_asic - nb_cycles;
+   if constexpr (fdc_present)
+      component_elapsed_time_[index++] = elapsed_time_fdc - nb_cycles;
+   
+   for (int i = 0; i < signals_.nb_expansion_; i++)
+   {
+      component_elapsed_time_[index++] = elapsed_components[i] - nb_cycles;
+   }
+}

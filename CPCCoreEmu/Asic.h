@@ -22,7 +22,7 @@ public:
    void Init(GateArray* vga, CRTC* crtc, ILog* log = nullptr);
 
    void HardReset();
-   unsigned int Tick() override {return crtc_->Tick(); }
+   unsigned int Tick()  { return crtc_->Tick(); }
    virtual void M1 ();
 
    // Adress

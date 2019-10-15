@@ -23,10 +23,18 @@
  *
  */
 
-#ifdef RASPPI
-void rand_init();
-unsigned int rand(unsigned int min, unsigned int max);
-int rand();
+#ifdef __circle__
+#ifdef __cplusplus
+extern "C" {
+#endif
+   
+   void rand_init();
+   int rand(unsigned int min, unsigned int max);
+   int rand();
+
+#ifdef __cplusplus
+}
+#endif
 
 #else
 

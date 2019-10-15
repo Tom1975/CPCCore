@@ -101,12 +101,13 @@ SoundMixer::SoundMixer() :
    log_(nullptr)
 {
    // Everything, except firt, is on the "free buffer" list
+   buffer_list_ = new BufferItem[NB_BUFFERS];
    buffer_list_[0].Init();
    buffer_list_[0].status_ = BufferItem::IN_USE;
    buffer_list_[0].sample_number_ = sample_number_++;
    index_current_buffer_ = 0;
 
-   for (int i = 1; i < 16; i++)
+   for (int i = 1; i < NB_BUFFERS; i++)
    {
       buffer_list_[i].Init();
    }
@@ -173,6 +174,7 @@ SoundMixer::~SoundMixer()
    finished_ = true;
 #endif
 
+   delete[]buffer_list_;
    delete[]xv_left_;
    delete[]xv_right_;
    delete[]yv_left_;
@@ -421,7 +423,9 @@ void SoundMixer::PrepareBufferThread()
       current_wav_index_ = 0;
    }
 
-   //while (!finished_)
+#ifndef NO_MULTITHREAD
+   while (!finished_)
+#endif
    {
       // New buffer is          ready ?
       int index_to_convert = -1;
@@ -429,7 +433,7 @@ void SoundMixer::PrepareBufferThread()
 
       // Synchronise (todo)
 
-      for (int i = 0; i < 16; i++)
+      for (int i = 0; i < NB_BUFFERS; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::TO_PLAY && (sample_number == -1 || buffer_list_[i].sample_number_ <= sample_number))
          {
@@ -603,7 +607,7 @@ unsigned int SoundMixer::Tick()
    {
       // Synchronize
       int next_to_play = -1;
-      for (int i = 0; i < 16; i++)
+      for (int i = 0; i < NB_BUFFERS; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::FREE)
          {

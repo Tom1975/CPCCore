@@ -87,6 +87,10 @@ public:
 	CRTC::TypeCRTC GetCRTCType() const { return type_crtc_; }
 	void SetCRTCType(CRTC::TypeCRTC  type_crtc) { type_crtc_ = type_crtc; }
 
+   // Tape
+   bool TapePlugged() const { return tape_present_; }
+   void SetTapePlugged(bool tape_present) { tape_present_ = tape_present; };
+
 	// FDC
 	bool FDCPlugged() const { return fdc_present_; }
 	void SetFDCPlugged(bool fdc_present) { fdc_present_ = fdc_present; };
@@ -131,6 +135,7 @@ protected:
 	// Hardware
 	CRTC::TypeCRTC type_crtc_;
 	bool fdc_present_;
+   bool tape_present_;
 	bool pal_present_;
 
 	//////////////////////////

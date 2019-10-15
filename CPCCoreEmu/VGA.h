@@ -38,10 +38,6 @@ public:
    GateArray(void);
    virtual ~GateArray(void);
 
-   virtual GateArray * CopyMe();
-   virtual void DeleteCopy(GateArray*);
-   virtual bool CompareToCopy(GateArray* source);
-
 
    void Reset ();
 
@@ -60,6 +56,9 @@ public:
    void SetScanlines ( int scan ) {scanline_type_ = scan;}
    int GetScanlines ( ) {return scanline_type_ ;}
    
+
+   void ComputeSpritePerLine(int sprite_number );
+   void ComputeSpritePerColumn(int sprite_number);
    void DrawSprites(int * buffer_display);
    void HandleDMA();
    unsigned short GetSSA() { return ssa_; }
@@ -161,6 +160,7 @@ public:
    unsigned int byte_to_pixel01_[0x100];
    unsigned int byte_to_pixel03_[0x100];
    unsigned int byte_to_pixel03_b_[0x100];
+   unsigned int byte_to_pixel_mode01[0x100];
 
    bool unlocked_;
    bool plus_;
@@ -173,5 +173,12 @@ public:
    unsigned short ssa_new_counter_;
    unsigned short ssa_new_;
    unsigned short ssa_;
+
+   // Precomputed sprite (for faster sprite drawing)
+   unsigned short sprite_lines_[0x200];
+   short sprite_line_begin[0x10];
+
+   unsigned short sprite_column_[0x100];
+
 };
 

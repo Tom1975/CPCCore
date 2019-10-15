@@ -4,7 +4,8 @@
 
 #include "simple_filesystem.h"
 #include "simple_stdio.h"
-#include "rand.h"
+//#include "rand.h"
+#include <stdlib.h>
 #include "simple_vector.hpp"
 
 #ifdef __MORPHOS__
@@ -21,10 +22,6 @@ int lround(double d)
   return (int)std::floor(d + 0.5);
 }
 #endif
-#endif
-
-#if defined (__unix) || (RASPPI) || (__APPLE__)
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
 
 static unsigned char VendorTrack[9] = {0x41, 0x46, 0x42, 0x47, 0x43, 0x48, 0x44, 0x49, 0x45};
@@ -280,7 +277,12 @@ int IDisk::AddByteWithCrc(unsigned char* track, int index, unsigned char b, CRC&
 void IDisk::ChangeTrack(int side, int newTrack)
 {
    // Adjust head
-   if (head_position_ >= side_[side].tracks[newTrack].size)
+   if ( newTrack >= side_[side].nb_tracks)
+   {
+      head_position_ = 0;
+      
+   }
+   else if (head_position_ >= side_[side].tracks[newTrack].size)
    {
       if (side_[side].tracks[newTrack].size == 0)
       {
@@ -2564,7 +2566,7 @@ int IDisk::CompareTracks(IDisk::MFMTrack* track1, IDisk::MFMTrack* track2)
             else
             {
                // no : Error !
-
+#ifndef __circle__
                char str[1024];
                sprintf(str, "ERROR : Inde1 = %x; Index2 = %x", index1, index2);
 
@@ -2574,6 +2576,7 @@ int IDisk::CompareTracks(IDisk::MFMTrack* track1, IDisk::MFMTrack* track2)
                        track1->bitfield[0x7FE], track1->bitfield[0x7FF], track1->bitfield[0x800],
                        track2->bitfield[0x7FE], track2->bitfield[0x7FF], track2->bitfield[0x800]
                );
+#endif
 
                return -1;
             }
@@ -2587,6 +2590,7 @@ int IDisk::CompareTracks(IDisk::MFMTrack* track1, IDisk::MFMTrack* track2)
                // Special case ! Do not apply this if the previous bit is weak !
                if (!is_previous_weak)
                {
+#ifndef __circle__
                   char str[1024];
                   sprintf(str, "ERROR : Inde1 = %x; Index2 = %x", index1, index2);
                   //MessageBox (NULL, str, _T("Compare error"), MB_OK);
@@ -2597,7 +2601,7 @@ int IDisk::CompareTracks(IDisk::MFMTrack* track1, IDisk::MFMTrack* track2)
                   );
 
                   //MessageBox (NULL, str, _T("Compare error"), MB_OK);
-
+#endif
                   return -1;
                }
             }
@@ -2665,9 +2669,6 @@ int IDisk::CompareToDisk(IDisk* other_disk, bool exact)
                                     : nullptr);
             if (idem != 0)
             {
-               char str[1024];
-               sprintf(str, "Erro track = %i", track);
-               //MessageBox(NULL, str, _T("Compare error"), MB_OK);
             }
          }
       }

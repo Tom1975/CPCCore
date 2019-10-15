@@ -207,30 +207,30 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    // read Version 1
    // Z80 Registers
    machine_->GetProc()->af_.b.l = header[0x11];
-   //machine_->GetProcFull()->af_.b.l = header[0x11];
+   //machine_->GetProc()->af_.b.l = header[0x11];
    machine_->GetProc()->af_.b.h = header[0x12];
-   //machine_->GetProcFull()->af_.b.h = header[0x12];
+   //machine_->GetProc()->af_.b.h = header[0x12];
    machine_->GetProc()->bc_.b.l = header[0x13];
-   ////machine_->GetProcFull()->bc_.b.l = header[0x13];
+   ////machine_->GetProc()->bc_.b.l = header[0x13];
    machine_->GetProc()->bc_.b.h = header[0x14];
-   //machine_->GetProcFull()->bc_.b.h = header[0x14];
+   //machine_->GetProc()->bc_.b.h = header[0x14];
    machine_->GetProc()->de_.b.l = header[0x15];
-   //machine_->GetProcFull()->de_.b.l = header[0x15];
+   //machine_->GetProc()->de_.b.l = header[0x15];
    machine_->GetProc()->de_.b.h = header[0x16];
-   //machine_->GetProcFull()->de_.b.h = header[0x16];
+   //machine_->GetProc()->de_.b.h = header[0x16];
    machine_->GetProc()->hl_.b.l = header[0x17];
-   //machine_->GetProcFull()->hl_.b.l = header[0x17];
+   //machine_->GetProc()->hl_.b.l = header[0x17];
    machine_->GetProc()->hl_.b.h = header[0x18];
-   //machine_->GetProcFull()->hl_.b.h = header[0x18];
+   //machine_->GetProc()->hl_.b.h = header[0x18];
    machine_->GetProc()->ir_.b.l = header[0x19];
-   //machine_->GetProcFull()->ir_.b.l = header[0x19];
+   //machine_->GetProc()->ir_.b.l = header[0x19];
    machine_->GetProc()->ir_.b.h = header[0x1A];
-   //machine_->GetProcFull()->ir_.b.h = header[0x1A];
+   //machine_->GetProc()->ir_.b.h = header[0x1A];
 
    machine_->GetProc()->iff1_ = (header[0x1B]==1);
-   //machine_->GetProcFull()->iff1_ = (header[0x1B] == 1);
+   //machine_->GetProc()->iff1_ = (header[0x1B] == 1);
    machine_->GetProc()->iff2_ = (header[0x1C]==1);
-   //machine_->GetProcFull()->iff2_ = (header[0x1C] == 1);
+   //machine_->GetProc()->iff2_ = (header[0x1C] == 1);
 
    //m_pMachine->GetProc()->m_InterruptAuthorized = (m_pMachine->GetProc()->iff1_ == true);
 
@@ -240,11 +240,11 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->pc_ = (header[0x23]|((header[0x24])<<8));
    machine_->GetProc()->interrupt_mode_ = ((header[0x25]));
 
-   //machine_->GetProcFull()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
-   //machine_->GetProcFull()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
-   //machine_->GetProcFull()->sp_ = (header[0x21] | ((header[0x22]) << 8));
-   //machine_->GetProcFull()->pc_ = (header[0x23] | ((header[0x24]) << 8));
-   //machine_->GetProcFull()->interrupt_mode_ = ((header[0x25]));
+   //machine_->GetProc()->ix_.w = (header[0x1D] | ((header[0x1E]) << 8));
+   //machine_->GetProc()->iy_.w = (header[0x1F] | ((header[0x20]) << 8));
+   //machine_->GetProc()->sp_ = (header[0x21] | ((header[0x22]) << 8));
+   //machine_->GetProc()->pc_ = (header[0x23] | ((header[0x24]) << 8));
+   //machine_->GetProc()->interrupt_mode_ = ((header[0x25]));
 
    machine_->GetProc()->af_p_.b.l = header[0x26];
    machine_->GetProc()->af_p_.b.h = header[0x27];
@@ -255,14 +255,14 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    machine_->GetProc()->hl_p_.b.l = header[0x2C];
    machine_->GetProc()->hl_p_.b.h = header[0x2D];
 
-   //machine_->GetProcFull()->af_p_.b.l = header[0x26];
-   //machine_->GetProcFull()->af_p_.b.h = header[0x27];
-   //machine_->GetProcFull()->bc_p_.b.l = header[0x28];
-   //machine_->GetProcFull()->bc_p_.b.h = header[0x29];
-   //machine_->GetProcFull()->de_p_.b.l = header[0x2A];
-   //machine_->GetProcFull()->de_p_.b.h = header[0x2B];
-   //machine_->GetProcFull()->hl_p_.b.l = header[0x2C];
-   //machine_->GetProcFull()->hl_p_.b.h = header[0x2D];
+   //machine_->GetProc()->af_p_.b.l = header[0x26];
+   //machine_->GetProc()->af_p_.b.h = header[0x27];
+   //machine_->GetProc()->bc_p_.b.l = header[0x28];
+   //machine_->GetProc()->bc_p_.b.h = header[0x29];
+   //machine_->GetProc()->de_p_.b.l = header[0x2A];
+   //machine_->GetProc()->de_p_.b.h = header[0x2B];
+   //machine_->GetProc()->hl_p_.b.l = header[0x2C];
+   //machine_->GetProc()->hl_p_.b.h = header[0x2D];
 
    // GA
    machine_->GetVGA()->pen_r_ = header[0x2E] & 0x1F;
@@ -425,12 +425,12 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       //   4 = 6845 in Pre-ASIC
       switch (header[0xA4])
       {
-      case 0 : machine_->GetCRTC()->type_crtc_ = CRTC::HD6845S;break;
-         case 1 : machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break;
-         case 2 : machine_->GetCRTC()->type_crtc_ = CRTC::MC6845;break;
-         case 3 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40489;break;
-         case 4 : machine_->GetCRTC()->type_crtc_ = CRTC::AMS40226;break;
-         default: machine_->GetCRTC()->type_crtc_ = CRTC::UM6845R;break; // defautl is 1
+      case 0 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::HD6845S);break;
+         case 1 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break;
+         case 2 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::MC6845);break;
+         case 3 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40489);break;
+         case 4 : machine_->GetCRTC()->DefinirTypeCRTC(CRTC::AMS40226);break;
+         default: machine_->GetCRTC()->DefinirTypeCRTC(CRTC::UM6845R);break; // defautl is 1
       }
 
       //   A9	 1	 CRTC horizontal character counter register (note 11)
@@ -453,7 +453,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
       //   0	 if "1" VSYNC is active, if "0" VSYNC is inactive (note 8)
       machine_->GetCRTC()->ff4_ = ((header[0xB0]&0x01)==0x01);
       //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
-      machine_->GetCRTC()->ff2_ = ((header[0xB0]&0x02)==0x02);
+      machine_->GetSig()->h_sync_ = ((header[0xB0]&0x02)==0x02);
       //   2-7	 reserved
       //   7	 if "1" Vertical Total Adjust is active, if "0" Vertical Total Adjust is inactive (note 10)
       machine_->GetCRTC()->r4_reached_ = ((header[0xB0]&0x80)==0x80);
@@ -1074,7 +1074,7 @@ void CSnapshot::InitReplay ()
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   //machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProc()->ReinitProc ();
 
    fclose (f);
 
@@ -1085,7 +1085,7 @@ void CSnapshot::InitReplay ()
 bool CSnapshot::LoadSnapshot (const char* path_file)
 {
    //
-   log_->WriteLog("Entering snapshot...");
+   if (log_)log_->WriteLog("Entering snapshot...");
    FILE * f;
    if ( fopen_s ( &f, path_file, "rb") != 0)
    {
@@ -1093,13 +1093,13 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
       return false;
    }
 
-   log_->WriteLog("Snapshot opened successfully.");
+   if (log_)log_->WriteLog("Snapshot opened successfully.");
    // Cheack header
    unsigned char header [0x100] = {0};
    fread (header, 0x100, 1, f);
    if (strncmp( (char*)header, "MV - SNA", 8) != 0)
    {
-      log_->WriteLog("Error : Not a valid file...");
+      if (log_)log_->WriteLog("Error : Not a valid file...");
       fclose(f);
       if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
       return false;
@@ -1205,7 +1205,7 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   //machine_->GetProcFull()->ReinitProc ();
+   //machine_->GetProc()->ReinitProc ();
 
    fclose (f);
 
@@ -1220,10 +1220,10 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
 bool CSnapshot::SaveSnapshot (const char* path_file)
 {
    FILE * f;
-   log_->WriteLog("Entering snapshot saving...");
+   if (log_)log_->WriteLog("Entering snapshot saving...");
    if ( fopen_s ( &f, path_file, "wb") != 0)
    {
-      log_->WriteLog("ERROR : File is not valid...");
+      if (log_)log_->WriteLog("ERROR : File is not valid...");
       return false;
    }
 
@@ -1239,7 +1239,7 @@ bool CSnapshot::SaveSnapshot (const char* path_file)
 
 void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigned int headerSize )
 {
-   log_->WriteLog("Writing SNA v3...");
+   if (log_)log_->WriteLog("Writing SNA v3...");
    char header [0x100] = {0};
    memcpy ( header, base_header, headerSize );
 
@@ -1421,7 +1421,7 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    //   CRTC state flags. (note 7)
    //   Bit	 Function
    //   0	 if "1" VSYNC is active, if "0" VSYNC is inactive (note 8)
-   data |= machine_->GetCRTC()->ff2_?0x01:0;
+   data |= machine_->GetSig()->h_sync_ ?0x01:0;
    //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
    data |= machine_->GetCRTC()->ff4_?0x02:0;
    //   2-7	 reserved

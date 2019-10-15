@@ -2,13 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 project(CPCCoreEmu)
 
 file( GLOB SRCS
-	"*.cpp"
+	"*.cpp" 
 	)
 
 file( GLOB HEADERS
-	"*.h"
+	"*.h" "*.hpp"
 )
-
 
 list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
 
@@ -29,13 +28,16 @@ set(CompilerFlags
         CMAKE_C_FLAGS_RELEASE
         )
 
+set(CMAKE_CXX_STANDARD 17)
 
 IF(MSVC)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
    set_property(TARGET CPCCoreEmu APPEND PROPERTY LINK_FLAGS /DEBUG)
    ADD_DEFINITIONS(/arch:SSE2)
    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
 ENDIF(MSVC)
+
 
 if (USE_SHARED_CRT)
 else()

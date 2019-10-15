@@ -1,5 +1,6 @@
 
 #include "simple_math.h"
+#include <stdlib.h>
 
 #ifdef MINIMUM_DEPENDENCIES
 

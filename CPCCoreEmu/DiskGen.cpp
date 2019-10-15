@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DiskGen.h"
-#include "rand.h"
+//#include "rand.h"
+#include <stdlib.h>
 #include "simple_vector.hpp"
 #include "MediaManager.h"
 
@@ -120,7 +121,16 @@ void DiskGen::SetCurrentTrack(int track)
       disk_->ChangeTrack(current_side_, track);
       ComputeSpeed(0);
    }
-   current_track_ = track;
+
+   if (track <= disk_->side_[current_side_].nb_tracks)
+   {
+      current_track_ = track;
+   }
+   else
+   {
+      current_track_ = disk_->side_[current_side_].nb_tracks-1;
+   }
+   
 }
 
 void DiskGen::Write(unsigned char byte, bool bSync)
@@ -217,7 +227,7 @@ void DiskGen::Tick()
             if (encode_scheme_ == CODE_FM)
             {
                // TODO : Not supported now
-               b = (rand() & 0x1) | (b & BIT_INDEX);
+               b = ( rand() & 0x1) | (b & BIT_INDEX);
             }
 
 
@@ -673,7 +683,7 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
                   ext_binbas = bnewbinbas;
 
                   correct_hidden = it->c_str()[9] & 0x80;
-                  sprintf(buffer, "%8.8s", it->c_str() /*, (char*)&pTrackData[offset+8]*/);
+                  memcpy(buffer, it->c_str(), 8);
                   for (int i = 7; i >= 0; i--)
                   {
                      if (buffer[i] == 0x20) buffer[i] = 0x00;

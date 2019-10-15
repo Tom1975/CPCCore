@@ -13,6 +13,12 @@ void Z80::InitOpcodeShortcuts()
       FillStructOpcode<ED>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<DD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
       FillStructOpcode<FD>(i, &Z80::DefaultFetch, 1, "UNKNOWN");
+
+      FillStructOpcodeMemr<None>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<CB>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<ED>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<DD>(i, &Z80::OpcodeMEMR);
+      FillStructOpcodeMemr<FD>(i, &Z80::OpcodeMEMR);
    }
    current_function_ = &fetch_func;
 
@@ -600,4 +606,142 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<FD>(0xE5, &Z80::Opcode_Push<ADDR_IY>, 1, "PUSH_IY");
    FillStructOpcode<FD>(0xE9, &Z80::Opcode_JP_REGW<ADDR_IY>, 1, "JP (IY)");
    FillStructOpcode<FD>(0xF9, &Z80::Opcode_LD_SP_REGW< ADDR_IY>, 1, "LD SP, IY");
+
+   ///////////////////////////////////////////////////////////////
+   // MEMR
+   FillStructOpcodeMemr<None>(0x01, &Z80::MEMR_Read_REGW_<ADDR_BC>);
+   FillStructOpcodeMemr<None>(0x06, &Z80::MEMR_Read_REG_<R_B>);
+   FillStructOpcodeMemr<None>(0x0A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_BC>);
+   FillStructOpcodeMemr<None>(0x0E, &Z80::MEMR_Read_REG_<R_C>);
+   FillStructOpcodeMemr<None>(0x10, &Z80::MEMR_DJNZ); //
+   FillStructOpcodeMemr<None>(0x11, &Z80::MEMR_Read_REGW_<ADDR_DE>);
+   FillStructOpcodeMemr<None>(0x16, &Z80::MEMR_Read_REG_<R_D>);
+   FillStructOpcodeMemr<None>(0x18, &Z80::MEMR_JR);
+   FillStructOpcodeMemr<None>(0x1A, &Z80::MEMR_Read_REG_REGW<R_A, ADDR_DE>);
+   FillStructOpcodeMemr<None>(0x1E, &Z80::MEMR_Read_REG_<R_E>);
+   FillStructOpcodeMemr<None>(0x20, &Z80::MEMR_JR_Cond<false, ZF>);
+   FillStructOpcodeMemr<None>(0x21, &Z80::MEMR_Read_REGW_<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x22, &Z80::MEMR_Read_NN_HL<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x26, &Z80::MEMR_Read_REG_<R_H>);
+   FillStructOpcodeMemr<None>(0x28, &Z80::MEMR_JR_Cond<true, ZF>);   
+   FillStructOpcodeMemr<None>(0x2A, &Z80::MEMR_HL_NN_0<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x2E, &Z80::MEMR_Read_REG_<R_L>);
+   FillStructOpcodeMemr<None>(0x30, &Z80::MEMR_JR_Cond<false, CF>);
+   FillStructOpcodeMemr<None>(0x31, &Z80::MEMR_Read_REGW_<ADDR_SP>);
+   FillStructOpcodeMemr<None>(0x32, &Z80::MEMR_Read_REG_NN<R_A>);
+   FillStructOpcodeMemr<None>(0x34, &Z80::MEMR_Inc_REGW<true>);
+   FillStructOpcodeMemr<None>(0x35, &Z80::MEMR_Inc_REGW<false>);
+   FillStructOpcodeMemr<None>(0x36, &Z80::MEMR_REGW_N<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0x38, &Z80::MEMR_JR_Cond<true, CF>);
+   FillStructOpcodeMemr<None>(0x3A, &Z80::MEMR_Ld_A_NN);
+   FillStructOpcodeMemr<None>(0x3E, &Z80::MEMR_Read_REG_<R_A>);
+   FillStructOpcodeMemr<None>(0x46, &Z80::MEMR_Ld_Reg_Regw<R_B>);
+   FillStructOpcodeMemr<None>(0x4E, &Z80::MEMR_Ld_Reg_Regw<R_C>);
+   FillStructOpcodeMemr<None>(0x56, &Z80::MEMR_Ld_Reg_Regw<R_D>);
+   FillStructOpcodeMemr<None>(0x5E, &Z80::MEMR_Ld_Reg_Regw<R_E>);
+   FillStructOpcodeMemr<None>(0x66, &Z80::MEMR_Ld_Reg_Regw<R_H>);
+   FillStructOpcodeMemr<None>(0x6E, &Z80::MEMR_Ld_Reg_Regw<R_L>);
+   FillStructOpcodeMemr<None>(0x7E, &Z80::MEMR_Ld_Reg_Regw<R_A>);
+   FillStructOpcodeMemr<None>(0x86, &Z80::Opcode_AddSub_Reg<true, false>);
+   FillStructOpcodeMemr<None>(0x8E, &Z80::Opcode_AddSub_Reg<true, true>);
+   FillStructOpcodeMemr<None>(0x96, &Z80::Opcode_AddSub_Reg<false, false>);
+   FillStructOpcodeMemr<None>(0x9E, &Z80::Opcode_AddSub_Reg<false, true>);
+   FillStructOpcodeMemr<None>(0xA6, &Z80::Opcode_BOOL_data<AND>);
+   FillStructOpcodeMemr<None>(0xAE, &Z80::Opcode_BOOL_data<XOR>);
+   FillStructOpcodeMemr<None>(0xB6, &Z80::Opcode_BOOL_data<OR>);
+   FillStructOpcodeMemr<None>(0xBE, &Z80::Opcode_CP_Data);
+
+   FillStructOpcodeMemr<None>(0xC0, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xC8, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xC9, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xD0, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xD8, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xE0, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xE8, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xF0, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xF8, &Z80::Opcode_RET);
+   FillStructOpcodeMemr<None>(0xC1, &Z80::Opcode_Pop_Regw<ADDR_BC>);
+   FillStructOpcodeMemr<None>(0xC2, &Z80::MEMR_JP_Cond<false, ZF>);
+   FillStructOpcodeMemr<None>(0xC3, &Z80::Opcode_Jp);
+   FillStructOpcodeMemr<None>(0xC4, &Z80::MEMR_Call_Cond<false, ZF>);
+   FillStructOpcodeMemr<None>(0xC6, &Z80::Opcode_AddSub_n<true, false>);
+   FillStructOpcodeMemr<None>(0xCA, &Z80::MEMR_JP_Cond<true, ZF>);
+   FillStructOpcodeMemr<None>(0xCC, &Z80::MEMR_Call_Cond<true, ZF>);
+   FillStructOpcodeMemr<None>(0xCD, &Z80::Memr_Call_nn);
+   FillStructOpcodeMemr<None>(0xCE, &Z80::Opcode_AddSub_n<true, true>);
+   FillStructOpcodeMemr<None>(0xD1, &Z80::Opcode_Pop_Regw<ADDR_DE>);
+   FillStructOpcodeMemr<None>(0xD2, &Z80::MEMR_JP_Cond<false, CF>);
+   FillStructOpcodeMemr<None>(0xD3, &Z80::Memr_Out_n);
+   FillStructOpcodeMemr<None>(0xD4, &Z80::MEMR_Call_Cond<false, CF>);
+   FillStructOpcodeMemr<None>(0xD6, &Z80::Opcode_AddSub_n<false, false>);
+   FillStructOpcodeMemr<None>(0xDA, &Z80::MEMR_JP_Cond<true, CF>);
+   FillStructOpcodeMemr<None>(0xDB, &Z80::Memr_In_n); 
+   FillStructOpcodeMemr<None>(0xDC, &Z80::MEMR_Call_Cond<true, CF>);
+   FillStructOpcodeMemr<None>(0xDE, &Z80::Opcode_AddSub_n<false, true>);
+   FillStructOpcodeMemr<None>(0xE1, &Z80::Opcode_Pop_Regw<ADDR_HL>);
+   FillStructOpcodeMemr<None>(0xE2, &Z80::MEMR_JP_Cond<false, PF>);
+   FillStructOpcodeMemr<None>(0xE3, &Z80::Memr_Ex_Sp_Hl);
+   FillStructOpcodeMemr<None>(0xE4, &Z80::MEMR_Call_Cond<false, PF>);
+   FillStructOpcodeMemr<None>(0xE6, &Z80::Memr_And_n);
+   FillStructOpcodeMemr<None>(0xEA, &Z80::MEMR_JP_Cond<true, PF>);
+   FillStructOpcodeMemr<None>(0xEC, &Z80::MEMR_Call_Cond<true, PF>);
+   FillStructOpcodeMemr<None>(0xEE, &Z80::Memr_Xor_n);
+   FillStructOpcodeMemr<None>(0xF1, &Z80::Opcode_Pop_Regw<ADDR_AF>);
+   FillStructOpcodeMemr<None>(0xF2, &Z80::MEMR_JP_Cond<false, SF>);
+   FillStructOpcodeMemr<None>(0xF4, &Z80::MEMR_Call_Cond<false, SF>);
+   FillStructOpcodeMemr<None>(0xF6, &Z80::Memr_Or_n);
+   FillStructOpcodeMemr<None>(0xFA, &Z80::MEMR_JP_Cond<true, SF>);
+   FillStructOpcodeMemr<None>(0xFC, &Z80::MEMR_Call_Cond<true, SF>);
+   FillStructOpcodeMemr<None>(0xFE, &Z80::Memr_Cp_n);
+}
+
+#define SET_FUNC(i)\
+   tick_functions_[i] = &Z80::DefaultTick<i>;\
+   tick_functions_[i+1] = &Z80::DefaultTick<i+1>;\
+   tick_functions_[i+2] = &Z80::DefaultTick<i+2>;\
+   tick_functions_[i+3] = &Z80::DefaultTick<i+3>;\
+tick_functions_[i+4] = &Z80::DefaultTick<i+4>;\
+tick_functions_[i+5] = &Z80::DefaultTick<i+5>;\
+tick_functions_[i+6] = &Z80::DefaultTick<i+6>;\
+tick_functions_[i+7] = &Z80::DefaultTick<i+7>;\
+tick_functions_[i+8] = &Z80::DefaultTick<i+8>;\
+tick_functions_[i+9] = &Z80::DefaultTick<i+9>;\
+tick_functions_[i+10] = &Z80::DefaultTick<i+10>;\
+tick_functions_[i+11] = &Z80::DefaultTick<i+11>;\
+tick_functions_[i+12] = &Z80::DefaultTick<i+12>;\
+tick_functions_[i+13] = &Z80::DefaultTick<i+13>;\
+tick_functions_[i+14] = &Z80::DefaultTick<i+14>;\
+tick_functions_[i+15] = &Z80::DefaultTick<i+15>;\
+
+void Z80::InitTickFunctions()
+{
+   /*for (int i = 0; i < 0xAF; i++)
+   {
+      tick_functions_[i] = &Z80::DefaultTick<i>;
+   }*/
+   SET_FUNC(0);
+   SET_FUNC(0x10);
+   SET_FUNC(0x20);
+   SET_FUNC(0x30);
+   SET_FUNC(0x40);
+   SET_FUNC(0x50);
+   SET_FUNC(0x60);
+   SET_FUNC(0x70);
+   SET_FUNC(0x80);
+   SET_FUNC(0x90);
+   SET_FUNC(0xA0);
+
+   tick_functions_[M_FETCH + 1] = &Z80::Tick_Fetch_1;
+   tick_functions_[M_FETCH + 2] = &Z80::Tick_Fetch_2;
+   tick_functions_[M_FETCH + 3] = &Z80::Tick_Fetch_3;
+   tick_functions_[M_FETCH + 4] = &Z80::Tick_Fetch_4;
+   for (int i = 5  ; i < 0x10; i++)
+   {
+      tick_functions_[M_FETCH + i] = &Z80::Tick_Fetch_X;
+   }
+   tick_functions_[M_M1_NMI + 1] = &Z80::Tick_NMI_1;
+   tick_functions_[M_M1_NMI + 2] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 3] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 4] = &Z80::Tick_NMI_2_4;
+   tick_functions_[M_M1_NMI + 5] = &Z80::Tick_NMI_5;
 }

@@ -16,7 +16,7 @@
 #include <thread>
 #endif
 
-
+#define NB_BUFFERS 32
 class SoundBuffer 
 {
 public:
@@ -118,7 +118,7 @@ protected:
       int sample_number_;
    };
 
-   BufferItem buffer_list_[16];
+   BufferItem *buffer_list_;
    // Current buffer lists
    int index_current_buffer_;
 

@@ -2,6 +2,7 @@
 #ifdef MINIMUM_DEPENDENCIES
 
 #include "simple_string.h"
+#include <stdlib.h>
 
 std::string::string() : inner_string_(nullptr)
 {
@@ -44,7 +45,7 @@ char& std::string::operator [](unsigned int idx)
    return ((char*)ptr)[idx];
 }
 
-
+/*
 int sprintf(char* buf, const char* fmt, ...)
 {
    va_list var;
@@ -58,7 +59,7 @@ int sprintf(char* buf, const char* fmt, ...)
    strcpy(buf, (const char*)Msg);
 
    return Msg.GetLength();
-}
+}*/
 
 int stricmp(char const* _String1, char const* _String2)
 {

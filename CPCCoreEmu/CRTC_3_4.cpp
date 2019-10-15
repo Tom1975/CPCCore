@@ -14,16 +14,16 @@
 void CRTC::ClockTick34 ()
 {
    bool ff1_set = false;
-   bool ff1_reset = false;
-
    bool ff2_set = false;
-   bool ff2_reset = false;
 
    bool ff3_set = false;
    bool ff3_reset = false;
 
    bool ff4_set = false;
    bool ff4_reset = false;
+
+   // Status 1:
+   status1_ = 0xFF;
 
    // Clock tick
    if (hcc_ == registers_list_[0] )
@@ -57,7 +57,7 @@ void CRTC::ClockTick34 ()
    }
 
 
-   if (ff2_ )
+   if (signals_->h_sync_)
    {
       horinzontal_pulse_ = (++horinzontal_pulse_) & 0xF;
    }
@@ -84,7 +84,7 @@ void CRTC::ClockTick34 ()
       // Adress is : CLK - MA0 -> MA9- R0->R2 - MA12 MA13
       if (r9_triggered_)
       {
-         if (/*( m_VLC == m_Register[9] ) &&*/ (r4_triggered_))
+         if ( r4_triggered_)
          {
             r4_triggered_ = false;
             if (!r4_reached_)
@@ -109,7 +109,7 @@ void CRTC::ClockTick34 ()
          vlc_ = 0;
          r9_triggered_ = vlc_ == registers_list_[9];
          vcc_ = (++vcc_) & 0x7F;
-         if (/*m_bMR_R9 &&*/ vcc_ == registers_list_[4]) r4_triggered_ = true;
+         if ( vcc_ == registers_list_[4]) r4_triggered_ = true;
       }
       else
       {
@@ -133,16 +133,8 @@ void CRTC::ClockTick34 ()
 
          vcc_ = 0;
 
-         // R0 in the process of changing ?
-         /*if ( ( m_Sig->IORW == true) && (( m_AdressBus->GetShortBus () & 0x4300) == 0x0100) && m_AdressRegister == 0 )
-         {
-         m_MA = m_BU;
-         }
-         else*/
-         {
-            ma_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
-            bu_ = ma_;
-         }
+         ma_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+         bu_ = ma_;
 
          if (r9_triggered_ && vcc_ == registers_list_[4]) r4_triggered_ = true;
 
@@ -222,6 +214,8 @@ void CRTC::ClockTick34 ()
          h_no_sync_ = false;
          signals_->hsync_raise_ = true;
          ff2_set = true;
+         // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
+         status1_ &= ~0x08;
       }
    }
    else
@@ -229,12 +223,14 @@ void CRTC::ClockTick34 ()
       h_no_sync_ = true;
    }
 
-   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (ff2_|| signals_->hsync_raise_));
+   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (signals_->h_sync_ || signals_->hsync_raise_));
 
-   if ((horinzontal_pulse_ == horizontal_sync_width_) && (ff2_||signals_->hsync_raise_))
+   if ((horinzontal_pulse_ == horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
    {
       signals_->hsync_fall_ = true;
-      ff2_reset = true;
+      //ff2_reset = true;
+      // Bit 4	0 : CRTC is on last char of HSYNC
+      status1_ &= ~0x10;
       horinzontal_pulse_ = 0;
       // Something to do ?
       if (inc_vcc_)
@@ -242,42 +238,42 @@ void CRTC::ClockTick34 ()
          inc_vcc_ = false;
       }
 
+      if (!ff2_set)
+      {
+         signals_->h_sync_ = false;
+      }
+      else 
+      {
+         // Nothing .
+         int dbg = 1;
+      }
+
+   }
+   else if (ff2_set)
+   {
+      signals_->h_sync_ = true;
    }
 
    if (hcc_ == registers_list_[1])
    {
-      ff1_reset = true;
+      //ff1_reset = true;
+      // Bit 2	0 : CRTC Horizontal Count == Horizontal Displayed(Reg 1)
+      //status1_ &= ~0x04;
+      if (!ff1_set)
+      {
+         ff1_ = false;
+      }
+      else 
+      {
+         // Nothing .
+         ff1_ = false;// !ff1_reset;
+      }
    }
-
-   // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   else if(ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
-   {
-      // Nothing .
-      ff1_ = !ff1_reset;
-      int dbg=1;
-   }
-   // Flip flop computation
-   if ( ff2_reset && !ff2_set)
-   {
-      ff2_ = false;
-   }
-   else if ( !ff2_reset && ff2_set)
-   {
-      ff2_ = true;
-   }
-   else if ( ff2_reset && ff2_set)
-   {
-      // Nothing .
-      int dbg=1;
-   }
+
    if ( ff3_reset && !ff3_set)
    {
       ff3_ = false;
@@ -296,39 +292,20 @@ void CRTC::ClockTick34 ()
    {
       ff4_ = false;
    }
-   else if ( !ff4_reset && ff4_set)
+   else
    {
-      ff4_ = true;
+      if (!ff4_reset && ff4_set)
+      {
+         ff4_ = true;
+         if ((scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
+      }
+      else if (ff4_reset && ff4_set)
+      {
+         // Nothing .
+         int dbg = 1;
+         if (ff4_ && (scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
+      }
+      
    }
-   else if ( ff4_reset && ff4_set)
-   {
-      // Nothing .
-      int dbg=1;
-   }
-
-   // Status 1:
-   status1_ = 0xFF;
-   // Bit 7	(function of this bit is unknown)
-   // Bit 6	(function of this bit is unknown)
-   // Bit 5	0 : CRTC is on last line of VSYNC
-   if (ff4_ && (scanline_vbl_+1 == vertical_sync_width_)) status1_ &= ~0x20;
-   // Bit 4	0 : CRTC is on last char of HSYNC
-   if (ff2_reset) status1_ &= ~0x10;
-   // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
-   if (ff2_set) status1_ &= ~0x08;
-   // Bit 2	0 : CRTC Horizontal Count == Horizontal Displayed(Reg 1)
-   if (ff1_reset) status1_ &= ~0x04;
-   // Bit 1	0 : CRTC Horizontal Count == (Horizontal Total / 2)
-   if (hcc_ == registers_list_[0]/2) status1_ &= ~0x02;
-   // Bit 0	0 : CRTC Horizontal Count != Horizontal Total
-   if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
-
-   // Status 2:
-   status2_ = 0xFF;
-   // Bit 7	0: when RC!=0
-   if (vlc_ != 0) status2_ &= ~0x80;
-   // Bit 5	0 : when RC == R9
-   if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
-   // Other : unknown
 
 }

@@ -5,39 +5,6 @@ class IZ80
 {
 public:
    virtual ~IZ80() {}
-   virtual IZ80 * CopyMe() = 0;
-   virtual void DeleteCopy(IZ80*) = 0;
-   virtual bool CompareToCopy(IZ80* source)
-   {
-      // Copy what's needed to this
-      if (source->pc_ == pc_)
-      {
-         if (
-            source->af_.w != af_.w
-            || source->bc_.w != bc_.w
-            || source->de_.w != de_.w
-            || source->hl_.w != hl_.w
-            || source->af_p_.w != af_p_.w
-            || source->bc_p_.w != bc_p_.w
-            || source->de_p_.w != de_p_.w
-            || source->hl_p_.w != hl_p_.w
-            || source->ix_.w != ix_.w
-            || source->iy_.w != iy_.w
-            || source->ir_.b.h != ir_.b.h
-            || source->ir_.b.l != ir_.b.l
-            || source->sp_ != sp_
-            || source->q_ != q_
-            || source->iff1_ != iff1_
-            || source->iff2_ != iff2_
-            )
-            return false;
-      }
-      else
-      {
-         return false;
-      }
-      return true;
-   };
 
    virtual void ReinitProc () = 0;
    virtual unsigned int GetCurrentOpcode () = 0;

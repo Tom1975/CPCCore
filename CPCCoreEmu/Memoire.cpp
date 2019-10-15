@@ -261,7 +261,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
    return max_size;
 }
 
-unsigned char Memory::ReadAsicRegister(unsigned short i)
+unsigned char Memory::ReadAsicRegister(const unsigned short i)
 {
    // Ok access here ?
    if ((asic_io_rw_[i - 0x4000] & R) == R)
@@ -422,6 +422,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             {
                sprite_info_[num_sprite].x = (-1 * ((~sprite_info_[num_sprite].x) & 0xFF)) - 1;
             }
+            monitor_->gate_array_->ComputeSpritePerColumn(num_sprite);
          }
          else if ((addr & 0x6) == 2)
          {
@@ -430,6 +431,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             {
                sprite_info_[num_sprite].y = (-1 * ((~sprite_info_[num_sprite].y) & 0xFF))-1;
             }
+            monitor_->gate_array_->ComputeSpritePerLine(num_sprite);
          }
          else if ((addr & 0x7) == 4)
          {
@@ -441,6 +443,8 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
                sprite_info_[num_sprite].sizex = 16 << (sprite_info_[num_sprite].zoomx - 1);
                sprite_info_[num_sprite].sizey = 16 << (sprite_info_[num_sprite].zoomy - 1);
             }
+            monitor_->gate_array_->ComputeSpritePerLine(num_sprite);
+            monitor_->gate_array_->ComputeSpritePerColumn(num_sprite);
          }
 
       }
@@ -600,7 +604,8 @@ void Memory::Initialisation  ()
    rom_dis_ = ram_dis_ = false;
 
    memset(sprite_info_, 0, sizeof(sprite_info_));
-
+   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
+   
    // Initial configuraiton
    for (int i = 0; i < 4; i++)
    {
@@ -882,68 +887,4 @@ void Memory::DMAStop(int channel)
 {
    // Set DCSR bit to 0
    asic_io_[0x2C0F] &= ~( 1<<channel);
-}
-
-Memory* Memory::CopyMe()
-{
-   Memory* new_memory = new Memory(monitor_);
-   *new_memory = *this;
-
-   return new_memory;
-}
-
-void Memory::DeleteCopy(Memory* memory)
-{
-   delete memory;
-}
-
-bool Memory::CompareToCopy(Memory*other)
-{
-   // Compare two memory
-   if (memcmp(rom_, other->rom_, sizeof(rom_)) != 0) return false;
-   if (memcmp(ram_buffer_, other->ram_buffer_, sizeof(ram_buffer_)) != 0) return false;
-
-   // This one is not mandatory : Remember that cartridge is NOT part of the snapshot
-   if (memcmp(cartridge_, other->cartridge_, sizeof(cartridge_)) != 0) return false;
-   if (memcmp(cart_available_, other->cart_available_, sizeof(cart_available_)) != 0) return false;
-   if (ram_dis_ != other->ram_dis_) return false;
-   if (rom_dis_ != other->rom_dis_) return false;
-
-   if (connected_bank_ != other->connected_bank_) return false;
-   if (inf_rom_connected_ != other->inf_rom_connected_) return false;
-   if (sup_rom_connected_ != other->sup_rom_connected_) return false;
-
-   for (int i = 0; i < 4; i++)
-   {
-      if (memcmp(ram_read_[i], other->ram_read_[i], sizeof(RamBank)) != 0) return false;
-      if (memcmp(ram_write_[i], other->ram_write_[i], sizeof(RamBank)) != 0) return false;
-   }
-
-   if (memcmp(asic_io_, other->asic_io_, sizeof(asic_io_)) != 0) return false;
-   if (memcmp(asic_mask_w_, other->asic_mask_w_, sizeof(asic_mask_w_)) != 0) return false;
-   if (memcmp(asic_io_rw_, other->asic_io_rw_, sizeof(asic_io_rw_)) != 0) return false;
-
-   if (extended_pal_ != other->extended_pal_) return false;
-
-   if (memcmp(extended_ram_available_, other->extended_ram_available_, sizeof(extended_ram_available_)) != 0) return false;
-
-   for (int i = 0; i < 8; i++)
-   {
-      for (int j = 0; j < 4; j++)
-      {
-         if (memcmp(extended_ram_buffer_[i][j], other->extended_ram_buffer_[i][j], sizeof(RamBank)) != 0) return false;
-      }
-   }
-
-   if (rom_number_ != other->rom_number_) return false;
-   if (memcmp(lower_rom_, other->lower_rom_, sizeof(lower_rom_)) != 0) return false;
-   if (memcmp(rom_available_, other->rom_available_, sizeof(rom_available_)) != 0) return false;
-
-   if (plus_ != other->plus_) return false;
-   if (asic_io_enabled_ != other->asic_io_enabled_) return false;
-
-   if (rmr2_ != other->rmr2_) return false;
-   if (last_value_read_ != other->last_value_read_) return false;
-
-   return true;
 }

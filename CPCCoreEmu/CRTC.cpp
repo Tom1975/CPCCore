@@ -64,7 +64,7 @@ CRTCRegistersAcces CRTCAccess[32] = {
 
 CRTC::CRTC(void) : cursor_line_(nullptr)
 {
-   type_crtc_ = UM6845R;
+   DefinirTypeCRTC(UM6845R);
 
    signals_ = NULL;
    log_ = NULL;
@@ -239,6 +239,13 @@ unsigned char CRTC::In ( unsigned short address )
          case 18:
          case 26:
          {
+            // Compute status
+            if (type_crtc_ == 3 || type_crtc_ == 4)
+            {
+               if (hcc_ == registers_list_[1]) status1_ &= ~0x04;
+               if (hcc_ == registers_list_[0] / 2) status1_ &= ~0x02;
+               if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
+            }
             return status1_;
          }
 
@@ -246,6 +253,12 @@ unsigned char CRTC::In ( unsigned short address )
          case 11:
          case 19:
          case 27:
+            if (type_crtc_ == 3 || type_crtc_ == 4)
+            {
+               status2_ = (vlc_ == 0) ? (~0x80) : 0xFF;
+               if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
+
+            }
             return status2_;
 
          case 0:// REG 16
@@ -441,24 +454,29 @@ void CRTC::Out (unsigned short address, unsigned char data)
 
 }
 
-unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
 {
-
-   switch (type_crtc_ )
+   type_crtc_ = type_crtc;
+   switch (type_crtc_)
    {
    case 0:
-      ClockTick0 ();
+      TickFunction = &CRTC::ClockTick0;
       break;
    case 1:
-      ClockTick1 ();
+      TickFunction = &CRTC::ClockTick1;
       break;
    case 2:
-      ClockTick2();
+      TickFunction = &CRTC::ClockTick2;
       break;
    default:
-      ClockTick34 ();
+      TickFunction = &CRTC::ClockTick34;
    }
+   
+}
 
+unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+{
+   (this->*(TickFunction))();
 
    /////////////////////////
    // DISPMSG
@@ -466,7 +484,7 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
 
    /////////////////////////
    // HSYNC
-   signals_->h_sync_ = ff2_;
+   //signals_->h_sync_ = ff2_;
    /////////////////////////
    // VSYNC
    signals_->v_sync_ = ff4_;
@@ -474,7 +492,7 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
    // Lightgun :
    // If X/Y is in the current zone => do something
    gate_array_->Tick();
-
+   
    // Cursor
    if ( vlc_ >= registers_list_[10] && vlc_ <= registers_list_[11]
       && ma_ == registers_list_[15] + ((registers_list_[14] & 0x3F) << 8))
