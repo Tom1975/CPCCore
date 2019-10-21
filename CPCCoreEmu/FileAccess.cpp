@@ -77,7 +77,9 @@ unsigned int GetDirectoryContent(const char* path, std::vector<std::string>& fil
       else if (fs::is_regular_file(p.status()))
       {
          // todo
-         file_list.push_back(p.path().string());
+
+         std::string str = p.path().string();
+         file_list.push_back(str);
          nb_file++;
       }
    }

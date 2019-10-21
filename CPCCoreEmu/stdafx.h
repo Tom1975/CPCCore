@@ -24,7 +24,7 @@
 #define _CRTDBG_MAP_ALLOC
 
 #include <filesystem>
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 #elif __MORPHOS__
 // fs does not exist there
