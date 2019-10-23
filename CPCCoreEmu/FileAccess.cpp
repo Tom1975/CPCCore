@@ -68,7 +68,8 @@ unsigned int GetDirectoryContent(const char* path, std::vector<std::string>& fil
 #elif RASPPI
    // todo
 #else
-   for (auto& p : fs::directory_iterator(path))
+   std::error_code ec;
+   for (auto& p : fs::directory_iterator(path, ec))
    {
       if (fs::is_directory(p.status()))
       {
