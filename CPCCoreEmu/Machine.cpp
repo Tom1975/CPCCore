@@ -26,8 +26,8 @@ extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
 
-const char* ROMPath = "\\ROM\\";
-const char* CartPath = "\\CART\\";
+const char* ROMPath = "ROM\\";
+const char* CartPath = "CART\\";
 
 #define MAX_SIZE_BUFFER 256
 

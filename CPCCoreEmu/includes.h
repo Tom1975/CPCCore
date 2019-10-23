@@ -18,10 +18,10 @@ namespace fs = std::filesystem;
 #else
 
 #ifdef _WIN32
-#include <experimental\filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #elif __unix
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
 #endif
