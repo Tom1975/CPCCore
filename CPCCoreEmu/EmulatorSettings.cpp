@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "EmulatorSettings.h"
-#include "psg.h"
+#include "PSG.h"
 #include <sstream>
 
 //////////////////////////////////////////////////////////
