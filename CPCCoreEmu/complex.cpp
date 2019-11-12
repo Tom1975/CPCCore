@@ -9,7 +9,7 @@
 #include <math.h>
 
 #include "mkfilter.h"
-#include "Complex.h"
+#include "complex.h"
 
 static Complex Eval(Complex[], int, Complex);
 static double Xsqrt(double);
