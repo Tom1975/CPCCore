@@ -303,11 +303,13 @@ Filter::Filter(int type_of_filter, bool lpf, double fe, double fc, int order) : 
 
    // Force 53 bits floating points...
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
       fstcw oldcw
       fldcw cw
    }
    oldcw_ = oldcw;
+#endif
 #endif
    // Compute gain and coeff.
    switch (type_of_filter)
@@ -329,10 +331,12 @@ Filter::~Filter()
    delete[]coefy_;
 
 #ifdef _WIN32
+#ifndef _WIN64
    volatile short int oldcw = oldcw_;
    __asm {
       fldcw oldcw
    }
+#endif
 #endif
 
 }
@@ -354,12 +358,14 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
 
    // Force 53 bits floating points...
 #ifdef _WIN32
+#ifndef _WIN64
    volatile short int oldcw = oldcw_;
    volatile short int  cw = 0x27F;
    __asm {
    fstcw oldcw
    fldcw cw
    }
+#endif
 #endif
    
    // Lets apply theses values.
@@ -385,9 +391,11 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
       array[i]  = yvout;
    }
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
    fldcw oldcw
    }
+#endif
 #endif
 }
 
@@ -416,11 +424,13 @@ void CTape::FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filt
    volatile short int oldcw = 0;
 
 #ifdef _WIN32
+#ifndef _WIN64
    // Force 53 bits floating points...
    __asm {
    fstcw oldcw
    fldcw cw
    }
+#endif
 #endif
    // Can be replaced by....
    //_controlfp_s ( &currCtrl, _PC_53 , _MCW_PC  );
@@ -473,9 +483,11 @@ void CTape::FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filt
    delete []coefx;
    delete []coefy;
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
    fldcw oldcw
    }
+#endif
 #endif
 }
 
