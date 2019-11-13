@@ -136,10 +136,12 @@ SoundMixer::SoundMixer() :
    volatile short int oldcw = 0;
 
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
       fstcw oldcw
       fldcw cw
    }
+#endif
 #endif
 
 #ifndef NOFILTER
@@ -153,9 +155,11 @@ SoundMixer::SoundMixer() :
 #endif
 
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
       fldcw oldcw
    }
+#endif
 #endif
 }
 
@@ -191,11 +195,14 @@ void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsig
    volatile short int oldcw = 0;
 
 #ifdef _WIN32
+#ifndef _WIN64
    // Force 53 bits floating points...
    __asm {
       fstcw oldcw
       fldcw cw
    }
+#endif
+#endif
 #endif
 
    // Can be replaced by....
@@ -235,6 +242,7 @@ void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsig
       array_right[i] = yvout_right;
    }
 #ifdef _WIN32
+#ifndef _WIN64
    __asm {
       fldcw oldcw
    }
