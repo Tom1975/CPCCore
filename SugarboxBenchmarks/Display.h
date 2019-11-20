@@ -29,7 +29,6 @@ public :
    virtual void SetScanlines ( int scan ) {};
    virtual void Display() {};
    virtual bool AFrameIsReady  () {return true;};
-   virtual void Init (HINSTANCE hInstance, HWND hWnd, IFullScreenInterface* pFSInt) {};
    virtual void Config () {};
    virtual const char* GetInformations () { return "TCL GDI";};
    virtual int GetWidth () ;

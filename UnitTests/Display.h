@@ -87,7 +87,7 @@ protected:
 
    sf::RenderTexture renderTexture_;
    sf::Texture framebuffer_;
-   sf::Window window_;
+   sf::RenderWindow window_;
 
    int* framebufferArray_;
 };

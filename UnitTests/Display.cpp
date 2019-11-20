@@ -111,10 +111,19 @@ void CDisplay::VSync (bool bDbg)
       screenshot_found_ = false;
    }
 
-   if (m_bShow)
+   sf::Event event;
+   while (window_.pollEvent(event))
    {
-      
-      
+      // process event...
+   }
+   //if (m_bShow)
+   {
+      framebuffer_.update((const sf::Uint8*)framebufferArray_);
+      sf::Sprite sprite;
+      sprite.setTexture(framebuffer_);
+
+      window_.draw(sprite);
+      window_.display();
    }
    //Reset();
    if (stop_)

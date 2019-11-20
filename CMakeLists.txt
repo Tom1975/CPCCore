@@ -6,6 +6,8 @@ project(CPCCore)
 set(GENERATE_BENCHMARK OFF CACHE BOOL "Generate SugarBenchmark")
 set(GENERATE_UNITTESTS OFF CACHE BOOL "Generate UnitTests")
 
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/bin)
+
 set(CompilerFlags
         CMAKE_CXX_FLAGS
         CMAKE_CXX_FLAGS_DEBUG
