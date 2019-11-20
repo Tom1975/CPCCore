@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.0)
 project(unitTests)
 enable_testing()
 
-
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} PUBLIC ${CPCCORE})
+Message ("SFML : " ${sfml-main})
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} PUBLIC ${CPCCORE} ${PROJECT_SOURCE_DIR}/../SFML/include)
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -50,9 +50,7 @@ else()
 endif()
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu Shlwapi.lib  Comctl32.lib XmlLite.lib 
-                                             Msimg32.lib 
-                                             Winmm.lib  )
+target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-main sfml-graphics)
 
 add_test( NAME unitTests COMMAND unitTests)
 
