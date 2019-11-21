@@ -38,8 +38,9 @@ add_subdirectory(CPCCoreEmu)
 
 if (GENERATE_UNITTESTS)
    add_subdirectory(googletest/googletest)
-   add_subdirectory(UnitTests)
    add_subdirectory(SFML)
+   add_subdirectory(UnitTests)
+
 endif()
 
 if (GENERATE_BENCHMARK)
