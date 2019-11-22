@@ -85,9 +85,9 @@ protected:
    int m_Width;
    int m_Height;
 
-   sf::RenderTexture renderTexture_;
-   sf::Texture framebuffer_;
-   sf::RenderWindow window_;
+   sf::RenderTexture *renderTexture_;
+   sf::Texture* framebuffer_;
+   sf::RenderWindow *window_;
 
    int* framebufferArray_;
 };

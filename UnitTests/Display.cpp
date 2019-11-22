@@ -13,14 +13,19 @@
 #define DISP_WINDOW_Y   600
 
 
-CDisplay::CDisplay () : window_(sf::VideoMode(800, 600), "My window")
+CDisplay::CDisplay ()
 {
-
+   window_ = new sf::RenderWindow (sf::VideoMode(800, 600), "My window");
+   framebuffer_ = new sf::Texture ();
+   renderTexture_ = new sf::RenderTexture ();
 }
 
 CDisplay::~CDisplay()
 {
-   
+   delete renderTexture_;
+   delete framebuffer_;
+   delete window_;
+
 }
 
 int CDisplay::GetWidth ()
@@ -50,7 +55,7 @@ void CDisplay::Show ( bool bShow )
 void CDisplay::Init ()
 {
    framebufferArray_ = new int[REAL_DISP_X * REAL_DISP_Y ];
-   if (!framebuffer_.create(REAL_DISP_X, REAL_DISP_Y))
+   if (!framebuffer_->create(REAL_DISP_X, REAL_DISP_Y))
    {
       // error...
    }
@@ -111,19 +116,20 @@ void CDisplay::VSync (bool bDbg)
       screenshot_found_ = false;
    }
 
-   sf::Event event;
-   while (window_.pollEvent(event))
-   {
-      // process event...
-   }
+
    //if (m_bShow)
    {
-      framebuffer_.update((const sf::Uint8*)framebufferArray_);
+      framebuffer_->update((const sf::Uint8*)framebufferArray_);
       sf::Sprite sprite;
-      sprite.setTexture(framebuffer_);
+      sprite.setTexture(*framebuffer_);
 
-      window_.draw(sprite);
-      window_.display();
+      window_->draw(sprite);
+      window_->display();
+   }
+      sf::Event event;
+   while (window_->pollEvent(event))
+   {
+      // process event...
    }
    //Reset();
    if (stop_)
