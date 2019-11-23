@@ -31,12 +31,15 @@ set (BENCHMARK_ENABLE_GTEST_TESTS OFF BOOL)
 set (BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "ENABLE tests")
 set (BENCHMARK_ENABLE_INSTALL OFF BOOL)
 
+set (SFML_USE_STATIC_STD_LIBS FALSE BOOL)
+   
 set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core Emu"		FORCE)
 
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
 
 if (GENERATE_UNITTESTS)
+   
    add_subdirectory(googletest/googletest)
    add_subdirectory(SFML)
    add_subdirectory(UnitTests)
