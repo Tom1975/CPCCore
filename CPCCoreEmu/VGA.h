@@ -48,7 +48,7 @@ public:
    void SetPAL (bool bPAL) { pal_present_ = bPAL ; }
    void SetPlus(bool plus) { plus_ = plus; }
    // Initialisation et branchement des pins
-   void SetMonitor (Monitor* monitor){monitor_ = monitor;}
+   void SetMonitor(Monitor* monitor);
    void SetBus (Bus* address, Bus* data);
    void SetSig ( CSig* sig ) {sig_handler_ = sig;}
    void SetMemory  (Memory* mem) { memory_ = mem;memory_ram_buffer_ = memory_->ram_buffer_[0];}

@@ -25,7 +25,7 @@ public :
    {
       return screenshot_take_;
    }
-
+   virtual unsigned int ConvertRGB(unsigned int rgb);
    virtual void SetScanlines ( int scan ) {};
    virtual void ScreenshotToFile(const char* pathFile);
    virtual bool CompareScreenshot(const char* pathFile);

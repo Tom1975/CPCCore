@@ -15,7 +15,7 @@
 
 CDisplay::CDisplay ()
 {
-   window_ = new sf::RenderWindow (sf::VideoMode(800, 600), "My window");
+   window_ = new sf::RenderWindow (sf::VideoMode(680, 500), "My window");
    framebuffer_ = new sf::Texture ();
    renderTexture_ = new sf::RenderTexture ();
 }
@@ -26,6 +26,11 @@ CDisplay::~CDisplay()
    delete framebuffer_;
    delete window_;
 
+}
+
+unsigned int CDisplay::ConvertRGB(unsigned int rgb)
+{
+   return  (0xFF000000 | ((rgb & 0xFF)<<16) | ((rgb & 0xFF00)>>8 ) | ((rgb & 0xFF0000)>>8));
 }
 
 int CDisplay::GetWidth ()
@@ -109,7 +114,8 @@ void CDisplay::VSync (bool bDbg)
       screenshot_take_ = false;
    }
    if (screenshot_detection_)
-   { 
+   {
+
    }
    else
    {
@@ -117,12 +123,13 @@ void CDisplay::VSync (bool bDbg)
    }
 
 
-   //if (m_bShow)
+   if (m_bShow)
    {
+
       framebuffer_->update((const sf::Uint8*)framebufferArray_);
       sf::Sprite sprite;
       sprite.setTexture(*framebuffer_);
-
+      sprite.setTextureRect(sf::IntRect(143, 47, 680, 500));
       window_->draw(sprite);
       window_->display();
    }

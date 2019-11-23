@@ -130,6 +130,17 @@ GateArray::~GateArray(void)
 {
 }
 
+void GateArray::SetMonitor(Monitor* monitor) 
+{
+   monitor_ = monitor; 
+ 
+   for (int i = 0; i < 32; i++)
+   {
+      ListeColorsIndex[ListeColorsIndexConvert[i]] = monitor_->screen_->ConvertRGB(ListeColors[i]);
+   }
+   
+}
+
 void GateArray::Reset()
 {
    ssa_new_ = ssa_new_counter_ = ssa_ = 0;

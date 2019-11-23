@@ -23,6 +23,9 @@ public:
       S_MAX
    };
 
+   virtual unsigned int ConvertRGB(unsigned int rgb) {
+      return rgb;
+   };
    virtual void WindowsToTexture(int &x, int &y) {};
    virtual void SetScanlines ( int scan ) = 0;
    virtual bool AFrameIsReady  () = 0;
