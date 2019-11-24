@@ -89,5 +89,7 @@ protected:
    sf::Texture* framebuffer_;
    sf::RenderWindow *window_;
 
+   sf::Image screenshot_texture_;
+   const unsigned char* screenshot_buffer_;
    int* framebufferArray_;
 };

@@ -73,6 +73,9 @@ void CDisplay::InitScreenshotDetection(const char* pathFile)
 {
    screenshot_detection_ = true;
    screenshot_found_ = false;
+
+   screenshot_texture_.loadFromFile(pathFile);
+   screenshot_buffer_ = screenshot_texture_.getPixelsPtr();
 }
 
 bool CDisplay::IsScreenshotFound()
@@ -115,7 +118,7 @@ void CDisplay::VSync (bool bDbg)
    }
    if (screenshot_detection_)
    {
-
+      // Compare 
    }
    else
    {
@@ -130,6 +133,7 @@ void CDisplay::VSync (bool bDbg)
       sf::Sprite sprite;
       sprite.setTexture(*framebuffer_);
       sprite.setTextureRect(sf::IntRect(143, 47, 680, 500));
+
       window_->draw(sprite);
       window_->display();
    }
