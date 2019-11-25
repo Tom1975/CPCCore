@@ -13,7 +13,7 @@
 #define DISP_WINDOW_Y   600
 
 
-CDisplay::CDisplay ()
+CDisplay::CDisplay () : screenshot_detection_(false)
 {
    window_ = new sf::RenderWindow (sf::VideoMode(680, 500), "My window");
    framebuffer_ = new sf::Texture ();
@@ -30,7 +30,7 @@ CDisplay::~CDisplay()
 
 unsigned int CDisplay::ConvertRGB(unsigned int rgb)
 {
-   return  (0xFF000000 | ((rgb & 0xFF)<<16) | ((rgb & 0xFF00)>>8 ) | ((rgb & 0xFF0000)>>8));
+   return  (0xFF000000 | ((rgb & 0xFF)<<16) | ((rgb & 0xFF00) ) | ((rgb & 0xFF0000)>>16));
 }
 
 int CDisplay::GetWidth ()
@@ -45,11 +45,12 @@ int CDisplay::GetHeight ()
 
 int* CDisplay::GetVideoBuffer (int y )
 {
-   return &framebufferArray_[y * REAL_DISP_X];
+   return &framebufferArray_[ REAL_DISP_X * y*2];
 }
 
 void CDisplay::Reset () 
 {
+   memset( framebufferArray_ , 0, REAL_DISP_X * REAL_DISP_Y*4);
 }
 
 void CDisplay::Show ( bool bShow )
@@ -118,7 +119,33 @@ void CDisplay::VSync (bool bDbg)
    }
    if (screenshot_detection_)
    {
+      // Extract (143, 47, 680, 500) from current image
+      sf::Image img = framebuffer_->copyToImage();
+      sf::Image img_src;
+      const unsigned char* src_buffer = img.getPixelsPtr();
+
       // Compare 
+      bool ok = true;
+      int* int_src_buff = (int*)src_buffer;
+      for (int i = 0; i < 500 && ok; i++)
+      {
+         for (int j = 0; j < 680 && ok; j++)
+         {
+            if ( framebufferArray_[143 + j + (i+47) * REAL_DISP_X ] != int_src_buff[143 + j + (i + 47) * REAL_DISP_X/*j* REAL_DISP_X + i*/] )
+               ok = false;
+         }
+      }
+      //if (memcmp(screenshot_buffer_, src_buffer, 680 * 500 * 4) == 0)
+      if (ok)
+      {
+         screenshot_found_ = true;
+         screenshot_detection_ = false;
+      }
+      else
+      {
+         screenshot_found_ = false;
+      }
+
    }
    else
    {
@@ -128,7 +155,6 @@ void CDisplay::VSync (bool bDbg)
 
    if (m_bShow)
    {
-
       framebuffer_->update((const sf::Uint8*)framebufferArray_);
       sf::Sprite sprite;
       sprite.setTexture(*framebuffer_);
@@ -142,7 +168,7 @@ void CDisplay::VSync (bool bDbg)
    {
       // process event...
    }
-   //Reset();
+   Reset();
    if (stop_)
       return;
 
