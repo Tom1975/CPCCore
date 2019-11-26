@@ -13,11 +13,8 @@
 #define DISP_WINDOW_Y   600
 
 
-CDisplay::CDisplay () : screenshot_detection_(false)
+CDisplay::CDisplay () : screenshot_detection_(false), window_(nullptr)
 {
-   window_ = new sf::RenderWindow (sf::VideoMode(680, 500), "My window");
-   framebuffer_ = new sf::Texture ();
-   renderTexture_ = new sf::RenderTexture ();
 }
 
 CDisplay::~CDisplay()
@@ -56,10 +53,16 @@ void CDisplay::Reset ()
 void CDisplay::Show ( bool bShow )
 {
    m_bShow = bShow;
+   if (window_)
+      window_->setVisible(bShow);
 }
 
-void CDisplay::Init ()
+void CDisplay::Init (bool show)
 {
+   if (show)
+      window_ = new sf::RenderWindow(sf::VideoMode(680, 500), "My window");
+   framebuffer_ = new sf::Texture();
+   renderTexture_ = new sf::RenderTexture();
    framebufferArray_ = new int[REAL_DISP_X * REAL_DISP_Y ];
    if (!framebuffer_->create(REAL_DISP_X, REAL_DISP_Y))
    {
@@ -120,6 +123,7 @@ void CDisplay::VSync (bool bDbg)
    if (screenshot_detection_)
    {
       // Extract (143, 47, 680, 500) from current image
+      framebuffer_->update((const sf::Uint8*)framebufferArray_);
       sf::Image img = framebuffer_->copyToImage();
       sf::Image img_src;
       const unsigned char* src_buffer = img.getPixelsPtr();
@@ -150,23 +154,26 @@ void CDisplay::VSync (bool bDbg)
    else
    {
       screenshot_found_ = false;
-   }
-
-
-   if (m_bShow)
-   {
       framebuffer_->update((const sf::Uint8*)framebufferArray_);
-      sf::Sprite sprite;
-      sprite.setTexture(*framebuffer_);
-      sprite.setTextureRect(sf::IntRect(143, 47, 680, 500));
-
-      window_->draw(sprite);
-      window_->display();
    }
-      sf::Event event;
-   while (window_->pollEvent(event))
+
+   if (window_)
    {
-      // process event...
+      if (m_bShow)
+      {
+
+         sf::Sprite sprite;
+         sprite.setTexture(*framebuffer_);
+         sprite.setTextureRect(sf::IntRect(143, 47, 680, 500));
+
+         window_->draw(sprite);
+         window_->display();
+      }
+      sf::Event event;
+      while (window_->pollEvent(event))
+      {
+         // process event...
+      }
    }
    Reset();
    if (stop_)

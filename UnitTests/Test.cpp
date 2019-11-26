@@ -252,10 +252,12 @@ TEST(Motherboard, Init)
    CDisplay          *display = new CDisplay;
    KeyboardForTest   *keyboard = new KeyboardForTest;
 
-   display->Init();
+   
 #ifdef _DEBUG
+   display->Init(true);
    display->Show(true);
 #else
+   display->Init(false);
    display->Show(false);
 #endif
 

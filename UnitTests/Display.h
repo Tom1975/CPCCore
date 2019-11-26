@@ -55,7 +55,7 @@ public :
    virtual bool GetBlackScreenInterval () { return false ;};
    virtual void SetBlackScreenInterval (bool bBS) { };
 
-   void Init ();
+   void Init (bool show);
    void Show ( bool bShow );
    virtual void StopMessaging  ( bool bStop ){stop_=bStop;};
 
