@@ -134,9 +134,10 @@ void CDisplay::VSync (bool bDbg)
       int* int_src_buff = (int*)src_buffer;
       for (int i = 0; i < 500 && ok; i++)
       {
-         for (int j = 0; j < 680 && ok; j++)
+         //for (int j = 0; j < 680 && ok; j++)
          {
-            if ( framebufferArray_[143 + j + (i+47) * REAL_DISP_X ] != int_src_buff[143 + j + (i + 47) * REAL_DISP_X/*j* REAL_DISP_X + i*/] )
+            if (memcmp(&framebufferArray_[143 + (i + 47) * REAL_DISP_X], &int_src_buff[143 + (i + 47) * REAL_DISP_X], 680 * 4) != 0)
+               //if ( framebufferArray_[143 + j + (i+47) * REAL_DISP_X ] != int_src_buff[143 + j + (i + 47) * REAL_DISP_X] )
                ok = false;
          }
       }
