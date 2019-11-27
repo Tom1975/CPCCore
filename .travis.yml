@@ -1,5 +1,6 @@
 language: cpp
 dist: trusty
+language: cpp
 
 #limit to git depth to 1 because don't use any git command in this script
 git:
@@ -17,5 +18,5 @@ before_install:
 script:
 # SugarConvTape
 - echo 'Generating makefile'
-- cmake .
+- cmake . -D GENERATE_UNITTESTS=TRUE
 - make all
