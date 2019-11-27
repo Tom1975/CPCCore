@@ -1,0 +1,21 @@
+language: cpp
+dist: trusty
+
+#limit to git depth to 1 because don't use any git command in this script
+git:
+  depth: 1
+  
+before_install:
+#g++ 7
+- echo 'Installing G++ 8'
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- sudo apt-get update -qq
+- if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-8; fi
+- if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
+- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 50
+
+script:
+# SugarConvTape
+- echo 'Generating makefile'
+- cmake .
+- make all
