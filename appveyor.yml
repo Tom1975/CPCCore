@@ -34,7 +34,7 @@ before_build:
     mkdir build
     cd build
     cmake --version
-    cmake .. 
+    cmake .. -D GENERATE_UNITTESTS=TRUE
     
 build_script:
 - cmd : |- 
@@ -47,3 +47,6 @@ only_commits:
     - CMakeLists.txt
     - appveyor.yml
     - CPCCoreEmu
+
+test_script:
+  - '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\UnitTests.exe'
