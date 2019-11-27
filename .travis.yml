@@ -18,5 +18,5 @@ before_install:
 script:
 # SugarConvTape
 - echo 'Generating makefile'
-- cmake . -D GENERATE_UNITTESTS=TRUE
+- cmake . -DGENERATE_UNITTESTS=TRUE
 - make all

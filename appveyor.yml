@@ -34,7 +34,7 @@ before_build:
     mkdir build
     cd build
     cmake --version
-    cmake .. -D GENERATE_UNITTESTS=TRUE
+    cmake .. -DGENERATE_UNITTESTS=TRUE
     
 build_script:
 - cmd : |- 
