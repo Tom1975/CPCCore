@@ -7,11 +7,8 @@
 
 #include <iostream>
 
-#include "tchar.h"
-#include "windows.h"
 #include "gtest/gtest.h"
 #include "Diskcontainer.h"
-//#include "DiskSFWR.h"
 #include "FormatTypeRAW.h"
 #include "Tape.h"
 

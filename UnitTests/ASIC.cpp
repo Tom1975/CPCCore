@@ -5,8 +5,7 @@
 #endif
 #include <iostream>
 
-#include "tchar.h"
-#include "windows.h"
+
 #include "gtest/gtest.h"
 #include "Asic.h"
 

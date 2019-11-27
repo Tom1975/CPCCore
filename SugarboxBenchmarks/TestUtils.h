@@ -6,7 +6,7 @@
 #include "tchar.h"
 #include "windows.h"
 #include "Machine.h"
-#include "Display.h"
+#include "../UnitTests/Display.h"
 
 // SCR_COMPARE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot

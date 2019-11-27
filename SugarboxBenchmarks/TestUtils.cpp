@@ -6,9 +6,6 @@
 #endif
 
 #include <iostream>
-
-#include "tchar.h"
-#include "windows.h"
 #include "TestUtils.h"
 
 
@@ -60,10 +57,12 @@ bool CompareTape(std::string p1)
 bool TestDump::TestCardridge(const char* conf, const char* initfile, const char* cart_to_load, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
-   display.Init();
+   
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 
@@ -100,10 +99,11 @@ bool TestDump::TestCardridge(const char* conf, const char* initfile, const char*
 bool TestDump::Test(const char* conf, const char* initfile, const char* dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 
@@ -154,10 +154,11 @@ bool InitBinary(char* conf, char* initfile, char* binary_to_load, unsigned short
    DirectoriesImp dirImp;
    ConfigurationManager conf_manager;
    CDisplay display;
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 
@@ -265,10 +266,11 @@ bool TestTape::Test( char* conf, char* initfile, char* dump_to_load, char* fic_t
                      unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build)
 {
    // Creation dela machine
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 

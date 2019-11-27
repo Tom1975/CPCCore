@@ -1,7 +1,7 @@
-#include "benchmark/benchmark.h"
+#include "../benchmark/include/benchmark/benchmark.h"
 #include <set>
 #include <vector>
-#include "../TestUtils.h"
+#include "TestUtils.h"
 
 void BenchmarkOpcode (Motherboard *motherboard_emulation, unsigned char opcode)
 {
@@ -51,10 +51,12 @@ static void BM_NOP(benchmark::State &state)
    CDisplay          display;
    KeyboardForTest   keyboard;
 
-   display.Init();
+   
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
    motherboard_emulation = new Motherboard(&sound_mixer, &keyboard);
@@ -78,10 +80,11 @@ static void BM_INC_B(benchmark::State &state)
    CDisplay          display;
    KeyboardForTest   keyboard;
 
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 
@@ -107,10 +110,11 @@ static void BM_INC_BC(benchmark::State &state)
    CDisplay          display;
    KeyboardForTest   keyboard;
 
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 
@@ -136,10 +140,11 @@ static void BM_RLCA(benchmark::State &state)
    CDisplay          display;
    KeyboardForTest   keyboard;
 
-   display.Init();
 #ifdef _DEBUG
+   display.Init(true);
    display.Show(true);
 #else
+   display.Init(false);
    display.Show(false);
 #endif
 

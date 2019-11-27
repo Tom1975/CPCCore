@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "tchar.h"
-#include "windows.h"
 #include "gtest/gtest.h"
 #include "Machine.h"
 #include "Display.h"

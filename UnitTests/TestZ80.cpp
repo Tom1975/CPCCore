@@ -11,9 +11,6 @@
 
 #include <iostream>
 
-#include "tchar.h"
-#include "windows.h"
-
 /////////////////////////////////////////////////////////////
 /// Helper functions
 

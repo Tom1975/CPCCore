@@ -23,7 +23,6 @@ namespace fs = std::filesystem;
 
 #include <iostream>
 
-#include "windows.h"
 #include "gtest/gtest.h"
 #include "MediaContainer.h"
 #include "DiskGen.h"

@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(SugarboxBenchmarks)
-#
-#MESSAGE ("googlebenchmark_SOURCE_DIR : "${googlebenchmark_SOURCE_DIR} )
-include_directories( PUBLIC ${CPCCORE})
+
+include_directories( PUBLIC ${CPCCORE} ${googlebenchmark_SOURCE_DIR})
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -22,17 +21,18 @@ IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
 ENDIF(MSVC)
 
-foreach(CompilerFlag ${CompilerFlags})
-   string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-endforeach()
+if (USE_SHARED_CRT)
+else()
+   foreach(CompilerFlag ${CompilerFlags})
+     string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+   endforeach()
+endif()
 
 add_executable( SugarboxBenchmarks
             benchmark.cpp
-            Display.cpp
             TestUtils.cpp
-
+            ../UnitTests/Display.cpp
 )
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(SugarboxBenchmarks zlibstatic CPCCoreEmu benchmark Shlwapi.lib Comctl32.lib XmlLite.lib 
-                                             Msimg32.lib Winmm.lib )
+target_link_libraries(SugarboxBenchmarks zlibstatic benchmark CPCCoreEmu sfml-main sfml-graphics)

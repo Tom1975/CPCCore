@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-#include "tchar.h"
-#include "windows.h"
 #include "TestUtils.h"
 
 

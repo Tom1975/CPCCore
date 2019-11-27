@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include "tchar.h"
-#include <windows.h>
 #include "gtest/gtest.h"
 #include "DiskContainer.h"
 
