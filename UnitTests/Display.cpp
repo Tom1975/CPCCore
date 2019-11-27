@@ -13,7 +13,7 @@
 #define DISP_WINDOW_Y   600
 
 
-CDisplay::CDisplay () : screenshot_detection_(false), window_(nullptr)
+CDisplay::CDisplay () : screenshot_detection_(false), window_(nullptr), renderTexture_(nullptr), framebuffer_(nullptr), framebufferArray_(nullptr)
 {
 }
 
@@ -22,6 +22,7 @@ CDisplay::~CDisplay()
    delete renderTexture_;
    delete framebuffer_;
    delete window_;
+   delete[]framebufferArray_;
 
 }
 
@@ -127,7 +128,7 @@ void CDisplay::VSync (bool bDbg)
       sf::Image img = framebuffer_->copyToImage();
       sf::Image img_src;
       const unsigned char* src_buffer = img.getPixelsPtr();
-
+       
       // Compare 
       bool ok = true;
       int* int_src_buff = (int*)src_buffer;
