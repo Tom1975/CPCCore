@@ -16,6 +16,7 @@ before_install:
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 50
 - sudo apt-get install udev
 - sudo apt-get install libudev-dev
+- sudo apt-get install libopenal0a libopenal-dev
 
 script:
 # SugarConvTape
