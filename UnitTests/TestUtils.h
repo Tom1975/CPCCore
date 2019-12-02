@@ -3,8 +3,6 @@
 #include <iostream>
 #include <functional>
 
-#include "tchar.h"
-#include "windows.h"
 #include "Machine.h"
 #include "Display.h"
 
@@ -31,24 +29,33 @@ int LoadCprFromBuffer(Motherboard* motherboard, unsigned char* buffer, int size)
 /////////////////////////////////////////////////////////////
 /// Helper functions
 
-
-
-
 class ConfigurationManager : public IConfiguration
 {
 public:
-   virtual void SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file)
+
+   ConfigurationManager();
+   virtual ~ConfigurationManager();
+
+   virtual void OpenFile(const char* config_file);
+   virtual void SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file);
+   virtual size_t GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file);
+   virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file);
+
+protected:
+   void Clear();
+
+   struct data : std::map <std::string, std::string>
    {
-      WritePrivateProfileStringA(section, cle, valeur, file);
-   }
-   virtual size_t GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file)
-   {
-      return GetPrivateProfileStringA(section, cle, default_value, out_buffer, buffer_size, file);
-   }
-   virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file)
-   {
-      return GetPrivateProfileIntA(section, cle, default_value, file);
-   }
+      // Here is a little convenience method...
+      bool iskey(const std::string& s) const
+      {
+         return count(s) != 0;
+      }
+   };
+
+   typedef std::map <std::string, data* > ConfigFile;
+
+   ConfigFile config_file_;
 };
 
 class FileLog : public ILog
@@ -81,11 +88,11 @@ class Log : public ILog
 {
 public:
 
-   virtual void WriteLog(const char* pLog) { OutputDebugStringA(pLog); };
-   virtual void WriteLogByte(unsigned char pNumber) { char buf[256]; sprintf_s(buf, 256, " %2.2X ", pNumber); OutputDebugStringA(buf); }
-   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf_s(buf, 256, " %4.4X ", pNumber); OutputDebugStringA(buf); }
-   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf_s(buf, 256, " %8.8X ", pNumber); OutputDebugStringA(buf); };
-   virtual void EndOfLine() { OutputDebugStringA("\n"); };
+   virtual void WriteLog(const char* pLog) {  };
+   virtual void WriteLogByte(unsigned char pNumber) { char buf[256]; sprintf_s(buf, 256, " %2.2X ", pNumber); }
+   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf_s(buf, 256, " %4.4X ", pNumber); }
+   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf_s(buf, 256, " %8.8X ", pNumber); };
+   virtual void EndOfLine() { };
 
 };
 class SoundFactory : public ISoundFactory

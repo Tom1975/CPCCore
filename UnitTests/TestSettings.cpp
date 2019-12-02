@@ -19,13 +19,8 @@ TEST(Settings, basic_settinglist_test)
    SettingsList settings_list;
    ConfigurationManager conf_manager;
    
-   USE_COUNT
-   START_COUNT("Full settings loading")
-      
    settings_list.InitSettingsList (&conf_manager, ".\\CONF");
    settings_list.BuildList();
-
-   END_COUNT;
 
    // Read and check settings list
    ASSERT_EQ(35, settings_list.GetNumberOfConfigurations()) << "Wrong configuration number !";
