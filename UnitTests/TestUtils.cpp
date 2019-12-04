@@ -39,10 +39,17 @@ void ConfigurationManager::Clear()
 
 void ConfigurationManager::OpenFile(const char* config_file)
 {
+   if (current_config_file_ == config_file)
+   {
+      // already openend
+      return;
+   }
    Clear();
    std::string s, key, value;
    std::ifstream f(config_file);
    std::string current_section = "";
+   
+   current_config_file_ = config_file;
 
    while (std::getline(f, s))
    {
@@ -54,13 +61,14 @@ void ConfigurationManager::OpenFile(const char* config_file)
       if (std::string("#;").find(s[begin]) != std::string::npos) continue;
 
       // Search sections
-      std::string::size_type begin_section = s.find_first_of("[");
-      if (begin_section != std::string::npos)
+      //std::string::size_type begin_section = s.find_first_of("[");
+      //if (begin_section != std::string::npos)
+      if (s[0] == '[')
       {
-         std::string::size_type end_section = s.find_first_of("]", begin_section);
+         std::string::size_type end_section = s.find_first_of("]");
          if (end_section != std::string::npos)
          {
-            current_section = s.substr(begin_section+1, end_section-1);
+            current_section = s.substr(1, end_section-1);
          }
       }
 
@@ -137,7 +145,7 @@ size_t ConfigurationManager::GetConfiguration(const char* section, const char* c
          }
       }
    }
-
+   strncpy(out_buffer, default_value, buffer_size);
    return 0;
 }
 

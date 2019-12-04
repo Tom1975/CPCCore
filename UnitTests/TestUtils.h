@@ -56,6 +56,7 @@ protected:
    typedef std::map <std::string, data* > ConfigFile;
 
    ConfigFile config_file_;
+   std::string current_config_file_;
 };
 
 class FileLog : public ILog
