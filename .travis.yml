@@ -24,3 +24,4 @@ script:
 - cmake . -DGENERATE_UNITTESTS=TRUE
 - make all
 - make install
+- cmake --build --target install
