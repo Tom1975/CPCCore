@@ -41,6 +41,9 @@ set(CMAKE_CXX_STANDARD 17)
 IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
 ENDIF(MSVC)
+if(CMAKE_COMPILER_IS_GNUCC)
+	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z )
+endif()
 
 if (USE_SHARED_CRT)
 else()
@@ -48,6 +51,7 @@ else()
      string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
    endforeach()
 endif()
+
 
 # Link test executable against gtest & gtest_main
 target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-main sfml-graphics)
