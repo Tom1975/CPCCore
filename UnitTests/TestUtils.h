@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <functional>
-
+#include "simple_stdio.h"
 #include "Machine.h"
 #include "Display.h"
 
