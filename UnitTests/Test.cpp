@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "Diskcontainer.h"
+#include "DiskContainer.h"
 #include "FormatTypeRAW.h"
 #include "Tape.h"
 
