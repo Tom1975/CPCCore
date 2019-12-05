@@ -197,7 +197,7 @@ public:
    }
    virtual bool Action(EmulatorEngine* machine)
    {
-      display_->InitScreenshotDetection(filename_.c_str());
+      if (!display_->InitScreenshotDetection(filename_.c_str())) return false;
       for (int i = 0; i < nb_cycles_timeout_; i++)
       {
          machine->RunTimeSlice(true);
@@ -230,7 +230,7 @@ public:
       if (verify_)
       {
          //return display_->CompareScreenshot(filename_.c_str());
-         display_->InitScreenshotDetection(filename_.c_str());
+         if (!display_->InitScreenshotDetection(filename_.c_str())) return false;
          for (int i = 0; i < 100; i++)
          {
             machine->RunTimeSlice(true);

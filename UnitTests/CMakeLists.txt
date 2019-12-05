@@ -55,7 +55,7 @@ endif()
 
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-main sfml-graphics)
+target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics)
 
 add_test( NAME unitTests COMMAND unitTests)
 

@@ -74,13 +74,18 @@ void CDisplay::Init (bool show)
 
 }
 
-void CDisplay::InitScreenshotDetection(const char* pathFile)
+bool CDisplay::InitScreenshotDetection(const char* pathFile)
 {
    screenshot_detection_ = true;
    screenshot_found_ = false;
 
-   screenshot_texture_.loadFromFile(pathFile);
+   if (!screenshot_texture_.loadFromFile(pathFile))
+   {
+      // error
+      return false;
+   }
    screenshot_buffer_ = screenshot_texture_.getPixelsPtr();
+   return true;
 }
 
 bool CDisplay::IsScreenshotFound()

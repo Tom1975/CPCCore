@@ -18,7 +18,7 @@ public :
    virtual ~CDisplay ();
 
    // Screenshot detection
-   void InitScreenshotDetection(const char* pathFile);
+   bool InitScreenshotDetection(const char* pathFile);
    bool IsScreenshotFound();
    void TakeScreenshot(const char* pathFile);
    bool IsScreenshotTaken() 
