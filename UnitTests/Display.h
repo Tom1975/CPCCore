@@ -5,7 +5,7 @@
 #include <string>
 #include <malloc.h>
 #include <memory.h>
-#include "screen.h"
+#include "Screen.h"
 
 // SFML
 #include <SFML/Graphics.hpp>
