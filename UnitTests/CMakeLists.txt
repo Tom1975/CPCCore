@@ -59,8 +59,8 @@ target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-grap
 add_test( NAME unitTests COMMAND unitTests)
 
 install(TARGETS unitTests 
-            RUNTIME DESTINATION ".""
-            LIBRARY DESTINATION ".""
+            RUNTIME DESTINATION "."
+            LIBRARY DESTINATION "."
             ARCHIVE DESTINATION lib/static)
 
 install ( FILES "./TestConf.ini" DESTINATION .)
