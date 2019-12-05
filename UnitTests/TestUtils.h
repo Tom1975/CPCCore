@@ -33,7 +33,7 @@ public:
 
    virtual void OpenFile(const char* config_file);
    virtual void SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file);
-   virtual size_t GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file);
+   virtual unsigned int GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file);
    virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file);
 
 protected:
@@ -57,25 +57,15 @@ protected:
 class FileLog : public ILog
 {
 public:
-   FileLog(const char* file)
-   {
-      fopen_s(&f_, file, "w");
-   }
-   virtual ~FileLog()
-   {
-      fclose(f_);
-   }
-   virtual void WriteLog(const char* pLog) { fwrite (pLog, strlen(pLog), 1, f_); };
+   FileLog(const char* file);
+   virtual ~FileLog();
 
-   virtual void WriteLogByte(unsigned char pNumber) 
-   {
-      char buf[256]; sprintf(buf, " %2.2X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
-   }
-   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf(buf, " %4.4X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
-   }
-   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf(buf, " %8.8X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
-   }
-   virtual void EndOfLine() { fwrite("\n", 1 , 1, f_);}
+   virtual void WriteLog(const char* pLog);
+
+   virtual void WriteLogByte(unsigned char pNumber);
+   virtual void WriteLogShort(unsigned short pNumber);
+   virtual void WriteLog(unsigned int pNumber);
+   virtual void EndOfLine();
 protected:
    FILE * f_;
 };

@@ -13,6 +13,37 @@
 #include "TestUtils.h"
 
 
+FileLog::FileLog(const char* file)
+{
+   fopen_s(&f_, file, "w");
+}
+
+FileLog::~FileLog()
+{
+   fclose(f_);
+}
+void FileLog::WriteLog(const char* pLog) 
+{
+   fwrite(pLog, strlen(pLog), 1, f_); 
+}
+
+void FileLog::WriteLogByte(unsigned char pNumber)
+{
+   char buf[256]; sprintf(buf, " %2.2X ", pNumber); fwrite(buf, strlen(buf), 1, f_);
+}
+void FileLog::WriteLogShort(unsigned short pNumber) 
+{
+   char buf[256]; sprintf(buf, " %4.4X ", pNumber); fwrite(buf, strlen(buf), 1, f_);
+}
+void FileLog::WriteLog(unsigned int pNumber) 
+{
+   char buf[256]; sprintf(buf, " %8.8X ", pNumber); fwrite(buf, strlen(buf), 1, f_);
+}
+void FileLog::EndOfLine() 
+{
+   fwrite("\n", 1, 1, f_); 
+}
+
 /////////////////////////////////////////////////////////////
 /// Helper functions
 ConfigurationManager::ConfigurationManager()
@@ -126,7 +157,7 @@ void ConfigurationManager::SetConfiguration(const char* section, const char* cle
    // rewrite whole file
 }
 
-size_t ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file)
+unsigned int ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file)
 {
    OpenFile(file);
    if (config_file_.count(section) > 0)
