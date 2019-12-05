@@ -23,3 +23,4 @@ script:
 - echo 'Generating makefile'
 - cmake . -DGENERATE_UNITTESTS=TRUE
 - make all
+- make install

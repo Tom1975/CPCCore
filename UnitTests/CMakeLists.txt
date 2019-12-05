@@ -53,9 +53,6 @@ else()
    endforeach()
 endif()
 
-
-Message ("zlibstatic : " ${zlibstatic})
-
 # Link test executable against gtest & gtest_main
 target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA})
 
