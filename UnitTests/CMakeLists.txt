@@ -43,6 +43,7 @@ ENDIF(MSVC)
 
 if(CMAKE_COMPILER_IS_GNUCC)
 	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z )
+   set (LIBZA libz.a)
 endif()
 
 if (USE_SHARED_CRT)
@@ -56,7 +57,7 @@ endif()
 Message ("zlibstatic : " ${zlibstatic})
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics)
+target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA})
 
 add_test( NAME unitTests COMMAND unitTests)
 
