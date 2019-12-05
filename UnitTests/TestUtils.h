@@ -12,11 +12,6 @@
 
 #define  SCR_COMPARE true
 
-#define USE_COUNT LARGE_INTEGER li;static double PCFreq=0;QueryPerformanceFrequency(&li);PCFreq = double(li.QuadPart)/1000.0;TCHAR buf[256];
-#define START_COUNT(s) {LARGE_INTEGER start; QueryPerformanceCounter(&start);OutputDebugString (s);
-#define END_COUNT LARGE_INTEGER end;QueryPerformanceCounter(&end); double val = (end.QuadPart-start.QuadPart)/PCFreq;sprintf_s(buf, 255,"Val= %f\n",val);OutputDebugString (buf);}
-
-
 /////////////////////////////////////////////////////////////
 /// Helper functions
 
@@ -74,11 +69,11 @@ public:
 
    virtual void WriteLogByte(unsigned char pNumber) 
    {
-      char buf[256]; sprintf_s(buf, 256, " %2.2X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
+      char buf[256]; sprintf(buf, " %2.2X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
    }
-   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf_s(buf, 256, " %4.4X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
+   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf(buf, " %4.4X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
    }
-   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf_s(buf, 256, " %8.8X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
+   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf(buf, " %8.8X ", pNumber); fwrite(buf, strlen(buf) , 1, f_);
    }
    virtual void EndOfLine() { fwrite("\n", 1 , 1, f_);}
 protected:
@@ -90,9 +85,9 @@ class Log : public ILog
 public:
 
    virtual void WriteLog(const char* pLog) {  };
-   virtual void WriteLogByte(unsigned char pNumber) { char buf[256]; sprintf_s(buf, 256, " %2.2X ", pNumber); }
-   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf_s(buf, 256, " %4.4X ", pNumber); }
-   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf_s(buf, 256, " %8.8X ", pNumber); };
+   virtual void WriteLogByte(unsigned char pNumber) { char buf[256]; sprintf(buf, " %2.2X ", pNumber); }
+   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf(buf, " %4.4X ", pNumber); }
+   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf(buf, " %8.8X ", pNumber); };
    virtual void EndOfLine() { };
 
 };

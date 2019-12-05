@@ -5,6 +5,7 @@
 #define _CRT_NONSTDC_NO_DEPRECATE
 #endif
 
+#include "simple_stdio.h"
 #include <iostream>
 #include <fstream>
 #include <map>

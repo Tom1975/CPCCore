@@ -31,7 +31,7 @@ bool TestAutorun(char* dump_to_load, const char* command_to_run)
    if (disk_gen.LoadDisk(dump_to_load) != 0)
    {
       char buffer[128] = { 0 };
-      sprintf_s(buffer, 128, "Loading error !");
+      sprintf(buffer, "Loading error !");
       return false;
    }
 
