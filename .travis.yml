@@ -24,4 +24,5 @@ script:
 - cmake . -DGENERATE_UNITTESTS=TRUE
 - make all
 - make install
+- ./unitTests
 
