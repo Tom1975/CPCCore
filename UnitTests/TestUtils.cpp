@@ -157,7 +157,7 @@ void ConfigurationManager::SetConfiguration(const char* section, const char* cle
    // rewrite whole file
 }
 
-unsigned int ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, size_t buffer_size, const char* file)
+unsigned int ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size, const char* file)
 {
    OpenFile(file);
    if (config_file_.count(section) > 0)
