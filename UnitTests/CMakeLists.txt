@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.0)
 project(unitTests)
 enable_testing()
 
-Message ("SFML : " ${sfml-main})
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} PUBLIC ${CPCCORE} ${PROJECT_SOURCE_DIR}/../SFML/include)
 
 set(CompilerFlags
@@ -53,6 +52,8 @@ else()
    endforeach()
 endif()
 
+
+Message ("zlibstatic : " ${zlibstatic})
 
 # Link test executable against gtest & gtest_main
 target_link_libraries(unitTests zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics)
