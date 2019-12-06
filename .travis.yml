@@ -26,5 +26,6 @@ script:
 - cmake . -DGENERATE_UNITTESTS=TRUE
 - make all
 - make install
-- $TRAVIS_BUILD_DIR/bin/unitTests
+- cd $TRAVIS_BUILD_DIR/bin/
+- ./unitTests
 
