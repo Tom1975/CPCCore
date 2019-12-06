@@ -238,7 +238,7 @@ bool CompareTape(std::string p1)
 }
 
 
-bool TestDump::Test(const char* conf, const char* initfile, const char* dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
+bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
    
@@ -261,7 +261,7 @@ bool TestDump::Test(const char* conf, const char* initfile, const char* dump_to_
    machine_->GetMem()->Initialisation();
    machine_->GetMem()->Initialisation();
 
-   machine_->LoadConfiguration(conf, initfile);
+   machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());
    machine_->Reinit();
 
    //  Fix a seed for randomness
@@ -269,7 +269,7 @@ bool TestDump::Test(const char* conf, const char* initfile, const char* dump_to_
    machine_->SetFixedSpeed(bFixedSpeed);
 
    // Load disk
-   machine_->LoadDisk(dump_to_load, 0, false);
+   machine_->LoadDisk(dump_to_load.string().c_str(), 0, false);
    //DiskContainer* container = machine_->CanLoad(dump_to_load);
    //machine_->LoadMedia(container);
 

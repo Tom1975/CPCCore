@@ -5,6 +5,7 @@
 #include "simple_stdio.h"
 #include "Machine.h"
 #include "Display.h"
+#include <filesystem>
 
 // SCR_COMPARE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
@@ -130,10 +131,10 @@ class CommandInsertDisk : public ICommand
 {
 public:
    CommandInsertDisk(const char* pathfile) :pathfile_(pathfile) {};
-   virtual bool Action(EmulatorEngine* machine) { return machine->LoadDisk(pathfile_, 0, false) == 0; };
+   virtual bool Action(EmulatorEngine* machine) { return machine->LoadDisk(pathfile_.string().c_str(), 0, false) == 0; };
 
 protected:
-   const char* pathfile_;
+   std::filesystem::path pathfile_;
 };
 
 class CommandRunCycles : public ICommand
@@ -219,7 +220,7 @@ protected:
 class CommandSaveScreenshot : public ICommand
 {
 public:
-   CommandSaveScreenshot(CDisplay * display, std::string filename, bool verify) : display_(display), filename_(filename), verify_(verify)
+   CommandSaveScreenshot(CDisplay * display, std::filesystem::path filename, bool verify) : display_(display), filename_(filename), verify_(verify)
    {
 
    }
@@ -230,7 +231,7 @@ public:
       if (verify_)
       {
          //return display_->CompareScreenshot(filename_.c_str());
-         if (!display_->InitScreenshotDetection(filename_.c_str())) return false;
+         if (!display_->InitScreenshotDetection(filename_.string().c_str())) return false;
          for (int i = 0; i < 100; i++)
          {
             machine->RunTimeSlice(true);
@@ -242,7 +243,7 @@ public:
       }
       else
       {
-         display_->TakeScreenshot(filename_.c_str());
+         display_->TakeScreenshot(filename_.string().c_str());
          while (display_->IsScreenshotTaken() == true)
          {
             machine->RunTimeSlice(false);
@@ -253,7 +254,7 @@ public:
    }
 protected:
    CDisplay * display_;
-   std::string filename_;
+   std::filesystem::path filename_;
    bool verify_;
 
 };
@@ -414,7 +415,7 @@ public:
       delete machine_;
    }
 
-   bool Test(const char* conf, const char* initfile, const char* dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
+   bool Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
 
 
    DirectoriesImp dirImp;
