@@ -166,7 +166,7 @@ TEST(ASIC, asiclock)
    auto t = [](EmulatorEngine* machine) -> bool { return (machine->GetProc()->GetPC() == 0x84F5); };
    cmd_list.AddCommand(new CommandRunCyclesCondition(300, t));
 
-   ASSERT_EQ(true, test_dump.Test("6128PLUS", ".\\TestConf.ini", ".\\res\\TestSuite\\asic.dsk", "1", &cmd_list, true));
+   ASSERT_EQ(true, test_dump.Test("6128PLUS", "./TestConf.ini", "./res/TestSuite/asic.dsk", "1", &cmd_list, true));
 }
 
 TEST(ASIC, ROM)
@@ -186,5 +186,5 @@ TEST(ASIC, ROM)
    auto t = [](EmulatorEngine* machine) -> bool { return (machine->GetProc()->GetPC() == 0x968e); };
    cmd_list.AddCommand(new CommandRunCyclesCondition(350, t));
 
-   ASSERT_EQ(true, test_dump.Test("6128PLUS", ".\\TestConf.ini", ".\\res\\TestSuite\\asic.dsk", "1", &cmd_list, true));
+   ASSERT_EQ(true, test_dump.Test("6128PLUS", "./TestConf.ini", "./res/TestSuite/asic.dsk", "1", &cmd_list, true));
 }
