@@ -23,7 +23,7 @@ TEST(Settings, basic_settinglist_test)
    settings_list.BuildList();
 
    // Read and check settings list
-   ASSERT_EQ(35, settings_list.GetNumberOfConfigurations()) << "Wrong configuration number !";
+   ASSERT_EQ(36, settings_list.GetNumberOfConfigurations()) << "Wrong configuration number !";
    ASSERT_NE(nullptr, settings_list.GetConfiguration(0)) << "Configuration 0 shouldn't be nullptr !";
 }
 
