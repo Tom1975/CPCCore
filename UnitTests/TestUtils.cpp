@@ -251,7 +251,6 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 #endif
 
    machine_->SetDirectories(&dirImp);
-
    machine_->SetLog(&log);
 
    ConfigurationManager conf_manager;

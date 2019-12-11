@@ -42,7 +42,7 @@ IF(MSVC)
 ENDIF(MSVC)
 
 if(CMAKE_COMPILER_IS_GNUCC)
-	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z )
+	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z -g -O0 )
    set (LIBZA libz.a)
 endif()
 
