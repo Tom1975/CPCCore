@@ -25,8 +25,8 @@ TEST(Plus, DISABLED_andy)
    TestDump test_dump;
    CommandList cmd_list;
    cmd_list.AddCommand(new CommandRunCycles(200));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, ".\\res\\plus\\screesnhots\\andy.bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asic.dsk", "run\"andy\r", &cmd_list));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/plus/screesnhots/andy.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asic.dsk", "run\"andy\r", &cmd_list));
 }
 
 //asic_after_lock.bin
@@ -38,27 +38,27 @@ TEST(Plus, DISABLED_asic_after_lock)
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandKeyboard(" "));
    cmd_list.AddCommand(new CommandRunCycles(200));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, ".\\res\\plus\\screesnhots\\asic_after_lock.bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asic.dsk", "run\"afterlck\r", &cmd_list));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/plus/screesnhots/asic_after_lock.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asic.dsk", "run\"afterlck\r", &cmd_list));
 }
 
 //asicfloat.bin
 TEST(Plus, asicfloat)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asicfloat.bin", 0x8B3A, 0x8c26 )); 
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asicfloat.bin", 0x8B3A, 0x8c26 )); 
    
 }
 
 //asiclock.bin
 TEST(Plus, asiclock)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asiclock.bin", 0x8483, 0x8308));
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asiclock.bin", 0x8483, 0x8308));
 }
 
 //asicppi.bin
 TEST(Plus, DISABLED_asicppi)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asicppi.bin", 0x5042, 0x4Fb3));
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asicppi.bin", 0x5042, 0x4Fb3));
 }
 
 //asicraster.bin
@@ -70,20 +70,20 @@ TEST(Plus, DISABLED_asicraster)
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandKeyboard(" "));
    cmd_list.AddCommand(new CommandRunCycles(200));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, ".\\res\\plus\\screesnhots\\asicraster.bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asic.dsk", "run\"raster\r", &cmd_list));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/plus/screesnhots/asicraster.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asic.dsk", "run\"raster\r", &cmd_list));
 }
 
 //asicrom.bin
 TEST(Plus, asicrom)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asicrom.bin", 0x910E, 0x9512));
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asicrom.bin", 0x910E, 0x9512));
 }
 
 //asictest.bin
 TEST(Plus, asictest)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asictest.bin", 0x9381, 0x92F1, 1));
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asictest.bin", 0x9381, 0x92F1, 1));
 }
 
 //asic_external_ram.bin
@@ -98,14 +98,14 @@ TEST(Plus, asic_external_ram)
    cmd_list.AddCommand(new CommandAddBreakpoint(0xA286));
    auto t = [](EmulatorEngine* machine) -> bool {  return (machine->GetProc()->GetPC() == 0xA286 ); };
    cmd_list.AddCommand(new CommandRunCyclesCondition(500, t));
-   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asic.dsk", "run\"extnram\r", &cmd_list));
+   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asic.dsk", "run\"extnram\r", &cmd_list));
 }
 
 //dmatest.bin
 // one test is missing
 TEST(Plus, dmatest)
 {
-   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\dmatest.bin", 0x9C56, 0x9BC7, 1));
+   ASSERT_EQ(true, InitBinary("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/dmatest.bin", 0x9C56, 0x9BC7, 1));
 }
 
 //dmatiming.bin
@@ -136,8 +136,8 @@ TEST(Plus, onlyin)
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandKeyboard(" "));
    cmd_list.AddCommand(new CommandRunCycles(200));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, ".\\res\\plus\\screesnhots\\onlyin.bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", ".\\TestConf.ini", ".\\res\\plus\\asic.dsk", "run\"onlyin\r", &cmd_list));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/plus/screesnhots/onlyin.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128PLUSPARADOS", "./TestConf.ini", "./res/plus/asic.dsk", "run\"onlyin\r", &cmd_list));
 }
 
 //pluscol.bin

@@ -60,14 +60,14 @@ TEST(MediaContainer, test_zipped_kryoflux)
 
    inserted_media.Clear();
 
-   fs::path path("res\\After Burner.zip");
+   fs::path path("res/After Burner.zip");
    inserted_media.AddSourceFile(path.generic_string().c_str());
 
    std::vector<IDisk*> disk_list = disk_gen.CreateDisk(&inserted_media);
 
    DiskBuilder disk_builder;
    IDisk* d1;
-   ASSERT_EQ(0, disk_builder.LoadDisk("res\\After Burner\\track00.0.raw", d1));
+   ASSERT_EQ(0, disk_builder.LoadDisk("res/After Burner/track00.0.raw", d1));
 
    ASSERT_EQ(1, disk_list.size());
    
@@ -79,43 +79,43 @@ TEST(MediaContainer, test_zipped_kryoflux)
 // Test a CTRaw is correctly loaded
 TEST(MediaContainer, test_media_ctraw)
 {
-   ASSERT_EQ(true, TestMedia("res\\1942.raw"));
+   ASSERT_EQ(true, TestMedia("res/1942.raw"));
 }
 
 // Test a DSK is correctly loaded
 TEST(MediaContainer, test_media_dsk)
 {
-   ASSERT_EQ(true, TestMedia("res\\DEATHSWORD128K.DSK"));
+   ASSERT_EQ(true, TestMedia("res/DEATHSWORD128K.DSK"));
 }
 
 // Test a EDSK is correctly loaded
 TEST(MediaContainer, test_media_edsk)
 {
-   ASSERT_EQ(true, TestMedia("res\\Airwolf (1985)(Elite)[cr XOR][t +3 XOR].dsk"));
+   ASSERT_EQ(true, TestMedia("res/Airwolf (1985)(Elite)[cr XOR][t +3 XOR].dsk"));
 }
 
 // Test a HFEis correctly loaded
 TEST(MediaContainer, test_media_hfe)
 {
-   ASSERT_EQ(true, TestMedia("res\\30YMD double sides 1 and 2.hfe"));
+   ASSERT_EQ(true, TestMedia("res/30YMD double sides 1 and 2.hfe"));
 }
 
 // Test a IPF is correctly loaded
 TEST(MediaContainer, test_media_ipf)
 {
-   ASSERT_EQ(true, TestMedia("res\\After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf"));
+   ASSERT_EQ(true, TestMedia("res/After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf"));
 }
 
 // Test a SCP is correctly loaded
 TEST(MediaContainer, test_media_scp)
 {
-   ASSERT_EQ(true, TestMedia("res\\The Demo [A].scp"));
+   ASSERT_EQ(true, TestMedia("res/The Demo [A].scp"));
 }
 
 // Test a Kryoflux RAW is correctly loaded
 TEST(MediaContainer, test_media_kryoflux)
 {
-   ASSERT_EQ(true, TestMedia("res\\After Burner\\track00.0.raw"));
+   ASSERT_EQ(true, TestMedia("res/After Burner/track00.0.raw"));
 }
 
 /////////////////////////////////////////////////////////////
@@ -127,7 +127,7 @@ TEST(MediaContainer_Directory, test_directory)
 
    // Add a simple source file
    // Check that only one file is available
-   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res\\necro.sfw"));
+   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res/necro.sfw"));
    FAIL();
 }
 
@@ -137,7 +137,7 @@ TEST(MediaContainer_MultipleDirectory, test_multiple_directories)
 
    // Add a simple source file
    // Check that only one file is available
-   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res\\necro.sfw"));
+   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res/necro.sfw"));
    FAIL();
 }
 
@@ -147,7 +147,7 @@ TEST(MediaContainer_Single_Zipped, test_single_zip)
 
    // Add a simple source file
    // Check that only one file is available
-   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res\\necro.sfw"));
+   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res/necro.sfw"));
    FAIL();
 }
 
@@ -157,7 +157,7 @@ TEST(MediaContainer_Multiple_Zipped, test_multiple_zip)
 
    // Add a simple source file
    // Check that only one file is available
-   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res\\necro.sfw"));
+   //ASSERT_EQ(true, CompareDisks(&d1, &d2, "res/necro.sfw"));
    FAIL();
 }
 */
