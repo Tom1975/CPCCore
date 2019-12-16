@@ -2,7 +2,7 @@
 #include "PrinterDefault.h"
 //#include "shlwapi.h"
 
-#define SCR_PATH "\\PRINT\\"
+#define SCR_PATH "PRINT"
 
 PrinterDefault::PrinterDefault(void)
 {

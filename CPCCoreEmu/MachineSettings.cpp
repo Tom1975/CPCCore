@@ -8,7 +8,11 @@ MachineSettings::MachineSettings() :configuration_manager_(nullptr), loaded_(fal
    // The default conf is "6128 PLUS FR"
    hardware_type_ = PLUS_6128;
    ram_cfg_ = M128_K;
-   cartridge_path_ = "CART\\plus_en.cpr";
+
+   fs::path default_path_cfg = "CART";
+   default_path_cfg /= "plus_en.cpr";
+
+   cartridge_path_ = default_path_cfg.string();
    fdc_present_ = true;
    tape_present_ = true;
    pal_present_ = true;
