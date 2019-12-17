@@ -36,7 +36,7 @@ script:
 - make all
 - make install
 - cd $TRAVIS_BUILD_DIR/
-- ./unitTests
+- ./bin/unitTests
 
 after_failure:
 - ls -l
