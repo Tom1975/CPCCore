@@ -23,11 +23,12 @@ before_install:
 install:
 - sudo apt-get install -y gdb  # install gdb
 
-install:
-- sudo apt-get install -y gdb  # install gdb
-
 before_script:
 - ulimit -c unlimited -S       # enable core dumps
+
+env:
+- TEST_SUITE=--gtest_filter=-*Tape_Prot*
+- TEST_SUITE=--gtest_filter=*Tape_Prot*
 
 script:
 # SugarConvTape
@@ -36,7 +37,7 @@ script:
 - make all
 - make install
 - cd $TRAVIS_BUILD_DIR/
-- ./bin/unitTests
+- ./bin/unitTests $TEST_SUITE
 
 after_failure:
 - ls -l
