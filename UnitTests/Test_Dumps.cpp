@@ -791,7 +791,7 @@ TEST(Dumps_Disk, Les4SaisonsDeLecrit6e3e)
    cmd_list.AddCommand(new CommandKeyboard("toto"));
    cmd_list.AddCommand(new CommandRunCycles(50));
    cmd_list.AddCommand(new CommandScanCode(test_dump.machine_->GetKeyboardHandler(), 0x1C, 1));
-   cmd_list.AddCommand(new CommandRunCycles(100));
+   cmd_list.AddCommand(new CommandRunCycles(100)); 
    cmd_list.AddCommand(new CommandScanCode(test_dump.machine_->GetKeyboardHandler(), 0x1C, 0));
    cmd_list.AddCommand(new CommandRunCycles(1000));
    cmd_list.AddCommand(new CommandScanCode(test_dump.machine_->GetKeyboardHandler(), 0x02, 1));
@@ -802,7 +802,7 @@ TEST(Dumps_Disk, Les4SaisonsDeLecrit6e3e)
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandKeyboard("6"));
    cmd_list.AddCommand(new CommandRunCycles(500));
-   cmd_list.AddCommand(new CommandInsertDisk("./res/DSK/[CPC] Les 4 Saisons de L'ecrit 6ème - 3ème (1989)(Generation 5)(Fr)(Face B)[RAW].raw"));
+   cmd_list.AddCommand(new CommandInsertDisk("./res/DSK/[CPC] Les 4 Saisons de Lecrit 6eme - 3eme (1989)(Generation 5)(Fr)(Face B)[RAW].raw"));
    cmd_list.AddCommand(new CommandRunCycles(50));
    cmd_list.AddCommand(new CommandKeyboard(" "));
    cmd_list.AddCommand(new CommandRunCycles(1500));
@@ -812,8 +812,8 @@ TEST(Dumps_Disk, Les4SaisonsDeLecrit6e3e)
    cmd_list.AddCommand(new CommandRunCycles(400));
    cmd_list.AddCommand(new CommandKeyboard(" "));
    cmd_list.AddCommand(new CommandRunCycles(400));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/[CPC] Les 4 Saisons de L'ecrit 6ème - 3ème (1989)(Generation 5)(Fr)(Face A)[RAW].raw.bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/[CPC] Les 4 Saisons de L'ecrit 6ème - 3ème (1989)(Generation 5)(Fr)(Face A)[RAW].raw", "run\"s\r", &cmd_list, true));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/[CPC] Les 4 Saisons de Lecrit 6eme - 3eme (1989)(Generation 5)(Fr)(Face A)[RAW].raw.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/[CPC] Les 4 Saisons de Lecrit 6eme - 3eme (1989)(Generation 5)(Fr)(Face A)[RAW].raw", "run\"s\r", &cmd_list, true));
 }
 
 
