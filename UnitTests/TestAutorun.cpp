@@ -61,7 +61,7 @@ TEST(Autorun, fdctest)
 
 TEST(Autorun, 4SaisonDeLEcrit)
 {
-   ASSERT_EQ(true, TestAutorun("res/DSK/[CPC] Les 4 Saisons de L'ecrit 6ème - 3ème (1989)(Generation 5)(Fr)(Face A)[RAW].raw", "S"));
+   ASSERT_EQ(true, TestAutorun("res/DSK/[CPC] Les 4 Saisons de Lecrit 6eme - 3eme (1989)(Generation 5)(Fr)(Face A)[RAW].raw", "S"));
 }
 
 TEST(Autorun, AnglaisCollege4e3eUK)
