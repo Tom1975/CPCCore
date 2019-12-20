@@ -27,8 +27,9 @@ before_script:
 - ulimit -c unlimited -S       # enable core dumps
 
 env:
-- TEST_SUITE=--gtest_filter=-*Tape_Prot*
-- TEST_SUITE=--gtest_filter=*Tape_Prot*
+- TEST_SUITE=--gtest_filter=-Dumps_Tape_Protections*
+- TEST_SUITE=--gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*
+- TEST_SUITE=--gtest_filter=Dumps_Tape_Protections.Speedlock*
 
 script:
 # SugarConvTape

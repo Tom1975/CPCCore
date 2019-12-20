@@ -19,7 +19,7 @@ TEST(Settings, basic_settinglist_test)
    SettingsList settings_list;
    ConfigurationManager conf_manager;
    
-   settings_list.InitSettingsList (&conf_manager, ".\\CONF");
+   settings_list.InitSettingsList (&conf_manager, "./CONF");
    settings_list.BuildList();
 
    // Read and check settings list
@@ -32,7 +32,7 @@ TEST(Settings, defaultc_settinglist_test)
    // Load settings
    SettingsList settings_list;
    ConfigurationManager conf_manager;
-   settings_list.InitSettingsList(&conf_manager, ".\\CONF_NOT_EXISTING");
+   settings_list.InitSettingsList(&conf_manager, "./CONF_NOT_EXISTING");
    settings_list.BuildList();
 
    // Read and check settings list
