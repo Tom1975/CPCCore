@@ -15,6 +15,12 @@ platform:
 - x86
 - x64
 
+environment:
+   matrix:
+      - TEST_SUITE: --gtest_filter=-Dumps_Tape_Protections*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.Speedlock*
+
 install:
 - git submodule update --init --recursive
 - git submodule init 
@@ -51,8 +57,5 @@ only_commits:
     - CPCCoreEmu
 
 test_script:
-  - echo %APPVEYOR_BUILD_FOLDER%\build
   - cd %APPVEYOR_BUILD_FOLDER%\build
-  - dir
-  - echo '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe'
-  - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe'
+  - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe' %TEST_SUITE%
