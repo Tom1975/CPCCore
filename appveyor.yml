@@ -50,4 +50,4 @@ only_commits:
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%\..
-  - %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\UnitTests.exe
+  - '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\UnitTests.exe'
