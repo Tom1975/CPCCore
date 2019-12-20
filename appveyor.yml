@@ -29,16 +29,16 @@ before_build:
     cd build
     cmake --version
     echo %CMAKE_GENERATOR%
-    cmake .. -G %CMAKE_GENERATOR%
+    cmake .. -DGENERATE_UNITTESTS=TRUE -G %CMAKE_GENERATOR%
 - sh: |-
     mkdir build
     cd build
     cmake --version
-    cmake .. -DGENERATE_UNITTESTS=TRUE
+    cmake -DGENERATE_UNITTESTS=TRUE .. 
     
 build_script:
 - cmd : |- 
-    cmake --build . --config %configuration% -DGENERATE_UNITTESTS=TRUE
+    cmake --build . --config %configuration%
 - sh: |-
     make all
 
