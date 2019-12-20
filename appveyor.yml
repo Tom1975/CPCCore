@@ -49,8 +49,8 @@ only_commits:
     - CPCCoreEmu
 
 test_script:
-  - echo %APPVEYOR_BUILD_FOLDER%
-  - cd %APPVEYOR_BUILD_FOLDER%\..
+  - echo %APPVEYOR_BUILD_FOLDER%\build
+  - cd %APPVEYOR_BUILD_FOLDER%\build
   - dir
-  - echo '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\unitTests.exe'
-  - '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\unitTests.exe'
+  - echo '%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%\unitTests.exe'
+  - '%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%\unitTests.exe'
