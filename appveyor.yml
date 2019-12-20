@@ -18,8 +18,9 @@ platform:
 environment:
    matrix:
       - TEST_SUITE: --gtest_filter=-Dumps_Tape_Protections*
-      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*:Dumps_Tape_Protections.Spectrum*:Dumps_Tape_Protections.U*
       - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.Speedlock*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.Spectrum*:Dumps_Tape_Protections.U*
 
 install:
 - git submodule update --init --recursive
