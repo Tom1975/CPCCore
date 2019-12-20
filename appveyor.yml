@@ -39,8 +39,10 @@ before_build:
 build_script:
 - cmd : |- 
     cmake --build . --config %configuration%
+    cmake --install
 - sh: |-
     make all
+    make install
 
 only_commits:
   files:
@@ -52,5 +54,5 @@ test_script:
   - echo %APPVEYOR_BUILD_FOLDER%\build
   - cd %APPVEYOR_BUILD_FOLDER%\build
   - dir
-  - echo '%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%\unitTests.exe'
-  - '%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%\unitTests.exe'
+  - echo '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe'
+  - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe'
