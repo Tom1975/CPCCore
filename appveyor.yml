@@ -38,7 +38,7 @@ before_build:
     
 build_script:
 - cmd : |- 
-    cmake --build . --config %configuration%
+    cmake --build . --config %configuration% -DGENERATE_UNITTESTS=TRUE
 - sh: |-
     make all
 
@@ -50,4 +50,4 @@ only_commits:
 
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%\..
-  - '%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\UnitTests.exe'
+  - %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%\UnitTests.exe
