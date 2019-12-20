@@ -38,8 +38,8 @@ before_build:
     
 build_script:
 - cmd : |- 
-    cmake --build . --config %configuration%
-    cmake --install
+   cmake --build . --config %configuration%
+   cmake --build . --target install
 - sh: |-
     make all
     make install
