@@ -7,7 +7,7 @@ branches:
 image:
 - Visual Studio 2017
 #- Ubuntu1804
-
+ 
 configuration:
 - Release   
 
@@ -60,5 +60,9 @@ only_commits:
     - CPCCoreEmu
 
 test_script:
-  - cd %APPVEYOR_BUILD_FOLDER%\build
-  - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe %TEST_SUITE%'
+- cmd : |- 
+   - cd %APPVEYOR_BUILD_FOLDER%\build
+   - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe %TEST_SUITE%'
+- sh: |-
+   - cd %APPVEYOR_BUILD_FOLDER%/build
+   - '%APPVEYOR_BUILD_FOLDER%/build/UnitTests/%CONFIGURATION%/unitTests.exe %TEST_SUITE%'

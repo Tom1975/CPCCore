@@ -20,12 +20,6 @@ before_install:
 - sudo apt-get install libudev-dev
 - sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev libsndfile1-dev libopenal-dev
 
-install:
-- sudo apt-get install -y gdb  # install gdb
-
-before_script:
-- ulimit -c unlimited -S       # enable core dumps
-
 env:
 - TEST_SUITE=--gtest_filter=-Dumps_Tape_Protections*
 - TEST_SUITE=--gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*
@@ -39,9 +33,3 @@ script:
 - make install
 - cd $TRAVIS_BUILD_DIR/
 - ./bin/unitTests $TEST_SUITE
-
-after_failure:
-- ls -l
-- ls .. -l
-- COREFILE=$(find .. -maxdepth 2 -name "core*" | head -n 1) # find core file
-- if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" example -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
