@@ -5,8 +5,8 @@ branches:
   - master
   
 image:
-- Visual Studio 2017
 - Ubuntu1804
+- Visual Studio 2017
 
 configuration:
 - Release   
@@ -28,6 +28,9 @@ install:
 - sh: |- 
     echo 'Update to gcc8'
     sudo update-alternatives --set gcc /usr/bin/gcc-8
+    sudo apt-get install udev
+    sudo apt-get install libudev-dev
+    sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev libsndfile1-dev libopenal-dev
   
 before_build:
 - cmd: |-
