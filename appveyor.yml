@@ -61,8 +61,9 @@ only_commits:
 
 test_script:
 - cmd : |- 
-   - cd %APPVEYOR_BUILD_FOLDER%\build
-   - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe %TEST_SUITE%'
+   cd %APPVEYOR_BUILD_FOLDER%\build
+   '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe %TEST_SUITE%'
+
 - sh: |-
-   - cd %APPVEYOR_BUILD_FOLDER%/build
-   - '%APPVEYOR_BUILD_FOLDER%/build/UnitTests/%CONFIGURATION%/unitTests.exe %TEST_SUITE%'
+   cd %APPVEYOR_BUILD_FOLDER%/build
+   '%APPVEYOR_BUILD_FOLDER%/build/UnitTests/%CONFIGURATION%/unitTests.exe %TEST_SUITE%'
