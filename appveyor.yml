@@ -1,0 +1,64 @@
+version: '{build}'
+
+branches:
+  only:
+  - master
+  
+image:
+- Visual Studio 2017
+#- Ubuntu1804
+ 
+configuration:
+- Release   
+
+platform:
+- x86
+- x64
+
+environment:
+   matrix:
+      - TEST_SUITE: --gtest_filter=-Dumps_Tape_Protections*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*:Dumps_Tape_Protections.Spectrum*:Dumps_Tape_Protections.U*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.Speedlock*
+      - TEST_SUITE: --gtest_filter=Dumps_Tape_Protections.Spectrum*:Dumps_Tape_Protections.U*
+
+install:
+- git submodule update --init --recursive
+- git submodule init 
+- sh: |- 
+    echo 'Update to gcc8'
+    sudo update-alternatives --set gcc /usr/bin/gcc-8
+    sudo apt-get install udev
+    sudo apt-get install libudev-dev
+    sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev libsndfile1-dev libopenal-dev
+  
+before_build:
+- cmd: |-
+    if %platform%==x64 (    set CMAKE_GENERATOR="Visual Studio 15 2017 Win64" ) else (   set CMAKE_GENERATOR="Visual Studio 15 2017")   
+    mkdir build
+    cd build
+    cmake --version
+    echo %CMAKE_GENERATOR%
+    cmake .. -DGENERATE_UNITTESTS=TRUE -G %CMAKE_GENERATOR%
+- sh: |-
+    mkdir build
+    cd build
+    cmake --version
+    cmake -DGENERATE_UNITTESTS=TRUE .. 
+    
+build_script:
+- cmd : |- 
+   cmake --build . --config %configuration% --target install
+- sh: |-
+    make all
+    make install
+
+only_commits:
+  files:
+    - CMakeLists.txt
+    - appveyor.yml
+    - CPCCoreEmu
+
+test_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\build
+  - '%APPVEYOR_BUILD_FOLDER%\build\UnitTests\%CONFIGURATION%\unitTests.exe %TEST_SUITE%'

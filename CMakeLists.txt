@@ -3,15 +3,53 @@ cmake_minimum_required(VERSION 3.0)
 # Nom du projet
 project(CPCCore)
 
-IF(MSVC)
-   set (USE_SHARED_CRT OFF CACHE BOOL "Use Shared CRT" FORCE )
-endif()
+set(GENERATE_BENCHMARK OFF CACHE BOOL "Generate SugarBenchmark")
+set(GENERATE_UNITTESTS OFF CACHE BOOL "Generate UnitTests")
+set(BUILD_SHARED_LIBS FALSE)
 
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/bin)
 
-set (CMAKE_INSTALL_PREFIX ${SugarConvDsk_BINARY_DIR}/Install)
-set (SKIP_INSTALL_ALL ON)
+set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+		_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING 
+        )
+
+foreach(CompilerFlag ${CompilerFlags})
+  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+endforeach()
+
+set (USE_SHARED_CRT OFF BOOL)
+set (gtest_force_shared_crt OFF BOOL)
+
+set (SKIP_INSTALL_ALL ON BOOL)
+set (BENCHMARK_ENABLE_GTEST_TESTS OFF BOOL)
+set (BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "ENABLE tests")
+set (BENCHMARK_ENABLE_INSTALL OFF BOOL)
+
+set (SFML_USE_STATIC_STD_LIBS FALSE BOOL)
+   
+set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core Emu"		FORCE)
 
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
+
+if (GENERATE_UNITTESTS)
+   
+   add_subdirectory(googletest/googletest)
+   add_subdirectory(SFML)
+   add_subdirectory(UnitTests)
+
+endif()
+
+if (GENERATE_BENCHMARK)
+   add_subdirectory(benchmark)
+   add_subdirectory(SugarboxBenchmarks)
+endif()
 
 

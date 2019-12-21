@@ -1,0 +1,35 @@
+language: cpp
+dist: xenial
+language: cpp
+services:
+  - xvfb
+
+#limit to git depth to 1 because don't use any git command in this script
+git:
+  depth: 1
+  
+before_install:
+#g++ 7
+- echo 'Installing G++ 8'
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- sudo apt-get update -qq
+- if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-8; fi
+- if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
+- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 50
+- sudo apt-get install udev
+- sudo apt-get install libudev-dev
+- sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev libsndfile1-dev libopenal-dev
+
+env:
+- TEST_SUITE=--gtest_filter=-Dumps_Tape_Protections*
+- TEST_SUITE=--gtest_filter=Dumps_Tape_Protections.*:-Dumps_Tape_Protections.Speedlock*
+- TEST_SUITE=--gtest_filter=Dumps_Tape_Protections.Speedlock*
+
+script:
+# SugarConvTape
+- echo 'Generating makefile'
+- cmake . -DGENERATE_UNITTESTS=TRUE
+- make all
+- make install
+- cd $TRAVIS_BUILD_DIR/
+- ./bin/unitTests $TEST_SUITE

@@ -26,8 +26,8 @@ extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
 
-const char* ROMPath = "ROM\\";
-const char* CartPath = "CART\\";
+const char* ROMPath = "ROM";
+const char* CartPath = "CART";
 
 #define MAX_SIZE_BUFFER 256
 
@@ -519,7 +519,10 @@ void EmulatorEngine::LoadConfiguration (const char* config_name, const char* ini
    }
 
    // Configuration
-   configuration_manager_->GetConfiguration(config_name, "Machine_Settings", "CONF\\CPC6128PLUSEN.cfg", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
+   fs::path default_path_cfg = "CONF";
+   default_path_cfg /= "CPC6128PLUSEN.cfg";
+
+   configuration_manager_->GetConfiguration(config_name, "Machine_Settings", default_path_cfg.string().c_str(), tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    
    current_settings_ = MachineSettings::CreateSettings(configuration_manager_, tmp_buffer);
    if (current_settings_ == nullptr)

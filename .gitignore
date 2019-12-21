@@ -33,3 +33,5 @@
 /.vs/**
 /CPCCoreEmu/.vs/**
 /out/**
+
+/tmp/**

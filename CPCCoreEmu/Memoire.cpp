@@ -392,6 +392,7 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       g <<= 4;
       b <<= 4;
       monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b);
+      monitor_->RecomputeAllColors();
    }
    else
    {
@@ -525,6 +526,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             b <<= 4;
 
             monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b);
+            monitor_->RecomputeAllColors();
 
             // Recompute pen/border
             //monitor_->RecomputeAllColors();

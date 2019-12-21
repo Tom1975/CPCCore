@@ -1,3 +1,12 @@
 [submodule "zlib"]
 	path = zlib
 	url = https://github.com/madler/zlib
+[submodule "googletest"]
+	path = googletest
+	url = https://github.com/google/googletest
+[submodule "benchmark"]
+	path = benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "SFML"]
+	path = SFML
+	url = https://github.com/SFML/SFML.git
