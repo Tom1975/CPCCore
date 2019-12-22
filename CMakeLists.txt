@@ -42,7 +42,7 @@ add_subdirectory(CPCCoreEmu)
 if (GENERATE_UNITTESTS)
    
    add_subdirectory(googletest/googletest)
-   add_subdirectory(SFML)
+   set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
 
 endif()
@@ -52,4 +52,6 @@ if (GENERATE_BENCHMARK)
    add_subdirectory(SugarboxBenchmarks)
 endif()
 
-
+if ( USE_SFML)
+   add_subdirectory(SFML)
+endif()
