@@ -3258,7 +3258,7 @@ void CTape::SaveAsWav (const char* filepath)
       unsigned int current_inversion = 0;
       // Rewind the tape
       // Play it 
-#if defined (__unix) || (RASPPI)
+#if defined (__unix) || (RASPPI) || (__APPLE__)
       __uint64_t total = 0;
       __uint64_t current_length = 0;
 #else
