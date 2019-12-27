@@ -276,7 +276,7 @@ public:
       unsigned int nb_tracks;
    } Side;
 
-   Side side_[2]{};
+   Side side_[2];
 
    // Current head position
    unsigned int head_position_;
