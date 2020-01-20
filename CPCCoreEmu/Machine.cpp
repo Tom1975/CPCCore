@@ -32,7 +32,7 @@ const char* CartPath = "CART";
 #define MAX_SIZE_BUFFER 256
 
 EmulatorEngine::EmulatorEngine() :
-   paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
+   log_(nullptr), paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
    do_snapshot_(false), current_settings_(nullptr),
    directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
 {
@@ -40,7 +40,6 @@ EmulatorEngine::EmulatorEngine() :
    fdc_present_ = true;
    pal_present_ = true;
    quick_sna_available_ = false;
-   log_ = NULL;
 
    time_slice_ = 20;
    time_elapsed_ = std::chrono::steady_clock::now();

@@ -115,6 +115,7 @@ int DiskGen::GetNbTracks(int side)
 
 void DiskGen::SetCurrentTrack(int track)
 {
+   if (disk_ == nullptr) return; 
    if (disk_present_)
    {
       // Get next single bit
