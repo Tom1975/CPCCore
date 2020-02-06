@@ -290,6 +290,7 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
       finished_ = true;
       worker_thread_->join();
       delete worker_thread_;
+      worker_thread_ = nullptr;
    }
    finished_ = false;
 #else

@@ -65,6 +65,11 @@ EmulatorEngine::~EmulatorEngine(void)
 {
 }
 
+void EmulatorEngine::Stop()
+{
+   sound_mixer_.StopMixer();
+}
+
 bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 {
    DataContainer::Init();
@@ -496,7 +501,7 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 
 }
 
-void EmulatorEngine::LoadConfiguration (const char* config_name, const char* ini_file)
+void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* ini_file)
 {
    if (configuration_manager_ == nullptr) return;
    char tmp_buffer [MAX_SIZE_BUFFER ];
