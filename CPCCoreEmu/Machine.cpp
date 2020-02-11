@@ -157,7 +157,7 @@ void EmulatorEngine::ReleaseContainer(DataContainer* container)
    media_inserted_.Clear();
 }
 
-DataContainer* EmulatorEngine::CanLoad (char* file, std::vector<MediaManager::MediaType>list_of_types)
+DataContainer* EmulatorEngine::CanLoad (const char* file, std::vector<MediaManager::MediaType>list_of_types)
 {
    media_inserted_.Clear ();
    media_inserted_.AddSourceFile (file);
