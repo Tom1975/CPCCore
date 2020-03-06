@@ -168,6 +168,7 @@ void Motherboard::UpdateExternalDevices()
    {
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = play_city;
    }*/
+   GetSig()->exp_list_[GetSig()->nb_expansion_++] = &play_city_;
 }
 
 void Motherboard::InitStartOptimized()

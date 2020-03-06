@@ -85,8 +85,8 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 void EmulatorEngine::UpdateExternalDevices()
 {
    GetSig()->nb_expansion_ = 0;
-   /*
-   if (current_settings_->GetMultiface2())
+   
+   /*if (current_settings_->GetMultiface2())
    {
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = &multiface2_;
    }
@@ -94,6 +94,7 @@ void EmulatorEngine::UpdateExternalDevices()
    {
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = play_city;
    }*/
+   GetSig()->exp_list_[GetSig()->nb_expansion_++] = GetMotherboard()->GetPlayCity();
 }
 
 bool EmulatorEngine::InitSound ( ISound* sound)
