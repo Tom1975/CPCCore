@@ -57,10 +57,17 @@ EmulatorEngine::EmulatorEngine() :
    remember_step_ = false;
    bin_to_load_ = false;
    sna_to_load_ = false;
+
+   current_settings_ = new MachineSettings();
 }
 
 EmulatorEngine::~EmulatorEngine(void)
 {
+}
+
+void EmulatorEngine::Stop()
+{
+   sound_mixer_.StopMixer();
 }
 
 bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
@@ -151,7 +158,7 @@ void EmulatorEngine::ReleaseContainer(DataContainer* container)
    media_inserted_.Clear();
 }
 
-DataContainer* EmulatorEngine::CanLoad (char* file, std::vector<MediaManager::MediaType>list_of_types)
+DataContainer* EmulatorEngine::CanLoad (const char* file, std::vector<MediaManager::MediaType>list_of_types)
 {
    media_inserted_.Clear ();
    media_inserted_.AddSourceFile (file);
@@ -495,7 +502,7 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 
 }
 
-void EmulatorEngine::LoadConfiguration (const char* config_name, const char* ini_file)
+void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* ini_file)
 {
    if (configuration_manager_ == nullptr) return;
    char tmp_buffer [MAX_SIZE_BUFFER ];
@@ -523,7 +530,8 @@ void EmulatorEngine::LoadConfiguration (const char* config_name, const char* ini
    default_path_cfg /= "CPC6128PLUSEN.cfg";
 
    configuration_manager_->GetConfiguration(config_name, "Machine_Settings", default_path_cfg.string().c_str(), tmp_buffer, MAX_SIZE_BUFFER, ini_file);
-   
+
+   delete current_settings_;
    current_settings_ = MachineSettings::CreateSettings(configuration_manager_, tmp_buffer);
    if (current_settings_ == nullptr)
    {

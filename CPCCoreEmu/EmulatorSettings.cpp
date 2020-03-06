@@ -125,7 +125,7 @@ void EmulatorSettings::Init(IConfiguration * configuration_manager, ISoundFactor
 {
    configuration_manager_ = configuration_manager;
    sound_factory_ = sound_factory;
-   sound_ = sound_factory_->GetSound(NULL);
+   sound_ = (sound_factory_!=nullptr)?sound_factory_->GetSound(NULL):nullptr;
 }
 
 
