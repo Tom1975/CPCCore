@@ -296,11 +296,11 @@ m_CTotal += ((channel_c_volume_ & 0xF0)? envelope_volume_: channel_c_volume_)& (
    {
       //m_BTotal += (channel_b_volume_<0x10) ? channel_b_volume_ : envelope_volume_;
       //add_c = (channel_b_volume_ < 0x10) ? channel_b_volume_ : envelope_volume_;
-      add_c = ((channel_b_volume_ < 0x10) ? 0/*(channel_b_high_ ? 0 : (-1 * channel_b_volume_)) */ : envelope_volume_);
+      add_c = ((channel_b_volume_ < 0x10) ? channel_b_volume_/*(channel_b_high_ ? 0 : (-1 * channel_b_volume_)) */ : envelope_volume_);
    }
    else
    {
-      add_c = 0;//-1 * ((channel_b_volume_<0x10) ? channel_b_volume_ : envelope_volume_);
+      add_c = ((channel_b_volume_<0x10) ? 0 : envelope_volume_);
    }
 
    char mix_c = 1;
@@ -311,11 +311,11 @@ m_CTotal += ((channel_c_volume_ & 0xF0)? envelope_volume_: channel_c_volume_)& (
    {
       //m_CTotal += >(channel_c_volume_<0x10) ? channel_c_volume_ : envelope_volume_;
       //add_r = (channel_c_volume_ < 0x10) ? channel_c_volume_ : envelope_volume_;
-      add_r = ((channel_c_volume_ < 0x10) ? 0/*(channel_c_high_ ? 0 : (-1 * channel_c_volume_ ))*/ : envelope_volume_);
+      add_r = ((channel_c_volume_ < 0x10) ? channel_c_volume_/*(channel_c_high_ ? 0 : (-1 * channel_c_volume_ ))*/ : envelope_volume_);
    }
    else
    {
-      add_r = 0;//-1 * ((channel_c_volume_<0x10) ? channel_c_volume_ : envelope_volume_);
+      add_r =((channel_c_volume_<0x10) ? 0 : envelope_volume_);
    }
 
    switch (output_)
