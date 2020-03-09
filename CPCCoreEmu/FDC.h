@@ -39,7 +39,7 @@ public:
    const char* GetDiskPath (unsigned int drive_number);
    int LoadDiskDelayed ( );
    void WriteDisk ( unsigned int drive_number );
-   void WriteDiskAs ( unsigned int drive_number, const char* file_path, FormatType* format);
+   void WriteDiskAs ( unsigned int drive_number, const char* file_path, const FormatType* format);
    void EjectDisk (unsigned int drive_number);
 
    IDisk::AutorunType GetAutorun(unsigned int drive_number, char * buffer, unsigned int size_of_buffer);

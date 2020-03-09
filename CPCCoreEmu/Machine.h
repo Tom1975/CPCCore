@@ -192,7 +192,7 @@ public:
    int IsDiskRunning (int drive );
    bool IsDiskModified (int drive){return GetFDC()->IsDiskModified(drive); };
    void SaveDisk (int drive);
-   void SaveDiskAs (int drive, char* file_path, FormatType* format_type);
+   void SaveDiskAs (int drive, const char* file_path, const FormatType* format_type);
    bool IsDiskPresent ( int drive );
 
    int CompareDriveAandB();

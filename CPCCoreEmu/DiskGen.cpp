@@ -442,7 +442,7 @@ void DiskGen::WriteDisk()
    }
 }
 
-void DiskGen::WriteDisk(const char* filepath, FormatType* format)
+void DiskGen::WriteDisk(const char* filepath, const FormatType* format)
 {
    if (disk_ != NULL)
    {

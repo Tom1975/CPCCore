@@ -830,7 +830,7 @@ void FDC::WriteDisk ( unsigned int drive_number)
    disk_[drive_number].WriteDisk ();
 }
 
-void FDC::WriteDiskAs( unsigned int drive_number, const char* file_path, FormatType* format)
+void FDC::WriteDiskAs( unsigned int drive_number, const char* file_path, const FormatType* format)
 {
    disk_[drive_number].WriteDisk (file_path, format);
 }

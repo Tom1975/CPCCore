@@ -101,7 +101,7 @@ void EmulatorEngine::UpdateExternalDevices()
    {
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = play_city;
    }*/
-   GetSig()->exp_list_[GetSig()->nb_expansion_++] = GetMotherboard()->GetPlayCity();
+   //GetSig()->exp_list_[GetSig()->nb_expansion_++] = GetMotherboard()->GetPlayCity();
 }
 
 bool EmulatorEngine::InitSound ( ISound* sound)
@@ -1034,7 +1034,7 @@ void EmulatorEngine::SaveDisk (int drive)
    GetFDC()->WriteDisk ( drive );
 }
 
-void EmulatorEngine::SaveDiskAs (int drive, char* file_path, FormatType* format_type)
+void EmulatorEngine::SaveDiskAs (int drive, const char* file_path, const FormatType* format_type)
 {
    if (IsDiskPresent ( drive ))
    {

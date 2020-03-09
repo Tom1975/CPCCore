@@ -92,7 +92,7 @@ public:
    virtual int LoadDisk(DataContainer* container, ILoadingProgress* loading_progress = nullptr);
    virtual int LoadDisk(IDisk* new_disk);
    const char* GetCurrentLoadedDisk() { return (disk_ != nullptr) ? disk_->GetCurrentLoadedDisk() : ""; };
-   virtual void WriteDisk(const char* file_path, FormatType* format);
+   virtual void WriteDisk(const char* file_path, const FormatType* format);
    virtual void WriteDisk();
 
    virtual int GetNbTracks(int side);
