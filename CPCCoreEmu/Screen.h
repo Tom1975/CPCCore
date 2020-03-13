@@ -15,8 +15,6 @@ class CPCCOREEMU_API IDisplay
 {
 public:
    
-   virtual ~IDisplay() = default;
-
    using SizeEnum = enum {
       S_STANDARD = 1,
       S_BIG,
