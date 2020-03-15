@@ -14,6 +14,7 @@
 #include "MachineSettings.h"
 #include "IConfiguration.h"
 
+#include "simple_string.h"
 #include "simple_vector.hpp"
 
 class SettingsList
@@ -39,7 +40,7 @@ protected:
    
    std::vector<MachineSettings*> settings_array_;
    IConfiguration * configuration_manager_;
-   const char* base_conf_directory_;
+   std::string base_conf_directory_;
 
 };
 

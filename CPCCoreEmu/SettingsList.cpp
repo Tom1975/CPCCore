@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SettingsList.h"
 
-SettingsList::SettingsList() : configuration_manager_(nullptr), base_conf_directory_(nullptr)
+SettingsList::SettingsList() : configuration_manager_(nullptr), base_conf_directory_("")
 {
    
 }
@@ -26,7 +26,7 @@ void SettingsList::BuildList()
    // Build list :
    // Read configurations from directory
    std::vector<std::string> file_list;
-   GetDirectoryContent(base_conf_directory_, file_list);
+   GetDirectoryContent(base_conf_directory_.c_str(), file_list);
 
    // For each file : Try to load it.
    for (auto& it : file_list)
