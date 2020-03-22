@@ -526,10 +526,6 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             b <<= 4;
 
             monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b);
-            monitor_->RecomputeAllColors();
-
-            // Recompute pen/border
-            //monitor_->RecomputeAllColors();
          }
          else if (addr == 0x6420 || addr == 0x6421)
          {

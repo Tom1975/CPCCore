@@ -1246,10 +1246,10 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
 
    // PLUS Machine ?todo
    unsigned int hardware_type = current_settings_->GetHardwareType();
+   SetMachineType(hardware_type);
    if (hardware_type == MachineSettings::PLUS_6128
       || hardware_type == MachineSettings::PLUS_464)
    {
-      SetMachineType(hardware_type);
       SetPlus(true);
       if (no_cart_reload == false)
       {
