@@ -12,8 +12,10 @@ public:
    virtual ~CSnapshot(void);
 
    virtual void StopPlayback (){replay_ = false;}
-   virtual void StartRecord (char* path_file);
+   virtual void StartRecord (const char* path_file);
    virtual void StopRecord ();
+   bool IsRecording() { return record_; }
+   bool IsReplaying() { return replay_; }
 
    bool LoadSnr (const char* path_file);
    bool LoadSnapshot (const char* path_file);

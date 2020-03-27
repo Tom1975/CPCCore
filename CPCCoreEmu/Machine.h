@@ -79,8 +79,11 @@ public:
    // Snapshots
    BreakpointHandler* GetBreakpointHandler() {return &breakpoint_handler_;}
    virtual void StopPlayback (){sna_handler_.StopPlayback ();}
-   virtual void StartRecord (char* path_file) { sna_handler_.StartRecord (path_file) ;}
+   virtual void StartRecord (const char* path_file) { sna_handler_.StartRecord (path_file) ;}
    virtual void StopRecord () { sna_handler_.StopRecord () ;}
+   virtual bool IsSnrRecording() { return sna_handler_.IsRecording(); }
+   virtual bool IsSnrReplaying() { return sna_handler_.IsReplaying(); }
+
    bool LoadSnr (const char* path_file) {return sna_handler_.LoadSnr (path_file);}
    bool LoadBin(const char* path_file);
    bool LoadSnapshot (const char* path_file);

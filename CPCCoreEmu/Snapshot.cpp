@@ -867,7 +867,7 @@ bool CSnapshot::HandleSnr ( FILE* f )
 
 
 #define BASIC_RECORD_SIZE 256;
-void CSnapshot::StartRecord (char* path_file)
+void CSnapshot::StartRecord (const char* path_file)
 {
 	if (replay_ )
 	{
