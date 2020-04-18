@@ -208,6 +208,7 @@ public:
    // Tape
    int LoadTape ( const char* file_path);
    int LoadTape(IContainedElement* container );
+   bool IsTapeChanged() { return motherboard_.GetTape()->IsTapeChanged();};
 
    // Cartridge
    int LoadCprFromBuffer(unsigned char* buffer, int size);

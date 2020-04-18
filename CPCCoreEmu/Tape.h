@@ -88,6 +88,7 @@ public:
    void Eject ();
    bool IsTapeInserted () { return tape_array_ != nullptr;}
 
+   bool IsTapeChanged() { return tape_changed_; }
    // RECORD
    void Record ();
    bool IsRecordOn (){ return record_; };
@@ -212,6 +213,9 @@ protected:
 #endif
 
    void TraceSamples ( double *chunk,  int nb_samples, double frequency);
+
+   // Tape has been changed ?
+   bool tape_changed_;
 
    // Loading interthread
    bool pending_tape_;

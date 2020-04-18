@@ -101,7 +101,8 @@ CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_bu
    load_progress_(-1),
    size_of_blocklist_(0),
    block_list_(nullptr),
-   nb_blocks_ (0)
+   nb_blocks_ (0),
+   tape_changed_(false)
 {
    log_ = nullptr;
    nb_inversions_ = 0;
@@ -157,6 +158,7 @@ CTape::~CTape(void)
 
 void CTape::Reset ()
 {
+   tape_changed_ = false;
    remaining_reversal_flux_ = 0;
    tape_position_ = 0;
 
@@ -231,7 +233,7 @@ void CTape::Eject ()
    counter_us_ = 0;
    counter_sec_ = 0;
 
-
+   tape_changed_ = false;
 
 }
 void CTape::ClearList ()
@@ -3083,6 +3085,7 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
             // End this : start a new one, if opposite side.
             bool level = (ppi8255_ != nullptr) ? ppi8255_->GetCassetteWriteData ():true;
             tape_array_[tape_position_].length -= remaining_reversal_flux_;
+            tape_changed_ = true;
 
             if ( tape_array_[tape_position_].high != level)
             {
@@ -3317,6 +3320,7 @@ void CTape::SaveAsWav (const char* filepath)
       fseek ( file, 4, SEEK_SET );
       fwrite ( &size, 1, 4, file );
       fclose ( file );
+      tape_changed_ = false;
    }
 }
 
@@ -3428,6 +3432,7 @@ void CTape::SaveAsCdtDrb (const char* filepath)
 
 
       fclose ( file );
+      tape_changed_ = false;
    }
 }
 
@@ -3545,6 +3550,7 @@ void CTape::SaveAsCdtCSW (const char* filepath)
 
 
       fclose ( file );
+      tape_changed_ = false;
    }
 }
 #ifndef NOZLIB
@@ -3718,6 +3724,7 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
       }
 
       fclose ( file );
+      tape_changed_ = false;
    }
 }
 #endif
