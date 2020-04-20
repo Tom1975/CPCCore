@@ -220,7 +220,7 @@ void KeyboardHandler::JoystickAction (unsigned int joy, unsigned int action)
    }*/
 }
 
-void KeyboardHandler::SendScanCode ( unsigned short scanCode, bool bPressed )
+void KeyboardHandler::SendScanCode ( unsigned int scanCode, bool bPressed )
 {
    // Look for scan code in the base
    for (auto line = 0; line < 10; line++)

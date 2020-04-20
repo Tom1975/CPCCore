@@ -50,7 +50,7 @@ public:
    virtual void CharPressed (char c) ;
    virtual void CharReleased (char c) ;
 
-   virtual void SendScanCode ( unsigned short, bool pressed );
+   virtual void SendScanCode ( unsigned int, bool pressed );
 
 
 

@@ -20,6 +20,6 @@ public:
 class IKeyboard 
 {
 public:
-   virtual void SendScanCode ( unsigned short, bool pressed) = 0;
+   virtual void SendScanCode ( unsigned int, bool pressed) = 0;
    virtual void JoystickAction (unsigned int joy, unsigned int action) = 0;
 };
