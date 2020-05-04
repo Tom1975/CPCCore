@@ -547,7 +547,7 @@ void Motherboard::RemoveBreakpoint(unsigned short addr)
    }
 }
 
-void Motherboard::CleanBreakpoints()
+void Motherboard::ClearBreakpoints()
 {
    breakpoint_index_ = 0;
 }

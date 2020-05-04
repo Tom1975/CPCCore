@@ -83,7 +83,7 @@ public:
    void AddBreakpoint(unsigned short addr);
    void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
    void RemoveBreakpoint(unsigned short addr);
-   void CleanBreakpoints();
+   void ClearBreakpoints();
    void SetGenericBreakpoint(IBreakpoint* generic_breakpoint) { generic_breakpoint_ = generic_breakpoint;}
    // Configuration
    void SetPlus(bool plus);

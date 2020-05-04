@@ -164,7 +164,8 @@ DataContainer* EmulatorEngine::CanLoad (const char* file, std::vector<MediaManag
    media_inserted_.AddSourceFile (file);
    MediaManager media_mgr (&media_inserted_);
 
-   media_mgr.GetType ( list_of_types );
+   if ( media_mgr.GetType ( list_of_types ) == MediaManager::MEDIA_UNDEF)
+      return nullptr;
 
    return &media_inserted_;
 }
@@ -658,9 +659,9 @@ void EmulatorEngine::RemoveBreakpoint ( unsigned short addr)
    motherboard_.RemoveBreakpoint(addr);
 }
 
-void EmulatorEngine::CleanBreakpoints ()
+void EmulatorEngine::ClearBreakpoints ()
 {
-   motherboard_.CleanBreakpoints();
+   motherboard_.ClearBreakpoints();
 }
 
 void EmulatorEngine::SetSpeed ( int speedLimit )
