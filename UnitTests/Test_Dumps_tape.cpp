@@ -906,7 +906,7 @@ TEST(Dumps_Tape_Other, BadCat_cdt)
       "./res/Tape/Record/Bad Cat (UK) (1987) [Original] [TAPE].cdt_1.txt",
       0x28BC, 0x542F, "A", 28000, EXECUTE));
 
-   //test.machine_->CleanBreakpoints();
+   //test.machine_->ClearBreakpoints();
 
    CommandRunCycles run_cycles(250);
    run_cycles.Action(test.machine_);
