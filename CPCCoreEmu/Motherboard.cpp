@@ -361,8 +361,118 @@ void Motherboard::ForceTick(IComponent* component, int ticks)
 
 }
 
-
 // New
+int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
+{
+   unsigned int next_cycle;
+   unsigned int index = 0;
+   unsigned int elapsed_time_psg = next_cycle = component_elapsed_time_[index++];
+   unsigned int elapsed_time_z80 = component_elapsed_time_[index++];
+   unsigned int elapsed_time_tape = component_elapsed_time_[index++];
+   unsigned int elapsed_time_crtc = component_elapsed_time_[index++];
+   unsigned int elapsed_time_fdc = component_elapsed_time_[index++];
+
+   unsigned int elapsed_components[16];
+   for (int i = 0; i < signals_.nb_expansion_; i++)
+   {
+      elapsed_components[i] = component_elapsed_time_[index++];
+   }
+
+   unsigned int* elapsed = component_elapsed_time_;
+   for (unsigned int i = 0; i < index; ++i)
+   {
+      if (*elapsed < next_cycle)
+      {
+         next_cycle = *elapsed;
+      }
+      ++elapsed;
+   }
+
+   run_ = true;
+
+   next_cycle = 0;
+
+   int old_counter = next_cycle;
+   while (run_ && nb_opcodes > 0)
+   {
+      if (elapsed_time_psg == next_cycle)
+      {
+         elapsed_time_psg += (psg_).Tick();
+      }
+      RUN_COMPOSANT_N(tape_, elapsed_time_tape);
+      RUN_COMPOSANT_N(crtc_, elapsed_time_crtc);
+      RUN_COMPOSANT_N(fdc_, elapsed_time_fdc);
+      RUN_COMPOSANT_N(z80_, elapsed_time_z80);
+
+      for (int i = 0; i < signals_.nb_expansion_; i++)
+      {
+         if (elapsed_components[i] <= next_cycle) elapsed_components[i] += signals_.exp_list_[i]->Tick();
+      }
+
+      signals_.Propagate();
+      ++next_cycle;
+
+      if ((z80_.t_ == 1 &&
+         (z80_.machine_cycle_ == Z80::M_M1_NMI
+            || z80_.machine_cycle_ == Z80::M_M1_INT)
+         )
+         || (z80_.machine_cycle_ == Z80::M_FETCH
+            && z80_.t_ == 4
+            && ((z80_.current_opcode_ & 0xFF00) == 0)
+            && elapsed_time_z80 == next_cycle
+            )
+         )
+      {
+         counter_ += (component_elapsed_time_[z80_index_] - old_counter + 1);
+         old_counter = component_elapsed_time_[z80_index_];
+         {
+            nb_opcodes--;
+            if (generic_breakpoint_)
+            {
+               run_ = generic_breakpoint_->IsBreak() ? false : true;
+               memory_.ResetStockAddress();
+            }
+            for (unsigned int i = 0; i < breakpoint_index_; i++)
+            {
+               if (breakpoint_list_[i] == z80_.GetPC())
+               {
+                  // Break !
+                  run_ = false;
+               }
+            }
+         }
+      }
+   }
+
+   index = 0;
+   component_elapsed_time_[index++] = elapsed_time_psg - next_cycle;
+   component_elapsed_time_[index++] = elapsed_time_z80 - next_cycle;
+   component_elapsed_time_[index++] = elapsed_time_tape - next_cycle;
+   component_elapsed_time_[index++] = elapsed_time_crtc - next_cycle;
+   component_elapsed_time_[index++] = elapsed_time_fdc - next_cycle;
+
+   for (int i = 0; i < signals_.nb_expansion_; i++)
+   {
+      component_elapsed_time_[index++] = elapsed_components[i] - next_cycle;
+   }
+
+   if (run_ &&  step_)
+   {
+      remember_step_ = true;
+   }
+
+   if (supervisor_ != NULL)
+   {
+      if (!run_) supervisor_->EmulationStopped();
+      if (counter_ >= 4000000)
+      {
+         supervisor_->SetEfficience(GetSpeed());
+         supervisor_->RefreshRunningData();
+         // Refresh ?
+      }
+   }
+   return next_cycle;
+}
 
 int Motherboard::DebugNew(unsigned int nb_cycles)
 {

@@ -134,7 +134,23 @@ public:
    void SetLog(ILog* log) { log_ = log; motherboard_.SetLog(log_);sound_mixer_.SetLog(log_);}
    void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);motherboard_.SetNotifier(notifier);}
 
+   void HandleActions();
+   void HandleSnapshots();
+   void HandlePaste(bool before);
+   void HandleSyncro(int run_time);
    virtual int RunTimeSlice(bool dbg = false);
+
+   typedef enum
+   {
+      DBG_OPCODE_END,
+      DBG_BREAKPOINT_FOUND,
+
+   } DebugRunResult;
+   virtual DebugRunResult RunDebugMode(unsigned int nb_opcode_to_run);
+   virtual void RunFullSpeed();
+
+   // Functions
+   void RunUntilBReakpoint(int nb_opcode_to_run);
 
    void Resync ();
    void StartPrecise(unsigned int nb_cycles);

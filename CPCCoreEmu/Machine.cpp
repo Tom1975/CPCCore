@@ -679,54 +679,284 @@ void EmulatorEngine::SetSpeed ( int speedLimit )
 
 #define TARGET_RESOLUTION 1         // 1-millisecond target resolution
 
-int EmulatorEngine::RunTimeSlice (bool bNotDbg )
+void EmulatorEngine::HandleActions()
 {
-   //unsigned long long TimeElapsedEnd;
-   std::chrono::time_point<std::chrono::steady_clock> time_elapsed_end;
-   int ret = 0;
-
-   // Begin ?
-   /*if (TimeElapsed == 0)
-   {
-      TimeElapsed = std::chrono::steady_clock::now();
-
-         //std::chrono::time_point<std::chrono::steady_clock>::now ()
-      TimeComputed = 0;
-   }*/
-
    // Anything to load ?
    // SNR
    // BIN
    if (bin_to_load_)
    {
       bin_to_load_ = false;
-      LoadBinInt (bin_to_load_path_.c_str());
+      LoadBinInt(bin_to_load_path_.c_str());
    }
 
    // Expansion action ?
-   if ( multiface_stop_ )
+   if (multiface_stop_)
    {
       multiface_stop_ = false;
       // Multiface 2 action
-      multiface2_.Stop ();
+      multiface2_.Stop();
+   }
+}
+
+void EmulatorEngine::HandlePaste(bool before)
+{
+   if (before)
+   {
+      // Anything to paste ? - Only after keyboard and basic is up to date....
+      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ == NULL))
+      {
+         // Press the key
+         paste_vkey_ = paste_buffer_[paste_count_];
+         if (paste_vkey_ != NULL)
+         {
+            GetKeyboardHandler()->CharPressed(paste_vkey_);
+            paste_wait_time_ = 160000;
+         }
+         else
+         {
+            --paste_size_;
+            ++paste_count_;
+         }
+      }
+   }
+   else
+   {
+      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ != NULL))
+      {
+         // Release the key, and move on
+         GetKeyboardHandler()->CharReleased(paste_buffer_[paste_count_++]);
+         paste_vkey_ = NULL;
+         --paste_size_;
+         paste_wait_time_ = 200000;
+      }
+   }
+}
+
+void EmulatorEngine::HandleSnapshots()
+{
+   if (do_snapshot_)
+   {
+      if (GetProc()->machine_cycle_ == Z80::M_FETCH && GetProc()->t_ == 1)
+      {
+         GetProc()->stop_on_fetch_ = false;
+
+         if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
+         {
+            // We have to stop on :
+            // - FETCH, first T cycle.
+            quick_sna_available_ = true;
+            quick_sna_path_ = snapshot_file_;
+            do_snapshot_ = false;
+         }
+      }
    }
 
-   // Anything to paste ? - Only after keyboard and basic is up to date....
-   if ( (paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ == NULL))
+   if (sna_to_load_)
    {
-      // Press the key
-      paste_vkey_ = paste_buffer_[paste_count_];
-      if (paste_vkey_ != NULL)
+      LoadSnapshotDelayed();
+      sna_to_load_ = false;
+   }
+}
+
+void EmulatorEngine::HandleSyncro(int run_time)
+{
+   // Increase total time
+   time_computed_ += run_time / 4000;
+
+   // Wait if needed
+   //TimeElapsedEnd = GetTickCount ();
+   std::chrono::time_point<std::chrono::steady_clock> time_elapsed_end = std::chrono::steady_clock::now();
+
+   std::chrono::milliseconds real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
+   std::chrono::milliseconds base_realtime = real_time;
+   //unsigned long long real_time = time_elapsed_end - TimeElapsed;
+   //unsigned long long baserealTime_L = real_time ;
+
+   if (!display_->IsWaitHandled())
+   {
+      if (speed_ != 0)
       {
-         GetKeyboardHandler()->CharPressed(paste_vkey_);
-         paste_wait_time_ = 160000;
+         real_time = real_time * speed_ / 100;
+         speed_limit_ = E_FULL;
       }
       else
       {
-         --paste_size_;
-         ++paste_count_;
+         speed_limit_ = E_NONE;
+      }
+
+      if (std::chrono::milliseconds(time_computed_) > real_time)
+      {
+         // Depends on the type of wait :
+         // based on sound
+         /*if (speed_limit_ == E_Full && speed_ == 100)
+         {
+            //sound_player_->SyncWithSound();
+         }
+         else*/
+         // Standard
+         if (speed_limit_ == E_FULL && (std::chrono::milliseconds(time_computed_) - real_time) > std::chrono::milliseconds(10))
+         {
+            std::this_thread::sleep_for(std::chrono::microseconds((std::chrono::milliseconds(time_computed_) - real_time)));
+            //Sleep( (DWORD)(TimeComputed-real_time) );
+            //Speed = 100;
+            if (real_time != std::chrono::milliseconds(0))
+            {
+               speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
+            }
+         }
+         else
+         {
+            if (base_realtime.count() != 0)
+            {
+               speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
+            }
+         }
+      }
+      else
+      {
+         if (base_realtime.count() != 0)
+         {
+            speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
+         }
       }
    }
+   else
+   {
+      if (base_realtime.count() != 0)
+      {
+         speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
+      }
+      else
+      {
+         speed_percent_ = 1000;
+      }
+   }
+
+   // Renew the total elapsed time (every 5 seconds)
+   if (paste_wait_time_ > 0)
+   {
+
+      paste_wait_time_ -= run_time;
+      if (paste_wait_time_ < 0)  paste_wait_time_ = 0;
+   }
+
+   if (time_computed_ > 2000)
+   {
+      //--paste_wait_time_;
+      paste_available_ = true;
+      //TimeElapsed = 0;
+      time_elapsed_ = std::chrono::steady_clock::now();
+      time_computed_ = 0;
+
+   }
+}
+
+// Run in normal mode (no debug)
+void EmulatorEngine::RunFullSpeed()
+{
+   int run_time = 0;
+
+   // Any actions to handle ?
+   HandleActions();
+   HandlePaste(true);
+   motherboard_.run_ = true;
+
+   run_time = time_slice_ * 4000;
+   //if (motherboard_.IsPLUS())
+   if (current_settings_->TapePlugged())
+   {
+      if (current_settings_->FDCPlugged())
+      {
+         if (motherboard_.GetSig()->nb_expansion_ == 0)
+         {
+            motherboard_.StartOptimizedPlus<true, true, false>(run_time);
+         }
+         else
+         {
+            motherboard_.StartOptimizedPlus<true, true, true>(run_time);
+         }
+
+      }
+      else
+      {
+         if (motherboard_.GetSig()->nb_expansion_ == 0)
+         {
+            motherboard_.StartOptimizedPlus<true, false, false>(run_time);
+         }
+         else
+         {
+            motherboard_.StartOptimizedPlus<true, false, true>(run_time);
+         }
+
+      }
+
+   }
+   else
+   {
+      if (current_settings_->FDCPlugged())
+      {
+         if (motherboard_.GetSig()->nb_expansion_ == 0)
+         {
+            motherboard_.StartOptimizedPlus<false, true, false>(run_time);
+         }
+         else
+         {
+            motherboard_.StartOptimizedPlus<false, true, true>(run_time);
+         }
+
+      }
+      else
+      {
+         if (motherboard_.GetSig()->nb_expansion_ == 0)
+         {
+            motherboard_.StartOptimizedPlus<false, false, false>(run_time);
+         }
+         else
+         {
+            motherboard_.StartOptimizedPlus<false, false, true>(run_time);
+         }
+
+      }
+   }
+
+   HandleSnapshots();
+   HandlePaste(false);
+   HandleSyncro(run_time);
+
+}
+
+EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opcode_to_run)
+{
+   //
+   bool breakpoint_reached = false;
+   DebugRunResult result = DBG_OPCODE_END;
+   int run_time = 0;
+
+   HandleActions();
+   HandlePaste(true);
+
+   run_time = motherboard_.DebugOpcodes (nb_opcode_to_run);
+
+   // 
+   if (!motherboard_.run_)
+   {
+      display_->VSync(true);
+   }
+
+   HandleSnapshots();
+   HandlePaste(false);
+   HandleSyncro(run_time);
+
+   return result;
+}
+
+// Old run routine.
+int EmulatorEngine::RunTimeSlice (bool bNotDbg )
+{
+   int ret = 0;
+
+   HandleActions();
 
    int run_time = 0;
    // 1ms is 4 000 tick
@@ -803,130 +1033,10 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
          ret = 1;
       }
    }
+   HandleSnapshots();
+   HandlePaste(false);
+   HandleSyncro(run_time);
 
-   if (do_snapshot_)
-   {
-      if (GetProc()->machine_cycle_ == Z80::M_FETCH && GetProc()->t_ == 1)
-      {
-         GetProc()->stop_on_fetch_ = false;
-         
-         if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
-         {
-            // We have to stop on :
-            // - FETCH, first T cycle.
-            quick_sna_available_ = true;
-            quick_sna_path_ = snapshot_file_;
-            do_snapshot_ = false;
-         }
-      }
-   }
-
-   if (sna_to_load_)
-   {
-      LoadSnapshotDelayed();
-      sna_to_load_ = false;
-   }
-
-   if (( paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ != NULL))
-   {
-      // Release the key, and move on
-      GetKeyboardHandler()->CharReleased(paste_buffer_[paste_count_++]);
-      paste_vkey_ = NULL;
-      --paste_size_;
-      paste_wait_time_ = 200000;
-   }
-
-
-
-   // Increase total time
-   time_computed_ += run_time / 4000;
-
-   // Wait if needed
-   //TimeElapsedEnd = GetTickCount ();
-   time_elapsed_end = std::chrono::steady_clock::now();
-
-   std::chrono::milliseconds real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
-   std::chrono::milliseconds base_realtime = real_time;
-   //unsigned long long real_time = time_elapsed_end - TimeElapsed;
-   //unsigned long long baserealTime_L = real_time ;
-
-   if ( !display_->IsWaitHandled ())
-   {
-      if ( speed_ != 0)
-      {
-         real_time = real_time * speed_/ 100;
-         speed_limit_=E_FULL;
-      }
-      else
-      {
-         speed_limit_ = E_NONE;
-      }
-
-      if (std::chrono::milliseconds(time_computed_) > real_time)
-      {
-         // Depends on the type of wait :
-         // based on sound
-         /*if (speed_limit_ == E_Full && speed_ == 100)
-         {
-            //sound_player_->SyncWithSound();
-         }
-         else*/
-         // Standard
-         if (speed_limit_==E_FULL && (std::chrono::milliseconds(time_computed_) - real_time) > std::chrono::milliseconds(10))
-         {
-            std::this_thread::sleep_for(std::chrono::microseconds(( std::chrono::milliseconds(time_computed_) - real_time)));
-            //Sleep( (DWORD)(TimeComputed-real_time) );
-            //Speed = 100;
-            if (real_time != std::chrono::milliseconds(0))
-            {
-               speed_percent_ = (unsigned int)(time_computed_* 100  / base_realtime.count());
-            }
-         }
-         else
-         {
-            if (base_realtime.count() != 0)
-            {
-               speed_percent_ = (unsigned int)(time_computed_* 100  / base_realtime.count());
-            }
-         }
-      }
-      else
-      {
-         if (base_realtime.count() != 0)
-         {
-            speed_percent_ = (unsigned int)(time_computed_* 100  / base_realtime.count());
-         }
-      }
-   }
-   else
-   {
-      if (base_realtime.count() != 0)
-      {
-         speed_percent_ = (unsigned int)(time_computed_* 100  / base_realtime.count());
-      }
-      else
-      {
-         speed_percent_ = 1000;
-      }
-   }
-
-   // Renew the total elapsed time (every 5 seconds)
-   if ( paste_wait_time_ > 0)
-   {
-
-      paste_wait_time_ -= run_time;
-      if (paste_wait_time_ < 0)  paste_wait_time_ = 0;
-   }
-
-   if (time_computed_ > 2000)
-   {
-      //--paste_wait_time_;
-      paste_available_ = true;
-      //TimeElapsed = 0;
-      time_elapsed_ = std::chrono::steady_clock::now();
-      time_computed_ = 0;
-
-   }
    return ret;
 }
 

@@ -118,6 +118,7 @@ public:
    template <bool tape_present, bool fdc_present, bool components_present>
    void StartOptimizedPlus(unsigned int nb_cycles);
    int DebugNew(unsigned int nb_cycles);
+   int DebugOpcodes(unsigned int& nb_opcodes);
    unsigned int GetSpeed() { return speed_percent_; }
 
    unsigned char* GetCartridge(int index) { return memory_.GetCartridge(index); }
