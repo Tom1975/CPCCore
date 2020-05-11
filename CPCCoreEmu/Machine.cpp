@@ -957,6 +957,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
    int ret = 0;
 
    HandleActions();
+   HandlePaste(true);
 
    int run_time = 0;
    // 1ms is 4 000 tick

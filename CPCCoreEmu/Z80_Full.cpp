@@ -88,19 +88,14 @@ void Z80::Reset()
 
    machine_cycle_ = M_FETCH;
    pc_ = 0x0000;
+   sp_ = 0xFFFF;
+   af_.w = 0xFFFF;
 
-   // interrupt_mode_ = 0; - todo !
+   mem_ptr_.w = 0;
+   ir_.w = 0;
+
    iff1_ = false;
    iff2_ = false;
-
-   //m_bInterrupt = false;
-
-   //iy_.w = 0;
-   //ix_.w = 0;
-
-   af_.w = 0xFFFF;
-   mem_ptr_.w = 0;
-   //ir_.w = 0;
 
    t_ = 1;
 
