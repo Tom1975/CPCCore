@@ -170,6 +170,8 @@ public:
 
    void RemoveBreakpoint ( unsigned short addr);
    void ClearBreakpoints ();
+   void EnableBreakpoints();
+   void DisableBreakpoints();
 
    void SetBreakpointHandler ( IBreakpoint* bp );
 

@@ -15,6 +15,10 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
    cursor_line_(&play_city_)
 {
    breakpoint_index_ = 0;
+   for (auto i = 0; i < NB_BP_MAX; i++)
+   {
+      breakpoints_enabled_[i] = false;
+   }
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));
 }
 
@@ -434,7 +438,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
             }
             for (unsigned int i = 0; i < breakpoint_index_; i++)
             {
-               if (breakpoint_list_[i] == z80_.GetPC())
+               if (breakpoints_enabled_[i] && breakpoint_list_[i] == z80_.GetPC())
                {
                   // Break !
                   run_ = false;
@@ -650,6 +654,7 @@ void Motherboard::RemoveBreakpoint(unsigned short addr)
          for (unsigned int j = i; j < breakpoint_index_ - 1; j++)
          {
             breakpoint_list_[j] = breakpoint_list_[j + 1];
+            breakpoints_enabled_[j] = breakpoints_enabled_[j + 1];
          }
          breakpoint_index_--;
          return;
@@ -660,4 +665,21 @@ void Motherboard::RemoveBreakpoint(unsigned short addr)
 void Motherboard::ClearBreakpoints()
 {
    breakpoint_index_ = 0;
+}
+
+void Motherboard::EnableBreakpoints()
+{
+   for (auto i = 0; i < NB_BP_MAX; i++)
+   {
+      breakpoints_enabled_[i] = true;
+   }
+}
+
+void Motherboard::DisableBreakpoints()
+{
+   for (auto i = 0; i < NB_BP_MAX; i++)
+   {
+      breakpoints_enabled_[i] = false;
+   }
+
 }

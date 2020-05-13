@@ -15,7 +15,7 @@
 
 #include "Breakpoint.h"
 
-#define NB_BP_MAX    10
+#define NB_BP_MAX    100
 
 
 class NetList : public IClockable
@@ -84,6 +84,9 @@ public:
    void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
    void RemoveBreakpoint(unsigned short addr);
    void ClearBreakpoints();
+   void EnableBreakpoints();
+   void DisableBreakpoints();
+
    void SetGenericBreakpoint(IBreakpoint* generic_breakpoint) { generic_breakpoint_ = generic_breakpoint;}
    // Configuration
    void SetPlus(bool plus);
@@ -151,6 +154,7 @@ protected:
    IBreakpoint* generic_breakpoint_;
    // Max 10 breakpoints
    unsigned short breakpoint_list_[NB_BP_MAX];
+   bool breakpoints_enabled_[NB_BP_MAX];
    unsigned int breakpoint_index_;
 
    ISupervisor* supervisor_;

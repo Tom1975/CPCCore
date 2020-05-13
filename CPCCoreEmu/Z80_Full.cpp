@@ -167,7 +167,8 @@ unsigned int Z80::Tick_Fetch_1()
 
 unsigned int Z80::Tick_Fetch_2() 
 {
-   WAIT_TEST;  t_++; return 1;
+   WAIT_TEST
+   t_++; return 1;
 }
       
 unsigned int Z80::Tick_Fetch_3()
@@ -750,7 +751,6 @@ unsigned int Z80::Memr_And_n()
 unsigned int Z80::Memr_Xor_n()
 {
    int nextcycle;
-   unsigned int res;
    ++pc_; 
    XOR_FLAGS(current_data_ & 0xFF); 
    NEXT_INSTR;
