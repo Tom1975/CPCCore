@@ -749,7 +749,7 @@ void EmulatorEngine::HandleSnapshots()
    {
       if (GetProc()->machine_cycle_ == Z80::M_FETCH && GetProc()->t_ == 1)
       {
-         GetProc()->stop_on_fetch_ = false;
+         GetProc()->stop_on_fetch_ = old_stop_on_fetch_;
 
          if (sna_handler_.SaveSnapshot(snapshot_file_.c_str()))
          {
@@ -938,6 +938,7 @@ void EmulatorEngine::RunFullSpeed()
 
 EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opcode_to_run)
 {
+   GetProc()->stop_on_fetch_ = true;
    //
    bool breakpoint_reached = false;
    DebugRunResult result = DBG_OPCODE_END;
@@ -965,6 +966,9 @@ EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opco
 int EmulatorEngine::RunTimeSlice (bool bNotDbg )
 {
    int ret = 0;
+
+   GetProc()->stop_on_fetch_ = true;
+   old_stop_on_fetch_ = true; // In case of snapshot asked
 
    HandleActions();
    HandlePaste(true);
@@ -1114,6 +1118,7 @@ bool EmulatorEngine::SaveSnapshot (const char* path_file)
 {
    do_snapshot_ = true;
    snapshot_file_ = path_file;
+   old_stop_on_fetch_ = GetProc()->stop_on_fetch_;
    GetProc()->stop_on_fetch_ = true;
    return true;
 }

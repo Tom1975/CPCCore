@@ -40,8 +40,6 @@
 
 #define CPCCOREEMU_API
 
-#define NB_BP_MAX    10
-
 
 ///////////////////////////////
 // Definition de la machine elle-meme.
@@ -269,6 +267,8 @@ public:
 
    unsigned int stop_pc_;
    bool remember_step_;
+
+   bool old_stop_on_fetch_;
 
    unsigned int counter_ ;
 
