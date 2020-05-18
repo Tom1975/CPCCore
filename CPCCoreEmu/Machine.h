@@ -167,10 +167,6 @@ public:
    void ChangeBreakpoint ( unsigned short  old_bp, unsigned short new_bp );
 
    void RemoveBreakpoint ( unsigned short addr);
-   void ClearBreakpoints ();
-   void EnableBreakpoints();
-   void DisableBreakpoints();
-
    void SetBreakpointHandler ( IBreakpoint* bp );
 
    // Display

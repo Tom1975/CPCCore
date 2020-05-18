@@ -659,21 +659,6 @@ void EmulatorEngine::RemoveBreakpoint ( unsigned short addr)
    motherboard_.RemoveBreakpoint(addr);
 }
 
-void EmulatorEngine::ClearBreakpoints ()
-{
-   motherboard_.ClearBreakpoints();
-}
-
-void EmulatorEngine::EnableBreakpoints()
-{
-   motherboard_.EnableBreakpoints();
-}
-
-void EmulatorEngine::DisableBreakpoints()
-{
-   motherboard_.DisableBreakpoints();
-}
-
 void EmulatorEngine::SetSpeed ( int speedLimit )
 {
    if ( speedLimit == -1)

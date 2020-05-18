@@ -1,8 +1,12 @@
 
 #pragma once
+#include <deque>
+#include <functional>
 
 class EmulatorEngine;
 class Memory;
+
+#define NB_BP_MAX    100
 
 class IBreakpoint
 {
@@ -68,6 +72,91 @@ protected:
    Memory* memory_;
 };
 
+class BreakPointComplex : public IBreakpointItem
+{
+public:
+   BreakPointComplex();
+   virtual ~BreakPointComplex();
+
+   virtual bool Break();
+
+protected:
+
+};
+
+class Token
+{
+public:
+
+   ///////////////////////////////////
+   // Token - 
+   typedef enum {
+      PARENTHESIS_OPEN,
+      PARENTHESIS_CLOSE,
+      CONDITION,
+      VARIABLE,
+      OPERATION,
+      VALUE,
+      GROUP
+   }TokenType;
+
+   ///////////////////////////////////
+   Token(TokenType);
+
+   TokenType GetType() { return token_type_;  }
+   std::deque<Token>* GetGroup();
+
+   ///////////////////////////////////
+   // Token definition
+   typedef struct
+   {
+      TokenType token_type;
+      std::function< size_t( std::string, int& size_of_token)> find_;
+   }TokenDefinitions;
+
+
+
+   ///////////////////////////////////
+   // Helper functions
+   static size_t FindRegister(std::string base_string, int& token_length);
+   static size_t FindValue(std::string base_string, int& token_length);
+   static size_t FindString ( std::string base_string, std::string token, int& token_length)
+   {
+      token_length = token.size();
+      return base_string.find(token);
+   };
+   static unsigned int ParseToken(std::string str, std::deque<Token>& token_list);
+
+   
+   
+   
+protected:
+   TokenType token_type_;
+   std::deque<Token>* group_token_list_;
+};
+
+class TokenTree
+{
+public:
+   TokenTree(std::deque<Token> token_list);
+   virtual ~TokenTree();
+
+protected:
+   // Tree is either  :
+   // - leaf
+   // - Operation between 2 leafs
+   enum
+   {
+      None,
+      Comparison,
+      Bool,
+      Math
+   }OperationType;
+   TokenTree *left_;
+   TokenTree *right_;
+   
+};
+
 class BreakpointHandler : public IBreakpoint
 {
 // Construction
@@ -76,7 +165,9 @@ public:
 	virtual ~BreakpointHandler();
 
    virtual void Init ( EmulatorEngine* machine ) {machine_ = machine;};
+
    virtual bool IsBreak ();
+
    IBreakpointItem* CreateBreakpoint  (char* breakpoint_string);
    void RemoveBreakpoint (IBreakpointItem* breakpoint);
    bool IsThereBreakOnAdress ( unsigned short addr );
@@ -85,8 +176,18 @@ public:
    void AddBreakpoint(IBreakpointItem* breakpoint);
    // Implémentation
 
+   void ClearBreakpoints();
+   void CreateBreakpoint(int indice, std::deque<std::string> param);
+   void EnableBreakpoints();
+   void DisableBreakpoints();
+   void EnableBreakpoint(int bp_number);
+   void DisableBreakpoint(int bp_number);
+
+
 protected:
 
+   // String parsing
+   unsigned int ParseToken(std::string str, std::deque<Token>& token_list);
 
    // Breakpoints data
    EmulatorEngine* machine_;
@@ -94,5 +195,10 @@ protected:
    IBreakpointItem** breakpoint_list_;
    int breakpoint_number_;
    int breakpoint_list_size_;
+
+   bool gloal_breakpoints_enabled_;
+   bool breakpoints_enabled_[NB_BP_MAX];
+
 };
+
 

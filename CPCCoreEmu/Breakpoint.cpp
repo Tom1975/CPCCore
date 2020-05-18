@@ -13,6 +13,11 @@ BreakpointHandler::BreakpointHandler()
    breakpoint_list_size_ = 10;
    breakpoint_list_ = new IBreakpointItem*[breakpoint_list_size_];
    breakpoint_number_ = 0;
+   gloal_breakpoints_enabled_ = false;
+   for (auto i = 0; i < NB_BP_MAX; i++)
+   {
+      breakpoints_enabled_[i] = false;
+   }
 }
 
 BreakpointHandler::~BreakpointHandler()
@@ -25,14 +30,50 @@ bool BreakpointHandler::IsBreak()
 {
    // Parcours des breakpoints
    //for (std::vector<IBreakpointItem*>::iterator it = m_BreakpointList.begin(); it != m_BreakpointList.end(); it++)
-   for (auto i = 0; i < breakpoint_number_; i++)
+   if (gloal_breakpoints_enabled_)
    {
-      // Si on break, on break !
-      if (breakpoint_list_[i]->Break())
-         return true;
+      for (auto i = 0; i < breakpoint_number_; i++)
+      {
+         // Si on break, on break !
+         if (breakpoints_enabled_[i] && breakpoint_list_[i]->Break())
+            return true;
+      }
+
    }
    return false;
 }
+
+void BreakpointHandler::ClearBreakpoints()
+{
+   
+}
+
+void BreakpointHandler::EnableBreakpoint(int bp_number)
+{
+   if (bp_number > 0 && bp_number <= NB_BP_MAX)
+   {
+      breakpoints_enabled_[bp_number - 1] = true;
+   }
+}
+
+void BreakpointHandler::EnableBreakpoints()
+{
+   gloal_breakpoints_enabled_ = true;
+}
+
+void BreakpointHandler::DisableBreakpoints()
+{
+   gloal_breakpoints_enabled_ = false;
+}
+
+void BreakpointHandler::DisableBreakpoint(int bp_number)
+{
+   if (bp_number > 0 && bp_number <= NB_BP_MAX)
+   {
+      breakpoints_enabled_[bp_number - 1] = false;
+   }
+}
+
 
 void BreakpointHandler::RemoveBreakpoint(IBreakpointItem* breakpoint)
 {
@@ -78,6 +119,193 @@ void BreakpointHandler::ToggleBreakpoint(unsigned short addr)
    AddBreakpoint(breakpoint);
 }
 
+ Token::TokenDefinitions token_definitions_ [] =
+ {
+    { Token::PARENTHESIS_OPEN, std::bind(&Token::FindString, std::placeholders::_1, "(", std::placeholders::_2) },
+    { Token::PARENTHESIS_CLOSE, std::bind(&Token::FindString, std::placeholders::_1, ")", std::placeholders::_2) },
+    { Token::CONDITION, std::bind(&Token::FindString, std::placeholders::_1, "=", std::placeholders::_2) },
+    { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "*", std::placeholders::_2) },
+    { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "/", std::placeholders::_2) },
+    { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "+", std::placeholders::_2) },
+    { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "-", std::placeholders::_2) },
+    { Token::VARIABLE, std::bind(&Token::FindRegister, std::placeholders::_1, std::placeholders::_2) },
+    { Token::VALUE, std::bind(&Token::FindValue, std::placeholders::_1, std::placeholders::_2) },
+ };
+
+Token::Token(TokenType token_type):token_type_(token_type), group_token_list_(nullptr)
+{
+   if (token_type_==Token::GROUP)
+   {
+      group_token_list_ = new std::deque<Token>;
+   }
+}
+
+std::deque<Token>* Token::GetGroup()
+{
+   return group_token_list_;
+}
+
+size_t Token::FindValue(std::string str, int& token_length)
+{
+   // convert to lower
+   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+   // find register
+   unsigned int value;
+   if (sscanf (str.c_str(), "%xH", &value) == 1)
+   {
+      token_length = str.size();
+      return 0;
+   }
+   return std::string::npos;
+}
+
+size_t Token::FindRegister(std::string str, int& token_length)
+{
+   // convert to lower
+   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+   // find register
+   if (str.compare("PC") == 0)
+   {
+      token_length = 2;
+      return 0;
+   }
+   return std::string::npos;
+}
+
+unsigned int Token::ParseToken(std::string str, std::deque<Token>& token_list)
+{
+   // look at parenthesis
+   for (auto &it: token_definitions_)
+   {
+      int size;
+      size_t indice = it.find_(str, size);
+      if (indice != std::string::npos)
+      {
+         // Parse before
+         if (indice > 0)
+         {
+            ParseToken(str.substr(0, indice), token_list);
+         }
+         // Add token to list
+         token_list.push_back(it.token_type);
+
+         // parse after
+         if (indice + 1 + size < str.size())
+            ParseToken(str.substr(indice + size + 1), token_list);
+         return 1;
+      }
+   }
+   
+   return 0;
+}
+
+int OperationHandling(std::deque<Token> &token_list)
+{
+   std::deque<Token> out_token_list;
+   for (auto i = 0; i < token_list.size(); i++)
+   {
+      if (i+1 < token_list.size() && token_list[i+1].GetType() == Token::OPERATION)
+      {
+         // We should have something before AND after
+         // In the form of : Variable
+         // TODO
+      }
+      else
+      {
+         // Add it to the final list
+         out_token_list.push_back(token_list[i]);
+      }
+   }
+
+   token_list = out_token_list;
+   return 0;
+}
+
+int ParenthesisHandling (std::deque<Token> &token_list)
+{
+   // - Parenthesis :
+   // P : ( C ) => C
+   // P : ( V ) => V
+   std::deque<Token> out_token_list;
+   Token * inner_list;
+   std::deque<Token>* relative_main_list = &out_token_list;
+   std::deque<std::deque<Token>*> inner_stack;
+
+   for (auto &it : token_list)
+   {
+      if (it.GetType() == Token::PARENTHESIS_OPEN)
+      {
+         // Register a level of parenthesis; 
+         inner_stack.push_back(relative_main_list);
+         inner_list = new Token(Token::GROUP);
+         relative_main_list = inner_list->GetGroup();
+      }
+      else if (it.GetType() == Token::PARENTHESIS_CLOSE)
+      {
+         if (inner_stack.empty()) return -1;
+
+         std::deque<Token>* upper_main_list = inner_stack.back();
+         upper_main_list->push_back(*inner_list);
+         relative_main_list = upper_main_list;
+      } 
+      else
+      {
+         // Building a parenthesis list ? 
+         relative_main_list->push_back(it);
+      }
+   }
+   token_list = out_token_list;
+   return 0;
+}
+
+int BuildExpression (std::deque<Token> token_list)
+{
+   // Reduce tokens to tree + single tree tokens (ie : regroup parenthesis)
+   if ( ParenthesisHandling(token_list) != 0 ) return -1;
+
+   // Apply rules :
+   // - Split to have the followings :  
+   // V : V OPERATION V
+   if (OperationHandling(token_list) != 0) return -1;
+   // C : Condition, V : Variable 
+   // C : C CONDITION C
+   // C : C CONDITION V
+   // C : V CONDITION C
+   // C : V CONDITION V
+   return 0;
+}
+
+TokenTree::~TokenTree()
+{
+   
+}
+
+void BreakpointHandler::CreateBreakpoint(int indice, std::deque<std::string> param)
+{
+   // Separate in tokens : Regroupements, Conditions, Values, Variable, Computation
+   std::deque<Token> token_list;
+   for (auto &it:param)
+   {
+      std::deque<Token> subtoken_list;
+      if ( Token::ParseToken(it, subtoken_list) > 0)
+      {
+         token_list.insert(token_list.end(), subtoken_list.begin(), subtoken_list.end());
+      }
+      else
+      {
+         // error
+         return;
+      }
+   }
+
+   // Create binary tree
+   BuildExpression(token_list);
+
+   // Convert tree to actions / breakpoint.
+
+   IBreakpointItem* CreateFromParameter();
+   
+}
 
 void BreakpointHandler::AddBreakpoint(IBreakpointItem* breakpoint)
 {
@@ -224,7 +452,13 @@ IBreakpointItem* BreakpointHandler::CreateBreakpoint(char* breakpoint_string)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+//
 // Specific breakpoints
+//
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// PC
 BreakpointPC::BreakpointPC(EmulatorEngine* machine, unsigned short addr)
 {
    break_address_ = addr;
@@ -236,6 +470,8 @@ bool BreakpointPC::Break()
    return (machine_->GetProc()->GetPC() == break_address_);
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Memory
 BreakpointMemory::BreakpointMemory(EmulatorEngine* machine, unsigned short addr, unsigned char value)
 {
    memory_address_ = addr; memory_ = machine->GetMem(); memory_value_ = value;
@@ -246,6 +482,8 @@ bool BreakpointMemory::Break()
    return (memory_->Get(memory_address_) == memory_value_);
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Memory access
 BreakpointMemoryAccess::BreakpointMemoryAccess(EmulatorEngine* machine, unsigned short addr, bool read)
 {
    memory_address_ = addr; memory_ = machine->GetMem(); access_read_ = read;
@@ -279,6 +517,8 @@ bool BreakpointMemoryAccess::Break()
    return false;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// Reg value
 BreakpointRegisterValue::BreakpointRegisterValue(EmulatorEngine* machine, unsigned short* reg, unsigned short value)
 {
    register_ = reg; memory_ = machine->GetMem(); register_value_ = value;
@@ -287,4 +527,21 @@ BreakpointRegisterValue::BreakpointRegisterValue(EmulatorEngine* machine, unsign
 bool BreakpointRegisterValue::Break()
 {
    return (*register_ == register_value_);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// Complex breakpoints
+BreakPointComplex::BreakPointComplex()
+{
+   
+}
+
+BreakPointComplex::~BreakPointComplex()
+{
+
+}
+
+bool BreakPointComplex::Break()
+{
+   return false;
 }
