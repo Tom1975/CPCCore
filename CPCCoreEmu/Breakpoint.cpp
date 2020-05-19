@@ -129,7 +129,7 @@ void BreakpointHandler::ToggleBreakpoint(unsigned short addr)
     { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "+", std::placeholders::_2) },
     { Token::OPERATION, std::bind(&Token::FindString, std::placeholders::_1, "-", std::placeholders::_2) },
     { Token::VARIABLE, std::bind(&Token::FindRegister, std::placeholders::_1, std::placeholders::_2) },
-    { Token::VALUE, std::bind(&Token::FindValue, std::placeholders::_1, std::placeholders::_2) },
+    { Token::VARIABLE, std::bind(&Token::FindValue, std::placeholders::_1, std::placeholders::_2) },
  };
 
 Token::Token(TokenType token_type):token_type_(token_type), group_token_list_(nullptr)
@@ -172,6 +172,8 @@ size_t Token::FindRegister(std::string str, int& token_length)
    return std::string::npos;
 }
 
+
+
 unsigned int Token::ParseToken(std::string str, std::deque<Token>& token_list)
 {
    // look at parenthesis
@@ -199,6 +201,70 @@ unsigned int Token::ParseToken(std::string str, std::deque<Token>& token_list)
    return 0;
 }
 
+int GroupedConditionHandling(std::deque<Token> &token_list)
+{
+   std::deque<Token> out_token_list;
+   for (auto i = 0; i < token_list.size(); i++)
+   {
+      if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::BOOL_CONDITION)
+      {
+         // We should have something before AND after
+         if (i + 2 < token_list.size() && token_list[i].GetType() == Token::CONDITION && token_list[i + 2].GetType() == Token::CONDITION)
+         {
+            // Ok, create a Condition
+            Token grouped_variable(Token::CONDITION);
+            out_token_list.push_back(grouped_variable);
+            i += 2;
+         }
+         else
+         {
+            // Error : Operation is always between 2 variables
+            return -1;
+         }
+      }
+      else
+      {
+         // Add it to the final list
+         out_token_list.push_back(token_list[i]);
+      }
+   }
+
+   token_list = out_token_list;
+   return 0;
+}
+
+int ConditionHandling(std::deque<Token> &token_list)
+{
+   std::deque<Token> out_token_list;
+   for (auto i = 0; i < token_list.size(); i++)
+   {
+      if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::CONDITION)
+      {
+         // We should have something before AND after
+         if (i + 2 < token_list.size() && token_list[i].GetType() == Token::VARIABLE && token_list[i + 2].GetType() == Token::VARIABLE)
+         {
+            // Ok, create a Condition
+            Token grouped_variable(Token::GROUPED_CONDITION);
+            out_token_list.push_back(grouped_variable);
+            i += 2;
+         }
+         else
+         {
+            // Error : Operation is always between 2 variables
+            return -1;
+         }
+      }
+      else
+      {
+         // Add it to the final list
+         out_token_list.push_back(token_list[i]);
+      }
+   }
+
+   token_list = out_token_list;
+   return 0;
+}
+
 int OperationHandling(std::deque<Token> &token_list)
 {
    std::deque<Token> out_token_list;
@@ -207,8 +273,18 @@ int OperationHandling(std::deque<Token> &token_list)
       if (i+1 < token_list.size() && token_list[i+1].GetType() == Token::OPERATION)
       {
          // We should have something before AND after
-         // In the form of : Variable
-         // TODO
+         if (i + 2 < token_list.size() && token_list[i ].GetType() == Token::VARIABLE && token_list[i + 2].GetType() == Token::VARIABLE)
+         {
+            // Ok, create a grouped Variable
+            Token grouped_variable (Token::GROUP);
+            out_token_list.push_back(grouped_variable);
+            i += 2;
+         }
+         else
+         {
+            // Error : Operation is always between 2 variables
+            return -1;
+         }
       }
       else
       {
@@ -264,14 +340,19 @@ int BuildExpression (std::deque<Token> token_list)
    if ( ParenthesisHandling(token_list) != 0 ) return -1;
 
    // Apply rules :
-   // - Split to have the followings :  
+   // Let's say C : Condition, V : Variable 
    // V : V OPERATION V
    if (OperationHandling(token_list) != 0) return -1;
-   // C : Condition, V : Variable 
-   // C : C CONDITION C
-   // C : C CONDITION V
-   // C : V CONDITION C
+
    // C : V CONDITION V
+   if (ConditionHandling(token_list) != 0) return -1;
+
+   // C : C BOOL_CONDITION C
+   if (GroupedConditionHandling(token_list) != 0) return -1;
+
+   // Now, we should be minimal : Build breakpoint from this list
+
+
    return 0;
 }
 
