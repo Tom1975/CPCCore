@@ -79,7 +79,10 @@ int OperationHandling(std::deque<Token> &token_list)
          // We should have something before AND after
          if (i + 2 < token_list.size() && token_list[i].GetType() == Token::VARIABLE && token_list[i + 2].GetType() == Token::VARIABLE)
          {
-            // Ok, create a grouped Variable
+            // Ok, create a condition
+            
+            TokenCondition* token = new TokenCondition(dynamic_cast<TokenValue*>(&token_list[i]), dynamic_cast<TokenConditionOperation*>(&token_list[i+2]), dynamic_cast<TokenValue*>(&token_list[i]));
+
             Token grouped_variable(Token::GROUP);
             out_token_list.push_back(grouped_variable);
             i += 2;

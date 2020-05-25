@@ -97,3 +97,19 @@ TokenTree::~TokenTree()
 {
    
 }
+
+bool TokenConditionOperationEquality::IsEqual(TokenValue* value_left, TokenValue* value_right)
+{
+   return (value_left->GetValue() == value_right->GetValue());
+}
+
+TokenCondition::TokenCondition(TokenValue* value_left, TokenConditionOperation *operation, TokenValue* value_right):Token(CONDITION),
+   value_left_(value_left), operation_(operation), value_right_(value_right)
+{
+
+}
+
+bool TokenCondition::IsEqual()
+{
+   return operation_->IsEqual(value_left_, value_right_);
+}

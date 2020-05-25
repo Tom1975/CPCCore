@@ -21,6 +21,7 @@ public:
       PARENTHESIS_CLOSE,
       CONDITION,
       GROUPED_CONDITION,
+
       BOOL_CONDITION,
       VARIABLE,
       OPERATION,
@@ -35,6 +36,8 @@ public:
    std::deque<Token>* GetGroup();
 
    IBreakpointItem* CreateBreakpoint();
+
+   virtual bool IsEqual() { return false; }
 
    ///////////////////////////////////
    // Token definition
@@ -64,6 +67,52 @@ protected:
    TokenType token_type_;
    std::deque<Token>* group_token_list_;
 };
+
+class TokenValue : public Token
+{
+public:
+   TokenValue();
+   virtual ~TokenValue();
+
+   virtual int GetValue();
+};
+
+class TokenImmediateValue : public TokenValue
+{
+public:
+   TokenImmediateValue(unsigned int value) :value_(value) {}
+   virtual int GetValue() { return value_; }
+
+protected:
+   unsigned int value_;
+}; 
+
+class TokenConditionOperation : public Token
+{
+public:
+   virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right) = 0;
+
+};
+
+class TokenConditionOperationEquality : public TokenConditionOperation
+{
+   public:
+      virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right);
+};
+
+class TokenCondition : public Token
+{
+public:
+   TokenCondition(TokenValue *value_left, TokenConditionOperation *operation, TokenValue *value_right);
+   
+   virtual bool IsEqual();
+
+protected:
+   TokenValue *value_left_;
+   TokenConditionOperation* operation_;
+   TokenValue *value_right_;
+};
+
 
 class TokenTree
 {
