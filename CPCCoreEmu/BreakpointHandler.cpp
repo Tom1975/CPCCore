@@ -7,7 +7,7 @@
 
 int GroupedConditionHandling(std::deque<Token> &token_list)
 {
-   std::deque<Token> out_token_list;
+   /*std::deque<Token> out_token_list;
    for (size_t i = 0; i < token_list.size(); i++)
    {
       if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::BOOL_CONDITION)
@@ -32,13 +32,15 @@ int GroupedConditionHandling(std::deque<Token> &token_list)
          out_token_list.push_back(token_list[i]);
       }
    }
-
+   
    token_list = out_token_list;
+   */
    return 0;
 }
 
 int ConditionHandling(std::deque<Token> &token_list)
 {
+   /*
    std::deque<Token> out_token_list;
    for (auto i = 0; i < token_list.size(); i++)
    {
@@ -49,6 +51,7 @@ int ConditionHandling(std::deque<Token> &token_list)
          {
             // Ok, create a Condition
             Token grouped_variable(Token::GROUPED_CONDITION);
+            //Token * condition_token = new TokenConditionOperation(token_list[i], token_list[i+2]);
             out_token_list.push_back(grouped_variable);
             i += 2;
          }
@@ -66,11 +69,13 @@ int ConditionHandling(std::deque<Token> &token_list)
    }
 
    token_list = out_token_list;
+   */
    return 0;
 }
 
 int OperationHandling(std::deque<Token> &token_list)
 {
+   /*
    std::deque<Token> out_token_list;
    for (auto i = 0; i < token_list.size(); i++)
    {
@@ -101,6 +106,7 @@ int OperationHandling(std::deque<Token> &token_list)
    }
 
    token_list = out_token_list;
+   */
    return 0;
 }
 
@@ -109,6 +115,7 @@ int ParenthesisHandling(std::deque<Token> &token_list)
    // - Parenthesis :
    // P : ( C ) => C
    // P : ( V ) => V
+   /*
    std::deque<Token> out_token_list;
    Token * inner_list;
    std::deque<Token>* relative_main_list = &out_token_list;
@@ -138,6 +145,7 @@ int ParenthesisHandling(std::deque<Token> &token_list)
       }
    }
    token_list = out_token_list;
+   */
    return 0;
 }
 
@@ -282,10 +290,13 @@ void BreakpointHandler::CreateBreakpoint(int indice, std::deque<std::string> par
    std::deque<Token> token_list;
    for (auto &it:param)
    {
-      std::deque<Token> subtoken_list;
-      if ( Token::ParseToken(it, subtoken_list) > 0)
+      std::deque<Token*> subtoken_list;
+
+      int pos, size;
+      if ( TokenBuilder::StringToToken(it, machine_, subtoken_list, pos, size) != nullptr)
+      //if ( Token::ParseToken(it, subtoken_list) > 0)
       {
-         token_list.insert(token_list.end(), subtoken_list.begin(), subtoken_list.end());
+         //token_list.insert(token_list.end(), subtoken_list.begin(), subtoken_list.end());
       }
       else
       {

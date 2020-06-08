@@ -10,6 +10,7 @@ class Memory;
 
 #define NB_BP_MAX    100
 
+
 class Token
 {
 public:
@@ -30,7 +31,7 @@ public:
    }TokenType;
 
    ///////////////////////////////////
-   Token(TokenType);
+   Token(TokenType, EmulatorEngine* emulator);
 
    TokenType GetType() { return token_type_;  }
    std::deque<Token>* GetGroup();
@@ -66,30 +67,46 @@ public:
 protected:
    TokenType token_type_;
    std::deque<Token>* group_token_list_;
+   EmulatorEngine* emulator_;
 };
 
 class TokenValue : public Token
 {
 public:
-   TokenValue();
-   virtual ~TokenValue();
+   TokenValue(EmulatorEngine* emulator) : Token(VALUE, emulator) {};
+   virtual ~TokenValue() {};
 
-   virtual int GetValue();
+   virtual int GetValue() = 0;
 };
 
 class TokenImmediateValue : public TokenValue
 {
 public:
-   TokenImmediateValue(unsigned int value) :value_(value) {}
+   TokenImmediateValue(unsigned int value, EmulatorEngine* emulator) : TokenValue(emulator), value_(value) {}
+
+   static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
    virtual int GetValue() { return value_; }
 
 protected:
    unsigned int value_;
 }; 
 
+class TokenRegisterValue : public TokenValue
+{
+public:
+   TokenRegisterValue(EmulatorEngine* emulator);
+
+   static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
+   virtual int GetValue() { return 0; }
+
+protected:
+   
+};
+
 class TokenConditionOperation : public Token
 {
 public:
+   TokenConditionOperation(EmulatorEngine* emulator) :Token(CONDITION, emulator) {}
    virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right) = 0;
 
 };
@@ -97,13 +114,16 @@ public:
 class TokenConditionOperationEquality : public TokenConditionOperation
 {
    public:
+      TokenConditionOperationEquality(EmulatorEngine* emulator) :TokenConditionOperation(emulator) {}
       virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right);
+
+      static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
 };
 
 class TokenCondition : public Token
 {
 public:
-   TokenCondition(TokenValue *value_left, TokenConditionOperation *operation, TokenValue *value_right);
+   TokenCondition(TokenValue *value_left, TokenConditionOperation *operation, TokenValue *value_right, EmulatorEngine* emulator);
    
    virtual bool IsEqual();
 
@@ -134,4 +154,12 @@ protected:
    TokenTree *left_;
    TokenTree *right_;
    
+};
+
+class TokenBuilder
+{
+public : 
+   static Token* StringToToken(std::string, EmulatorEngine* emulator, std::deque<Token*>& token_list, int& pos_of_token, int& size_of_token);
+
+   static std::function< Token* (std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token)> token_type_list [];
 };
