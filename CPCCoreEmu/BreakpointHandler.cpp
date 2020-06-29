@@ -5,7 +5,7 @@
 
 
 
-int GroupedConditionHandling(std::deque<Token> &token_list)
+int GroupedConditionHandling(std::deque<Token*> &token_list)
 {
    /*std::deque<Token> out_token_list;
    for (size_t i = 0; i < token_list.size(); i++)
@@ -38,7 +38,7 @@ int GroupedConditionHandling(std::deque<Token> &token_list)
    return 0;
 }
 
-int ConditionHandling(std::deque<Token> &token_list)
+int ConditionHandling(std::deque<Token*> &token_list)
 {
    /*
    std::deque<Token> out_token_list;
@@ -73,7 +73,7 @@ int ConditionHandling(std::deque<Token> &token_list)
    return 0;
 }
 
-int OperationHandling(std::deque<Token> &token_list)
+int OperationHandling(std::deque<Token*> &token_list)
 {
    /*
    std::deque<Token> out_token_list;
@@ -110,27 +110,27 @@ int OperationHandling(std::deque<Token> &token_list)
    return 0;
 }
 
-int ParenthesisHandling(std::deque<Token> &token_list)
+int ParenthesisHandling(std::deque<Token*> &token_list)
 {
    // - Parenthesis :
    // P : ( C ) => C
    // P : ( V ) => V
-   /*
-   std::deque<Token> out_token_list;
+   
+   /*std::deque<Token*> out_token_list;
    Token * inner_list;
-   std::deque<Token>* relative_main_list = &out_token_list;
-   std::deque<std::deque<Token>*> inner_stack;
+   std::deque<Token*>* relative_main_list = &out_token_list;
+   std::deque<std::deque<Token*>*> inner_stack;
 
    for (auto &it : token_list)
    {
-      if (it.GetType() == Token::PARENTHESIS_OPEN)
+      if (it->GetType() == Token::PARENTHESIS_OPEN)
       {
          // Register a level of parenthesis; 
          inner_stack.push_back(relative_main_list);
          inner_list = new Token(Token::GROUP);
          relative_main_list = inner_list->GetGroup();
       }
-      else if (it.GetType() == Token::PARENTHESIS_CLOSE)
+      else if (it->GetType() == Token::PARENTHESIS_CLOSE)
       {
          if (inner_stack.empty()) return -1;
 
@@ -149,7 +149,7 @@ int ParenthesisHandling(std::deque<Token> &token_list)
    return 0;
 }
 
-int BuildExpression(std::deque<Token>& token_list)
+int BuildExpression(std::deque<Token*>& token_list)
 {
    // Reduce tokens to tree + single tree tokens (ie : regroup parenthesis)
    if (ParenthesisHandling(token_list) != 0) return -1;
@@ -288,9 +288,9 @@ void BreakpointHandler::CreateBreakpoint(int indice, std::deque<std::string> par
 {
    // Separate in tokens : Regroupements, Conditions, Values, Variable, Computation
    std::deque<Token> token_list;
+   std::deque<Token*> subtoken_list;
    for (auto &it:param)
    {
-      std::deque<Token*> subtoken_list;
 
       int pos, size;
       if ( TokenBuilder::StringToToken(it, machine_, subtoken_list, pos, size) != nullptr)
@@ -306,12 +306,12 @@ void BreakpointHandler::CreateBreakpoint(int indice, std::deque<std::string> par
    }
 
    // Create binary tree
-   BuildExpression(token_list);
+   BuildExpression(subtoken_list);
 
    // Now, if no error, we *should* have only one remaining item.
-   if (token_list.size() == 1)
+   if (subtoken_list.size() == 1)
    { 
-      IBreakpointItem* breakpoint = token_list[0].CreateBreakpoint();
+      IBreakpointItem* breakpoint = subtoken_list[0]->CreateBreakpoint();
       AddBreakpoint(breakpoint);
    }
    
