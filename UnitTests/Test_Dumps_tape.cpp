@@ -875,7 +875,7 @@ TEST(Dumps_Tape_Format_CDT, ID15_One_cdt)
    cmd_space.Action(test.machine_);
 
    ASSERT_EQ(true, test.MoreTest("./res/Tape/Record/One (UK) (1986) [Original] [TAPE].cdt_2.txt",
-      0xF8C, 0x49AC, "A", 66000, EXECUTE));
+      0xF8C, 0x49AC, "A", 70000, EXECUTE));
 
 }
 
