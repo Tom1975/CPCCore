@@ -309,7 +309,7 @@ bool TestTape::Test( char* conf, char* initfile, char* dump_to_load, char* fic_t
    }
    machine_->Paste(" ");
 
-   machine_->ClearBreakpoints();
+   machine_->CleanBreakpoints();
    machine_->AddBreakpoint(addr);
    machine_->AddBreakpoint(end_addr);
 
@@ -470,7 +470,7 @@ bool TestTape::Test( char* conf, char* initfile, char* dump_to_load, char* fic_t
 
 bool TestTape::MoreTest(char* fic_to_scan, unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build)
 {
-   machine_->ClearBreakpoints();
+   machine_->CleanBreakpoints();
    machine_->AddBreakpoint(addr);
    machine_->AddBreakpoint(end_addr);
 

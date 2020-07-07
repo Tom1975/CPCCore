@@ -163,6 +163,7 @@ public:
    bool IsRunning() { return motherboard_.run_; }
    void Stop ();
 
+   void CleanBreakpoints();
    void AddBreakpoint ( unsigned short addr);
    void ChangeBreakpoint ( unsigned short  old_bp, unsigned short new_bp );
 

@@ -618,6 +618,11 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
    return next_cycle;
 }
 
+void Motherboard::CleanBreakpoints()
+{
+   breakpoint_index_ = 0;
+}
+
 void Motherboard::AddBreakpoint(unsigned short addr)
 {
 

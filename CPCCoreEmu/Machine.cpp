@@ -644,6 +644,12 @@ void EmulatorEngine::SetBreakpointHandler ( IBreakpoint* bp )
    motherboard_.SetGenericBreakpoint(bp);
 }
 
+void EmulatorEngine::CleanBreakpoints()
+{
+   motherboard_.CleanBreakpoints();
+}
+
+
 void EmulatorEngine::AddBreakpoint ( unsigned short addr)
 {
    motherboard_.AddBreakpoint(addr);
