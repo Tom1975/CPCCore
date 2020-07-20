@@ -1,75 +1,85 @@
 #include "stdafx.h"
 #include "BreakpointHandler.h"
+#include <algorithm>
 
 #include "Machine.h"
 
 
+/////////////////////////////////////////////////////////////////////////////
+// CBreakPoint
 
-int GroupedConditionHandling(std::deque<Token*> &token_list)
+BreakpointHandler::BreakpointHandler()
 {
-   /*std::deque<Token> out_token_list;
-   for (size_t i = 0; i < token_list.size(); i++)
+   machine_ = nullptr;
+   breakpoint_list_size_ = 10;
+   breakpoint_list_ = new IBreakpointItem*[breakpoint_list_size_];
+   breakpoint_number_ = 0;
+   gloal_breakpoints_enabled_ = false;
+   for (auto i = 0; i < NB_BP_MAX; i++)
    {
-      if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::BOOL_CONDITION)
-      {
-         // We should have something before AND after
-         if (i + 2 < token_list.size() && token_list[i].GetType() == Token::CONDITION && token_list[i + 2].GetType() == Token::CONDITION)
-         {
-            // Ok, create a Condition
-            Token grouped_variable(Token::CONDITION);
-            out_token_list.push_back(grouped_variable);
-            i += 2;
-         }
-         else
-         {
-            // Error : Operation is always between 2 variables
-            return -1;
-         }
-      }
-      else
-      {
-         // Add it to the final list
-         out_token_list.push_back(token_list[i]);
-      }
+      breakpoints_enabled_[i] = false;
    }
-   
-   token_list = out_token_list;
-   */
-   return 0;
 }
 
-int ConditionHandling(std::deque<Token*> &token_list)
+BreakpointHandler::~BreakpointHandler()
 {
-   /*
+   delete[]breakpoint_list_;
+}
+
+
+TokenValue* BreakpointHandler::CreateVariable(std::deque<Token*> token_list)
+{
+   TokenValue* value = nullptr;
+   // TODO !
+   return value;
+}
+
+TokenConditionOperation* BreakpointHandler::CreateOperation(Token* token)
+{
+   TokenConditionOperation* operation = nullptr;
+   // TODO !
+   return operation;
+}
+
+IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_list)
+{
+   IBreakpointItem* item = nullptr;
    std::deque<Token> out_token_list;
+
    for (auto i = 0; i < token_list.size(); i++)
    {
-      if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::CONDITION)
+      if ( i > 0 && i+1 < token_list.size() && token_list[i]->GetType() == Token::CONDITION)
       {
          // We should have something before AND after
-         if (i + 2 < token_list.size() && token_list[i].GetType() == Token::VARIABLE && token_list[i + 2].GetType() == Token::VARIABLE)
+         // Create right and left leaf (which should be 'variable' meta type)
+         std::deque<Token*> right_list;
+         std::deque<Token*> left_list;
+         std::copy(token_list.begin(), token_list.begin()+i, std::back_inserter(left_list));
+         std::copy(token_list.begin() + (i + 1), token_list.end(), std::back_inserter(right_list));
+
+         TokenValue* value_left = CreateVariable(left_list);
+         if (value_left == nullptr)
          {
-            // Ok, create a Condition
-            Token grouped_variable(Token::GROUPED_CONDITION);
-            //Token * condition_token = new TokenConditionOperation(token_list[i], token_list[i+2]);
-            out_token_list.push_back(grouped_variable);
-            i += 2;
+            return nullptr;
          }
-         else
+         TokenValue* value_right = CreateVariable(right_list);
+         if (value_left == nullptr)
          {
-            // Error : Operation is always between 2 variables
-            return -1;
+            delete value_left;
+            return nullptr;
          }
-      }
-      else
-      {
-         // Add it to the final list
-         out_token_list.push_back(token_list[i]);
+         TokenConditionOperation* operation = CreateOperation(token_list[i]);
+         if (operation == nullptr)
+         {
+            delete value_left;
+            delete value_right;
+            return nullptr;
+         }
+         // Create the tree node 
+         TokenCondition * token_condition = new TokenCondition ( value_left, operation, value_right, machine_);
+         return token_condition->CreateBreakpoint();
       }
    }
-
-   token_list = out_token_list;
-   */
    return 0;
 }
 
@@ -149,45 +159,21 @@ int ParenthesisHandling(std::deque<Token*> &token_list)
    return 0;
 }
 
-int BuildExpression(std::deque<Token*>& token_list)
+int BreakpointHandler::BuildExpression(std::deque<Token*>& token_list)
 {
    // Reduce tokens to tree + single tree tokens (ie : regroup parenthesis)
-   if (ParenthesisHandling(token_list) != 0) return -1;
+   //if (ParenthesisHandling(token_list) != 0) return -1; 
+   // TODO
 
    // Apply rules :
    // Let's say C : Condition, V : Variable 
-   // V : V OPERATION V
-   if (OperationHandling(token_list) != 0) return -1;
-
    // C : V CONDITION V
-   if (ConditionHandling(token_list) != 0) return -1;
+   IBreakpointItem*  breakpoint = ConditionHandling(token_list);
+   //if (ConditionHandling(token_list) != 0) return -1;
 
-   // C : C BOOL_CONDITION C
-   if (GroupedConditionHandling(token_list) != 0) return -1;
+
 
    return 0;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-// CBreakPoint
-
-BreakpointHandler::BreakpointHandler()
-{
-   machine_ = nullptr;
-   breakpoint_list_size_ = 10;
-   breakpoint_list_ = new IBreakpointItem*[breakpoint_list_size_];
-   breakpoint_number_ = 0;
-   gloal_breakpoints_enabled_ = false;
-   for (auto i = 0; i < NB_BP_MAX; i++)
-   {
-      breakpoints_enabled_[i] = false;
-   }
-}
-
-BreakpointHandler::~BreakpointHandler()
-{
-   delete[]breakpoint_list_;
 }
 
 

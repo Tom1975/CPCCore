@@ -42,6 +42,10 @@ protected:
 
    // String parsing
    unsigned int ParseToken(std::string str, std::deque<Token>& token_list);
+   IBreakpointItem* ConditionHandling(std::deque<Token*> &token_list);
+   int BuildExpression(std::deque<Token*>& token_list);
+   TokenValue* CreateVariable(std::deque<Token*> token_list);
+   TokenConditionOperation* CreateOperation(Token* token);
    
    // Breakpoints data
    EmulatorEngine* machine_;
