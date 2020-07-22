@@ -30,13 +30,21 @@ BreakpointHandler::~BreakpointHandler()
 TokenValue* BreakpointHandler::CreateVariable(std::deque<Token*> token_list)
 {
    TokenValue* value = nullptr;
-   // TODO !
+   
+   if (token_list.size() == 1)
+   {
+      return dynamic_cast<TokenValue*>(token_list[0]);
+   }
+
+   // Try to compute these token into a single multi-element_value
+   // todo
+   //
    return value;
 }
 
 TokenConditionOperation* BreakpointHandler::CreateOperation(Token* token)
 {
-   TokenConditionOperation* operation = nullptr;
+   TokenConditionOperation* operation = dynamic_cast<TokenConditionOperation*>(token);
    // TODO !
    return operation;
 }
@@ -76,8 +84,8 @@ IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_
             return nullptr;
          }
          // Create the tree node 
-         TokenCondition * token_condition = new TokenCondition ( value_left, operation, value_right, machine_);
-         return token_condition->CreateBreakpoint();
+         operation->SetOperationMembers(value_left, value_right);
+         return operation->CreateBreakpoint();
       }
    }
    return 0;

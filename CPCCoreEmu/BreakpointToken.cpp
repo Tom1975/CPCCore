@@ -156,6 +156,12 @@ bool TokenCondition::IsEqual()
    return operation_->IsEqual(value_left_, value_right_);
 }
 
+void TokenConditionOperation::SetOperationMembers(TokenValue* value_left, TokenValue* value_right)
+{
+   value_left_ = value_left;
+   value_right_ = value_right;
+}
+
 bool TokenConditionOperationEquality::IsEqual(TokenValue* value_left, TokenValue* value_right)
 {
    return (value_left->GetValue() == value_right->GetValue());

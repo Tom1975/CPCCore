@@ -106,9 +106,14 @@ protected:
 class TokenConditionOperation : public Token
 {
 public:
-   TokenConditionOperation(EmulatorEngine* emulator) :Token(CONDITION, emulator) {}
+   TokenConditionOperation(EmulatorEngine* emulator) :Token(CONDITION, emulator), value_left_(nullptr), value_right_(nullptr) {}
+
+   void SetOperationMembers(TokenValue* value_left, TokenValue* value_right);
    virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right) = 0;
 
+protected:
+   TokenValue* value_left_;
+   TokenValue* value_right_;
 };
 
 class TokenConditionOperationEquality : public TokenConditionOperation
