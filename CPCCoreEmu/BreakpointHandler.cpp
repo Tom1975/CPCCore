@@ -54,9 +54,9 @@ IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_
    IBreakpointItem* item = nullptr;
    std::deque<Token> out_token_list;
 
-   for (auto i = 0; i < token_list.size(); i++)
+   for (size_t i = 0; i < token_list.size(); i++)
    {
-      if ( i > 0 && i+1 < token_list.size() && token_list[i]->GetType() == Token::CONDITION)
+      if ( i > 0 && (i+1) < token_list.size() && token_list[i]->GetType() == Token::CONDITION)
       {
          // We should have something before AND after
          // Create right and left leaf (which should be 'variable' meta type)
