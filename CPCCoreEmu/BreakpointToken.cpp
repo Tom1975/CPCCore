@@ -184,6 +184,14 @@ Token* TokenConditionOperationEquality::StringToToken(std::string str, EmulatorE
    return nullptr;
 }
 
+IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
+{
+   // Equality between two values
+   // todo
+   return nullptr;
+
+}
+
 TokenRegisterValue::TokenRegisterValue(EmulatorEngine* emulator): TokenValue( emulator)
 {
 

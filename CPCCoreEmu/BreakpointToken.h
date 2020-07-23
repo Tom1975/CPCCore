@@ -121,6 +121,8 @@ class TokenConditionOperationEquality : public TokenConditionOperation
    public:
       TokenConditionOperationEquality(EmulatorEngine* emulator) :TokenConditionOperation(emulator) {}
       virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right);
+      IBreakpointItem* CreateBreakpoint();
+
 
       static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
 };
