@@ -83,3 +83,21 @@ public:
 protected:
 
 };
+
+template<typename  t>
+class BreakpointCondition: public IBreakpointItem
+{
+public:
+   BreakpointCondition(std::function<bool(t, t)> op, std::function<t ()> left, std::function<t()> right) : operator_(op), left_(left), right_(right)
+   {
+
+   }
+   virtual ~BreakpointCondition();
+
+   bool Break(){ return operator_(left_(), right_()); }
+
+protected:
+   std::function<bool(t, t)> operator_;
+   std::function<t()> left_;
+   std::function<t()> right_;
+};

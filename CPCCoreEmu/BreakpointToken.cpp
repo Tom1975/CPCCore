@@ -187,7 +187,8 @@ Token* TokenConditionOperationEquality::StringToToken(std::string str, EmulatorE
 IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
 {
    // Equality between two values
-   // todo
+
+   //BreakpointCondition* condition = new BreakpointCondition([](){return });
    return nullptr;
 
 }
