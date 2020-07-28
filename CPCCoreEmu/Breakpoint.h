@@ -92,9 +92,12 @@ public:
    {
 
    }
-   virtual ~BreakpointCondition();
+   virtual ~BreakpointCondition(){};
 
-   bool Break(){ return operator_(left_(), right_()); }
+   bool Break()
+   {
+      return operator_(left_(), right_());
+   }
 
 protected:
    std::function<bool(t, t)> operator_;

@@ -177,11 +177,13 @@ int BreakpointHandler::BuildExpression(std::deque<Token*>& token_list)
    // Let's say C : Condition, V : Variable 
    // C : V CONDITION V
    IBreakpointItem*  breakpoint = ConditionHandling(token_list);
-   //if (ConditionHandling(token_list) != 0) return -1;
-
-
-
-   return 0;
+   if (breakpoint != nullptr)
+   {
+      AddBreakpoint(breakpoint);
+      return 0;
+   }
+   
+   return -1;
 }
 
 

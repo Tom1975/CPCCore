@@ -12,7 +12,9 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
    netlist_int_(&signals_), 
    netlist_nmi_(&signals_.nmi_),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
-   cursor_line_(&play_city_)
+   cursor_line_(&play_city_),
+   step_(false),
+   step_in_(false)
 {
    breakpoint_index_ = 0;
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));

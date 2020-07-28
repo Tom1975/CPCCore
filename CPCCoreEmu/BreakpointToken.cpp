@@ -10,7 +10,8 @@
 std::function< Token* (std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token)> TokenBuilder::token_type_list []=
 {
    &TokenImmediateValue::StringToToken,
-   &TokenRegisterValue::StringToToken,
+   &TokenRegisterValue<unsigned short>::StringToToken,
+   &TokenRegisterValue<unsigned char>::StringToToken,
    &TokenConditionOperationEquality::StringToToken,
 };
 
@@ -187,29 +188,67 @@ Token* TokenConditionOperationEquality::StringToToken(std::string str, EmulatorE
 IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
 {
    // Equality between two values
-
-   //BreakpointCondition* condition = new BreakpointCondition([](){return });
-   return nullptr;
-
-}
-
-TokenRegisterValue::TokenRegisterValue(EmulatorEngine* emulator): TokenValue( emulator)
-{
+   std::function <bool(int, int)> f = [](int a, int b) {return a == b; };
+   std::function <int()> l = std::bind(&TokenValue::GetValue, value_left_);
+   std::function <int()> r = std::bind(&TokenValue::GetValue, value_right_);
+   BreakpointCondition<int>* condition = new BreakpointCondition(f, l, r);
+   return condition;
 
 }
 
-Token* TokenRegisterValue::StringToToken(std::string str, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token)
+std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = { {"PC", REG_PC}, {"HL", REG_HL}, {"AF", REG_AF} };
+std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = { {"A", REG_A}};
+
+template<typename T>
+T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_type, EmulatorEngine* emulator)
 {
-   // convert to lower
-   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-   // find register
-   if (str.compare("PC") == 0)
+   if constexpr (sizeof (T) == 2)
    {
-      // Set PC as register
+      // unsigned short
+      switch (reg_type)
+      {
+      case REG_PC: return &emulator->GetProc()->pc_;
+      case REG_AF: return &emulator->GetProc()->af_.w;
+      case REG_BC: return &emulator->GetProc()->bc_.w;
+      case REG_DE: return &emulator->GetProc()->de_.w;
+      case REG_HL: return &emulator->GetProc()->hl_.w;
+      }
+   }
+   else
+   {
+      // unsigned char
+      switch (reg_type)
+      {
+      case REG_A: return &emulator->GetProc()->af_.b.h;
+      case REG_F: return &emulator->GetProc()->af_.b.l;
+      case REG_B: return &emulator->GetProc()->bc_.b.h;
+      case REG_C: return &emulator->GetProc()->bc_.b.l;
+      case REG_D: return &emulator->GetProc()->de_.b.h;
+      case REG_E: return &emulator->GetProc()->de_.b.l;
+      case REG_H: return &emulator->GetProc()->hl_.b.h;
+      case REG_L: return &emulator->GetProc()->hl_.b.l;
+      }
+   }
+      
+   return nullptr;
+}
+
+template<typename T>
+Token* TokenRegisterValue<T>::StringToToken(std::string str, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token)
+{
+   // convert to upper
+   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+
+   // find register
+   if (register_token_list_.find(str) != register_token_list_.end())
+   {
       pos_of_token = 0;
       size_of_token = str.size();
-      return new TokenRegisterValue( emulator);
-   }
+
+
+
+      return new TokenRegisterValue<T>(GetRegister( register_token_list_[str], emulator), emulator);
+   }  
    return nullptr;
 }
 

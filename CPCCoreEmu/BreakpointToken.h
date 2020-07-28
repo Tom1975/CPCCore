@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include "Breakpoint.h"
+#include <map>
 
 class EmulatorEngine;
 class Memory;
@@ -36,7 +37,7 @@ public:
    TokenType GetType() { return token_type_;  }
    std::deque<Token>* GetGroup();
 
-   IBreakpointItem* CreateBreakpoint();
+   virtual IBreakpointItem* CreateBreakpoint();
 
    virtual bool IsEqual() { return false; }
 
@@ -91,16 +92,42 @@ protected:
    unsigned int value_;
 }; 
 
+template <typename T>
 class TokenRegisterValue : public TokenValue
 {
 public:
-   TokenRegisterValue(EmulatorEngine* emulator);
+   typedef enum
+   {
+      REG_A,
+      REG_F,
+      REG_B,
+      REG_C,
+      REG_D,
+      REG_E,
+      REG_H,
+      REG_L,
+      REG_PC,
+      REG_AF,
+      REG_BC,
+      REG_DE,
+      REG_HL,
+
+   } RegisterType;
+
+   TokenRegisterValue(T* reg_ptr, EmulatorEngine* emulator) : TokenValue(emulator)
+   {
+      value_ = reg_ptr;
+   }
+
+   int GetValue() { return (int)*value_; }
 
    static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
-   virtual int GetValue() { return 0; }
+   static T* GetRegister(RegisterType, EmulatorEngine* emulator);
 
 protected:
-   
+   static std::map<std::string, RegisterType > register_token_list_;
+
+   T* value_;
 };
 
 class TokenConditionOperation : public Token

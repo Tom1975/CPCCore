@@ -59,6 +59,8 @@ EmulatorEngine::EmulatorEngine() :
    sna_to_load_ = false;
 
    current_settings_ = new MachineSettings();
+
+   SetBreakpointHandler(&breakpoint_handler_);
 }
 
 EmulatorEngine::~EmulatorEngine(void)
