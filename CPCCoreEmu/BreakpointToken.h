@@ -92,6 +92,15 @@ protected:
    unsigned int value_;
 }; 
 
+class TokenPCValue: public TokenValue
+{
+public:
+   TokenPCValue(EmulatorEngine* emulator) : TokenValue(emulator){}
+   int GetValue();
+
+};
+
+
 template <typename T>
 class TokenRegisterValue : public TokenValue
 {

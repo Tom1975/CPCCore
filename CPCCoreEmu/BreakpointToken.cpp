@@ -196,6 +196,11 @@ IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
 
 }
 
+int TokenPCValue::GetValue()
+{
+   return emulator_->GetProc()->GetPC();
+}
+
 std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = { {"PC", REG_PC}, {"HL", REG_HL}, {"AF", REG_AF} };
 std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = { {"A", REG_A}};
 
@@ -242,12 +247,15 @@ Token* TokenRegisterValue<T>::StringToToken(std::string str, EmulatorEngine* emu
    // find register
    if (register_token_list_.find(str) != register_token_list_.end())
    {
+
       pos_of_token = 0;
       size_of_token = str.size();
 
-
-
-      return new TokenRegisterValue<T>(GetRegister( register_token_list_[str], emulator), emulator);
+      if (register_token_list_[str] == REG_PC)
+      {
+         return new TokenPCValue(emulator);
+      }
+      return new TokenRegisterValue<T>(GetRegister(register_token_list_[str], emulator), emulator);
    }  
    return nullptr;
 }
