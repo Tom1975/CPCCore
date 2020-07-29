@@ -1038,6 +1038,8 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       if (!motherboard_.run_)
       {
          display_->VSync(true);
+         // Breakpoint fired ?
+         // Number of opcode reached ?
          ret = 1;
       }
    }

@@ -37,6 +37,9 @@ public:
    void EnableBreakpoint(int bp_number);
    void DisableBreakpoint(int bp_number);
 
+   IBreakpointItem* GetCurrentBreakpoint() {
+      return current_breakpoint_;
+   };
 
 protected:
 
@@ -51,6 +54,7 @@ protected:
    EmulatorEngine* machine_;
 
    IBreakpointItem** breakpoint_list_;
+   IBreakpointItem* current_breakpoint_;
    int breakpoint_number_;
    int breakpoint_list_size_;
 

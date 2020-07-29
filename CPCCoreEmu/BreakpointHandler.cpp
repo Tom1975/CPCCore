@@ -8,7 +8,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CBreakPoint
 
-BreakpointHandler::BreakpointHandler()
+BreakpointHandler::BreakpointHandler() : current_breakpoint_(nullptr)
 {
    machine_ = nullptr;
    breakpoint_list_size_ = 10;
@@ -197,7 +197,10 @@ bool BreakpointHandler::IsBreak()
       {
          // Si on break, on break !
          if (breakpoints_enabled_[i] && breakpoint_list_[i]->Break())
+         {
+            current_breakpoint_ = breakpoint_list_[i];
             return true;
+         }
       }
 
    }

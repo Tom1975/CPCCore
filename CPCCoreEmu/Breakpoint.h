@@ -19,7 +19,7 @@ class IBreakpointItem
 public :
    virtual bool Break () = 0;
    virtual bool IsThereBreakOnAdress (unsigned short addr) { return false;}
-   
+   virtual std::string GetBreakpointFormat() { return ""; };
 };
 
 class BreakpointPC : public IBreakpointItem
@@ -98,6 +98,12 @@ public:
    {
       return operator_(left_(), right_());
    }
+
+   virtual std::string GetBreakpointFormat()
+   {
+      // TODO
+      return "";
+   };
 
 protected:
    std::function<bool(t, t)> operator_;
