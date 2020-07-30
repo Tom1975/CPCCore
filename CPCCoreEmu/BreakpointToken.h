@@ -71,25 +71,33 @@ protected:
    EmulatorEngine* emulator_;
 };
 
-class TokenValue : public Token
+class TokenValue : public Token, public IValue
 {
 public:
    TokenValue(EmulatorEngine* emulator) : Token(VALUE, emulator) {};
    virtual ~TokenValue() {};
 
-   virtual int GetValue() = 0;
+   //virtual int GetValue() = 0;
+   //virtual std::string GetFormat() = 0;
 };
 
 class TokenImmediateValue : public TokenValue
 {
 public:
-   TokenImmediateValue(unsigned int value, EmulatorEngine* emulator) : TokenValue(emulator), value_(value) {}
+   TokenImmediateValue(unsigned int value, EmulatorEngine* emulator) : TokenValue(emulator), value_(value)
+   {
+      char buffer[16];
+      sprintf(buffer, "%X", value_);
+      formatted_value_ = buffer;
+   }
 
    static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
    virtual int GetValue() { return value_; }
+   std::string GetFormat() { return formatted_value_; }
 
 protected:
    unsigned int value_;
+   std::string formatted_value_;
 }; 
 
 class TokenPCValue: public TokenValue
@@ -97,6 +105,7 @@ class TokenPCValue: public TokenValue
 public:
    TokenPCValue(EmulatorEngine* emulator) : TokenValue(emulator){}
    int GetValue();
+   std::string GetFormat() { return "PC"; }
 
 };
 
@@ -123,12 +132,13 @@ public:
 
    } RegisterType;
 
-   TokenRegisterValue(T* reg_ptr, EmulatorEngine* emulator) : TokenValue(emulator)
+   TokenRegisterValue(T* reg_ptr, std::string formatted_value, EmulatorEngine* emulator) : TokenValue(emulator), formatted_value_(formatted_value)
    {
       value_ = reg_ptr;
    }
 
    int GetValue() { return (int)*value_; }
+   std::string GetFormat() { return "PC"; }
 
    static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
    static T* GetRegister(RegisterType, EmulatorEngine* emulator);
@@ -137,9 +147,10 @@ protected:
    static std::map<std::string, RegisterType > register_token_list_;
 
    T* value_;
+   std::string formatted_value_;
 };
 
-class TokenConditionOperation : public Token
+class TokenConditionOperation : public Token, public IOperator
 {
 public:
    TokenConditionOperation(EmulatorEngine* emulator) :Token(CONDITION, emulator), value_left_(nullptr), value_right_(nullptr) {}
@@ -159,6 +170,8 @@ class TokenConditionOperationEquality : public TokenConditionOperation
       virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right);
       IBreakpointItem* CreateBreakpoint();
 
+      bool IsTrue();
+      std::string GetFormat();
 
       static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);
 };

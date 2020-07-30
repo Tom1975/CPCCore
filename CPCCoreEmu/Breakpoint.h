@@ -84,11 +84,29 @@ protected:
 
 };
 
-template<typename  t>
+class IValue
+{
+public:
+   virtual int GetValue() = 0;
+   virtual std::string GetFormat() = 0;
+
+};
+
+class IOperator
+{
+public:
+   virtual bool IsTrue() = 0;
+   virtual std::string GetFormat() = 0;
+
+};
+
+//template<typename  T>
 class BreakpointCondition: public IBreakpointItem
 {
 public:
-   BreakpointCondition(std::function<bool(t, t)> op, std::function<t ()> left, std::function<t()> right) : operator_(op), left_(left), right_(right)
+   //BreakpointCondition(std::function<bool(T, T)> op, std::function<T ()> left, std::function<T()> right) : operator_(op), left_(left), right_(right)
+   //BreakpointCondition(std::function<bool(T, T)> op, IValue* left, IValue* right) : operator_(op), left_(left), right_(right)
+   BreakpointCondition(IOperator* op/*, IValue* left, IValue* right*/) : operator_(op)//, left_(left), right_(right)
    {
 
    }
@@ -96,17 +114,21 @@ public:
 
    bool Break()
    {
-      return operator_(left_(), right_());
+      return operator_->IsTrue();
    }
 
    virtual std::string GetBreakpointFormat()
    {
       // TODO
-      return "";
+      //std::string str = left_->GetFormat() + "=" + right_->GetFormat();
+      return operator_->GetFormat();
    };
 
 protected:
-   std::function<bool(t, t)> operator_;
-   std::function<t()> left_;
-   std::function<t()> right_;
+   //std::function<bool(T, T)> operator_;
+   IOperator* operator_;
+   //IValue* left_;
+   //IValue* right_;
+   //std::function<T()> left_;
+   //std::function<T()> right_;
 };

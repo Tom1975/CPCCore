@@ -191,10 +191,26 @@ IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
    std::function <bool(int, int)> f = [](int a, int b) {return a == b; };
    std::function <int()> l = std::bind(&TokenValue::GetValue, value_left_);
    std::function <int()> r = std::bind(&TokenValue::GetValue, value_right_);
-   BreakpointCondition<int>* condition = new BreakpointCondition(f, l, r);
+
+
+   //BreakpointCondition<int>* condition = new BreakpointCondition(f, l, r);
+   BreakpointCondition* condition = new BreakpointCondition(this/*, value_left_, value_right_*/);
    return condition;
 
 }
+bool TokenConditionOperationEquality::IsTrue()
+{
+   return value_left_->GetValue() == value_right_->GetValue();
+}
+
+std::string TokenConditionOperationEquality::GetFormat()
+{
+   std::string str = value_left_->GetFormat();
+   str += "=";
+   str += value_right_->GetFormat();
+   return str;
+}
+
 
 int TokenPCValue::GetValue()
 {
@@ -255,7 +271,7 @@ Token* TokenRegisterValue<T>::StringToToken(std::string str, EmulatorEngine* emu
       {
          return new TokenPCValue(emulator);
       }
-      return new TokenRegisterValue<T>(GetRegister(register_token_list_[str], emulator), emulator);
+      return new TokenRegisterValue<T>(GetRegister(register_token_list_[str], emulator), str, emulator);
    }  
    return nullptr;
 }
