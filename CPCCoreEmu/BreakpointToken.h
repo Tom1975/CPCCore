@@ -87,7 +87,7 @@ public:
    TokenImmediateValue(unsigned int value, EmulatorEngine* emulator) : TokenValue(emulator), value_(value)
    {
       char buffer[16];
-      sprintf(buffer, "%X", value_);
+      sprintf(buffer, "%Xh", value_);
       formatted_value_ = buffer;
    }
 
