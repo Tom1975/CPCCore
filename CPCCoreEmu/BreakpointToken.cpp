@@ -192,9 +192,7 @@ IBreakpointItem* TokenConditionOperationEquality::CreateBreakpoint()
    std::function <int()> l = std::bind(&TokenValue::GetValue, value_left_);
    std::function <int()> r = std::bind(&TokenValue::GetValue, value_right_);
 
-
-   //BreakpointCondition<int>* condition = new BreakpointCondition(f, l, r);
-   BreakpointCondition* condition = new BreakpointCondition(this/*, value_left_, value_right_*/);
+   BreakpointCondition* condition = new BreakpointCondition(this);
    return condition;
 
 }
