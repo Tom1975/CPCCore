@@ -215,8 +215,8 @@ int TokenPCValue::GetValue()
    return emulator_->GetProc()->GetPC();
 }
 
-std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = { {"PC", REG_PC}, {"HL", REG_HL}, {"AF", REG_AF} };
-std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = { {"A", REG_A}};
+template<>std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = { {"PC", REG_PC}, {"HL", REG_HL}, {"AF", REG_AF} };
+template<>std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = { {"A", REG_A}};
 
 template<typename T>
 T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_type, EmulatorEngine* emulator)
