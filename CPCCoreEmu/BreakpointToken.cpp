@@ -215,8 +215,14 @@ int TokenPCValue::GetValue()
    return emulator_->GetProc()->GetPC();
 }
 
-template<>std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = { {"PC", REG_PC}, {"HL", REG_HL}, {"AF", REG_AF} };
-template<>std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = { {"A", REG_A}};
+template<>std::map<std::string, TokenRegisterValue<unsigned short>::RegisterType > TokenRegisterValue<unsigned short>::register_token_list_ = {
+   {"PC", REG_PC}, {"AF", REG_AF}, {"BC", REG_BC}, {"DE", REG_DE}, {"HL", REG_HL}
+};
+
+template<>std::map<std::string, TokenRegisterValue<unsigned char>::RegisterType > TokenRegisterValue<unsigned char>::register_token_list_ = {
+   {"A", REG_A}, {"F", REG_F} , {"B", REG_B} , {"C", REG_C} , {"D", REG_D}, {"E", REG_E}, {"H", REG_H}, {"L", REG_L},
+   /*{"A", REG_A}, {"F", REG_F} , {"B", REG_B} , {"C", REG_C} , {"D", REG_D}, {"E", REG_E}, {"H", REG_H}, {"L", REG_L}, */
+};
 
 template<typename T>
 T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_type, EmulatorEngine* emulator)
