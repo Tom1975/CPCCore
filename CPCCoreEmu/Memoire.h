@@ -9,6 +9,11 @@
 
 class Monitor;
 
+class RomAccess
+{
+public:
+
+};
 
 class Memory : public IDmaSTOP
 {
@@ -39,7 +44,7 @@ public:
    void RamDis (bool set);
 
    void ClearRom(int rom_number);
-   bool LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size);
+   bool LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size, int rom_list_number = 0);
    bool LoadLowerROM (unsigned char* rom_from, unsigned int size);
 
    unsigned char* GetAsicRegisters() {return asic_io_;}
@@ -97,7 +102,7 @@ public:
    void SetWordDbg ( unsigned short addr, unsigned short data , unsigned int ram_bank){   SetDbg( addr, data&0xff, ram_bank);SetDbg( addr+1, data>>8, ram_bank);};
    unsigned char *GetRamRead(unsigned int ram_bank) { return *ram_read_[ram_bank]; }
    //
-   unsigned char* GetRomBuffer() {return rom_[0];};
+   unsigned char* GetRomBuffer() {return current_rom_[0];};
    unsigned char* GetCartridge(int index) {
       cart_available_[index] = true; return cartridge_[index];
 };
@@ -105,12 +110,12 @@ public:
       memset (cartridge_, 0, sizeof(cartridge_)); memset(cart_available_, 0, sizeof(cart_available_)); SetMemoryMap();
    }
 
-   unsigned char* GetRomBuffer(int rom_index) { return rom_[rom_index]; };
+   unsigned char* GetRomBuffer(int rom_index) { return current_rom_[rom_index]; };
    unsigned char* GetRamBuffer() {return ram_buffer_[0];};
 
    bool* GetAvailableCartridgeSlot() { return cart_available_; }
    bool* GetAvailableROM() {
-      return rom_available_;
+      return rom_available_[0];
    }
    bool IsLowerRomLoaded() {
       return lower_rom_available_;
@@ -182,8 +187,12 @@ public:
    unsigned char GetLastValueRead() { return last_value_read_; };
    void ResetStockAddress() { index_addr_write_ = index_addr_read_ = 0; memset(last_address_read_, 0, sizeof last_address_read_); memset(last_address_write_, 0, sizeof last_address_write_); };
 
+   // MaxiRom
+   void ConnectRomList(unsigned char rom_list_number);
+
    // RAM
-   RamBank rom_[256];
+   RamBank* current_rom_;
+   RamBank* rom_[256];
    RamBank ram_buffer_[4];
 
    RamBank cartridge_[32]; // Plugged cartridge
@@ -222,12 +231,16 @@ protected:
    // ROMs
    unsigned char rom_number_;
    RamBank lower_rom_;
-   bool rom_available_[256];
+   bool rom_available_[256][256];
    bool plus_;
    bool asic_io_enabled_;          // true if ASIC io is paged
    TSpriteInfo sprite_info_[16];
    unsigned char rmr2_;
    unsigned char last_value_read_;  // Last value read (ofr unmapped register)
    Monitor* monitor_;
+
+   // Maxi roms 
+   unsigned int rom_list_number_;
+   unsigned int connected_list_;
 };
 

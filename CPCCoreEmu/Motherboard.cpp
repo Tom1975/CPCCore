@@ -11,6 +11,7 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
    psg_(sound_mixer, keyboardhandler_),
    netlist_int_(&signals_), 
    netlist_nmi_(&signals_.nmi_),
+   maxi_rom_(&signals_),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
    cursor_line_(&play_city_)
 {
@@ -158,6 +159,7 @@ void Motherboard::SetPlus(bool plus)
 
 void Motherboard::UpdateExternalDevices()
 {
+   
    signals_.nb_expansion_ = 0;
    /*
    if (current_settings_->GetMultiface2())
@@ -169,6 +171,8 @@ void Motherboard::UpdateExternalDevices()
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = play_city;
    }*/
    //GetSig()->exp_list_[GetSig()->nb_expansion_++] = &play_city_;
+
+   GetSig()->exp_list_[GetSig()->nb_expansion_++] = &maxi_rom_;
 }
 
 void Motherboard::InitStartOptimized()

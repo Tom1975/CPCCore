@@ -110,13 +110,32 @@ bool MachineSettings::Load(bool force_reload)
    lower_rom_ = buffer;
 
    // - Upper ROMs
+   list_roms_.clear();
+
    upper_rom_.clear();
    char key[16];
+   rom_list_available_[0] = true;
    for (int i = 0; i < 256; i++)
    {
       sprintf(key, "%s_%i", "UpperROM", i);
       configuration_manager_->GetConfiguration("Memory", key, "", buffer, MAX_PATH, file_path_.c_str());
       upper_rom_[i] = buffer;
+   }
+
+   // Rom lists
+   for (int i = 1; i < 2/*256*/; i++)
+   {
+      rom_list_available_[i] = false;
+      for (int j = 0; j < 256; j++)
+      {
+         sprintf(key, "%s_%i_%i", "rom", i, j);
+         configuration_manager_->GetConfiguration("RomList", key, "", buffer, 1024, file_path_.c_str());
+         if (strlen(buffer) > 0)
+         {
+            rom_list_available_[i] = true;
+            list_roms_[(i << 0x8) | j] = std::string(buffer);
+         }
+      }
    }
 
    // Keyboard  todo
@@ -157,4 +176,14 @@ bool MachineSettings::Save(const char* new_name)
 MachineSettings::RamCfg MachineSettings::GetRamCfg() const
 {
    return ram_cfg_;
+}
+
+const char* MachineSettings::GetUpperRom(unsigned int romlist, unsigned int num) const
+{
+   auto it = list_roms_.find((romlist << 8) | num); return (it == list_roms_.end()) ? nullptr : it->second.c_str();
+}
+
+bool MachineSettings::RomListAvailable(unsigned int num)
+{
+   return rom_list_available_[num];
 }

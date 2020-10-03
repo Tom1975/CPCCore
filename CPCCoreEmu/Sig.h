@@ -39,8 +39,8 @@ public:
    void AcqInt ();
 
    // Expansion slots
-   int PlugExpansionModule ( IExpansion* exp);
-   void UnpluggExpnsionModule (IExpansion* exp);
+   void PlugExpansionModule ( IExpansion* exp);
+   void UnplugExapnsionModule (IExpansion* exp);
 
    // From Z80
    // From GAte Array

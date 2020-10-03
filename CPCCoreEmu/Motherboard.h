@@ -12,6 +12,7 @@
 #include "IPlayback.h"
 #include "PrinterDefault.h"
 #include "DskTypeManager.h"
+#include "MaxiRom.h"
 
 #include "Breakpoint.h"
 
@@ -165,6 +166,7 @@ protected:
    NetListINT netlist_int_;
    NetList netlist_nmi_;
    PlayCity play_city_;
+   MaxiRom maxi_rom_;
    CursorLine cursor_line_;
 
    Z80 z80_;

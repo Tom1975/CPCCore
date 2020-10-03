@@ -91,8 +91,7 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 
 void EmulatorEngine::UpdateExternalDevices()
 {
-   GetSig()->nb_expansion_ = 0;
-   
+   motherboard_.UpdateExternalDevices();
    /*if (current_settings_->GetMultiface2())
    {
       m_Sig.m_ExpList[m_Sig.m_NbExpansionPlugged++] = &multiface2_;
@@ -1172,7 +1171,7 @@ void EmulatorEngine::UpdateEmulator()
 {
 }
 
-void EmulatorEngine::LoadRom(int rom_number, const char* path)
+void EmulatorEngine::LoadRom(int rom_number, const char* path, int rom_list)
 {
    FILE* file_rom = nullptr;
    if (fopen_s(&file_rom, path, "rb") == 0 && file_rom != nullptr)
@@ -1194,7 +1193,7 @@ void EmulatorEngine::LoadRom(int rom_number, const char* path)
          if (rom_number==-1)
             GetMem()->LoadLowerROM(rom, sizeof(rom));
          else
-            GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+            GetMem()->LoadROM(rom_number, rom, sizeof(rom), rom_list);
       }
    }
 }
@@ -1232,6 +1231,26 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
          path = rom_path;
          path /= rom_path_str;
          LoadRom(i, path.string().c_str());
+      }
+   }
+
+   // Load further roms
+   for (int j = 0; j < 256; j++)
+   {
+      if (current_settings_->RomListAvailable(j))
+      {
+         // Create rom list if necessary
+         // Clear romlist
+         for (int i = 0; i < 256; i++)
+         {
+            const char* rom_path_str = current_settings_->GetUpperRom(j, i);
+            if (rom_path_str != nullptr)
+            {
+               path = rom_path;
+               path /= rom_path_str;
+               LoadRom(i, path.string().c_str(), j);
+            }
+         }
       }
    }
    

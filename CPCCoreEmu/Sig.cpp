@@ -275,3 +275,13 @@ void CSig::In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode
    }
 
 }
+
+void CSig::PlugExpansionModule(IExpansion* exp)
+{
+   
+}
+
+void CSig::UnplugExapnsionModule(IExpansion* exp)
+{
+   
+}

@@ -76,6 +76,9 @@ public:
 	const char* GetUpperRom(unsigned int num) const { auto it = upper_rom_.find(num); return (it == upper_rom_.end()) ? nullptr : it->second.c_str(); };
 	void SetUpperRom(unsigned int num, const char* rom) { upper_rom_[num] = rom; };
 
+   const char* GetUpperRom(unsigned int romlist, unsigned int num) const;
+   bool RomListAvailable(unsigned int num);
+
 	virtual void SetDefaultCartridge(const char * cartridge_path) { cartridge_path_ = cartridge_path; }
 	virtual const char* GetDefaultCartridge() { return cartridge_path_.c_str(); }
 
@@ -143,7 +146,8 @@ protected:
 	std::string keyboard_config_;
 
 	// External device default plugged
-
+   std::map<unsigned int, std::string> list_roms_;
+   bool rom_list_available_[256];
 };
 
 

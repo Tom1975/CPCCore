@@ -351,7 +351,8 @@ void CRTC::Out (unsigned short address, unsigned char data)
                switch (type_crtc_)
                {
                case 0: //
-                  vertical_sync_width_ = ((registers_list_ [3]&0x80 )== 0x80)?16:8;
+                  //vertical_sync_width_ = ((registers_list_ [3]&0x80 )== 0x80)?16:8;
+                  vertical_sync_width_ = registers_list_[3] >> 4;
                   if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
                   break;
                case 1:

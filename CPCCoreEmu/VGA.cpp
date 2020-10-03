@@ -435,7 +435,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    else
    {
       if (hsync_
-         || vsync_)
+         ||sig_handler_->v_sync_)
       {
          memset(buffer_to_display, 0, 16);
          if (buffered_ink_available_) { monitor_->RecomputeColors(); }

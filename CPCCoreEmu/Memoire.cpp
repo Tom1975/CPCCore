@@ -10,7 +10,8 @@ extern unsigned int ListeColorsIndex[0x100];
 
 
 
-Memory::Memory(Monitor* monitor) : 
+Memory::Memory(Monitor* monitor) :
+   current_rom_(nullptr),
    lower_rom_available_(false), 
    expansion_(nullptr),
    ram_dis_(false),
@@ -24,8 +25,15 @@ Memory::Memory(Monitor* monitor) :
    asic_io_enabled_(false),
    rmr2_(0), 
    last_value_read_(0), 
-   monitor_(monitor)
+   monitor_(monitor),
+   rom_list_number_(0),
+   connected_list_ (0)
 {
+   current_rom_ = rom_[0] = new RamBank[256];
+   for (int i = 1; i < 256; i++)
+   {
+      rom_[i] = nullptr;
+   }
    memset(cartridge_, 0, sizeof(cartridge_));
    memset(cart_available_, 0, sizeof(cart_available_));
 }
@@ -52,9 +60,14 @@ void Memory::InitMemory()
 
    for (i = 0; i < 256; i++)
    {
-      rom_available_[i] = false;
+      for (int j = 0; j < 256; j++)
+      {
+         rom_available_[i][j] = false;
+      }
    }
-   memset(rom_, DEFAUT_VALUE, sizeof rom_);
+   memset(rom_[0], DEFAUT_VALUE, sizeof RamBank);
+   current_rom_ = rom_[0];
+   connected_list_ = 0;
 
    for (i = 0; i < 8; i++)
    {
@@ -237,7 +250,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
       RamBank* rom_bank;
       unsigned short mem_addr = adress_start;
       // Check ??
-      rom_bank = &rom_[data];
+      rom_bank = &current_rom_[data];
 
       for (unsigned int i = 0; i < size_of_buffer; i++)
       {
@@ -632,7 +645,7 @@ void Memory::Initialisation  ()
 void Memory::ClearRom(int rom_number)
 {
    if (rom_number < -1 || rom_number > 256) return;
-   unsigned char* rom = (rom_number==-1)?lower_rom_: rom_[rom_number];
+   unsigned char* rom = (rom_number==-1)?lower_rom_: rom_[0][rom_number];
    memset(rom, 0, sizeof(RamBank));
 }
 
@@ -645,11 +658,16 @@ bool Memory::LoadLowerROM (unsigned char* rom_from, unsigned int size)
    return true;
 }
 
-bool Memory::LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size)
+bool Memory::LoadROM (unsigned char rom_number, unsigned char* rom_from, unsigned int size, int rom_list_number)
 {
-   unsigned char* rom = rom_[rom_number];
+   if (rom_[rom_list_number] == nullptr)
+   {
+      rom_[rom_list_number] = new RamBank[256];
+   }
+
+   unsigned char* rom = rom_[rom_list_number][rom_number];
    memcpy(rom, rom_from, (sizeof(RamBank) < size) ? sizeof(RamBank) : size);
-   rom_available_[rom_number] = true;
+   rom_available_[rom_list_number][rom_number] = true;
    return true;
 }
 
@@ -702,7 +720,7 @@ void Memory::SetLogicalROM ( unsigned char num )
    }
    else
    {
-      if (!rom_available_[rom_number_])
+      if (!rom_available_[connected_list_][rom_number_])
          rom_number_ = 0;
    }
    SetMemoryMap();
@@ -852,14 +870,18 @@ void Memory::SetMemoryMap ()
             // 7 => Cartridge Physical ROM 3
 
             if (rom_number_ == 0)
+            {
                ram_read_[3] = &cartridge_[1];
+            }
             else if (rom_number_ == 7)
+            {
                ram_read_[3] = &cartridge_[3];
+            }
             else
             {
-               if (rom_available_[rom_number_])
+               if (rom_available_[connected_list_][rom_number_])
                {
-                  ram_read_[3] = &rom_[rom_number_];
+                  ram_read_[3] = &current_rom_[rom_number_];
                }
                else
                {
@@ -870,10 +892,10 @@ void Memory::SetMemoryMap ()
       }
       else
       {
-         if (!rom_available_[rom_number_])
+         if (!rom_available_[connected_list_][rom_number_])
             rom_number_ = 0;
 
-         ram_read_[3] = &rom_[rom_number_];
+         ram_read_[3] = &current_rom_[rom_number_];
       }
    }
 }
@@ -885,4 +907,19 @@ void Memory::DMAStop(int channel)
 {
    // Set DCSR bit to 0
    asic_io_[0x2C0F] &= ~( 1<<channel);
+}
+
+void Memory::ConnectRomList(unsigned char rom_list_number)
+{
+   if (rom_[rom_list_number] == nullptr)
+   {
+      current_rom_ = rom_[0];
+      connected_list_ = 0;
+   }
+   else
+   {
+      current_rom_ = rom_[rom_list_number];
+      connected_list_ = rom_list_number;
+   }
+   SetMemoryMap();
 }
