@@ -47,6 +47,11 @@ public:
    unsigned char ReadAsicRegister(const unsigned short i);
    unsigned char Get(const unsigned short i) {
 
+      // XPR feature : current ram_read is 
+      if (0x3FFF - (i&0x3FFF) < cartridge_list_.size() && (ram_read_[i >> 14] == &current_cartridge_bank_->bank[0]))
+      {
+         SwitchBank(0x3FFF - (i & 0x3FFF));
+      }
       // plus feature ?
       if (asic_io_enabled_ && i >= 0x4000 && i <= 0x7FFF /* ((i & 0xC000 ) == 0x4000)*/)
       {
@@ -140,6 +145,63 @@ public:
       if (index < cartridge_list_.size())
       {
          current_cartridge_bank_ = cartridge_list_[index];
+
+         if (inf_rom_connected_)
+         {
+            // RMR2
+            // 0-2 : ROM low+
+            unsigned int p = (rmr2_ & 0x7);
+
+            // 3-4 : conf ROM/ASIC
+            switch (rmr2_ & 0x18)
+            {
+            case 0x00:
+               // ROM p 0x0000-0x3fff
+               ram_read_[0] = &current_cartridge_bank_->bank[p];
+               break;
+            case 0x08:
+               // ROM p 0x4000-0x7FFF
+               ram_read_[1] = &current_cartridge_bank_->bank[p];
+               break;
+            case 0x10:
+               // ROM p 0x8000-0xBFFF
+               ram_read_[2] = &current_cartridge_bank_->bank[p];
+               break;
+            case 0x18:
+               // ROM p 0x0000-0x3fff
+               ram_read_[0] = &current_cartridge_bank_->bank[p];
+               break;
+            }
+         }
+         if (sup_rom_connected_)
+         {
+            if ((rom_number_ & 0x80) == 0x80)
+            {
+               // Physical ROM from cartridge
+               ram_read_[3] = &current_cartridge_bank_->bank[rom_number_ & 0x1F];
+            }
+            else
+            {
+               // Logical ROM :
+               // 0 => Cartridge Physical ROM 1
+               // 7 => Cartridge Physical ROM 3
+
+               if (rom_number_ == 0)
+                  ram_read_[3] = &current_cartridge_bank_->bank[1];
+               else if (rom_number_ == 7)
+                  ram_read_[3] = &current_cartridge_bank_->bank[3];
+               else
+               {
+                  if (rom_available_[rom_number_])
+                  {
+                  }
+                  else
+                  {
+                     ram_read_[3] = &current_cartridge_bank_->bank[1];
+                  }
+               }
+            }
+         }
       }
    }
        
