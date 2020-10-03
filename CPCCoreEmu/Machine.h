@@ -228,6 +228,11 @@ public:
    int LoadCpr(const char* file_path);
    int LoadCpr(IContainedElement* container);
 
+   int LoadXprFromBuffer(unsigned char* buffer, int size);
+   int LoadXpr(const char* file_path);
+   int LoadXpr(IContainedElement* container);
+   
+
    // Multiface II
    void MultifaceStop (){multiface_stop_ = true;}
    void MultifaceToggleVisible (){multiface2_.Visible(multiface2_.IsVisible()?false:true);};

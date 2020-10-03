@@ -45,7 +45,10 @@ int DskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
    {
       return 8; // kCPR
    }
-
+   else if (size >= 12 && (memcmp(&buffer[8], "CXME", 4) == 0) && (memcmp(&buffer[0], "RIFF", 4) == 0))
+   {
+      return 9; // kXPR
+   }
    return 0;
 }
 

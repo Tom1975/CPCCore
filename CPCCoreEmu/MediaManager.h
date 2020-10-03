@@ -74,6 +74,14 @@ public:
    }
 };
 
+class XPR : public IMedia
+{
+public:
+   XPR(int type) : IMedia(type)
+   {
+   }
+}; 
+
 /////////////////////////////////////////////////
 // 
 class CPCCOREEMU_API MediaManager : public ITypeManager
@@ -83,23 +91,15 @@ public:
    enum MediaType
    {
       MEDIA_UNDEF = 0,
-      // udnefined type
       MEDIA_SNA = 1,
-      // Snapshot
       MEDIA_ROM,
-      // ROM 
       MEDIA_DISK,
-      // Disk image
       MEDIA_TAPE,
-      // Tape image
       MEDIA_SNR,
-      // Snapshot Replay
       MEDIA_BIN,
-      // Binary file
       MEDIA_TRACK,
-      // Single Track
       MEDIA_CPR,
-      // Cartridge
+      MEDIA_XPR,
    };
 
    MediaManager(DataContainer* container);

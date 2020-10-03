@@ -79,6 +79,9 @@ void MediaManager::Init()
       case MEDIA_CPR:
          media_list_.push_back(new CPR(type));
          break;
+      case MEDIA_XPR:
+         media_list_.push_back(new XPR(type));
+         break;
       default: // unhandled type
          break;
       }
@@ -172,6 +175,10 @@ int MediaManager::GetTypeFromBuffer(unsigned char* buffer, int size)
    {
       return MEDIA_CPR;
    }
+   else if (size >= 12 && (memcmp(&buffer[8], "CXME", 4) == 0) && (memcmp(&buffer[0], "RIFF", 4) == 0))
+   {
+      return MEDIA_XPR;
+   }
    else return MEDIA_UNDEF;
 }
 
@@ -213,6 +220,10 @@ int MediaManager::GetTypeFromFile(const char*  str)
       else if (IsExtensionMatch(str,"cpr"))
       {
          return_type = MEDIA_CPR;
+      }
+      else if (IsExtensionMatch(str, "xpr"))
+      {
+         return_type = MEDIA_XPR;
       }
    }
 

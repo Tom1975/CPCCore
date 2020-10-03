@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string.h>
+#include <vector>
 
 #include "simple_string.h"
 #include "IExpansion.h"
@@ -99,16 +100,54 @@ public:
    //
    unsigned char* GetRomBuffer() {return rom_[0];};
    unsigned char* GetCartridge(int index) {
-      cart_available_[index] = true; return cartridge_[index];
+      current_cartridge_bank_->cart_available[index] = true; return current_cartridge_bank_->bank[index];
 };
    void EjectCartridge() {
-      memset (cartridge_, 0, sizeof(cartridge_)); memset(cart_available_, 0, sizeof(cart_available_)); SetMemoryMap();
+      for (auto it : cartridge_list_)
+      {
+         if (it!= cart_default_)
+         {
+            delete it;
+         }
+      }
+      cartridge_list_.clear();
+      cartridge_list_.push_back(cart_default_);
+      current_cartridge_bank_ = cartridge_list_[0];
+
+   }
+   void NewXPR()
+   {
+      for (auto it : cartridge_list_)
+      {
+         if (it != cart_default_)
+         {
+            delete it;
+         }
+      }
+      cartridge_list_.clear();
+      BankCartridge* newbank = new BankCartridge;
+      cartridge_list_.push_back(newbank);
+      current_cartridge_bank_ = cartridge_list_[0];
+   }
+   void AddNewBank()
+   {
+      BankCartridge* newbank = new BankCartridge;
+      cartridge_list_.push_back(newbank);
    }
 
+   void SwitchBank(unsigned int index)
+   {
+      if (index < cartridge_list_.size())
+      {
+         current_cartridge_bank_ = cartridge_list_[index];
+      }
+   }
+       
    unsigned char* GetRomBuffer(int rom_index) { return rom_[rom_index]; };
    unsigned char* GetRamBuffer() {return ram_buffer_[0];};
 
-   bool* GetAvailableCartridgeSlot() { return cart_available_; }
+
+   bool* GetAvailableCartridgeSlot() { return current_cartridge_bank_->cart_available; }
    bool* GetAvailableROM() {
       return rom_available_;
    }
@@ -186,8 +225,17 @@ public:
    RamBank rom_[256];
    RamBank ram_buffer_[4];
 
-   RamBank cartridge_[32]; // Plugged cartridge
-   bool cart_available_[32];
+   //RamBank cartridge_[32]; // Plugged cartridge
+   //bool cart_available_[32];
+   typedef struct BankCartridge
+   {
+      RamBank bank[32];
+      bool cart_available[32];
+   };
+
+   std::vector<BankCartridge*> cartridge_list_;
+   BankCartridge * current_cartridge_bank_;
+   BankCartridge* cart_default_;
 
    bool lower_rom_available_;
    unsigned short last_address_read_[4];

@@ -24,15 +24,22 @@ Memory::Memory(Monitor* monitor) :
    asic_io_enabled_(false),
    rmr2_(0), 
    last_value_read_(0), 
-   monitor_(monitor)
+   monitor_(monitor),
+   current_cartridge_bank_(nullptr)
 {
-   memset(cartridge_, 0, sizeof(cartridge_));
-   memset(cart_available_, 0, sizeof(cart_available_));
+   // Default cartirdge
+   cart_default_ = new BankCartridge();
+   memset(cart_default_, 0, sizeof(BankCartridge));
+
+   cartridge_list_.push_back(cart_default_);
+   current_cartridge_bank_ = cartridge_list_[0];
 }
 
 
 Memory::~Memory(void)
 {
+   EjectCartridge();
+   delete[]cart_default_;
 }
 
 
@@ -248,7 +255,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
    }
    case MEM_CART_SLOT:
    {
-      RamBank* crt_bank = &cartridge_[data&0x1F];
+      RamBank* crt_bank = &current_cartridge_bank_->bank[data&0x1F];
       unsigned short mem_addr = adress_start;
       for (unsigned int i = 0; i < size_of_buffer; i++)
       {
@@ -804,25 +811,25 @@ void Memory::SetMemoryMap ()
          {
          case 0x00:
             // ROM p 0x0000-0x3fff
-            ram_read_[0] = &cartridge_[p];
+            ram_read_[0] = &current_cartridge_bank_->bank[p];
             // ASIC IO unpaged
             asic_io_enabled_ = false;
             break;
          case 0x08:
             // ROM p 0x4000-0x7FFF
-            ram_read_[1] = &cartridge_[p];
+            ram_read_[1] = &current_cartridge_bank_->bank[p];
             // ASIC IO unpaged
             asic_io_enabled_ = false;
             break;
          case 0x10:
             // ROM p 0x8000-0xBFFF
-            ram_read_[2] = &cartridge_[p];
+            ram_read_[2] = &current_cartridge_bank_->bank[p];
             // ASIC IO unpaged
             asic_io_enabled_ = false;
             break;
          case 0x18:
             // ROM p 0x0000-0x3fff
-            ram_read_[0] = &cartridge_[p];
+            ram_read_[0] = &current_cartridge_bank_->bank[p];
             // ASIC IO paged
             asic_io_enabled_ = true;
             break;
@@ -843,7 +850,7 @@ void Memory::SetMemoryMap ()
          if ((rom_number_ & 0x80) == 0x80)
          {
             // Physical ROM from cartridge
-            ram_read_[3] = &cartridge_[rom_number_ & 0x1F];
+            ram_read_[3] = &current_cartridge_bank_->bank[rom_number_ & 0x1F];
          }
          else
          {
@@ -852,9 +859,9 @@ void Memory::SetMemoryMap ()
             // 7 => Cartridge Physical ROM 3
 
             if (rom_number_ == 0)
-               ram_read_[3] = &cartridge_[1];
+               ram_read_[3] = &current_cartridge_bank_->bank[1];
             else if (rom_number_ == 7)
-               ram_read_[3] = &cartridge_[3];
+               ram_read_[3] = &current_cartridge_bank_->bank[3];
             else
             {
                if (rom_available_[rom_number_])
@@ -863,7 +870,7 @@ void Memory::SetMemoryMap ()
                }
                else
                {
-                  ram_read_[3] = &cartridge_[1];
+                  ram_read_[3] = &current_cartridge_bank_->bank[1];
                }
             }
          }

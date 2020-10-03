@@ -330,6 +330,141 @@ int EmulatorEngine::LoadCpr(IContainedElement* container)
    return -1;
 }
 
+int EmulatorEngine::LoadXprFromBuffer(unsigned char* buffer, int size)
+{
+
+   // Check RIFF chunk
+   int index = 0;
+   int nbbanks = 0;
+   if (size >= 12
+      && (memcmp(&buffer[0], "RIFF", 4) == 0)
+      && (memcmp(&buffer[8], "CXME", 4) == 0)
+      )
+   {
+      // Reinit Cartridge
+      motherboard_.EjectCartridge();
+      motherboard_.GetMem()->NewXPR();
+
+      // Ok, it's correct.
+      index += 4;
+      // Check the whole size
+
+      int chunk_size = buffer[index]
+         + (buffer[index + 1] << 8)
+         + (buffer[index + 2] << 16)
+         + (buffer[index + 3] << 24);
+
+      index += 8;
+
+      // 'NBBK ' chunk
+      if (index + 8 < size && (memcmp(&buffer[index], "NBBK", 4) == 0) && buffer[index+4] == 0x02 && buffer[index + 5] == 0 && buffer[index + 6] == 0 && buffer[index + 7] == 0)
+      {
+         index += 8;
+         if (index + 2 < size)
+         {
+            nbbanks = (buffer[index] << 8) + (buffer[index+1]);
+            index += 2;
+         }
+      }
+
+      // Good. Switch to bank 0
+      int index_bank = 0;
+      int index_slot = 0;
+      motherboard_.GetMem()->SwitchBank(index_slot);
+
+      // Now we are at the first cbxx
+      while (index + 8 < size)
+      {
+         if (buffer[index] == 'C' && buffer[index + 1] == 'X')
+         {
+            index += 2;
+            int block_number = (buffer[index]<<8) + buffer[index+1];
+            index += 2;
+
+            // Read size
+            int block_size = buffer[index]
+               + (buffer[index + 1] << 8)
+               + (buffer[index + 2] << 16)
+               + (buffer[index + 3] << 24);
+            index += 4;
+
+            if (index + block_size <= size )
+            {
+               if (index_bank >= nbbanks)
+               {
+                  index_bank = 0;
+                  motherboard_.GetMem()->AddNewBank();
+                  index_slot++;
+                  motherboard_.GetMem()->SwitchBank(index_slot);
+               }
+
+               // Copy datas to proper ROM
+               unsigned char* rom = motherboard_.GetCartridge(index_bank);
+               memset(rom, 0, 0x1000);
+               memcpy(rom, &buffer[index], block_size);
+               index += block_size;
+
+               index_bank++;
+            }
+            else
+            {
+               return -1;
+            }
+         }
+         else
+         {
+            return -1;
+         }
+      }
+   }
+   else
+   {
+      // Incorrect headers
+      return -1;
+   }
+
+   // Reset default bak
+   motherboard_.GetMem()->SwitchBank(0);
+   // Insertion ok : Reset to 0
+   ResetPlus();
+
+   return 0;
+}
+
+int EmulatorEngine::LoadXpr(const char* file_path)
+{
+   FILE * f;
+
+   if (fopen_s(&f, file_path, "rb") == 0)
+   {
+      fseek(f, 0, SEEK_END);
+      int buffer_size = ftell(f);
+      rewind(f);
+      unsigned char* buffer = new unsigned char[buffer_size];
+
+      fread(buffer, buffer_size, 1, f);
+      fclose(f);
+      int ret = LoadXprFromBuffer(buffer, buffer_size);
+      delete[]buffer;
+      return ret;
+   }
+   return -1;
+}
+
+int EmulatorEngine::LoadXpr(IContainedElement* container)
+{
+   // todo
+   for (int i = 0; i < container->GetNumberOfElements(); i++)
+   {
+      unsigned char* buffer = container->GetBuffer(i);
+      const int size = container->GetSize(i);
+
+      if (LoadXprFromBuffer(buffer, size) == 0)
+         return 0;
+   }
+   return -1;
+}
+
 int EmulatorEngine::GetCurrentProgress()
 {
    if (GetFDC()->GetCurrentProgress() != -1)
@@ -347,6 +482,7 @@ int EmulatorEngine::LoadMedia(DataContainer* container)
    list_of_types.push_back(MediaManager::MEDIA_TAPE);
    list_of_types.push_back(MediaManager::MEDIA_BIN);
    list_of_types.push_back(MediaManager::MEDIA_CPR);
+   list_of_types.push_back(MediaManager::MEDIA_XPR);
 
    int bRet = media_mgr.GetType(list_of_types);
 
@@ -392,6 +528,14 @@ int EmulatorEngine::LoadMedia(DataContainer* container)
       LoadCpr (list[0]);
       break;
       }
+   case MediaManager::MEDIA_XPR:
+      MediaManager media_mgr(container);
+      std::vector<MediaManager::MediaType> list_of_types;
+      list_of_types.push_back(MediaManager::MEDIA_XPR);
+      auto list = container->GetFileList();
+      LoadXpr(list[0]);
+      break;
+      break;
    }
 
    return -1;
