@@ -365,7 +365,7 @@ public:
    LoadingDisk(EmulatorEngine* machine, unsigned int drive_number, bool differential) :machine_(machine), drive_number_(drive_number), differential_(differential) {}
    virtual int LoadMedia(DataContainer* container)
    {
-      machine_->LoadDisk(container, drive_number_, differential_);
+      return machine_->LoadDisk(container, drive_number_, differential_);
    };
 
 protected:

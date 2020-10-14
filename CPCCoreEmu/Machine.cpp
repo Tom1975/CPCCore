@@ -851,11 +851,11 @@ void EmulatorEngine::HandlePaste(bool before)
    if (before)
    {
       // Anything to paste ? - Only after keyboard and basic is up to date....
-      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ == NULL))
+      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ == 0))
       {
          // Press the key
          paste_vkey_ = paste_buffer_[paste_count_];
-         if (paste_vkey_ != NULL)
+         if (paste_vkey_ != 0)
          {
             GetKeyboardHandler()->CharPressed(paste_vkey_);
             paste_wait_time_ = 160000;
@@ -869,11 +869,11 @@ void EmulatorEngine::HandlePaste(bool before)
    }
    else
    {
-      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ != NULL))
+      if ((paste_size_ > 0) && (paste_available_) && (paste_wait_time_ == 0) && (paste_vkey_ != 0))
       {
          // Release the key, and move on
          GetKeyboardHandler()->CharReleased(paste_buffer_[paste_count_++]);
-         paste_vkey_ = NULL;
+         paste_vkey_ = 0;
          --paste_size_;
          paste_wait_time_ = 200000;
       }

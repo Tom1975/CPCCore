@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "MediaContainer.h"
-
-//#include "Shlwapi.h"
+#include "simple_stdio.h"
 #include "zlib.h"
 
 
