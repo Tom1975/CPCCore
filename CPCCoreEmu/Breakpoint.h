@@ -1,7 +1,6 @@
 
 #pragma once
-#include <string>
-#include <functional>
+#include "simple_string.h"
 
 class EmulatorEngine;
 class Memory;
