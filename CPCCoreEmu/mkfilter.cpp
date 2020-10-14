@@ -215,7 +215,6 @@ global void main(int argc, char *argv[])
    printresults(argv);
    exit(0);
 }
-#endif
 
 static void readcmdline(char *argv[])
 {
@@ -326,11 +325,13 @@ static void usage()
    fprintf(stderr, "  order = 1..%d;  alpha = f(corner)/f(sample)\n\n", MAXORDER);
    exit(1);
 }
+#endif
 
 static bool optsok;
 
 static void checkoptions()
 {
+#ifdef _STANDALONEFILTER
    optsok = true;
    unless (onebit(options & (opt_be | opt_bu | opt_ch | opt_re | opt_pi)))
       opterror("must specify exactly one of -Be, -Bu, -Ch, -Re, -Pi");
@@ -361,6 +362,7 @@ static void checkoptions()
    }
    unless (options & opt_a) opterror("must specify -a");
    unless (optsok) exit(1);
+#endif
 }
 
 static void opterror(char *msg, int p1, int p2)
@@ -632,6 +634,7 @@ static void multin(Complex w, int npz, Complex coeffs[])
    coeffs[0] = nw * coeffs[0];
 }
 
+#ifdef _STANDALONEFILTER
 static void printresults(char *argv[])
 {
    if (options & opt_l)
@@ -753,6 +756,7 @@ static void prcomplex(Complex z)
 {
    printf("%14.10f + j %14.10f", z.re, z.im);
 }
+#endif
 
 void Filtrer(double* pArray, unsigned int nbSamples, int typeOfFilter, bool lpf, double fe, double fc, int order)
 {

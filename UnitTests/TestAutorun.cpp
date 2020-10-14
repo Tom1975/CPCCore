@@ -16,7 +16,7 @@
 
 
 
-bool TestAutorun(char* dump_to_load, const char* command_to_run)
+bool TestAutorun(const char* dump_to_load, const char* command_to_run)
 {
    DiskGen disk_gen;
    std::string log_file = dump_to_load;

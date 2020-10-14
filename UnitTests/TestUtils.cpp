@@ -291,7 +291,7 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 }
 
 
-bool InitBinary(char* conf, char* initfile, char* binary_to_load, unsigned short addr_ok, unsigned short addr_ko, unsigned int tolerated_error )
+bool InitBinary(const char* conf, const char* initfile, const char* binary_to_load, unsigned short addr_ok, unsigned short addr_ko, unsigned int tolerated_error )
 {
    bool result = true;
    // Creation dela machine
@@ -393,7 +393,7 @@ int TestTape::RunTimeSlicesDbg(int nbSlices)
 }
 
 
-unsigned short TestTape::GetRegister(char* pRegister)
+unsigned short TestTape::GetRegister(const char* pRegister)
 {
    // Add a breakpoint
    if (strcmp(pRegister, "A") == 0) return machine_->GetProc()->af_.b.h;
@@ -410,8 +410,8 @@ unsigned short TestTape::GetRegister(char* pRegister)
 }
 
 
-bool TestTape::Test( char* conf, char* initfile, char* dump_to_load, char* fic_to_scan,
-                     unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build)
+bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_load, const char* fic_to_scan,
+                     unsigned short addr, unsigned short end_addr, const char* reg, int timeout, bool build)
 {
    // Creation dela machine
    

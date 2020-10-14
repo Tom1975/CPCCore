@@ -19,7 +19,7 @@
 bool CompareDisks(IDisk *d1, IDisk* d2, std::string p1);
 bool CompareTape(std::string p1);
 
-bool InitBinary(char* conf, char* initfile, char* binary_to_load, unsigned short addr_ok, unsigned short addr_ko, unsigned int tolerated_error = 0);
+bool InitBinary(const char* conf, const char* initfile, const char* binary_to_load, unsigned short addr_ok, unsigned short addr_ko, unsigned int tolerated_error = 0);
 int LoadCprFromBuffer(Motherboard* motherboard, unsigned char* buffer, int size);
 
 /////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ protected:
 class CommandKeyboard : public ICommand
 {
 public:
-   CommandKeyboard(char* command) :command_(command)
+   CommandKeyboard(const char* command) :command_(command)
    {
    }
 
@@ -437,12 +437,12 @@ public:
       delete machine_;
    }
 
-   bool Test(char* conf, char* initfile, char* dump_to_load, char* fic_to_scan,
-      unsigned short addr, unsigned short opcode, char* reg, int timeout, bool build);
+   bool Test(const char* conf, const char* initfile, const char* dump_to_load, const char* fic_to_scan,
+      unsigned short addr, unsigned short opcode, const char* reg, int timeout, bool build);
    bool MoreTest(char* fic_to_scan, unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build);
 
    int RunTimeSlicesDbg(int nbSlices);
-   unsigned short GetRegister(char* pRegister);
+   unsigned short GetRegister(const char* pRegister);
 
    DirectoriesImp dirImp;
    CDisplay display;
