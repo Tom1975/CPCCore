@@ -2,8 +2,9 @@
 #pragma once
 #include <functional>
 #include <string>
-#include "Breakpoint.h"
+#include <sstream>
 #include <map>
+#include "Breakpoint.h"
 
 class EmulatorEngine;
 class Memory;
@@ -85,9 +86,9 @@ class TokenImmediateValue : public TokenValue
 public:
    TokenImmediateValue(unsigned int value, EmulatorEngine* emulator) : TokenValue(emulator), value_(value)
    {
-      char buffer[16];
-      sprintf(buffer, "%Xh", value_);
-      formatted_value_ = buffer;
+      std::ostringstream buffer;
+      buffer << std::hex << value_;
+      formatted_value_ = buffer.str();
    }
 
    static Token* StringToToken(std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token);

@@ -54,14 +54,14 @@ typedef unsigned int FILE;
 #include <stdio.h>
 #endif
 
-#if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
+/*#if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
 #ifdef MINIMUM_DEPENDENCIES
 #else
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
-#endif
+#endif*/
 
 
 #if 1

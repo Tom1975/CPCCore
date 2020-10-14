@@ -11,7 +11,7 @@
 #define unless(x)   if(!(x))
 #define until(x)    while(!(x))
 
-#define VERSION	    "4.6"
+#define VERSION_MKFILTER	    "4.6"
 #undef	PI
 #define PI	    3.14159265358979323846  /* Microsoft C++ does not define M_PI ! */
 #define TWOPI	    (2.0 * PI)

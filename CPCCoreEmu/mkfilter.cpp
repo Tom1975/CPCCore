@@ -308,7 +308,7 @@ static int getiarg(char *s)
 
 static void usage()
 {
-   fprintf(stderr, "Mkfilter V.%s from <fisher@minster.york.ac.uk>\n", VERSION);
+   fprintf(stderr, "Mkfilter V.%s from <fisher@minster.york.ac.uk>\n", VERSION_MKFILTER);
    fprintf(stderr, "Usage: mkfilter [-Be | -Bu | -Ch <r> | -Pi] [-Lp | -Hp | -Bp | -Bs] [-p <n1> <n2> ...] [-{lwz}] "
       "[-Z <alphaz>] "
       "-o <order> -a <alpha1> [ <alpha2> ]\n");

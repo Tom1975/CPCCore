@@ -274,7 +274,7 @@ int IDisk::AddByteWithCrc(unsigned char* track, int index, unsigned char b, CRC&
    return new_index;
 }
 
-void IDisk::ChangeTrack(int side, int newTrack)
+void IDisk::ChangeTrack(int side, unsigned int newTrack)
 {
    // Adjust head
    if ( newTrack >= side_[side].nb_tracks)

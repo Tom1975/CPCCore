@@ -48,7 +48,7 @@ public:
    unsigned char Get(const unsigned short i) {
 
       // XPR feature : current ram_read is 
-      if (0x3FFF - (i&0x3FFF) < cartridge_list_.size() && (ram_read_[i >> 14] == &current_cartridge_bank_->bank[0]))
+      if ((unsigned int)(0x3FFF - (i&0x3FFF)) < cartridge_list_.size() && (ram_read_[i >> 14] == &current_cartridge_bank_->bank[0]))
       {
          SwitchBank(0x3FFF - (i & 0x3FFF));
       }
@@ -289,11 +289,11 @@ public:
 
    //RamBank cartridge_[32]; // Plugged cartridge
    //bool cart_available_[32];
-   typedef struct BankCartridge
+   typedef struct 
    {
       RamBank bank[32];
       bool cart_available[32];
-   };
+   } BankCartridge;
 
    std::vector<BankCartridge*> cartridge_list_;
    BankCartridge * current_cartridge_bank_;

@@ -225,7 +225,7 @@ int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& 
             unsigned int buffer_out_counter = 0;
 
             while(   buffer_out_counter < new_disk->side_[side].tracks[track].size 
-                  && buffer_in_counter < pck_trk[track].track_len/2)
+                  && buffer_in_counter < (unsigned int)(pck_trk[track].track_len/2))
             {
                // Read next byte
                // Check tag ?

@@ -82,8 +82,8 @@ public:
    // External actions :
    int GetLastEjectPosition  ();
    int GetNbBlocks ();
-   int GetBlockPosition (int num_block);
-   char* GetTextBlock ( int num_block);
+   int GetBlockPosition (unsigned int num_block);
+   char* GetTextBlock (unsigned int num_block);
 
    void Eject ();
    bool IsTapeInserted () { return tape_array_ != nullptr;}

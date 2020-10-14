@@ -123,7 +123,7 @@ void DiskGen::SetCurrentTrack(int track)
       ComputeSpeed(0);
    }
 
-   if (track <= disk_->side_[current_side_].nb_tracks)
+   if (track <= (int)disk_->side_[current_side_].nb_tracks)
    {
       current_track_ = track;
    }

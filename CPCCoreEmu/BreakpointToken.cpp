@@ -92,7 +92,7 @@ Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, st
 
          token_list.push_back(token);
 
-         if (pos + 1 + size < str.size())
+         if (pos + 1 + size < (int)str.size())
          {
             if (StringToToken(str.substr(pos + size + 1), emulator, token_list, pos, size) == nullptr)
             {

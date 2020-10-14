@@ -195,12 +195,12 @@ int CTape::GetNbBlocks ()
    return nb_blocks_;
 }
 
-int CTape::GetBlockPosition (int numBlock)
+int CTape::GetBlockPosition (unsigned int numBlock)
 {
    return (numBlock<nb_blocks_)? block_list_[numBlock].block:0;
 }
 
-char* CTape::GetTextBlock ( int numBlock)
+char* CTape::GetTextBlock (unsigned int numBlock)
 {
    return (numBlock < nb_blocks_) ? block_list_[numBlock].description: nullptr;
 }

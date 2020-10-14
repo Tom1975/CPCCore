@@ -94,7 +94,7 @@ public:
    void SetFixedSpeed(bool fixed_speed) { fixed_speed_ = fixed_speed; };
 
    // Change track
-   virtual void ChangeTrack(int side, int new_track);
+   virtual void ChangeTrack(int side, unsigned int new_track);
 
    // MFM track accessor
    virtual unsigned char GetNextBit(int side, int track);

@@ -325,7 +325,7 @@ int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
 
          unsigned int index_on_track = 1;
          // Search for nearest '10'
-         while (index_on_track < tracklength && disk->side_[side].tracks[dskTrack].bitfield[index_on_track-1] != 1 && disk->side_[side].tracks[dskTrack].bitfield[index_on_track ] != 0)
+         while (index_on_track < (unsigned int)tracklength && disk->side_[side].tracks[dskTrack].bitfield[index_on_track-1] != 1 && disk->side_[side].tracks[dskTrack].bitfield[index_on_track ] != 0)
          {
             index_on_track++;
          }
