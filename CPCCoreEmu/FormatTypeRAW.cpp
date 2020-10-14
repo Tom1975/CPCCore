@@ -6,6 +6,7 @@
 
 #include "FileAccess.h"
 
+#include "simple_stdio.h"
 using namespace std;
 
 #define TXT_OUT_PROF _T("Duree load disk")

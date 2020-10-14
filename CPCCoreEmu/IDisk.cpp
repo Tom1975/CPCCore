@@ -4,7 +4,6 @@
 
 #include "simple_filesystem.h"
 #include "simple_stdio.h"
-//#include "rand.h"
 #include <stdlib.h>
 #include "simple_vector.hpp"
 

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <algorithm>
 
+#include "simple_stdio.h"
+
 #ifdef _WIN32
 #if _MSC_VER < 1900
 extern int lround(double d);

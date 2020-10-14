@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Snapshot.h"
 #include "Motherboard.h"
+#include "simple_stdio.h"
 
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
