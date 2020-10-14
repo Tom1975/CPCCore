@@ -1,6 +1,7 @@
 #pragma once
 
 #include "simple_vector.hpp"
+#include <memory.h>
 #include "simple_string.h"
 #include "IExpansion.h"
 #include "DMAStop.h"
