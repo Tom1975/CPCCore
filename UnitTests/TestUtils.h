@@ -439,7 +439,7 @@ public:
 
    bool Test(const char* conf, const char* initfile, const char* dump_to_load, const char* fic_to_scan,
       unsigned short addr, unsigned short opcode, const char* reg, int timeout, bool build);
-   bool MoreTest(char* fic_to_scan, unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build);
+   bool MoreTest(const char* fic_to_scan, unsigned short addr, unsigned short end_addr, const char* reg, int timeout, bool build);
 
    int RunTimeSlicesDbg(int nbSlices);
    unsigned short GetRegister(const char* pRegister);

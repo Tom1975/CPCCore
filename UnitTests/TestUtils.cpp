@@ -605,7 +605,7 @@ bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_
    return true;
 }
 
-bool TestTape::MoreTest(char* fic_to_scan, unsigned short addr, unsigned short end_addr, char* reg, int timeout, bool build)
+bool TestTape::MoreTest(const char* fic_to_scan, unsigned short addr, unsigned short end_addr, const char* reg, int timeout, bool build)
 {
    machine_->CleanBreakpoints();
    machine_->AddBreakpoint(addr);
