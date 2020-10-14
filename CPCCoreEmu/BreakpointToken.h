@@ -1,6 +1,5 @@
 
 #pragma once
-#include <deque>
 #include <functional>
 #include <string>
 #include "Breakpoint.h"
@@ -35,7 +34,7 @@ public:
    Token(TokenType, EmulatorEngine* emulator);
 
    TokenType GetType() { return token_type_;  }
-   std::deque<Token>* GetGroup();
+   std::vector<Token>* GetGroup();
 
    virtual IBreakpointItem* CreateBreakpoint();
 
@@ -60,14 +59,14 @@ public:
       token_length = token.size();
       return base_string.find(token);
    };
-   static unsigned int ParseToken(std::string str, std::deque<Token>& token_list);
+   static unsigned int ParseToken(std::string str, std::vector<Token>& token_list);
 
    
    
    
 protected:
    TokenType token_type_;
-   std::deque<Token>* group_token_list_;
+   std::vector<Token>* group_token_list_;
    EmulatorEngine* emulator_;
 };
 
@@ -193,7 +192,7 @@ protected:
 class TokenTree
 {
 public:
-   TokenTree(std::deque<Token> token_list);
+   TokenTree(std::vector<Token> token_list);
    virtual ~TokenTree();
 
 protected:
@@ -215,7 +214,7 @@ protected:
 class TokenBuilder
 {
 public : 
-   static Token* StringToToken(std::string, EmulatorEngine* emulator, std::deque<Token*>& token_list, int& pos_of_token, int& size_of_token);
+   static Token* StringToToken(std::string, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& pos_of_token, int& size_of_token);
 
    static std::function< Token* (std::string, EmulatorEngine* emulator, int& pos_of_token, int& size_of_token)> token_type_list [];
 };

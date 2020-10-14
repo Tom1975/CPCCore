@@ -27,7 +27,7 @@ BreakpointHandler::~BreakpointHandler()
 }
 
 
-TokenValue* BreakpointHandler::CreateVariable(std::deque<Token*> token_list)
+TokenValue* BreakpointHandler::CreateVariable(std::vector<Token*> token_list)
 {
    TokenValue* value = nullptr;
    
@@ -49,10 +49,10 @@ TokenConditionOperation* BreakpointHandler::CreateOperation(Token* token)
    return operation;
 }
 
-IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_list)
+IBreakpointItem* BreakpointHandler::ConditionHandling(std::vector<Token*> &token_list)
 {
    IBreakpointItem* item = nullptr;
-   std::deque<Token> out_token_list;
+   std::vector<Token> out_token_list;
 
    for (size_t i = 0; i < token_list.size(); i++)
    {
@@ -60,8 +60,8 @@ IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_
       {
          // We should have something before AND after
          // Create right and left leaf (which should be 'variable' meta type)
-         std::deque<Token*> right_list;
-         std::deque<Token*> left_list;
+         std::vector<Token*> right_list;
+         std::vector<Token*> left_list;
          std::copy(token_list.begin(), token_list.begin()+i, std::back_inserter(left_list));
          std::copy(token_list.begin() + (i + 1), token_list.end(), std::back_inserter(right_list));
 
@@ -91,10 +91,10 @@ IBreakpointItem* BreakpointHandler::ConditionHandling(std::deque<Token*> &token_
    return 0;
 }
 
-int OperationHandling(std::deque<Token*> &token_list)
+int OperationHandling(std::vector<Token*> &token_list)
 {
    /*
-   std::deque<Token> out_token_list;
+   std::vector<Token> out_token_list;
    for (auto i = 0; i < token_list.size(); i++)
    {
       if (i + 1 < token_list.size() && token_list[i + 1].GetType() == Token::OPERATION)
@@ -128,16 +128,16 @@ int OperationHandling(std::deque<Token*> &token_list)
    return 0;
 }
 
-int ParenthesisHandling(std::deque<Token*> &token_list)
+int ParenthesisHandling(std::vector<Token*> &token_list)
 {
    // - Parenthesis :
    // P : ( C ) => C
    // P : ( V ) => V
    
-   /*std::deque<Token*> out_token_list;
+   /*std::vector<Token*> out_token_list;
    Token * inner_list;
-   std::deque<Token*>* relative_main_list = &out_token_list;
-   std::deque<std::deque<Token*>*> inner_stack;
+   std::vector<Token*>* relative_main_list = &out_token_list;
+   std::vector<std::vector<Token*>*> inner_stack;
 
    for (auto &it : token_list)
    {
@@ -152,7 +152,7 @@ int ParenthesisHandling(std::deque<Token*> &token_list)
       {
          if (inner_stack.empty()) return -1;
 
-         std::deque<Token>* upper_main_list = inner_stack.back();
+         std::vector<Token>* upper_main_list = inner_stack.back();
          upper_main_list->push_back(*inner_list);
          relative_main_list = upper_main_list;
       }
@@ -167,7 +167,7 @@ int ParenthesisHandling(std::deque<Token*> &token_list)
    return 0;
 }
 
-int BreakpointHandler::BuildExpression(std::deque<Token*>& token_list)
+int BreakpointHandler::BuildExpression(std::vector<Token*>& token_list)
 {
    // Reduce tokens to tree + single tree tokens (ie : regroup parenthesis)
    //if (ParenthesisHandling(token_list) != 0) return -1; 
@@ -283,11 +283,11 @@ void BreakpointHandler::ToggleBreakpoint(unsigned short addr)
    AddBreakpoint(breakpoint);
 }
 
-void BreakpointHandler::CreateBreakpoint(int indice, std::deque<std::string> param)
+void BreakpointHandler::CreateBreakpoint(int indice, std::vector<std::string> param)
 {
    // Separate in tokens : Regroupements, Conditions, Values, Variable, Computation
-   std::deque<Token> token_list;
-   std::deque<Token*> subtoken_list;
+   std::vector<Token> token_list;
+   std::vector<Token*> subtoken_list;
    for (auto &it:param)
    {
 

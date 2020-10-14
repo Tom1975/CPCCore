@@ -1,6 +1,5 @@
 
 #pragma once
-#include <deque>
 #include <functional>
 
 #include "Breakpoint.h"
@@ -31,7 +30,7 @@ public:
    // Implémentation
 
    void ClearBreakpoints();
-   void CreateBreakpoint(int indice, std::deque<std::string> param);
+   void CreateBreakpoint(int indice, std::vector<std::string> param);
    void EnableBreakpoints();
    void DisableBreakpoints();
    void EnableBreakpoint(int bp_number);
@@ -44,10 +43,10 @@ public:
 protected:
 
    // String parsing
-   unsigned int ParseToken(std::string str, std::deque<Token>& token_list);
-   IBreakpointItem* ConditionHandling(std::deque<Token*> &token_list);
-   int BuildExpression(std::deque<Token*>& token_list);
-   TokenValue* CreateVariable(std::deque<Token*> token_list);
+   unsigned int ParseToken(std::string str, std::vector<Token>& token_list);
+   IBreakpointItem* ConditionHandling(std::vector<Token*> &token_list);
+   int BuildExpression(std::vector<Token*>& token_list);
+   TokenValue* CreateVariable(std::vector<Token*> token_list);
    TokenConditionOperation* CreateOperation(Token* token);
    
    // Breakpoints data

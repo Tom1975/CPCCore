@@ -32,11 +32,11 @@ Token::Token(TokenType token_type, EmulatorEngine* emulator) :token_type_(token_
 {
    if (token_type_==Token::GROUP)
    {
-      group_token_list_ = new std::deque<Token>;
+      group_token_list_ = new std::vector<Token>;
    }
 }
 
-std::deque<Token>* Token::GetGroup()
+std::vector<Token>* Token::GetGroup()
 {
    return group_token_list_;
 }
@@ -68,7 +68,7 @@ size_t Token::FindRegister(std::string str, int& token_length)
    return std::string::npos;
 }
 
-Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::deque<Token*>& token_list, int& pos_of_token, int& size_of_token)
+Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& pos_of_token, int& size_of_token)
 {
    Token* token = nullptr;
 
@@ -106,7 +106,7 @@ Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, st
    return nullptr;
 }
 
-unsigned int Token::ParseToken(std::string str, std::deque<Token>& token_list)
+unsigned int Token::ParseToken(std::string str, std::vector<Token>& token_list)
 {
    /*
    // look at parenthesis
