@@ -58,9 +58,13 @@ public:
    };
    bool IsRecording() { return record_; };
 
+   void SyncOnSound (bool set){sync_on_sound_ = set;};
+
 protected:
    ILog* log_;
 
+   bool sync_on_sound_;
+   
    // Filtering on output
    void FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples);
 
@@ -90,7 +94,7 @@ protected:
       int freq_ech;         // Sample frequency
       int byte_rate;        // Byte rate : number of octet per second.freqEch * nombreCanaux * bitsParEch / 8
       short align;         // Number of octet by sample. nombreCanaux * bitsParEch / 8 
-      short bits_par_ech;    // Bits par échantillon
+      short bits_par_ech;    // Bits par ï¿½chantillon
       char data[4];       // "data" word
       int sub_taille2;      // data size
    };
