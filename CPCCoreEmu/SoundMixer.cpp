@@ -330,8 +330,9 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
    double *float_buffer_r = buffer_in->GetRightBuffer();
 
    // filter
+#ifndef __circle
    FiltrerOnSamples(float_buffer_l, float_buffer_r, BUFFER_SIZE);
-
+#endif
    if (current_wav_buffer_ == nullptr)
    {
       // No buffer ? just wait until there is one (discard current sound)
@@ -354,6 +355,8 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
          buffer_left_[offset_buffer_to_convert_ + i] = minValue + float_buffer_l[i] * (maxValue- minValue);
          buffer_right_[offset_buffer_to_convert_ + i] = minValue + float_buffer_r[i] * (maxValue - minValue);
       }
+      
+ 
       offset_buffer_to_convert_ += BUFFER_SIZE;
       // From convert_offset_  to 1024
       double div = 125000.0 / sound_->GetSampleRate(); // 44100.0;
@@ -383,8 +386,8 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             if (left > 0x7FFF) left = 0x7FFF;
             if (left < -0x7FFF) left = -0x7FFF;
             AddRecord(left, right);
-            data[current_wav_index_++] = left ;
-            data[current_wav_index_++] = right ;
+            data[current_wav_index_++] = (short)left;
+            data[current_wav_index_++] = (short)right;
             if (((current_wav_index_ + 2) * sizeof(short) ) > (unsigned int)current_wav_buffer_->buffer_length_)
             {
                // Play it and set a new one
@@ -444,7 +447,8 @@ void SoundMixer::PrepareBufferThread()
 
       for (int i = 0; i < NB_BUFFERS; i++)
       {
-         if (buffer_list_[i].status_ == BufferItem::TO_PLAY && (sample_number == -1 || buffer_list_[i].sample_number_ <= sample_number))
+         if (buffer_list_[i].status_ == BufferItem::TO_PLAY 
+         && (sample_number == -1 || buffer_list_[i].sample_number_ <= sample_number))
          {
             sample_number = buffer_list_[i].sample_number_;
             index_to_convert = i;
