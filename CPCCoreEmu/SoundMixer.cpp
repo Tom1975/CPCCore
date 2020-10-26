@@ -98,7 +98,8 @@ SoundMixer::SoundMixer() :
    stop_recording_(false), 
    tape_(nullptr), 
    tape_adjust_volume_(0.02),
-   log_(nullptr)
+   log_(nullptr),
+   sync_on_sound_(true)
 {
    // Everything, except firt, is on the "free buffer" list
    buffer_list_ = new BufferItem[NB_BUFFERS];
@@ -330,7 +331,7 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
    double *float_buffer_r = buffer_in->GetRightBuffer();
 
    // filter
-#ifndef __circle
+#ifndef __circle__
    FiltrerOnSamples(float_buffer_l, float_buffer_r, BUFFER_SIZE);
 #endif
    if (current_wav_buffer_ == nullptr)
@@ -340,6 +341,7 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
    }
    else
    {
+
       short* data = (short*)current_wav_buffer_->data_;
 
       // Copy input buffer to current stream
@@ -388,7 +390,8 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             AddRecord(left, right);
             data[current_wav_index_++] = (short)left;
             data[current_wav_index_++] = (short)right;
-            if (((current_wav_index_ + 2) * sizeof(short) ) > (unsigned int)current_wav_buffer_->buffer_length_)
+            //if (((current_wav_index_ + 2) * sizeof(short) ) > (unsigned int)current_wav_buffer_->buffer_length_)
+            if (((current_wav_index_ + 2) * sizeof(short) ) > current_wav_buffer_->buffer_length_)
             {
                // Play it and set a new one
                sound_->AddBufferToPlay(current_wav_buffer_);
@@ -618,7 +621,25 @@ unsigned int SoundMixer::Tick()
    // Advance
    if (buffer_list_[index_current_buffer_].buffer_.Advance() == false )
    {
+      // Synchronize on Sound ?
       // Synchronize
+      int free_buffer = 0;
+      while ( sync_on_sound_ && free_buffer < NB_BUFFERS-4)
+      {
+         free_buffer = NB_BUFFERS;
+         for (int i = 0; i < NB_BUFFERS; i++)
+         {
+            if (buffer_list_[i].status_ != BufferItem::FREE)
+            {
+               free_buffer--;
+            }
+         }
+         #ifndef NO_MULTITHREAD
+                  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+         #elif __circle
+                  CTimer::Get()->MsDelay(1);
+         #endif
+      } 
       int next_to_play = -1;
       for (int i = 0; i < NB_BUFFERS; i++)
       {
@@ -627,6 +648,7 @@ unsigned int SoundMixer::Tick()
             next_to_play = i;
             break;
          }
+
       }
 
       if (next_to_play != -1)
