@@ -45,6 +45,69 @@ char& std::string::operator [](unsigned int idx)
    return ((char*)ptr)[idx];
 }
 
+std::string std::string::substr (size_t pos, size_t len ) const
+{
+   
+   size_t size_substr = 0;
+   if ( len != npos )
+   {
+      size_substr = len + 1;
+   }
+   else
+   {
+      size_substr = length() - pos + 1;
+   }
+   char* sub_str = new char[size_substr];
+   const char* ptr = *inner_string_;
+   memset (sub_str, 0, size_substr);
+   strncpy ( sub_str, &ptr[pos], size_substr-1);
+   std::string substring (sub_str);
+   delete []sub_str;
+   return substring;
+}
+
+size_t std::string::find (char c, size_t pos ) const
+{
+   if ( inner_string_ == nullptr || pos >= inner_string_->GetLength())
+      return npos;
+
+   const char* ptr = *inner_string_;
+   size_t val = npos;
+   int count = pos;
+   while (ptr[count] != '\0' && val == npos)
+   {
+      if ( ptr[count] == c)
+         val = count;
+      count ++;
+   }
+   return val;
+}
+
+size_t std::string::find_first_not_of (const char* s, size_t pos ) const
+{
+   size_t val = npos;
+   if ( inner_string_ == nullptr || pos >= inner_string_->GetLength())
+      return npos;
+
+   const char* ptr = *inner_string_;
+   int count = pos;
+   while (ptr[count] != '\0' && val == npos)
+   {
+      bool car_found = false;
+      for (size_t i = 0; i < strlen(s) && (car_found == false); i++)
+      {
+         if ( ptr[count] == s[i])
+            car_found = true;
+      }
+      if (car_found)
+      {
+         val = count ;
+      }
+      count ++;
+   }
+   return val;
+}
+
 /*
 int sprintf(char* buf, const char* fmt, ...)
 {

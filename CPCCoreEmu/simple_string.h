@@ -9,9 +9,12 @@
 
 namespace std
 {
+   
    class string : public CString
    {
    public:
+      typedef size_t size_type ;
+
       string(void);
       string(const char* str);
       virtual ~string(void);
@@ -20,8 +23,16 @@ namespace std
       unsigned int size() const noexcept;
       void clear();
       const char* c_str(void) const;
-
       char& operator [](const unsigned int);
+      
+      size_t find ( char c, size_t pos = 0) const;
+      size_t find_first_of (const char* s, size_t pos = 0) const;
+      size_t find_first_not_of (const char* s, size_t pos = 0) const;
+      
+
+      string substr (size_t pos = 0, size_t len = npos) const;
+
+      static const size_t npos = -1;   
 
    protected:
       CString *inner_string_;
