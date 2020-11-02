@@ -57,9 +57,9 @@ typedef unsigned int FILE;
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
 #ifdef MINIMUM_DEPENDENCIES
 #else
-//#define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
+#define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
-//#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
 #endif
 
