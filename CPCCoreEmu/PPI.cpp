@@ -268,7 +268,7 @@ void PPI8255::DataWrite(unsigned char* data, unsigned char Adress)
    {
       //
    case 0: // Data Bus -> Port A
-      if ( !control_word_.control_word.io_a)
+      if ( !control_word_.control_word.io_a || plus_) // always set to write if write is asked, on the plus
       {
          port_a_ = inVal;
          // Update signals if mode 1/2 ?
@@ -451,7 +451,7 @@ void PPI8255::TraitePortC()
 
    }
 
-   // Si bit 7,8 à 1, on charge l'adresse du PSG a partir a A
+   // Si bit 7,8 ï¿½ 1, on charge l'adresse du PSG a partir a A
    unsigned char port_a = port_a_;
    psg_->Access(&port_a, (port_c_ >> 6) | 0x4, port_c_ & 0xF);
 

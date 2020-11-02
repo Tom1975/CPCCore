@@ -1,12 +1,22 @@
 
 #ifdef MINIMUM_DEPENDENCIES
 
+#include <circle/logger.h>
+
 #include "simple_string.h"
 #include <stdlib.h>
 
-std::string::string() : inner_string_(nullptr)
-{
+extern CLogger* log_s;
 
+std::string::string()
+{
+   if (log_s != nullptr)log_s->Write("std::string", LogNotice, "default Constructor. this = %i", this);
+   inner_string_ = new CString();
+}
+
+std::string::string (const string& str)
+{
+   inner_string_ = new CString(str.c_str());
 }
 
 std::string::string(const char* str)
@@ -17,6 +27,29 @@ std::string::~string(void)
 {
    delete inner_string_;
 };
+
+std::string::operator const char *(void) const
+{
+	return *inner_string_;
+}
+
+const char *std::string::operator = (const char *pString)
+{
+   *inner_string_ = pString;
+   return *this;
+}
+
+const std::string &std::string::operator = (const std::string &rString)
+{
+   log_s->Write("std::string", LogNotice, "operator=&; this = %i", this);
+   log_s->Write("std::string", LogNotice, "string to copy : %s", rString.c_str());
+   *inner_string_ = rString;
+   log_s->Write("std::string", LogNotice, "inner_string_ deleted");
+   //inner_string_ = new CString(rString.c_str());
+   log_s->Write("std::string", LogNotice, "affectation ok, returning ");
+   return *this;
+}
+
 
 const char* std::string::c_str(void) const
 {
@@ -45,6 +78,11 @@ char& std::string::operator [](unsigned int idx)
    return ((char*)ptr)[idx];
 }
 
+std::string& std::string::append (const char* s)
+{
+   inner_string_->Append(s);
+}
+
 std::string std::string::substr (size_t pos, size_t len ) const
 {
    
@@ -66,6 +104,25 @@ std::string std::string::substr (size_t pos, size_t len ) const
    return substring;
 }
 
+std::string&  std::string::erase (size_t pos, size_t len)
+{
+   size_t lenght_substring = 0;
+   if ( pos != std::string::npos && pos < inner_string_->GetLength())
+      lenght_substring = len<(inner_string_->GetLength()-pos)?len:(inner_string_->GetLength()-pos);
+
+   char* buffer = new char[lenght_substring+1];
+   memset (buffer, 0, lenght_substring);
+   const char* ptr = *inner_string_;
+   strncpy ( buffer, &ptr[pos], lenght_substring);
+   *inner_string_ = buffer;
+   return *this;
+}
+
+int std::string::compare (const char* s) const
+{
+   return strcmp (s, *inner_string_);
+}
+
 size_t std::string::find (char c, size_t pos ) const
 {
    if ( inner_string_ == nullptr || pos >= inner_string_->GetLength())
@@ -81,6 +138,37 @@ size_t std::string::find (char c, size_t pos ) const
       count ++;
    }
    return val;
+}
+
+size_t std::string::find_last_not_of (const char* s, size_t pos ) const
+{
+   size_t val = npos;
+   if ( inner_string_ == nullptr || pos >= inner_string_->GetLength())
+      return npos;
+
+   const char* ptr = *inner_string_;
+   int count = pos;
+   while (ptr[count] != '\0' && val == npos)
+   {
+      bool car_found = false;
+      for (size_t i = 0; i < strlen(s) && (car_found == false); i++)
+      {
+         if ( ptr[count] == s[i])
+            car_found = true;
+      }
+      if (car_found)
+      {
+         if ( count != pos)
+            val = count-1;
+         else
+            val = npos;
+
+         return val;
+      }
+      count ++;
+   }
+   return val;   
+   
 }
 
 size_t std::string::find_first_not_of (const char* s, size_t pos ) const
@@ -99,7 +187,7 @@ size_t std::string::find_first_not_of (const char* s, size_t pos ) const
          if ( ptr[count] == s[i])
             car_found = true;
       }
-      if (car_found)
+      if (!car_found)
       {
          val = count ;
       }

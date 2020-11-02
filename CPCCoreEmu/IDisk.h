@@ -72,7 +72,7 @@ public:
    // Format support
    const char* GetCurrentLoadedDisk() { 
 #ifdef MINIMUM_DEPENDENCIES
-      return current_disk_path_;
+      return current_disk_path_.c_str(); 
 #else
       return current_disk_path_.c_str(); 
 #endif

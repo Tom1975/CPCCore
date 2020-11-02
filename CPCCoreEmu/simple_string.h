@@ -10,26 +10,33 @@
 namespace std
 {
    
-   class string : public CString
+   class string //: public CString
    {
    public:
       typedef size_t size_type ;
 
       string(void);
       string(const char* str);
+      string (const string& str);
       virtual ~string(void);
 
+      operator const char *(void) const;
+      const char *operator = (const char *pString);
+      const string &operator = (const string &rString);
+
+      string& append (const char* s);
       unsigned int length() const noexcept;
       unsigned int size() const noexcept;
       void clear();
       const char* c_str(void) const;
       char& operator [](const unsigned int);
-      
+      int compare (const char* s) const;
       size_t find ( char c, size_t pos = 0) const;
       size_t find_first_of (const char* s, size_t pos = 0) const;
       size_t find_first_not_of (const char* s, size_t pos = 0) const;
-      
+      size_t find_last_not_of (const char* s, size_t pos = 0) const;
 
+      string& erase (size_t pos = 0, size_t len = npos);
       string substr (size_t pos = 0, size_t len = npos) const;
 
       static const size_t npos = -1;   

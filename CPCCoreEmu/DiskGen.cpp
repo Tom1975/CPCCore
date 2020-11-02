@@ -602,6 +602,10 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
    class Rule
    {
    public:
+      Rule():name_(nullptr), ext_(nullptr), autofile_(nullptr)
+      {
+
+      }
       Rule(const char* name, const char* ext, const char* autofile) : name_(name), ext_(ext), autofile_(autofile)
       {
       }

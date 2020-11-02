@@ -6,6 +6,10 @@
 
 #pragma pack(push, 1)
 
+#include <circle/logger.h>
+
+extern CLogger* log_s;
+
 namespace std
 {
    template <class _Ty>
@@ -39,6 +43,8 @@ namespace std
 
       vector();
       vector(unsigned int size);
+      //vector(const T&);
+      vector(const vector& v);
       virtual ~vector();
 
       void clear() noexcept;
@@ -60,6 +66,63 @@ namespace std
       {
          return size_;
       }
+
+      vector& operator=(vector&& _Right)
+      {
+         log_s->Write("std::vector", LogNotice, "operator=&&");
+         if (&_Right != this)
+         {
+            log_s->Write("std::vector", LogNotice, "Right != this");
+            // clear
+            clear();
+            log_s->Write("std::vector", LogNotice, "clear done");
+            if ( size_of_element_list_ < _Right.size_of_element_list_)
+            {
+               log_s->Write("std::vector", LogNotice, "size too small");
+               delete []element_list_;
+               log_s->Write("std::vector", LogNotice, "delete element done");
+               size_of_element_list_ = _Right.size_of_element_list_;
+               log_s->Write("std::vector", LogNotice, "new size = %i", size_of_element_list_);
+               element_list_ = new T[size_of_element_list_]();
+               log_s->Write("std::vector", LogNotice, "Allocation done");
+            }
+            
+            size_ = _Right.size_;
+            log_s->Write("std::vector", LogNotice, "size_ update done : %i", size_);
+            memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            log_s->Write("std::vector", LogNotice, "memcpy done ");         
+         }
+         return *this;
+      }
+   
+      vector& operator=(const vector& _Right)
+      {
+         log_s->Write("std::vector", LogNotice, "operator=&");
+         if (&_Right != this)
+         {
+            log_s->Write("std::vector", LogNotice, "Right != this");
+            // clear
+            clear();
+            log_s->Write("std::vector", LogNotice, "clear done");
+            if ( size_of_element_list_ < _Right.size_of_element_list_)
+            {
+               log_s->Write("std::vector", LogNotice, "size too small");
+               delete []element_list_;
+               log_s->Write("std::vector", LogNotice, "delete element done");
+               size_of_element_list_ = _Right.size_of_element_list_;
+               log_s->Write("std::vector", LogNotice, "new size = %i", size_of_element_list_);
+               element_list_ = new T[size_of_element_list_];
+               log_s->Write("std::vector", LogNotice, "Allocation done");
+            }
+            
+            size_ = _Right.size_;
+            log_s->Write("std::vector", LogNotice, "size_ update done : %i", size_);
+            memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            log_s->Write("std::vector", LogNotice, "memcpy done ");         
+         }
+         return *this;
+      }   
+
    protected:
       unsigned int size_;
       unsigned int size_of_element_list_;
@@ -75,7 +138,19 @@ namespace std
    template <typename T>
    vector<T>::vector(unsigned int size) : size_(0), size_of_element_list_(size), element_list_(nullptr)
    {
-      element_list_ = new T[size_of_element_list_];
+      element_list_ = new T[size_of_element_list_]();
+   }
+
+   /*template <typename T>
+   vector<T>::vector(const T& v) : size_(0), size_of_element_list_(size), element_list_(nullptr)
+   {
+      *this = v;
+   }*/
+  
+   template <typename T>
+   vector<T>::vector(const  vector& v)
+   {
+      *this = v;
    }
 
    template <typename T>
@@ -87,15 +162,19 @@ namespace std
    template <typename T>
    void vector<T>::push_back(T&& _Val)
    {
+      log_s->Write("std::vector", LogNotice, "push_back &&");
       if (size_ >= size_of_element_list_)
       {
-         size_of_element_list_ *= 2;
+         log_s->Write("std::vector", LogNotice, "size_ >= size_of_element_list_");
+         size_of_element_list_ = (size_of_element_list_+1)*2;
          T* tmp = element_list_;
-         element_list_ = (T*)new void* [ sizeof (T) * size_of_element_list_];
+         element_list_ = new T[ size_of_element_list_]();
          memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
+         log_s->Write("std::vector", LogNotice, "size_ >= size_of_element_list_ - END");
       }
-      element_list_[size_] = _Val;
+      element_list_[size_]= _Val;
+      log_s->Write("std::vector", LogNotice, "element_list_[size_] = _Val;");
       size_++;
       
    }
@@ -103,15 +182,19 @@ namespace std
    template <typename T>
    void vector<T>::push_back(const T& _Val)
    {
+      log_s->Write("std::vector", LogNotice, "push_back &");
       if (size_ >= size_of_element_list_)
       {
-         size_of_element_list_ *= 2;
+         log_s->Write("std::vector", LogNotice, "size_ >= size_of_element_list_");
+         size_of_element_list_ = (size_of_element_list_+1)*2;
          T* tmp = element_list_;
-         element_list_ = (T*)new void*[sizeof(T) * size_of_element_list_];
+         element_list_ = new T[ size_of_element_list_]();
          memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
+         log_s->Write("std::vector", LogNotice, "size_ >= size_of_element_list_ - END");
       }
       element_list_[size_] = _Val;
+      log_s->Write("std::vector", LogNotice, "element_list_[size_] = _Val;");
       size_++;
    }
 

@@ -32,8 +32,8 @@ namespace std::filesystem
 
    path& path::operator /=(const char*ext)
    {
-      path_.Append(PATH_SLASH_STRING);
-      path_.Append(ext);
+      path_.append(PATH_SLASH_STRING);
+      path_.append(ext);
       return *this;
    }
 
