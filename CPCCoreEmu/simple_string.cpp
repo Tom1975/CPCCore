@@ -6,11 +6,8 @@
 #include "simple_string.h"
 #include <stdlib.h>
 
-extern CLogger* log_s;
-
 std::string::string()
 {
-   if (log_s != nullptr)log_s->Write("std::string", LogNotice, "default Constructor. this = %i", this);
    inner_string_ = new CString();
 }
 
@@ -41,12 +38,7 @@ const char *std::string::operator = (const char *pString)
 
 const std::string &std::string::operator = (const std::string &rString)
 {
-   log_s->Write("std::string", LogNotice, "operator=&; this = %i", this);
-   log_s->Write("std::string", LogNotice, "string to copy : %s", rString.c_str());
    *inner_string_ = rString;
-   log_s->Write("std::string", LogNotice, "inner_string_ deleted");
-   //inner_string_ = new CString(rString.c_str());
-   log_s->Write("std::string", LogNotice, "affectation ok, returning ");
    return *this;
 }
 
@@ -81,6 +73,7 @@ char& std::string::operator [](unsigned int idx)
 std::string& std::string::append (const char* s)
 {
    inner_string_->Append(s);
+   return *this;
 }
 
 std::string std::string::substr (size_t pos, size_t len ) const
@@ -143,12 +136,15 @@ size_t std::string::find (char c, size_t pos ) const
 size_t std::string::find_last_not_of (const char* s, size_t pos ) const
 {
    size_t val = npos;
-   if ( inner_string_ == nullptr || pos >= inner_string_->GetLength())
+   if ( inner_string_ == nullptr )
       return npos;
 
+   if ( pos >= inner_string_->GetLength() || pos == npos)
+      pos = inner_string_->GetLength();
+
    const char* ptr = *inner_string_;
-   int count = pos;
-   while (ptr[count] != '\0' && val == npos)
+   int count = pos - 1;
+   while (count >= 0 && val == npos)
    {
       bool car_found = false;
       for (size_t i = 0; i < strlen(s) && (car_found == false); i++)
@@ -159,13 +155,13 @@ size_t std::string::find_last_not_of (const char* s, size_t pos ) const
       if (car_found)
       {
          if ( count != pos)
-            val = count-1;
+            val = count;
          else
             val = npos;
 
          return val;
       }
-      count ++;
+      count --;
    }
    return val;   
    

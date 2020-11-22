@@ -32,7 +32,7 @@
    }else {SET_NMI;}
 
 #define NEXT_INSTR_LDAIR   current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {carry_set_ = false;SET_NOINT;}else{carry_set_ = true;SET_INT;}}else{carry_set_ = true;SET_NMI;}
-#define NEXT_INSTR_EI      current_function_ = &fetch_func;if (!sig_->nmi_)SET_NOINT;{SET_NMI;}
+#define NEXT_INSTR_EI      current_function_ = &fetch_func;if (!sig_->nmi_){SET_NOINT};{SET_NMI;}
 
 // INC R
 #define INC_R           ir_.b.l = ( ( (ir_.b.l+1) & 0x7F) | (ir_.b.l & 0x80));

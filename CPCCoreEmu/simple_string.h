@@ -34,7 +34,7 @@ namespace std
       size_t find ( char c, size_t pos = 0) const;
       size_t find_first_of (const char* s, size_t pos = 0) const;
       size_t find_first_not_of (const char* s, size_t pos = 0) const;
-      size_t find_last_not_of (const char* s, size_t pos = 0) const;
+      size_t find_last_not_of (const char* s, size_t pos = std::string::npos) const;
 
       string& erase (size_t pos = 0, size_t len = npos);
       string substr (size_t pos = 0, size_t len = npos) const;
