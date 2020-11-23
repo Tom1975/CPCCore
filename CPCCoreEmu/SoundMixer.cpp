@@ -18,6 +18,8 @@
 
 #ifdef  __circle__
 #include <circle/timer.h>
+#include <circle/spinlock.h>
+static CSpinLock mutex_sound;
 #endif
 
 #ifdef LOG_MIXER
@@ -468,8 +470,13 @@ void SoundMixer::PrepareBufferThread()
 
          // Put it back to 'free_buffers_'
          buffer_list_[index_to_convert].buffer_.InitBuffer();
+#ifdef  __circle__
+         mutex_sound.Acquire();
+#endif
          buffer_list_[index_to_convert].status_ = BufferItem::FREE;
-
+#ifdef  __circle__
+         mutex_sound.Release();
+#endif
       }
       else
       {
@@ -608,6 +615,7 @@ void SoundMixer::EndRecordImp()
    }
 }
 
+
 // Sound Mixer : The soundmixer tick is 8us (125 khz)
 // This is a pragmatic value, set because it is the tick rate of AY8912 used by both CPC and PlayCITY
 unsigned int SoundMixer::Tick()
@@ -626,6 +634,9 @@ unsigned int SoundMixer::Tick()
       int free_buffer = 0;
       while ( sync_on_sound_ && free_buffer < NB_BUFFERS-4)
       {
+#ifdef  __circle__
+         mutex_sound.Acquire();
+#endif
          free_buffer = NB_BUFFERS;
          for (int i = 0; i < NB_BUFFERS; i++)
          {
@@ -634,6 +645,9 @@ unsigned int SoundMixer::Tick()
                free_buffer--;
             }
          }
+#ifdef  __circle__
+         mutex_sound.Release();
+#endif
          #ifndef NO_MULTITHREAD
                   std::this_thread::sleep_for(std::chrono::milliseconds(1));
          #elif __circle
