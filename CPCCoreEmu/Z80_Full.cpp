@@ -105,9 +105,6 @@ void Z80::Reset()
    current_opcode_ = 0;
 }
 
-
-#define WAIT_TEST if ((counter_&0x3) == 0)
-
 void Z80::InterruptInit()
 {
    INC_R;
@@ -167,13 +164,14 @@ unsigned int Z80::Tick_Fetch_1()
 
 unsigned int Z80::Tick_Fetch_2() 
 {
-   WAIT_TEST
-   t_++; return 1;
+   if ((counter_&0x3) == 0) t_++; 
+   return 1;
 }
       
 unsigned int Z80::Tick_Fetch_3()
 {
-   t_++; return 1;
+   t_++; 
+   return 1;
 }
 
 unsigned int Z80::Tick_Fetch_4()

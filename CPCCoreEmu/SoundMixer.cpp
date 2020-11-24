@@ -60,11 +60,6 @@ SoundBuffer::~SoundBuffer()
 
 void SoundBuffer::AddSound(double  left, double  right)
 {
-   if (offset_ >= BUFFER_SIZE)
-   {
-      int dbg = 1;
-   }
-
    buffer_left_[offset_] += left;
    buffer_right_[offset_] += right;
 }
@@ -86,6 +81,11 @@ void SoundBuffer::InitBuffer()
 #define TYPE_OF_FILTER 1
 
 SoundMixer::SoundMixer() : 
+   log_(nullptr),
+   sync_on_sound_(true),
+   tape_adjust_volume_(0.02),
+   start_recording_(false), 
+   stop_recording_(false), 
    sample_number_(0),
 #ifndef NO_MULTITHREAD
    worker_thread_(nullptr),
@@ -95,13 +95,10 @@ SoundMixer::SoundMixer() :
 #endif
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
-   record_(false), 
-   start_recording_(false), 
-   stop_recording_(false), 
-   tape_(nullptr), 
-   tape_adjust_volume_(0.02),
-   log_(nullptr),
-   sync_on_sound_(true)
+   tape_(nullptr),
+   record_(false)
+   
+   
 {
    // Everything, except firt, is on the "free buffer" list
    buffer_list_ = new BufferItem[NB_BUFFERS];
@@ -134,12 +131,12 @@ SoundMixer::SoundMixer() :
    memset(coefx_, 0, sizeof(double)*(ORDER * 2 + 1));
    memset(coefy_, 0, sizeof(double)*(ORDER * 2 + 1));
 
-   // Force 53 bits floating points...
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
 
 #ifdef _WIN32
 #ifndef _WIN64
+   // Force 53 bits floating points...
+   volatile short int  cw = 0x27F;
+   volatile short int oldcw = 0;
    __asm {
       fstcw oldcw
       fldcw cw
@@ -194,11 +191,10 @@ SoundMixer::~SoundMixer()
 void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples)
 {
 #ifndef NOFILTER
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
-
 #ifdef _WIN32
 #ifndef _WIN64
+   volatile short int  cw = 0x27F;
+   volatile short int oldcw = 0;
    // Force 53 bits floating points...
    __asm {
       fstcw oldcw
@@ -270,7 +266,7 @@ void SoundMixer::StopMixer()
    }
 #else
    finished_ = true;
-#endif   
+#endif
 }
 
 void SoundMixer::StartMixer()
@@ -669,15 +665,6 @@ unsigned int SoundMixer::Tick()
       {
          // Buffer is full ? Prepare next, and mark this one to be played
          buffer_list_[index_current_buffer_].status_ = BufferItem::TO_PLAY;
-
-/*#ifdef NO_MULTITHREAD
-         ConvertToWav(&buffer_list_[index_current_buffer_].buffer_);
-#else*/
-
-         if(index_current_buffer_ == next_to_play)
-         {
-            int dbg = 1;
-         }
 
          index_current_buffer_ = next_to_play;
 //#endif
