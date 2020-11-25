@@ -178,11 +178,11 @@ int CAPSFile::ReadBuffer(const unsigned char* buffer, unsigned int size_of_buffe
       else if (memcmp(rec_header.type, "PACK", 4) == 0)
       {
          int offset = 0;
-         unsigned int csize = ExtractInt(&block[offset]);; // compressed size in bytes
+         unsigned int csize = ExtractInt(&block[offset]);; // csize : compressed size in bytes
          offset += 4;
-         unsigned int ccrc = ExtractInt(&block[offset]);; // CRC on compressed data
+         ExtractInt(&block[offset]);; // ccrc : CRC on compressed data
          offset += 4;
-         unsigned int hcrc = ExtractInt(&block[offset]);; // CRC on header calculated as hcrc=0
+         ExtractInt(&block[offset]);; // hcrc : CRC on header calculated as hcrc=0
          offset += 4;
 
          // Read compressed size ?
@@ -542,25 +542,22 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
             offset += 4;
             unsigned int gap_bits = ExtractInt(&block[offset]);
             offset += 4;
-            int data_bytes = 0;
-            int gap_bytes = 0;
             unsigned int gap_offset = 0;
-            int cell_type = 0;
             if (encoder_type_ == 1)
             {
-               data_bytes = ExtractInt(&block[offset]);
+               ExtractInt(&block[offset]); // data_bytes
                offset += 4;
-               gap_bytes = ExtractInt(&block[offset]);
+               ExtractInt(&block[offset]); // gap_bytes
                offset += 4;
             }
             else
             {
                gap_offset = ExtractInt(&block[offset]);
                offset += 4;
-               cell_type = ExtractInt(&block[offset]);
+               ExtractInt(&block[offset]); // cell_type
                offset += 4;
             }
-            int encoder_type = ExtractInt(&block[offset]);
+            ExtractInt(&block[offset]); // encoder_type
             offset += 4;
             int block_flags = ExtractInt(&block[offset]);
             offset += 4;
@@ -736,14 +733,13 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
             }
             total_total += data_bits; //indexTrack - offsetBefore;
             total_data += data_bits;
-            if ((data_bits != index_track - offset_before)
+            if ((data_bits != (int)index_track - (int)offset_before)
                && ((index_track != offset_before)
-                  || (data_bits != disk->side_[imge_item.side].tracks[imge_item.track_number].size)
+                  || (data_bits != (int)disk->side_[imge_item.side].tracks[imge_item.track_number].size)
                )
             )
             {
-               //
-               int dbg = 1;
+               // todo ?
             }
 
 
