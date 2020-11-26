@@ -152,9 +152,9 @@ size_t std::string::find_last_not_of (const char* s, size_t pos ) const
          if ( ptr[count] == s[i])
             car_found = true;
       }
-      if (car_found)
+      if (!car_found)
       {
-         if ( count != pos)
+         if ( count < pos-1)
             val = count;
          else
             val = npos;
