@@ -1,24 +1,30 @@
 
-#ifdef __circle__
-
 #include "simple_stdio.h"
 
-static CFATFileSystem		file_system;
+#ifdef __circle__
+
+#include <circle/addon/fatfs/ff.h>
 
 class File
 {
 public:
    File()
    {
-
+      handle = new FIL;
    }
    virtual ~File()
    {
-
+      delete handle;
    }
-protected:
-   unsigned int handle_;
+
+   FIL* handle;
 };
+
+BYTE GetMode(const char* mode)
+{
+   BYTE mode_byte = FA_READ | FA_WRITE | FA_CREATE_ALWAYS | FA_CREATE_NEW | FA_OPEN_ALWAYS | FA_OPEN_APPEND ;
+   return mode_byte;
+}
 
 errno_t fopen_s(
    FILE**      _Stream,
@@ -26,48 +32,69 @@ errno_t fopen_s(
    char const* _Mode
 )
 {
-   unsigned int* new_handle = new unsigned int;
-   *new_handle = file_system.FileOpen(_FileName);
-   *_Stream = new_handle;
-   if (*_Stream == 0)
+   File* f = new File ();
+   if (f_open ( (f->handle), _FileName, GetMode (_Mode)) != FR_OK)
+   {
+      delete f;
       return -1;
-   else
-      return 0;
+   }
+
+   *_Stream = (void*)f;
+   return 0;
 }
 
 int fclose(FILE* _Stream)
 {
-   file_system.FileClose(*_Stream);
-   delete _Stream;
-   return 0;
+   FRESULT res = f_close ( ((File*)_Stream)->handle);
+
+   return res == FR_OK;
 }
 
 int fseek(FILE* _Stream, long  _Offset, int   _Origin)
 {
    switch (_Origin)
    {
-   default:
-      break;
+      case SEEK_SET:
+         f_lseek ( ((File*)_Stream)->handle, _Offset);
+         break;
+      case SEEK_END:
+         f_lseek ( ((File*)_Stream)->handle, f_size(((File*)_Stream)->handle));
+         break;
+      case SEEK_CUR:
+         f_lseek ( ((File*)_Stream)->handle, f_tell (((File*)_Stream)->handle)+ _Offset);
+         break;
+         break;
    }
+   return 0;
 }
+
 void rewind( FILE* _Stream) 
 {
+   f_rewind ( ((File*)_Stream)->handle);
 }
 
 long ftell(FILE* _Stream)
 {
-   return 0;
+   return f_tell (((File*)_Stream)->handle);
 }
 
-size_t fread(
+unsigned int fread(
    void* _Buffer,
-   size_t _ElementSize,
-   size_t _ElementCount,
+   unsigned int _ElementSize,
+   unsigned int _ElementCount,
    FILE* _Stream
 )
 {
-   unsigned int handle = *_Stream;
-   return (file_system.FileRead(handle, _Buffer, _ElementSize * _ElementCount) / _ElementSize);
+   unsigned int byte_read;
+   if ( f_read( ((File*)_Stream)->handle, _Buffer, _ElementSize*_ElementCount, &byte_read) == FR_OK)
+   {
+      return byte_read / _ElementSize;
+   }
+   else
+   {
+      return 0;
+   }
+
 }
 
 unsigned int fwrite(
@@ -77,12 +104,15 @@ unsigned int fwrite(
    FILE* _Stream
 )
 {
-   unsigned int handle = *_Stream;
-   return (file_system.FileWrite(handle, _Buffer, _ElementSize * _ElementCount)/ _ElementSize);
+   unsigned int byte_written;
+   if (f_write (((File*)_Stream)->handle, _Buffer, _ElementSize*_ElementCount, &byte_written) == FR_OK)
+   {
+      return byte_written / _ElementSize;
+   }
+   else
+   {
+      return 0;
+   }
 }
-
-#else
-
-#include <stdio.h>
 
 #endif

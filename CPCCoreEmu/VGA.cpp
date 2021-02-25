@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "VGA.h"
 #include "CRTC.h"
-#include <math.h>
+//#include <math.h>
 #include "DMA.h"
 
 // MACRO de profilage

@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 #endif
 
 #ifdef __circle__
-typedef unsigned int FILE;
+typedef void FILE;
 //#include <stdio.h>
 
 #else

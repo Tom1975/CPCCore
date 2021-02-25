@@ -3,14 +3,12 @@
 
 #ifdef __circle__
 
-#include "circle/fs/fat/fatfs.h"
-
 #define SEEK_CUR    1
 #define SEEK_END    2
 #define SEEK_SET    0
 
 typedef int          errno_t;
-typedef unsigned int FILE;
+typedef void         FILE;
 
 int fclose(FILE* _Stream );
 
@@ -25,10 +23,10 @@ int fseek(FILE* _Stream, long  _Offset,int   _Origin);
 void rewind(FILE* _Stream);
 long ftell(FILE* _Stream);
 
-size_t fread(
+unsigned int fread(
    void* _Buffer,
-   size_t _ElementSize,
-   size_t _ElementCount,
+   unsigned int _ElementSize,
+   unsigned int _ElementCount,
    FILE* _Stream
 );
 
