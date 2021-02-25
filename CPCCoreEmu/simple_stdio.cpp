@@ -4,6 +4,7 @@
 #ifdef __circle__
 
 #include <circle/addon/fatfs/ff.h>
+#include <circle/logger.h>
 
 class File
 {
@@ -33,25 +34,31 @@ errno_t fopen_s(
 )
 {
    File* f = new File ();
-   if (f_open ( (f->handle), _FileName, GetMode (_Mode)) != FR_OK)
+   
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_open %s - mode %s", _FileName, _Mode);
+
+   if (f_open ( (f->handle), _FileName, FA_READ | FA_OPEN_EXISTING) != FR_OK)
    {
+      CLogger::Get ()->Write ("FILE", LogNotice, "f_open failed");
       delete f;
       return -1;
    }
-
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_open Ok");
    *_Stream = (void*)f;
    return 0;
 }
 
 int fclose(FILE* _Stream)
 {
+   
    FRESULT res = f_close ( ((File*)_Stream)->handle);
-
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_close : %i", res);
    return res == FR_OK;
 }
 
 int fseek(FILE* _Stream, long  _Offset, int   _Origin)
 {
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_seek : offset = %i; origin = %i", _Offset, _Origin);
    switch (_Origin)
    {
       case SEEK_SET:
@@ -85,13 +92,16 @@ unsigned int fread(
    FILE* _Stream
 )
 {
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_read size = %i; element_count = %i", _ElementSize, _ElementCount);
    unsigned int byte_read;
    if ( f_read( ((File*)_Stream)->handle, _Buffer, _ElementSize*_ElementCount, &byte_read) == FR_OK)
    {
+      CLogger::Get ()->Write ("FILE", LogNotice, "f_read ok");
       return byte_read / _ElementSize;
    }
    else
    {
+      CLogger::Get ()->Write ("FILE", LogNotice, "*** f_read error");
       return 0;
    }
 
@@ -104,13 +114,16 @@ unsigned int fwrite(
    FILE* _Stream
 )
 {
+   
    unsigned int byte_written;
    if (f_write (((File*)_Stream)->handle, _Buffer, _ElementSize*_ElementCount, &byte_written) == FR_OK)
    {
+      CLogger::Get ()->Write ("FILE", LogNotice, "fwrite ok");
       return byte_written / _ElementSize;
    }
    else
    {
+      CLogger::Get ()->Write ("FILE", LogNotice, "*** fwrite errror");
       return 0;
    }
 }

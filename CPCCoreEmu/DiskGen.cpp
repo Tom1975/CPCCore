@@ -366,8 +366,10 @@ IDisk* DiskGen::CreateDisk(const char* path, ILoadingProgress* loading_progress,
    FormatType* format;
    if (disk_builder_.CanLoad(path, format))
    {
+      LOG ("DiskGen::CreateDisk - CanLoad ok")
       if (disk_builder_.LoadDisk(path, new_disk, loading_progress) == 0)
       {
+         LOG ("DiskGen::CreateDisk - LoadDisk ok")
          current_disk_format_ = format;
       }
    }
