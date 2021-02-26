@@ -6,6 +6,8 @@
 #include <circle/addon/fatfs/ff.h>
 #include <circle/logger.h>
 
+#include "simple_string.h"
+
 class File
 {
 public:
@@ -77,12 +79,15 @@ int fseek(FILE* _Stream, long  _Offset, int   _Origin)
 
 void rewind( FILE* _Stream) 
 {
+   CLogger::Get ()->Write ("FILE", LogNotice, "f_rewind");
    f_rewind ( ((File*)_Stream)->handle);
 }
 
 long ftell(FILE* _Stream)
 {
-   return f_tell (((File*)_Stream)->handle);
+   FSIZE_t size = f_tell (((File*)_Stream)->handle);
+   CLogger::Get ()->Write ("FILE", LogNotice, "ftell : %i", size);
+   return size;
 }
 
 unsigned int fread(
@@ -96,7 +101,12 @@ unsigned int fread(
    unsigned int byte_read;
    if ( f_read( ((File*)_Stream)->handle, _Buffer, _ElementSize*_ElementCount, &byte_read) == FR_OK)
    {
-      CLogger::Get ()->Write ("FILE", LogNotice, "f_read ok");
+      char buffer_trace [16*3+1];
+      for (unsigned int i = 0; i < 16 && i < byte_read; i++)
+      {
+         sprintf( &buffer_trace[i*3], "%2.2X ", ((unsigned char*)_Buffer)[i]);
+      }
+      CLogger::Get ()->Write ("FILE", LogNotice, "f_read ok : %s", buffer_trace);
       return byte_read / _ElementSize;
    }
    else
