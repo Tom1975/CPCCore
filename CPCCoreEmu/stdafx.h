@@ -30,6 +30,7 @@ namespace fs = std::filesystem;
 // fs does not exist there
 
 #elif __circle__
+#define BIG_ENDIAN
 #include "simple_filesystem.h"
 // fs does not exist there
 namespace fs = std::filesystem;

@@ -161,7 +161,6 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
          {
             // Formatted ?
             const unsigned char* header = buffer;
-
             if (side_[i].tracks[j].track_size > 0x100)
             {
                side_[i].tracks[j].formatted = true;
@@ -521,8 +520,6 @@ int FormatTypeEDSK::GetNbRevolutions(int side, int track)
 
 int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned int indexRevolution)
 {
-   unsigned char track_byte[DEFAULT_TRACK_SIZE * 16];
-   memset(track_byte, 0x00, sizeof(track_byte));
    unsigned int index_bit = 0;
    int search_base_index = 0;
    unsigned int max_search_index = 0;
@@ -539,8 +536,11 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
 
       return new_disk->side_[side].tracks[track].revolution[indexRevolution].size;
    }
-
+   
    // --- First of all : Seek in the existing sectors for a begining pattern
+   unsigned char *track_byte = new unsigned char [DEFAULT_TRACK_SIZE * 16];
+   memset(track_byte, 0x00, sizeof(track_byte));
+
    int index_iam = 0x80;
    bool begining_found = false;
    unsigned int exact_size = 0;
@@ -965,6 +965,7 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
          }
       }
    }
+   
    ////////////////////////////////////////
    // Also, check if it's an overlapping track. If yes (by looking for A1A1A1FC sync Pattern), adjust total size to keep shifting as describe here.
    // TODO !!!
@@ -997,7 +998,7 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
          side_[side].tracks[track].sectors[s].mfm_data = NULL;
       }
    }
-
+   delete []track_byte;
    if (exact_size != 0)
    {
       return exact_size;
