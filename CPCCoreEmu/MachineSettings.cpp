@@ -110,7 +110,6 @@ bool MachineSettings::Load(bool force_reload)
    lower_rom_ = buffer;
 
    // - Upper ROMs
-   upper_rom_.clear();
    char key[16];
    for (int i = 0; i < 256; i++)
    {

@@ -19,6 +19,8 @@ public:
       OK = 0
    };
 
+   virtual ~FormatType(){}
+   
    //////////////////////////////////////////////////////////
    // Format description : Name, descriptor, extension
    virtual const char* GetFormatName() = 0;
