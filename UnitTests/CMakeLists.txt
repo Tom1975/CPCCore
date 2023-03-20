@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(unitTests)
+
+include(GoogleTest)
+
 enable_testing()
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} PUBLIC ${CPCCORE} ${PROJECT_SOURCE_DIR}/../SFML/include)
@@ -33,6 +36,10 @@ add_executable( unitTests
 						   TestUtils.cpp
                      TestZ84C30.cpp
 
+)
+
+gtest_discover_tests(  unitTests
+                WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/.."
 )
 
 set(CMAKE_CXX_STANDARD 17)

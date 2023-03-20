@@ -333,6 +333,7 @@ protected:
       R_FIND_SYNC_FIELD,
       R_FIND_IDAM,
       R_FIND_ADRESS_MARK,
+      R_FIND_IDAM_FOUND,
       R_READ_CHRN,
       R_CHECK_CRC,
       R_FIND_DAM,
