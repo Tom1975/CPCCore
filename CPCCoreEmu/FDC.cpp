@@ -1155,13 +1155,15 @@ void FDC::ReadIdTick ()
       case R_CHECK_CRC:
          {
             unsigned int retCrc = HandleCRC ();
-            if (retCrc  == 1)
+            if (retCrc != 0)
             {
-               /*if (retCrc == 2)
+               if (retCrc == 2)
                {
                   status_1_ |= 0x4;
                   nd_ = true;
-               }*/
+                  status_2_ = status_2_ | 0x2;
+               }
+
                // Let's have a return !
                results_[0] = status_0_; // m_Status0;
                results_[1] = status_1_;

@@ -12,6 +12,7 @@
 #define NO_INIT_SCREENSHOT
 
 #define  SCR_COMPARE true
+#define  SCR_CREATE false
 
 /////////////////////////////////////////////////////////////
 /// Helper functions

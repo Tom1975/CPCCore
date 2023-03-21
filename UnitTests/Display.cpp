@@ -13,7 +13,13 @@
 #define DISP_WINDOW_Y   600
 
 
-CDisplay::CDisplay () : screenshot_detection_(false), window_(nullptr), renderTexture_(nullptr), framebuffer_(nullptr), framebufferArray_(nullptr)
+CDisplay::CDisplay () : screenshot_detection_(false), 
+                        window_(nullptr), 
+                        renderTexture_(nullptr), 
+                        framebuffer_(nullptr), 
+                        framebufferArray_(nullptr),
+                        screenshot_take_(false)
+
 {
 }
 
@@ -76,14 +82,13 @@ void CDisplay::Init (bool show)
 
 bool CDisplay::InitScreenshotDetection(const char* pathFile)
 {
-   screenshot_detection_ = true;
-   screenshot_found_ = false;
-
    if (!screenshot_texture_.loadFromFile(pathFile))
    {
       // error
       return false;
    }
+   screenshot_detection_ = true;
+   screenshot_found_ = false;
    screenshot_buffer_ = screenshot_texture_.getPixelsPtr();
    return true;
 }
@@ -106,7 +111,12 @@ void CDisplay::TakeScreenshot(const char* pathFile)
 }
 void CDisplay::ScreenshotToFile(const char* pathFile)
 {
-   
+   // Save screenshot to file
+   sf::Image screen_shot;
+   screen_shot.create(680, 500);
+   screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 640, 480 }, false);
+   screen_shot.saveToFile(pathFile);
+
 }
 
 void CDisplay::HSync ()
@@ -139,14 +149,9 @@ void CDisplay::VSync (bool bDbg)
       int* int_src_buff = (int*)src_buffer;
       for (int i = 0; i < 500 && ok; i++)
       {
-         //for (int j = 0; j < 680 && ok; j++)
-         {
-            if (memcmp(&framebufferArray_[143 + (i + 47) * REAL_DISP_X], &int_src_buff[143 + (i + 47) * REAL_DISP_X], 680 * 4) != 0)
-               //if ( framebufferArray_[143 + j + (i+47) * REAL_DISP_X ] != int_src_buff[143 + j + (i + 47) * REAL_DISP_X] )
-               ok = false;
-         }
+         if (memcmp(&screenshot_buffer_[143 + (i + 47) * REAL_DISP_X], &int_src_buff[143 + (i + 47) * REAL_DISP_X], 680 * 4) == 0)
+            ok = false;
       }
-      //if (memcmp(screenshot_buffer_, src_buffer, 680 * 500 * 4) == 0)
       if (ok)
       {
          screenshot_found_ = true;
