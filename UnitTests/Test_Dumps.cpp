@@ -1121,6 +1121,16 @@ TEST(Dumps_Disk, ReussirMathematiques)
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Reussir Mathematiques CM [A][MAXIT][SAMdisk387][Original][GAPS].dsk", "run\"r\r", &cmd_list, true));
 }
 
+TEST(Dumps_Disk, SecuTrack)
+{
+   TestDump test_dump;
+   CommandList cmd_list;
+   cmd_list.AddCommand(new CommandRunCycles(600));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/secutrack.bmp", SCR_CREATE/*SCR_COMPARE*/));
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/secutrack.hfe", "|cpm\r", &cmd_list, true));
+}
+
+
 //lappend testlist[SingleTest dsk47{ 6128 } {disk} {Shadow Of The Beast(UK) (Face 1) (1990) (CPM)[Original].dsk} { | cpm} {491} {SotB}]
 TEST(Dumps_Disk, ShadowOfTheBeast)
 {

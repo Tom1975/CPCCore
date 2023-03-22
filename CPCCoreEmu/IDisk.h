@@ -23,7 +23,7 @@
 #define DAAM_ERASED    0xF8
 
 // Only data bits here !
-#define SYNC_BIT_NUMBER 40
+#define SYNC_BIT_NUMBER 72 
 #define SYNC_BYTE 0x01
 #define WEAK_BYTE 0x02
 
