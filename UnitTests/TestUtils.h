@@ -7,7 +7,7 @@
 #include "Display.h"
 #include <filesystem>
 
-// SCR_COMPARE  = false : Generate screenshot
+// SCR_CREATE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
 #define NO_INIT_SCREENSHOT
 

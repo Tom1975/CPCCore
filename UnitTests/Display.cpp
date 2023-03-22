@@ -114,7 +114,7 @@ void CDisplay::ScreenshotToFile(const char* pathFile)
    // Save screenshot to file
    sf::Image screen_shot;
    screen_shot.create(680, 500);
-   screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 640, 480 }, false);
+   screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 680, 500 }, true);
    screen_shot.saveToFile(pathFile);
 
 }
@@ -139,19 +139,22 @@ void CDisplay::VSync (bool bDbg)
    if (screenshot_detection_)
    {
       // Extract (143, 47, 680, 500) from current image
-      framebuffer_->update((const sf::Uint8*)framebufferArray_);
-      sf::Image img = framebuffer_->copyToImage();
-      sf::Image img_src;
-      const unsigned char* src_buffer = img.getPixelsPtr();
-       
+      sf::Image screen_shot;
+      screen_shot.create(680, 500);
+      screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 680, 500 }, true);
+      const unsigned char* screenshot_buffer = screen_shot.getPixelsPtr();
+
       // Compare 
       bool ok = true;
-      int* int_src_buff = (int*)src_buffer;
       for (int i = 0; i < 500 && ok; i++)
       {
-         if (memcmp(&screenshot_buffer_[143 + (i + 47) * REAL_DISP_X], &int_src_buff[143 + (i + 47) * REAL_DISP_X], 680 * 4) == 0)
+         //if (memcmp(&screenshot_buffer_[i * REAL_DISP_X], &framebufferArray_[143 + (i + 47) * REAL_DISP_X], 680 * 4) != 0)
+         if (memcmp(&screenshot_buffer_[i * REAL_DISP_X], &screenshot_buffer[ i  * REAL_DISP_X], 680 * 4) != 0)
+         
             ok = false;
       }
+      framebuffer_->update((const sf::Uint8*)framebufferArray_);
+
       if (ok)
       {
          screenshot_found_ = true;
@@ -187,7 +190,7 @@ void CDisplay::VSync (bool bDbg)
          // process event...
       }
    }
-   Reset();
+   //Reset();
    if (stop_)
       return;
 
