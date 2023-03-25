@@ -7,3 +7,6 @@
 [submodule "SFML"]
 	path = SFML
 	url = https://github.com/SFML/SFML.git
+[submodule "benchmark"]
+	path = benchmark
+	url = https://github.com/google/benchmark
