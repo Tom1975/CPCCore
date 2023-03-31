@@ -53,5 +53,6 @@ if (GENERATE_BENCHMARK)
 endif()
 
 if ( USE_SFML)
+   set (SFML_BUILD_AUDIO FALSE )
    add_subdirectory(SFML)
 endif()
