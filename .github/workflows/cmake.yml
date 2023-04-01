@@ -23,7 +23,7 @@ jobs:
           - os: macOS-latest
             qt_version: 'clang_64'            
             cmake_arg: '' 
-            other_installer: 'brew install openal-soft && sudo brew install freetype'
+            other_installer: 'brew install openal-soft && brew install freetype'
             build_folder: /build 
             install_folder: /install
             test_command: 'bin/unitTests'
