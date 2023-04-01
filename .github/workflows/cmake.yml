@@ -33,7 +33,7 @@ jobs:
             other_installer: 'echo No more installer needed'
             build_folder: \build 
             install_folder: \install
-            test_command: 'UnitTests\${{env.BUILD_TYPE}}\unitTests.exe'
+            test_command: 'UnitTests\unitTests.exe'
           - os: Ubuntu-latest
             qt_version: 'gcc_64'            
             cmake_arg: '' 
