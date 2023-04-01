@@ -72,7 +72,7 @@ else()
 endif()
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(unitTests PUBLIC "-SAFESEH:NO" zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA} )
+target_link_libraries(unitTests PUBLIC zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA} )
 
 add_test( NAME unitTests COMMAND unitTests)
 
