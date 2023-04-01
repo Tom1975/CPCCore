@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.0)
 # Nom du projet
 project(CPCCore)
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(GENERATE_BENCHMARK OFF CACHE BOOL "Generate SugarBenchmark")
 set(GENERATE_UNITTESTS OFF CACHE BOOL "Generate UnitTests")
 set(BUILD_SHARED_LIBS FALSE)
