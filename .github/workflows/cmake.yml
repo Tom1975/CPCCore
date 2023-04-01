@@ -42,7 +42,7 @@ jobs:
             other_installer: 'sudo apt update && sudo apt-get install udev xvfb  && sudo apt-get install -y libudev-dev && sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev xorg-dev libx11-xcb-dev libxcb-render0-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-dri3-dev libxcb-util-dev --fix-missing'
             build_folder: /build 
             install_folder: /install
-            test_command: 'export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & && bin/unitTests'
+            test_command: 'export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &bin/unitTests'
             
     steps:
     - uses: actions/checkout@v3
