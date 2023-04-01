@@ -26,18 +26,21 @@ jobs:
             other_installer: 'brew install openal-soft'
             build_folder: /build 
             install_folder: /install
+            test_command: 'bin/unitTests'
           - os: windows-latest
             qt_version: 'win32_msvc2017'
             cmake_arg: '-AWin32' 
             other_installer: 'echo No more installer needed'
             build_folder: \build 
             install_folder: \install
+            test_command: 'UnitTests\${{env.BUILD_TYPE}}\unitTests.exe'
           - os: Ubuntu-latest
             qt_version: 'gcc_64'            
             cmake_arg: '' 
             other_installer: 'sudo apt-get install udev && sudo apt-get install -y libudev-dev && sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev'
             build_folder: /build 
             install_folder: /install
+            test_command: 'bin/unitTests'
             
     steps:
     - uses: actions/checkout@v3
@@ -51,19 +54,19 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}\build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}${{ matrix.install_folder }} ${{ matrix.cmake_arg }}
+      run: cmake -B ${{github.workspace}}${{build_folder}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}${{ matrix.install_folder }} ${{ matrix.cmake_arg }}
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}\build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}${{build_folder}} --config ${{env.BUILD_TYPE}}
 
     - name: Install
       # Build your program with the given configuration
-      run: cmake --install ${{github.workspace}}\build
+      run: cmake --install ${{github.workspace}}${{build_folder}}
 
     - name: Test
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}${{build_folder}}
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: UnitTests/${{env.BUILD_TYPE}}/unitTests.exe
+      run: ${{matrix.test_command}}
 
