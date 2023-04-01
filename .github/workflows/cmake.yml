@@ -37,7 +37,7 @@ jobs:
           - os: Ubuntu-latest
             qt_version: 'gcc_64'            
             cmake_arg: '' 
-            other_installer: 'sudo apt-get install udev && sudo apt-get install -y libudev-dev && sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev'
+            other_installer: 'sudo apt-get install xorg openbox && sudo apt-get install udev && sudo apt-get install -y libudev-dev && sudo apt-get install build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev'
             build_folder: /build 
             install_folder: /install
             test_command: 'export DISPLAY=:99 && sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &bin/unitTests'
