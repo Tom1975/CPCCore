@@ -27,13 +27,15 @@ jobs:
             build_folder: /build 
             install_folder: /install
             test_command: 'bin/unitTests'
+            
           - os: windows-latest
             qt_version: 'win32_msvc2017'
             cmake_arg: '-AWin32' 
             other_installer: 'echo No more installer needed'
             build_folder: \build 
             install_folder: \install
-            test_command: 'UnitTests\unitTests.exe'
+            test_command: 'bin\unitTests.exe'
+            
           - os: Ubuntu-latest
             qt_version: 'gcc_64'            
             cmake_arg: '' 
