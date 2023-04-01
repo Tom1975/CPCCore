@@ -42,6 +42,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install various 3rd party
+      run: ${{ matrix.other_installer }}
+      
     - name: Checkout submodules
       run: git submodule update --init --recursive
       
