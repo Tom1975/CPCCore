@@ -52,20 +52,18 @@ jobs:
       run: git submodule update --init --recursive
       
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}${{build_folder}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}${{ matrix.install_folder }} ${{ matrix.cmake_arg }}
+      run: cmake -B ${{github.workspace}}${{matrix.build_folder}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}${{ matrix.install_folder }} ${{ matrix.cmake_arg }}
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}${{build_folder}} --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}${{matrix.build_folder}} --config ${{env.BUILD_TYPE}}
 
     - name: Install
       # Build your program with the given configuration
-      run: cmake --install ${{github.workspace}}${{build_folder}}
+      run: cmake --install ${{github.workspace}}${{matrix.build_folder}}
 
     - name: Test
-      working-directory: ${{github.workspace}}${{build_folder}}
+      working-directory: ${{github.workspace}}${{matrix.build_folder}}
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ${{matrix.test_command}}
