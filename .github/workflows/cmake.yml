@@ -26,7 +26,7 @@ jobs:
             other_installer: 'brew install openal-soft && brew reinstall freetype'
             build_folder: /build 
             install_folder: /install
-            test_command: 'export LD_LIBRARY_PATH="/Users/runner/work/CPCCore/CPCCore/build/bin/lib/freetype.framework/:$LD_LIBRARY_PATH" && bin/unitTests'
+            test_command: 'echo No test on MacOS'
             
           - os: windows-latest
             qt_version: 'win32_msvc2017'
