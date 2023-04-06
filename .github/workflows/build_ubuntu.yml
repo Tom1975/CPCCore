@@ -21,8 +21,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt install qtbase5-dev --fix-missing
-        sudo apt-get install libqt5websockets5-dev --fix-missing
+        sudo apt-get install libqt5websockets5-dev xvfb --fix-missing
         sudo apt-get install udev build-essential libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg-dev libxi-dev --fix-missing
+        sudo apt-get xorg-dev libx11-xcb-dev libxcb-render0-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-dri3-dev libxcb-util-dev --fix-missing
         sudo apt-get install libxinerama-dev libxcursor-dev --fix-missing
         sudo apt-get install libudev-dev libglu1-mesa-dev libsecret-1-dev libnotify-dev --fix-missing
         sudo apt-get install checkinstall libtiff5-dev ubuntu-restricted-extras freeglut3 freeglut3-dev libcairo2-dev --fix-missing
@@ -49,4 +50,5 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         ls -l
-        bin/unitTests
+        xvfb-run --auto-servernum bin/unitTests
+        
