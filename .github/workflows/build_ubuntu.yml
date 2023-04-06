@@ -44,8 +44,9 @@ jobs:
       # Build your program with the given configuration
       run: |
         cmake --install ${{github.workspace}}/build
-        ls -l
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: bin/unitTests.exe
+      run: |
+        ls -l
+        bin/unitTests
