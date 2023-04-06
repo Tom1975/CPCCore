@@ -31,14 +31,19 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init --recursive 
       
-    - name: Configure CMake
+    - name: Configure a build
       run: |
         echo 'Generating makefile'
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
         make all
-        make install
+        ls -l
+        
+    - name: Install
+      # Build your program with the given configuration
+      run: |
+        cmake --install
         ls -l
 
     - name: Test
