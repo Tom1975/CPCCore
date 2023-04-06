@@ -43,7 +43,7 @@ jobs:
     - name: Install
       # Build your program with the given configuration
       run: |
-        cmake --install
+        cmake --install .
         ls -l
 
     - name: Test
