@@ -31,6 +31,7 @@ jobs:
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
-        make install
+        cmake --build . -DCMAKE_BUILD_TYPE=Release
+        cmake --install .
         ls -l
           
