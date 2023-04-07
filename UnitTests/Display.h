@@ -3,7 +3,7 @@
 // C RunTime Header Files
 #include <stdlib.h>
 #include <string>
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory.h>
 #include "Screen.h"
 
