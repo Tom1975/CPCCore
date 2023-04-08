@@ -9,7 +9,8 @@ jobs:
     runs-on: windows-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-    - name: Get vuild elements
+    - name: Get build elements
+      run: echo Get Build elemnt TODO
       
     - name: Test
       working-directory: ${{github.workspace}}\build
