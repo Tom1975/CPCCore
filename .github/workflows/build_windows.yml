@@ -32,7 +32,10 @@ jobs:
 
     - name: Install
       # Build your program with the given configuration
-      run: cmake --install ${{github.workspace}}\build
+      run: |
+        cmake --install ${{github.workspace}}\build
+        ls -l
+      
 
     - name: Test
       working-directory: ${{github.workspace}}\build
