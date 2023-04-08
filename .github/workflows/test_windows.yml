@@ -1,0 +1,16 @@
+on:
+  workflow_run:
+    workflows: [Build Windows]
+    types:
+      - completed
+      
+jobs:
+  on-success:
+    runs-on: windows-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Get vuild elements
+      
+    - name: Test
+      working-directory: ${{github.workspace}}\build
+      run: bin\unitTests.exe
