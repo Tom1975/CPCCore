@@ -18,8 +18,11 @@ jobs:
     runs-on: windows-latest
 
     steps:    
-    - name: Get build elements
-      run: echo Get Build elemnt TODO
+    - name: Download artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: ${{ github.event.workflow_run.workflow_id }}
+        workflow_conclusion: success            
             
     - name: Test
       working-directory: ${{github.workspace}}\build
