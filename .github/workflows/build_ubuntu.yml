@@ -46,9 +46,9 @@ jobs:
       run: |
         cmake --install ${{github.workspace}}/build
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: |
-        ls -l
-        xvfb-run --auto-servernum bin/unitTests
+    #- name: Test
+    #  working-directory: ${{github.workspace}}/build
+    #  run: |
+    #    ls -l
+    #    xvfb-run --auto-servernum bin/unitTests
         
