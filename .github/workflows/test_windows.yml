@@ -15,7 +15,7 @@ env:
 jobs:
 
   call-workflow:
-      uses:  .github/workflows/build_windows.yml@develop
+      uses:  ./.github/workflows/build_windows.yml
       
   on-success:
     runs-on: windows-latest
