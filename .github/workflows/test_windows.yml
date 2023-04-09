@@ -15,7 +15,7 @@ env:
 jobs:
 
   call-workflow:
-      uses: Tom1975/CPCCore/.github/workflows/build_windows.yml@main
+      uses:  .github/workflows/build_windows.yml@main
       
   on-success:
     runs-on: windows-latest
