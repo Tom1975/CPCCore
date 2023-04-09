@@ -1,15 +1,18 @@
+name: Test Windows
+
 on:
   workflow_run:
-    workflows: [Build Windows]
+    workflows: 'Build Windows'
     types:
       - completed
       
 jobs:
   on-success:
     runs-on: windows-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
     steps:
-    - name: Get vuild elements
+    - name: Get build elements
+      run: echo Get Build elemnt TODO
       
     - name: Test
       working-directory: ${{github.workspace}}\build

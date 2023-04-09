@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "master", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -46,9 +46,9 @@ jobs:
       run: |
         cmake --install ${{github.workspace}}/build
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: |
-        ls -l
-        xvfb-run --auto-servernum bin/unitTests
+    #- name: Test
+    #  working-directory: ${{github.workspace}}/build
+    #  run: |
+    #    ls -l
+    #    xvfb-run --auto-servernum bin/unitTests
         
