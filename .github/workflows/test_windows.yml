@@ -1,8 +1,8 @@
 name: Test_Windows
 
 on:
-  workflow_dispatch:
-  
+  pull_request:
+    branches: [ "master", "develop" ]
   workflow_run:
     workflows: [Build_Windows]
     types:
