@@ -1,8 +1,8 @@
 name: Test_Windows
 
 on:
-  push:
-    branches: [ "master", "develop" ]
+  workflow_dispatch:
+  
   workflow_run:
     workflows: [Build_Windows]
     types:
@@ -13,9 +13,10 @@ env:
   BUILD_TYPE: Release
   
 jobs:
+
   on-success:
     runs-on: windows-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:    
     - name: Get build elements
       run: echo Get Build elemnt TODO
