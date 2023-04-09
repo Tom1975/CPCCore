@@ -2,7 +2,7 @@ name: Test Windows
 
 on:
   workflow_run:
-    workflows: [Build Windows]
+    workflows: Build Windows
     types:
       - completed
       
