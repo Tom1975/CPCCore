@@ -1,6 +1,8 @@
 name: Build_Windows
 
 on:
+  workflow_call:
+  
   push:
     branches: [ "master", "develop" ]
   pull_request:
