@@ -16,7 +16,7 @@ jobs:
   test:
     runs-on: windows-latest
     steps:    
-    - name: Download artifact
+    - name: Launch build
       uses:  ./.github/workflows/build_windows.yml
 
     - name: Download artifact
