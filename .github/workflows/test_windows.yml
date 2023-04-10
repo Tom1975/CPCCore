@@ -13,20 +13,17 @@ env:
   BUILD_TYPE: Release
   
 jobs:
+  steps:    
+    call-workflow:
+    uses:  ./.github/workflows/build_windows.yml
 
-  call-workflow:
-      uses:  ./.github/workflows/build_windows.yml
-      
-  on-success:
     runs-on: windows-latest
-
-    steps:    
-    - name: Download artifact
-      uses: dawidd6/action-download-artifact@v2
-      with:
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
         workflow: ${{ github.event.workflow_run.workflow_id }}
         workflow_conclusion: success            
             
-    - name: Test
-      working-directory: ${{github.workspace}}\build
-      run: bin\unitTests.exe
+      - name: Test
+        working-directory: ${{github.workspace}}\build
+        run: bin\unitTests.exe
