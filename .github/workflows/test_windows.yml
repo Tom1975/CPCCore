@@ -17,11 +17,15 @@ jobs:
     needs: call-workflow
     runs-on: ubuntu-latest
     steps:
+    
+    
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          name: CPCCore_Win
-
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build_windows.yml
+          name: ${{ env.BUILD_ARTIFACTS }}
+          
       - name: Test
         working-directory: ${{github.workspace}}\build
         run: |
