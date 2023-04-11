@@ -43,7 +43,7 @@ jobs:
       with:
           name: CPCCore_Win
           path: |
-            ${{github.workspace}}/build/bin/unitTest.exe
+            ${{github.workspace}}/build/bin/unitTests.exe
             ${{github.workspace}}/build/res/
             
 
