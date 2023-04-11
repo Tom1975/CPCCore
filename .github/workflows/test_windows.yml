@@ -30,6 +30,5 @@ jobs:
       - name: Test
         working-directory: ${{github.workspace}}
         run: |
-          cd CPCCore_Win
           bin\unitTests.exe
 
