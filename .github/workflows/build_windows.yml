@@ -41,7 +41,10 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
           name: CPCCore_Win
-          path: ${{github.workspace}}/build/*
+          path: |
+            ${{github.workspace}}\build\bin\unitTest.exe
+            ${{github.workspace}}\res\
+            
 
     #- name: Test
     #  working-directory: ${{github.workspace}}\build
