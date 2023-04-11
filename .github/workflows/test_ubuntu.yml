@@ -1,4 +1,4 @@
-name: Test_Windows
+name: Test_Ubuntu
 
 on:
   workflow_dispatch:
@@ -11,24 +11,22 @@ env:
   
 jobs:
   call-workflow:
-    uses:  ./.github/workflows/build_windows.yml
+    uses:  ./.github/workflows/build_ubuntu.yml
     
   notify:
     needs: call-workflow
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-    
-    
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build_windows.yml
-          name: CPCCore_Win
-          path: ${{github.workspace}}
+          name: CPCCore_linux
           
       - name: Test
         working-directory: ${{github.workspace}}
         run: |
-          bin\unitTests.exe
-
+          ls
+          chmod +777 bin/unitTests
+          xvfb-run --auto-servernum bin/unitTests
+    
+        
