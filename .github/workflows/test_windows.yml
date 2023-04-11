@@ -15,7 +15,7 @@ jobs:
     
   notify:
     needs: call-workflow
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     
     
@@ -30,5 +30,6 @@ jobs:
         working-directory: ${{github.workspace}}\build
         run: |
           dir
+          cd res
           bin\unitTests.exe
 
