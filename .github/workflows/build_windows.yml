@@ -3,10 +3,10 @@ name: Build_Windows
 on:
   workflow_call:
   
-  push:
-    branches: [ "master", "develop" ]
-  pull_request:
-    branches: [ "master", "develop" ]
+#  push:
+#    branches: [ "master", "develop" ]
+#  pull_request:
+#    branches: [ "master", "develop" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
