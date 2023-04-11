@@ -21,8 +21,6 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           name: CPCCore_Win
-          workflow: ./.github/workflows/build_windows.yml
-          workflow_conclusion: success            
 
       - name: Test
         working-directory: ${{github.workspace}}\build
