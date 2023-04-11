@@ -36,14 +36,15 @@ jobs:
       # Build your program with the given configuration
       run: |
         cmake --install ${{github.workspace}}\build
-      
+        dir ${{github.workspace}}\build
+        
     - name: Archive zip
       uses: actions/upload-artifact@v3
       with:
           name: CPCCore_Win
           path: |
-            ${{github.workspace}}\build\bin\unitTest.exe
-            ${{github.workspace}}\res\
+            ${{github.workspace}}/build/bin/unitTest.exe
+            ${{github.workspace}}/build/res/
             
 
     #- name: Test
