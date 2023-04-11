@@ -44,6 +44,7 @@ jobs:
           name: CPCCore_Win
           path: |
             ${{github.workspace}}/build/bin/unitTests.exe
+            ${{github.workspace}}/build/TestConf.ini
             ${{github.workspace}}/build/res/
             ${{github.workspace}}/build/CONF/
             ${{github.workspace}}/build/CART/
