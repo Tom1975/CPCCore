@@ -2,11 +2,6 @@ name: Build_Windows
 
 on:
   workflow_call:
-  
-#  push:
-#    branches: [ "master", "develop" ]
-#  pull_request:
-#    branches: [ "master", "develop" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -14,9 +9,6 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: windows-latest
             
     steps:
@@ -49,8 +41,3 @@ jobs:
             ${{github.workspace}}/build/CONF/
             ${{github.workspace}}/build/CART/
             ${{github.workspace}}/build/ROM/
-
-    #- name: Test
-    #  working-directory: ${{github.workspace}}\build
-    #  run: bin\unitTests.exe
-
