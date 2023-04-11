@@ -4,6 +4,8 @@
 [![Build Ubuntu](https://github.com/Tom1975/CPCCore/actions/workflows/build_ubuntu.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/build_ubuntu.yml)
 [![Build MacOS](https://github.com/Tom1975/CPCCore/actions/workflows/build_macos.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/build_macos.yml)
 
+[![Test_Windows](https://github.com/Tom1975/CPCCore/actions/workflows/test_windows.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/test_windows.yml)
+
 Amstrad CPC cross platform core emulation.
 This can be used as a library for any project.
 
