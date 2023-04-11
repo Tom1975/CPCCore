@@ -48,7 +48,7 @@ jobs:
       with:
           name: CPCCore_linux
           path: |
-            ${{github.workspace}}/build/bin/unitTests.exe
+            ${{github.workspace}}/build/bin/unitTests
             ${{github.workspace}}/build/TestConf.ini
             ${{github.workspace}}/build/res/
             ${{github.workspace}}/build/CONF/
