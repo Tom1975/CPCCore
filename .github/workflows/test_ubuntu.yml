@@ -27,8 +27,6 @@ jobs:
         run: |
           ls
           chmod +777 bin/unitTests
-          cd CPCCore_linux
-          ls
           xvfb-run --auto-servernum bin/unitTests
     
         
