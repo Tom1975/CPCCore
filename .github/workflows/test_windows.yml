@@ -1,13 +1,10 @@
 name: Test_Windows
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ "master", "develop" ]
-  workflow_run:
-    workflows: [Build_Windows]
-    types:
-      - completed
-      
+    
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
