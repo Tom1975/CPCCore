@@ -1,0 +1,32 @@
+name: Test_Ubuntu
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ "master", "develop" ]
+    
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  
+jobs:
+  call-workflow:
+    uses:  ./.github/workflows/build_ubuntu.yml
+    
+  notify:
+    needs: call-workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: CPCCore_linux
+          
+      - name: Test
+        working-directory: ${{github.workspace}}
+        run: |
+          ls
+          chmod +777 bin/unitTests
+          xvfb-run --auto-servernum bin/unitTests
+    
+        
