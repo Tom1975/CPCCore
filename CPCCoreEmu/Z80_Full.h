@@ -21,10 +21,10 @@
             else {machine_cycle_=M_FETCH;t_ = 1;rw_opcode_=false;\
             current_opcode_ = 0;return 1;}
 
-#define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
+#define NEXT_INSTR         new_instruction_=true;current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
 
 #define NEXT_INSTR_RES(reset_ptr)\
-   /*if(reset_ptr)*/current_function_ = &fetch_func;\
+   /*if(reset_ptr)*/current_function_ = &fetch_func;new_instruction_=true;\
    if (!sig_->nmi_ && ((!sig_->int_) || !iff1_)){\
          SET_NOINT;}\
       if ((sig_->int_) && iff1_) {\
@@ -259,6 +259,8 @@ public:
       M_Z80_WAIT = 0xA0,
    } MachineCycle;
    MachineCycle machine_cycle_;
+
+   bool new_instruction_;
 
    // Inner helper attributes
    unsigned int counter_;

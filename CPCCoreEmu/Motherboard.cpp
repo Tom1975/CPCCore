@@ -414,7 +414,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
       signals_.Propagate();
       ++next_cycle;
 
-      if ((z80_.t_ == 1 &&
+      /*if ((z80_.t_ == 1 &&
          (z80_.machine_cycle_ == Z80::M_M1_NMI
             || z80_.machine_cycle_ == Z80::M_M1_INT)
          )
@@ -423,7 +423,8 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
             && ((z80_.current_opcode_ & 0xFF00) == 0)
             && elapsed_time_z80 == next_cycle
             )
-         )
+         )*/
+      if (z80_.new_instruction_)
       {
          counter_ += (component_elapsed_time_[z80_index_] - old_counter + 1);
          old_counter = component_elapsed_time_[z80_index_];

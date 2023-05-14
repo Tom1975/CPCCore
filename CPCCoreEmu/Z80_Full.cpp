@@ -9,6 +9,7 @@ Z80::Z80(void) :
    stop_on_fetch_(false), 
    rw_opcode_(false),
    log_(nullptr), 
+   new_instruction_(true),
    count_(0)
 {
 
@@ -145,6 +146,7 @@ void Z80::PreciseTick()
 
 unsigned int Z80::Tick_Fetch_1()
 {
+   new_instruction_ = false;
    INC_R
    // Set PC to address bus
    address_ = pc_++;
