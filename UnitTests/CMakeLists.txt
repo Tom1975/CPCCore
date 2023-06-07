@@ -42,6 +42,7 @@ add_executable( unitTests
 						   TestUtils.h
 						   TestUtils.cpp
                      TestZ84C30.cpp
+                     Test_Shaker_generation.cpp 
 
 )
 
