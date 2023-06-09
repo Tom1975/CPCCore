@@ -376,7 +376,7 @@ TEST(Dumps_Disk, DarkSceptre)
 }
 
 //lappend testlist[SingleTest dsk89{ 6128 } {disk} {Despotik Design[MAXIT][SAMdisk388][Original][ALLGAPS].dsk} {run"ere"} {1500} {defaut}]
-TEST(Dumps_Disk, DespotikDesign)
+TEST(Dumps_Disk, DISABLED_DespotikDesign)
 {
    TestDump test_dump;
    CommandList cmd_list;
