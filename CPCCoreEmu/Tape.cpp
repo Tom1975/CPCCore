@@ -2870,23 +2870,26 @@ double CTape::GetSoundVolume ()
 
 void CTape::SetTapePosition ( unsigned int nb_sec_from_begining)
 {
-   unsigned long long nbu_sec = 0;
-   unsigned int nb_sec = 0;
-   unsigned int i;
-   for (i = 0; i < nb_inversions_ && ( nb_sec < nb_sec_from_begining ); i++)
+   if (nb_inversions_ > 0)
    {
-      // Size of this inversion / sample rate = nb of samples
-      nbu_sec += tape_array_[i].length ;
-      while ( nbu_sec > 4000000)
+      unsigned long long nbu_sec = 0;
+      int nb_sec = 0;
+      unsigned int i;
+      for (i = 0; i < nb_inversions_ && (nb_sec < nb_sec_from_begining); i++)
       {
-         nb_sec ++;
-         nbu_sec -= 4000000;
+         // Size of this inversion / sample rate = nb of samples
+         nbu_sec += tape_array_[i].length;
+         while (nbu_sec > 4000000)
+         {
+            nb_sec++;
+            nbu_sec -= 4000000;
+         }
       }
+      tape_position_ = i;
+      remaining_reversal_flux_ = tape_array_[tape_position_].length - nbu_sec;
+      counter_sec_ = nb_sec;
+      counter_us_ = nbu_sec;
    }
-   tape_position_ = i;
-   remaining_reversal_flux_ = tape_array_[tape_position_].length - nbu_sec;
-   counter_sec_ = nb_sec;
-   counter_us_ = nbu_sec;
 
 }
 
