@@ -83,6 +83,12 @@ install(TARGETS unitTests
             ARCHIVE DESTINATION lib/static)
 
 install ( FILES "./TestConf.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf_0.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf_1.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf_2.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf_3.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf_4.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+
 install ( DIRECTORY "./ROM" DESTINATION ${PROJECT_BINARY_DIR}/..) 
 install ( DIRECTORY "./CART" DESTINATION ${PROJECT_BINARY_DIR}/..) 
 install ( DIRECTORY "./CONF" DESTINATION ${PROJECT_BINARY_DIR}/..) 
