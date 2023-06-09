@@ -64,7 +64,7 @@ class CTape : public IComponent, public IExternalSource, public ILoadingProgress
 {
 public:
    CTape(void);
-   ~CTape(void);
+   virtual ~CTape(void);
 
    void SetLog ( ILog* log ) {log_ = log;};
    void SetNotifier ( IFdcNotify* notify_tape){tape_notifier_ = notify_tape;}

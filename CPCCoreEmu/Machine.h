@@ -237,7 +237,7 @@ public:
    void MultifaceStop (){multiface_stop_ = true;}
    void MultifaceToggleVisible (){multiface2_.Visible(multiface2_.IsVisible()?false:true);};
    bool IsMultifaceIIVisible () { return multiface2_.IsVisible();};
-   // Données
+   // Data
    IPrinterPort* GetPrinter () { return motherboard_.GetPrinter();};
    Memory* GetMem () { return motherboard_.GetMem();};
    Asic* GetAsic() { return motherboard_.GetAsic(); }
