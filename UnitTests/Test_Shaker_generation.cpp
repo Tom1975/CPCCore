@@ -159,7 +159,7 @@ void main (void)
                         for (int j = 0; j < it->more_wait_; j++)
                         {
                            cmd_list.AddCommand(new CommandRunCycles(1000));
-                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) " _" + std::to_string(j + 1) + ".bmp";
+                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + " _" + std::to_string(j + 1) + ".bmp";
                            outname = outdir / name;
                            cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, outname, SCR_CREATE));
                         }
