@@ -146,13 +146,13 @@ int main(int argc, char* argv[])
       ++index;
    }
 
+   std::cout << "ShakerGenerator" << std::endl << std::endl;
+   std::cout << "Version of shaker : " << SHAKER_VERSION << std::endl;
    // Handle generic values
    if (argument_list.find("-help") != argument_list.end())
    {
       // Display help
-      std::cout << "ShakerGenerator" << std::endl << std::endl;
       std::cout << "A Sugarbox text to generate Shaker tests." << std::endl;
-      std::cout << "Version of shaker : " << SHAKER_VERSION << std::endl;
       std::cout << "Usage : ShakerGenerator [-help] [-show] [-out][-crtc crtc_num] [-module module_name] [-test test_name]" << std::endl;
       std::cout << "    -help   : display this message" << std::endl;
       std::cout << "    -crtc   : list the CRTC type to generate, from 0 to 4. It can be a list (ShakerGenerator -crtc 0 2 4)" << std::endl;
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 
       // Create output dir
       std::filesystem::path base_dir = (argument_list["-out"].size() > 0) ? argument_list["-out"][0] : ".";
-      std::filesystem::path outdir = base_dir / "Shaker_020202";
+      std::filesystem::path outdir = base_dir / "Shaker_" SHAKER_VERSION;
       std::filesystem::create_directory(outdir);
       outdir /= "CRTC" + extend_crtc[crtc];
       std::filesystem::create_directory(outdir);
@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
                      cmd_list.AddCommand(new CommandRunCycles(500));
 
                   }
-                  test_dump.Test("6128", ini_file, "./res/Shaker/shaker24.dsk", "run \"shaker24.bas\"\r", &cmd_list);
+                  test_dump.Test("6128", ini_file, "./Shaker/shaker24.dsk", "run \"shaker24.bas\"\r", &cmd_list);
                }
             }
          }

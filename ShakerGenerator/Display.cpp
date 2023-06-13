@@ -113,7 +113,7 @@ void CDisplay::ScreenshotToFile(const char* pathFile)
 {
    // Save screenshot to file
    sf::Image screen_shot;
-   screen_shot.create(680, 500);
+   screen_shot.create(REAL_DISP_X, REAL_DISP_Y);
    screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 0, 0, REAL_DISP_X, REAL_DISP_Y}, true);
    screen_shot.saveToFile(pathFile);
 
@@ -140,7 +140,7 @@ void CDisplay::VSync (bool bDbg)
    {
       // Extract (143, 47, 680, 500) from current image
       sf::Image screen_shot;
-      screen_shot.create(680, 500);
+      screen_shot.create(REAL_DISP_X, REAL_DISP_Y);
       screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 0, 0, REAL_DISP_X, REAL_DISP_Y }, true);
       const unsigned char* screenshot_buffer = screen_shot.getPixelsPtr();
 

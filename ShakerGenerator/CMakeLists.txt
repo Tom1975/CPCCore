@@ -37,3 +37,14 @@ install(TARGETS ShakerGenerator
             LIBRARY DESTINATION "."
             ARCHIVE DESTINATION lib/static)
 
+install ( FILES "./TestConf.ini" DESTINATION .) 
+install ( FILES "./TestConf_0.ini" DESTINATION .) 
+install ( FILES "./TestConf_1.ini" DESTINATION .) 
+install ( FILES "./TestConf_2.ini" DESTINATION .) 
+install ( FILES "./TestConf_3.ini" DESTINATION .) 
+install ( FILES "./TestConf_4.ini" DESTINATION .) 
+
+install ( DIRECTORY "../UnitTests/ROM" DESTINATION .) 
+install ( DIRECTORY "../UnitTests/CART" DESTINATION .) 
+install ( DIRECTORY "../UnitTests/CONF" DESTINATION .) 
+install ( DIRECTORY "../UnitTests/res/Shaker" DESTINATION .) 
