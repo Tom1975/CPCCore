@@ -33,18 +33,18 @@ add_executable( ShakerGenerator
 target_link_libraries(ShakerGenerator PUBLIC zlibstatic CPCCoreEmu sfml-graphics ${LIBZA} )
 
 install(TARGETS ShakerGenerator 
-            RUNTIME DESTINATION "."
-            LIBRARY DESTINATION "."
+            RUNTIME DESTINATION "./Shaker"
+            LIBRARY DESTINATION "./Shaker"
             ARCHIVE DESTINATION lib/static)
 
-install ( FILES "./TestConf.ini" DESTINATION .) 
-install ( FILES "./TestConf_0.ini" DESTINATION .) 
-install ( FILES "./TestConf_1.ini" DESTINATION .) 
-install ( FILES "./TestConf_2.ini" DESTINATION .) 
-install ( FILES "./TestConf_3.ini" DESTINATION .) 
-install ( FILES "./TestConf_4.ini" DESTINATION .) 
+install ( FILES "./TestConf.ini" DESTINATION "./Shaker") 
+install ( FILES "./TestConf_0.ini" DESTINATION "./Shaker") 
+install ( FILES "./TestConf_1.ini" DESTINATION "./Shaker")  
+install ( FILES "./TestConf_2.ini" DESTINATION "./Shaker")  
+install ( FILES "./TestConf_3.ini" DESTINATION "./Shaker")  
+install ( FILES "./TestConf_4.ini" DESTINATION "./Shaker")  
 
-install ( DIRECTORY "../UnitTests/ROM" DESTINATION .) 
-install ( DIRECTORY "../UnitTests/CART" DESTINATION .) 
-install ( DIRECTORY "../UnitTests/CONF" DESTINATION .) 
-install ( DIRECTORY "../UnitTests/res/Shaker" DESTINATION .) 
+install ( DIRECTORY "../UnitTests/ROM" DESTINATION "./Shaker") 
+install ( DIRECTORY "../UnitTests/CART" DESTINATION "./Shaker") 
+install ( DIRECTORY "../UnitTests/CONF" DESTINATION "./Shaker") 
+install ( DIRECTORY "../UnitTests/res/Shaker" DESTINATION "./Shaker") 

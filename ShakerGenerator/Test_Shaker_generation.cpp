@@ -71,7 +71,7 @@ std::vector<ShakerTest*> shaker_full_test =
    new ShakerTest("AI", "a", 23, 5, 0x1F),
    new ShakerTest("AO", "a", 24, 9, 0x1F),
    new ShakerTest("AP", "a", 25, 13, 0x1F),
-   new ShakerTest("AR", "a", 19, 6, 0x1F),
+   new ShakerTest("AR", "a", 19, 3, 0x1F, ShakerTest::Hit_Space),
    new ShakerTest("AT", "a", 20, 6, 0x1F),
    new ShakerTest("AU", "a", 22, 1, 0x1F),
    new ShakerTest("AY", "a", 21, 8, 0x1F),
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
                         subtest_ext[2] = 0;
                      }
 
-                     std::string name = "Shaker24_" + it->name_ + "_" + subtest_ext + ".bmp";
+                     std::string name = "Shaker24_" + it->name_ + "_" + subtest_ext + ".jpg";
                      std::filesystem::path outname = outdir / name;
                      cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, outname, SCR_CREATE));
 
@@ -277,13 +277,13 @@ int main(int argc, char* argv[])
                         case ShakerTest::Hit_Space:
                            cmd_list.AddCommand(new CommandKeyboard(" "));
                            cmd_list.AddCommand(new CommandRunCycles(500));
-                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + ".bmp";
+                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + ".jpg";
                            outname = outdir / name;
                            cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, outname, SCR_CREATE));
                            break;
                         case ShakerTest::Wait_a_sec:
                            cmd_list.AddCommand(new CommandRunCycles(1000));
-                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + ".bmp";
+                           name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + ".jpg";
                            outname = outdir / name;
                            cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, outname, SCR_CREATE));
                            break;
@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
                            for (int j = 0; j < it->more_wait_; j++)
                            {
                               cmd_list.AddCommand(new CommandRunCycles(1000));
-                              name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + " _" + std::to_string(j + 1) + ".bmp";
+                              name = "Shaker24_" + it->name_ + "_" + subtest_ext + "_" + std::to_string(i + 1) + " _" + std::to_string(j + 1) + ".jpg";
                               outname = outdir / name;
                               cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, outname, SCR_CREATE));
                            }
