@@ -416,6 +416,8 @@ public:
       delete machine_;
    }
 
+   void CustomFunction(unsigned int i);
+   void SetScreenshotHandler();
    bool Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
 
    bool display_;

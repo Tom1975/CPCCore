@@ -246,6 +246,20 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
+void TestDump::CustomFunction(unsigned int i)
+{
+   
+}
+
+void TestDump::SetScreenshotHandler()
+{
+   for (unsigned char i = 0; i < 0x1F; i++)
+   {
+      machine_->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode);});
+   }
+      
+   
+}
 
 bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
@@ -261,6 +275,8 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    machine_->SetConfigurationManager(&conf_manager);
 
    machine_->Init(&display, &soundFactory);
+
+   SetScreenshotHandler();
    machine_->GetMem()->Initialisation();
    machine_->GetMem()->Initialisation();
 

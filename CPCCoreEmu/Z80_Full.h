@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <map>
 
 #include "IComponent.h"
 #include "Memoire.h"
@@ -160,6 +162,7 @@ public:
       memory_ = memory; sig_ = sig; log_ = log;
    }
 
+
    void InitOpcodeShortcuts();
    void InitTickFunctions();
    unsigned char GetOpcodeSize(unsigned short address);
@@ -288,6 +291,63 @@ public:
       DD,
       FD,
    } OpcodeType;
+
+
+   std::function<void(unsigned int)> custom_opcode_decoder_;
+   std::map<unsigned int, Func> custom_commands;
+
+   unsigned int CustomOpcode()
+   {
+      custom_opcode_decoder_(current_opcode_);
+      // Execute custom call
+      if (custom_commands.find(current_opcode_) != custom_commands.end())
+      {
+         return (this->*(custom_commands[current_opcode_]))();
+      }
+      // Execute old behaviours
+      return 0;
+   }
+
+
+   template<OpcodeType type>
+   void SetCustomOpcode(unsigned char opcode, std::function<void(unsigned int)> func )
+   {
+      Opcode* op;
+      ListFunction* fetch;
+      unsigned short replaced_opcode = 0;
+      switch (type)
+      {
+      case None:
+         op = &liste_opcodes_[opcode];
+         fetch = &fetch_func;
+         replaced_opcode = opcode;
+         break;
+      case CB:
+         op = &liste_opcodes_cb_[opcode];
+         fetch = &fetch_func_cb_;
+         replaced_opcode = 0xCB|opcode;
+         break;
+      case ED:
+         op = &liste_opcodes_ed_[opcode];
+         fetch = &fetch_func_ed_;
+         replaced_opcode = 0xED | opcode;
+         break;
+      case DD:
+         op = &liste_opcodes_dd_[opcode];
+         fetch = &fetch_func_dd_;
+         replaced_opcode = 0xDD | opcode;
+         break;
+      case FD:
+         op = &liste_opcodes_fd_[opcode];
+         fetch = &fetch_func_fd_;
+         replaced_opcode = 0xFD | opcode;
+         break;
+      }
+      custom_opcode_decoder_ = func;
+      Func old_f = (*fetch)[opcode];
+      custom_commands[replaced_opcode] = old_f;
+      (*fetch)[opcode] = &Z80::CustomOpcode;
+   };
 
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
