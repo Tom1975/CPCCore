@@ -248,8 +248,12 @@ bool CompareTape(std::string p1)
 
 void TestDump::CustomFunction(unsigned int i)
 {
-   
+   // Create screenshot from current frame, name is generated from opcode
+   std::string filename = "screenshot.jpg";
+
+   display.TakeScreenshot(filename.c_str());
 }
+
 
 void TestDump::SetScreenshotHandler()
 {
