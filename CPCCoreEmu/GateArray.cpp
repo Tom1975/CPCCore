@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "VGA.h"
+#include "GateArray.h"
 #include "CRTC.h"
 #include <math.h>
 #include "DMA.h"
@@ -78,7 +78,7 @@ unsigned int ListeColors[] =
 };
 
 
-GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
+VideoGateArray::VideoGateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
 {
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
@@ -113,11 +113,11 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
 
 
 
-GateArray::~GateArray(void)
+VideoGateArray::~VideoGateArray(void)
 {
 }
 
-void GateArray::SetMonitor(Monitor* monitor) 
+void VideoGateArray::SetMonitor(Monitor* monitor) 
 {
    monitor_ = monitor; 
  
@@ -128,7 +128,7 @@ void GateArray::SetMonitor(Monitor* monitor)
    
 }
 
-void GateArray::Reset()
+void VideoGateArray::Reset()
 {
    ssa_new_ = ssa_new_counter_ = ssa_ = 0;
 
@@ -151,7 +151,7 @@ void GateArray::Reset()
    vsync_ = false;
 }
 
-void GateArray::SetBus(Bus* address, Bus* data)
+void VideoGateArray::SetBus(Bus* address, Bus* data)
 {
    address_bus_ = address;
    data_bus_ = data;
@@ -160,7 +160,7 @@ void GateArray::SetBus(Bus* address, Bus* data)
 
 //////////////////////////////////////////
 //
-void GateArray::PreciseTick()
+void VideoGateArray::PreciseTick()
 {
    // Up
    // Clock divisions
@@ -184,7 +184,8 @@ void GateArray::PreciseTick()
 
 }
 
-unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
+// 16 Mhz Gate array
+unsigned int VideoGateArray::Tick()
 {
    // MAJ SPLT ?
    if (ssa_new_counter_ > 0)
@@ -278,9 +279,9 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       || (sig_handler_->h_sync_on_begining_of_line_)
       || (sig_handler_->pri_changed_ && sig_handler_->h_sync_ == true))
    {
-      if (plus_ /*&& (m_HSyncCounter == 10)*/) // 10 us after HSYNC start
+      if (plus_ ) // 10 us after HSYNC start
       {
-         if (/*unlocked_ && */memory_->GetPRI() != 0)
+         if (memory_->GetPRI() != 0)
          {
             // Raster interrupt ?
             unsigned char pri = memory_->GetPRI();
@@ -748,7 +749,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 }
 
 
-void GateArray::TickIO()
+void VideoGateArray::TickIO()
 {
    // Something on IO Port ?
    // IORQ = 1 and Adress = 7F00 (01 for adress bit 15-14)
@@ -876,12 +877,12 @@ void GateArray::TickIO()
    }
 }
 
-void GateArray::TickDisplays()
+void VideoGateArray::TickDisplays()
 {
 }
 
 
-void GateArray::ComputeSpritePerLine(int sprite_number)
+void VideoGateArray::ComputeSpritePerLine(int sprite_number)
 {
    //for (int i = 0; i < 0x10; i++)
    {
@@ -903,7 +904,7 @@ void GateArray::ComputeSpritePerLine(int sprite_number)
    }
 }
 
-void GateArray::ComputeSpritePerColumn(int sprite_number)
+void VideoGateArray::ComputeSpritePerColumn(int sprite_number)
 {
    Memory::TSpriteInfo* sprite = memory_->GetSpriteInfo(sprite_number);
    for (int i = 0; i < 0x100; i++)
@@ -923,7 +924,7 @@ void GateArray::ComputeSpritePerColumn(int sprite_number)
    }
 }
 
-void GateArray::DrawSprites(int * buffer_display)
+void VideoGateArray::DrawSprites(int * buffer_display)
 {
    short y = (crtc_->vcc_);
    short sc = crtc_->vlc_;
@@ -969,7 +970,7 @@ void GateArray::DrawSprites(int * buffer_display)
    }
 }
 
-void GateArray::HandleDMA()
+void VideoGateArray::HandleDMA()
 {
    unsigned char dcsr = memory_->GetDCSR();
    if ((dcsr & 0x1) == 0x1)
@@ -985,7 +986,7 @@ void GateArray::HandleDMA()
       dma_list_[2].Hbl();
    }
 }
-DMA* GateArray::GetDMAChannel(int channel)
+DMA* VideoGateArray::GetDMAChannel(int channel)
 {
    return &dma_list_[channel];
 }
