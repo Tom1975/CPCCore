@@ -18,6 +18,13 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
 {
    breakpoint_index_ = 0;
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));
+
+   auto line_4mhz = gate_array.Get4MhzLine();
+   auto line_1mhz = gate_array.Get1MhzLine();
+
+   line_4mhz->AddComponent(&z80_);
+
+   line_1mhz->AddComponent(&crtc_);
 }
 
 Motherboard::~Motherboard()

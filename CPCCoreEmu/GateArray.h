@@ -37,6 +37,16 @@ public:
    void SetDMA(DMA* dma_list) {
       dma_list_ = dma_list;
    }
+
+   CClockLine* Get4MhzLine()
+   {
+      return &clock_4_mhz_;
+   }
+
+   CClockLine* Get1MhzLine() {
+      return &clock_1_mhz_;
+   }
+
    void SetPAL (bool bPAL) { pal_present_ = bPAL ; }
    void SetPlus(bool plus) { plus_ = plus; }
    // Initialisation et branchement des pins
