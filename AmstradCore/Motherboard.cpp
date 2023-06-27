@@ -1,100 +1,12 @@
 #include "Motherboard.h"
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
 ///////////////////////////////////////
 // Bus line
 //
-BusLine::BusLine() : up_(false)
-{
-   
-}
-
-BusLine::~BusLine()
-{
-   
-}
-
-void BusLine::AddComponent(IComponent* component)
-{
-   component_list_.push_back(component);
-}
-
-bool BusLine::GetLevel()
-{
-   return up_;
-}
-
-void BusLine::Tick()
-{
-   up_ = !up_;
-   for (auto& it : component_list_)
-   {
-      it->Tick();
-   }
-}
-
-///////////////////////////////////////
-// SingleLineSample
-SingleLineSample::SingleLineSample(std::string label, BusLine* line) :label_(label), line_(line)
-{
-
-}
-void SingleLineSample::Clear()
-{
-   samples_.clear();
-}
-
-std::string SingleLineSample::GetSample()
-{
-   // {name: '28Mhz', wave: '01010101010101010101010101010101'}
-   std::ostringstream buffer;
-   
-   buffer << "{name: '" << label_ << "', wave: '";
-   bool first = true, old = true;
-   for (auto it: samples_)
-   {
-      if (first || (old != it))
-      {
-         buffer << (it ? '1' : '0');
-      }
-      else
-      {
-         buffer << '.';
-      }
-      old = it;
-      first = false;
-   }
-   buffer << "'}";
-
-   return buffer.str();
-}
-
-///////////////////////////////////////
-// GateArray
-//
-GateArray::GateArray() : counter(0), line_4_mhz_(nullptr), line_1_mhz_(nullptr)
-{
-   
-}
-GateArray::~GateArray()
-{
-   
-}
-
-void GateArray::CreateGateArray(BusLine* line_4, BusLine* line_1)
-{
-   line_4_mhz_ = line_4;
-   line_1_mhz_ = line_1;
-}
-
-void GateArray::Tick()
-{
-   ++counter;
-   if ((counter & 0x3) == 0) line_4_mhz_->Tick();
-   if ((counter & 0xF) == 0) line_1_mhz_->Tick();
-}
 
 ///////////////////////////////////////
 // Motherboard
@@ -105,19 +17,25 @@ Motherboard::Motherboard()
 }
 
 Motherboard::~Motherboard()
-{
-
-}
+= default;
 
 void Motherboard::Create()
 {
 
-   gate_array_.CreateGateArray(&line_4_mhz_, &line_1_mhz_);
+   gate_array_.CreateGateArray(&line_4_mhz_, &line_CCLK_mhz_, &line_wait_  );
 
    // Sample process creation
-   samples_.push_back(SingleLineSample ( "16 Mhz",  & line_16_mhz_));
-   samples_.push_back(SingleLineSample ("4 Mhz",  &line_4_mhz_));
-   samples_.push_back(SingleLineSample ("1 Mhz" , &line_1_mhz_));
+   samples_.emplace_back("16MHz",  & line_16_mhz_);
+   samples_.emplace_back("4MHz",  &line_4_mhz_);
+   samples_.emplace_back("CCLK" , &line_CCLK_mhz_);
+   samples_.emplace_back("Wait", &line_wait_);
+   line_wait_.ForceLevel(true);
+}
+
+void Motherboard::Reset()
+{
+   // Set the Reset line.
+   // todo
 }
 
 void Motherboard::Tick()
@@ -141,6 +59,11 @@ void Motherboard::StartSample()
    {
       it.Clear();
    }
+   // First sample
+   for (auto& it : samples_)
+   {
+      it.samples_.push_back(it.line_->GetLevel());
+   }
 }
 
 std::string Motherboard::StopSample()
@@ -155,7 +78,7 @@ std::string Motherboard::StopSample()
       result += ",";
    }
 
-   result += "]}";
+   result += "],foot:{tock:1}}";
 
    return result;
 }
@@ -166,11 +89,27 @@ int main(int argc, char* argv[])
    mb.Create();
    mb.StartSample();
 
+   // Generate 128 ticks (16 us) for timing
    for (int i = 0; i < 128; i++)
    {
       mb.Tick();
    }
-   auto sp = mb.StopSample();
+   const auto sp = mb.StopSample();
+
+   // Check speed of the simulation
+   const auto start = std::chrono::high_resolution_clock::now();
+
+   for (int i = 0; i < 1000000*16; i++)
+   {
+      // Run 1 second
+      mb.Tick();
+   }
+   const auto elapsed = std::chrono::high_resolution_clock::now() - start;
+
+   const long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+      elapsed).count();
+
+   std::cout << "Elapsed time for 1000000 us : " << microseconds << " - Speed is " << ((1000000.0/ static_cast<double>(microseconds))*100.0)<< "%"<<std::endl;
 
    std::cout << sp << std::endl;
 
