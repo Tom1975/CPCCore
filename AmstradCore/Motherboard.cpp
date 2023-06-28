@@ -11,9 +11,9 @@
 ///////////////////////////////////////
 // Motherboard
 //
+
 Motherboard::Motherboard()
 {
-   line_16_mhz_.AddComponent(&gate_array_);
 }
 
 Motherboard::~Motherboard()
@@ -21,15 +21,57 @@ Motherboard::~Motherboard()
 
 void Motherboard::Create()
 {
+   ///////////////////////////
+   // Clock lines : which components are triggered
+   line_16_mhz_.AddComponent(&gate_array_);
+   line_4_mhz_.AddComponent(&z80_);
 
-   gate_array_.CreateGateArray(&line_4_mhz_, &line_CCLK_mhz_, &line_wait_  );
+   ///////////////////////////
+   // Chip creation & link
+   LINK_LINE(gate_array_, line_4_mhz_);
+   LINK_LINE(gate_array_, line_CCLK_mhz_);
+   LINK_LINE(gate_array_, line_CPU_ADDR_mhz_);
+   LINK_LINE(gate_array_, line_ready_);
+   LINK_LINE(gate_array_, line_int_);
+   LINK_LINE(gate_array_, line_reset_);
+   LINK_LINE(gate_array_, line_hsync_);
+   LINK_LINE(gate_array_, line_vsync_);
+   LINK_LINE(gate_array_, line_dispen_);
+   LINK_LINE(gate_array_, line_m1_);
+   LINK_LINE(gate_array_, line_iorq_);
+   LINK_LINE(gate_array_, line_rd_);
 
+   LINK_BUS(gate_array_, bus_address_);
+   LINK_BUS(gate_array_, bus_data_);
+
+   LINK_LINE(z80_, line_4_mhz_);
+   LINK_LINE(z80_, line_ready_);
+   LINK_LINE(z80_, line_int_);
+   LINK_LINE(z80_, line_reset_);
+   LINK_BUS(z80_, bus_address_);
+   LINK_BUS(z80_, bus_data_);
+
+   gate_array_.Create();
+   z80_.Create();
+
+
+   ///////////////////////////
    // Sample process creation
    samples_.emplace_back("16MHz",  & line_16_mhz_);
    samples_.emplace_back("4MHz",  &line_4_mhz_);
    samples_.emplace_back("CCLK" , &line_CCLK_mhz_);
-   samples_.emplace_back("Wait", &line_wait_);
-   line_wait_.ForceLevel(true);
+   samples_.emplace_back("CPU_ADDR", &line_CPU_ADDR_mhz_);
+   
+   samples_.emplace_back("Wait", &line_ready_);
+
+   samples_.emplace_back("Int", &line_int_);
+   samples_.emplace_back("Reset", &line_reset_);
+
+   samples_.emplace_back("HSync", &line_hsync_);
+   samples_.emplace_back("VSync", &line_vsync_);
+   samples_.emplace_back("DispEn", &line_dispen_);
+   
+   line_ready_.ForceLevel(true);
 }
 
 void Motherboard::Reset()

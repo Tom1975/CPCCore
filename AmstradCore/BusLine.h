@@ -5,7 +5,18 @@
 
 #include "IComponent.h"
 
-class BusLine : public IComponent
+template <typename T>
+class Bus
+{
+public:
+   Bus():data_(0), highz_(-1){};
+   virtual ~Bus() {};
+
+   T data_;
+   T highz_;
+};
+
+class BusLine
 {
 public:
    BusLine();
@@ -13,13 +24,13 @@ public:
 
    void AddComponent(IComponent* component);
 
-   void Tick() override;
-   bool GetLevel();
-   void ForceLevel(bool level);
+   void Tick();
+   unsigned char GetLevel();
+   void ForceLevel(unsigned char level);
 
 protected:
 
    std::vector<IComponent*> component_list_;
-   bool up_;
+   unsigned char up_;
 };
 

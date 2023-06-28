@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+
+
 ///////////////////////////////////////
 // Bus line
 //
@@ -21,7 +23,7 @@ void BusLine::AddComponent(IComponent* component)
    component_list_.push_back(component);
 }
 
-bool BusLine::GetLevel()
+unsigned char BusLine::GetLevel()
 {
    return up_;
 }
@@ -31,11 +33,11 @@ void BusLine::Tick()
    up_ = !up_;
    for (auto& it : component_list_)
    {
-      it->Tick();
+      up_?(it->TickUp()): (it->TickDown());
    }
 }
 
-void BusLine::ForceLevel(bool level)
+void BusLine::ForceLevel(unsigned char level)
 {
    up_ = level;
 }
