@@ -41,6 +41,7 @@ protected:
 
    void Sequencer();
    void SequencerDecode();
+   void SequencerDecodeDown();
 
    unsigned char s_;
    unsigned int counter;

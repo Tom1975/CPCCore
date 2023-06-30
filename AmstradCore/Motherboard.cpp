@@ -129,6 +129,12 @@ int main(int argc, char* argv[])
 {
    Motherboard mb;
    mb.Create();
+
+   for (int i = 0; i < 128; i++)
+   {
+      mb.Tick();
+   }
+
    mb.StartSample();
 
    // Generate 128 ticks (16 us) for timing

@@ -4,6 +4,8 @@
 
 #include "GateArray.h"
 
+#define S(n)(s_>>n)
+
 ///////////////////////////////////////
 // GateArray
 //
@@ -45,42 +47,20 @@ void GateArray::Sequencer()
    }
 }
 
+void GateArray::SequencerDecodeDown()
+{
+   u313_ = (~u312_) & 0x1;
+}
+
 void GateArray::SequencerDecode()
 {
    // PHI :
-   switch (s_ & 0xAA)
-   {
-   case 0:
-   case 0xA:
-   case 0xAA:
-   case 0xA0:
-      line_4_mhz_->ForceLevel(0);
-      break;
-   default:
-      line_4_mhz_->ForceLevel(1);
-      break;
-   }
+   line_4_mhz_->ForceLevel((~ (((s_ >> 1) ^ (s_ >> 3)) | ( (s_>>5)^(s_>>7)))) & 0x1);
+   u312_ = (((s_ >> 6) | (~(s_ >> 2))) & s_) & 0x1;
+
 
    // RAS
    // CASAD
-
-   // READY :
-   // if ( ((S6 ||(S7)) || S0 ) == 0 ) & Ready) || (S3 & !S6)
-   // compute  READY
-   line_ready_->ForceLevel( (( s_>>3) & (!(s_>>6))) | (line_ready_->GetLevel()& u313_ ));
-
-   u313_ = (~u312_)&0x1;
-   u312_ = (((s_ >> 6) | (~(s_ >> 2))) & s_ ) & 0x1;
-
-
-   // CPU : ~(S1 & (!S7))
-   line_CPU_ADDR_mhz_->ForceLevel((s_& 0x82) != 0x02 );
-
-   // CLK
-   line_CCLK_mhz_->ForceLevel((s_&0x24) == 0);
-
-   // MWE
-   // 244E
 
 }
 
@@ -89,9 +69,26 @@ void GateArray::TickUp()
    SequencerDecode();
 
    Sequencer();
+
+   // WAIT
+   line_ready_->ForceLevel((((s_ >> 3) & (~(s_ >> 6))) | (line_ready_->GetLevel() & u313_)) & 0x1);
+
+   // Set the immediate value from s_
+   // CPU : ~(S1 & (!S7))
+   line_CPU_ADDR_mhz_->ForceLevel((~(S(1) & (~S(7)))) & 0x1);
+
+   // CLK
+   line_CCLK_mhz_->ForceLevel((~(S(2) | S(5)))&0x1);
+
+   // MWE
+   // 244E
+
+
 }
 
 void GateArray::TickDown()
 {
+   SequencerDecodeDown();
+   line_ready_->ForceLevel((((s_ >> 3) & (~(s_ >> 6))) | (line_ready_->GetLevel() & u313_)) & 0x1);
 }
 
