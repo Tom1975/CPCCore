@@ -12,12 +12,11 @@ file( GLOB HEADERS
 #Fichier ressource
 MESSAGE ("CMAKE_CURRENT_BINARY_DIR =" ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${INSTALL_INC_DIR}  ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
-add_executable(AmstradCore ${SRCS} ${HEADERS})
+add_library(AmstradCore ${SRCS} ${HEADERS})
 
 set_target_properties(AmstradCore PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories( AmstradCore PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib ${CMAKE_CURRENT_BINARY_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(AmstradCore PUBLIC zlibstatic ${LIBZA} )
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS
