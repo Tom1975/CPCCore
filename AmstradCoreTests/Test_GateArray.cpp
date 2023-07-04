@@ -19,29 +19,64 @@
 #include "Motherboard.h"
 #include "gtest/gtest.h"
 
-/////////////////////////////////////////////////////////////
-// Gate array tests
-
-TEST(GateArray, Clocks)
+namespace GATE_ARRAY
 {
-   // Generate clocks. Compare with what's expected
-   Motherboard mb;
-   mb.Create();
-
-   for (int i = 0; i < 128; i++)
+   /////////////////////////////////////////////////////////////
+   // Check the various clocks & signals (16mhz, 4mhz, cclk, cpu_addr, wait )
+   TEST(GateArray, Clocks)
    {
-      mb.Tick();
+      // Generate clocks. Compare with what's expected
+      Motherboard mb;
+      mb.Create();
+
+      for (int i = 0; i < 128; i++)
+      {
+         mb.Tick();
+      }
+
+      mb.StartSample();
+
+      // Generate 128 ticks (16 us) for timing
+      for (int i = 0; i < 128; i++)
+      {
+         mb.Tick();
+      }
+      const auto sp = mb.StopSample();
+
+      // Compare it with what's expected
+      ASSERT_EQ(sp, "{signal: [{name: '16MHz', wave: 'lhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhl'},{name: '4MHz', wave: 'lh...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...'},{name: 'CCLK', wave: 'l..................h.........l.....................h.........l.....................h.........l.....................h.........l...'},{name: 'CPU_ADDR', wave: 'l......h...................l...........h...................l...........h...................l...........h...................l.....'},{name: 'Wait', wave: 'h.......l......................h........l......................h........l......................h........l......................h.'},{name: 'Int', wave: 'l................................................................................................................................'},{name: 'Reset', wave: 'l................................................................................................................................'},{name: 'HSync', wave: 'l................................................................................................................................'},{name: 'VSync', wave: 'l................................................................................................................................'},{name: 'DispEn', wave: 'l................................................................................................................................'},],foot:{tock:1}}");
    }
 
-   mb.StartSample();
-
-   // Generate 128 ticks (16 us) for timing
-   for (int i = 0; i < 128; i++)
+   /////////////////////////////////////////////////////////////
+   // Check the sequencer
+   TEST(Sequencer, Evolution)
    {
-      mb.Tick();
-   }
-   const auto sp = mb.StopSample();
+      Motherboard mb;
+      mb.Create();
+      GateArray* ga = mb.GetGateArray();
 
-   // Compare it with what's expected
-   ASSERT_EQ(sp, "");
+      // Initial condition :
+      for (int i = 0; i < 16; i++)
+      {
+         ga->TickUp();
+         if ( ga->GetS() == 0xFF)
+         {
+            break;
+         }
+      }
+
+      if (ga->GetS() != 0xFF)
+      {
+         FAIL() << "Cannot set S to 0 !" << std::endl;
+      }
+
+      const unsigned char value_expected[] = {0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xE0, 0xC0, 0x80, 0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F };
+      for (unsigned char i : value_expected)
+      {
+         ASSERT_EQ(i, ga->GetS());
+         ga->TickUp();
+      }
+
+   }
+
 }

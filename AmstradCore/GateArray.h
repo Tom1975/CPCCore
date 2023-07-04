@@ -41,6 +41,11 @@ public:
    DECLARE_REFERENCE_BUS_ADDRESS(bus_address_);
    DECLARE_REFERENCE_BUS_DATA(bus_data_);
 
+   //////////////////////////
+   // Test : Convenient methods to access inner data
+   unsigned char GetS() { return s_; }
+
+
 protected:
 
    void Sequencer();

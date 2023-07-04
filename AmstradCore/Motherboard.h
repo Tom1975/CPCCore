@@ -37,6 +37,13 @@ public:
    void StartSample();
    std::string StopSample();
 
+   ///////////////////////////////////////
+   // Component access
+   GateArray* GetGateArray()
+   {
+      return &gate_array_;
+   }
+
 protected:
    ///////////////////////////////////////
    // Sample

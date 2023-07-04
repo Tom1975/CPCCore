@@ -124,7 +124,7 @@ std::string Motherboard::StopSample()
 
    return result;
 }
-
+/*
 int main(int argc, char* argv[])
 {
    Motherboard mb;
@@ -162,4 +162,4 @@ int main(int argc, char* argv[])
    std::cout << sp << std::endl;
 
    return 0;
-}
+}*/
