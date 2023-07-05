@@ -54,23 +54,6 @@ void Motherboard::Create()
    gate_array_.Create();
    z80_.Create();
 
-
-   ///////////////////////////
-   // Sample process creation
-   samples_.emplace_back("16MHz",  & line_16_mhz_);
-   samples_.emplace_back("4MHz",  &line_4_mhz_);
-   samples_.emplace_back("CCLK" , &line_CCLK_mhz_);
-   samples_.emplace_back("CPU_ADDR", &line_CPU_ADDR_mhz_);
-   
-   samples_.emplace_back("Wait", &line_ready_);
-
-   samples_.emplace_back("Int", &line_int_);
-   samples_.emplace_back("Reset", &line_reset_);
-
-   samples_.emplace_back("HSync", &line_hsync_);
-   samples_.emplace_back("VSync", &line_vsync_);
-   samples_.emplace_back("DispEn", &line_dispen_);
-   
    line_ready_.ForceLevel(true);
 }
 
@@ -84,46 +67,8 @@ void Motherboard::Tick()
 {
    line_16_mhz_.Tick();
 
-   if (sample_)
-   {
-      // Sample the whole lines
-      for (auto& it : samples_)
-      {
-         it.samples_.push_back(it.line_->GetLevel());
-      }
-   }
 }
 
-void Motherboard::StartSample()
-{
-   sample_ = true;
-   for (auto& it : samples_)
-   {
-      it.Clear();
-   }
-   // First sample
-   for (auto& it : samples_)
-   {
-      it.samples_.push_back(it.line_->GetLevel());
-   }
-}
-
-std::string Motherboard::StopSample()
-{
-   sample_ = false;
-
-   std::string result = "{signal: [";
-
-   for (auto& it : samples_)
-   {
-      result += it.GetSample();
-      result += ",";
-   }
-
-   result += "],foot:{tock:1}}";
-
-   return result;
-}
 /*
 int main(int argc, char* argv[])
 {

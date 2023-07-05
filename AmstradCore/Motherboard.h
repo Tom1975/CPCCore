@@ -8,8 +8,6 @@
 #include "GateArray.h"
 #include "Z80.h"
 
-#include "SingleLineSample.h"
-
 
 class Motherboard
 {
@@ -33,23 +31,11 @@ public:
    void Tick();
 
    ///////////////////////////////////////
-   // Sample
-   void StartSample();
-   std::string StopSample();
-
-   ///////////////////////////////////////
    // Component access
    GateArray* GetGateArray()
    {
       return &gate_array_;
    }
-
-protected:
-   ///////////////////////////////////////
-   // Sample
-   bool sample_{};
-
-   std::vector<SingleLineSample> samples_;
 
    ///////////////////////////////////////
    // Inner components lines
@@ -95,7 +81,9 @@ protected:
    BusLine line_sound_;
    BusLine line_rd_data_;
    BusLine line_wr_data_;
-   
+
+protected:
+
    ///////////////////////////////////////
    /// Components
    Z80 z80_;

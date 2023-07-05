@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "Sampler.h"
 #include "Motherboard.h"
 #include "gtest/gtest.h"
 
@@ -27,24 +28,44 @@ namespace GATE_ARRAY
    {
       // Generate clocks. Compare with what's expected
       Motherboard mb;
+      Sampler sampler;
       mb.Create();
 
       for (int i = 0; i < 128; i++)
       {
          mb.Tick();
       }
+      // Create Samples
 
-      mb.StartSample();
+
+   ///////////////////////////
+   // Sample process creation
+      sampler.AddLineToSample("16MHz", &mb.line_16_mhz_);
+      sampler.AddLineToSample("4MHz", &mb.line_4_mhz_);
+      sampler.AddLineToSample("CCLK", &mb.line_CCLK_mhz_);
+      sampler.AddLineToSample("CPU_ADDR", &mb.line_CPU_ADDR_mhz_);
+
+      sampler.AddLineToSample("Wait", &mb.line_ready_);
+
+      sampler.AddLineToSample("Int", &mb.line_int_);
+      sampler.AddLineToSample("Reset", &mb.line_reset_);
+
+      sampler.AddLineToSample("HSync", &mb.line_hsync_);
+      sampler.AddLineToSample("VSync", &mb.line_vsync_);
+      sampler.AddLineToSample("DispEn", &mb.line_dispen_);
+
+
 
       // Generate 128 ticks (16 us) for timing
       for (int i = 0; i < 128; i++)
       {
          mb.Tick();
+         sampler.AddSample();
       }
-      const auto sp = mb.StopSample();
+      const auto sp = sampler.GetWaves();
 
       // Compare it with what's expected
-      ASSERT_EQ(sp, "{signal: [{name: '16MHz', wave: 'lhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhl'},{name: '4MHz', wave: 'lh...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...'},{name: 'CCLK', wave: 'l..................h.........l.....................h.........l.....................h.........l.....................h.........l...'},{name: 'CPU_ADDR', wave: 'l......h...................l...........h...................l...........h...................l...........h...................l.....'},{name: 'Wait', wave: 'h.......l......................h........l......................h........l......................h........l......................h.'},{name: 'Int', wave: 'l................................................................................................................................'},{name: 'Reset', wave: 'l................................................................................................................................'},{name: 'HSync', wave: 'l................................................................................................................................'},{name: 'VSync', wave: 'l................................................................................................................................'},{name: 'DispEn', wave: 'l................................................................................................................................'},],foot:{tock:1}}");
+      ASSERT_EQ(sp, "{signal: [{name: '16MHz', wave: 'hlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhl'},{name: '4MHz', wave: 'h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...h...l...'},{name: 'CCLK', wave: 'l.................h.........l.....................h.........l.....................h.........l.....................h.........l...'},{name: 'CPU_ADDR', wave: 'l.....h...................l...........h...................l...........h...................l...........h...................l.....'},{name: 'Wait', wave: 'h......l......................h........l......................h........l......................h........l......................h.'},{name: 'Int', wave: 'l...............................................................................................................................'},{name: 'Reset', wave: 'l...............................................................................................................................'},{name: 'HSync', wave: 'l...............................................................................................................................'},{name: 'VSync', wave: 'l...............................................................................................................................'},{name: 'DispEn', wave: 'l...............................................................................................................................'},],foot:{tock:1}}");
    }
 
    /////////////////////////////////////////////////////////////
