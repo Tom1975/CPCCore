@@ -21,25 +21,36 @@ public:
    void VSync(bool set);
    void HSync(bool set);
 
-   // Various lines
-   DECLARE_REFERENCE_LINE(line_4_mhz_);
-   DECLARE_REFERENCE_LINE(line_CCLK_mhz_);
-   DECLARE_REFERENCE_LINE(line_CPU_ADDR_mhz_);
-
-   DECLARE_REFERENCE_LINE(line_ready_);
-   DECLARE_REFERENCE_LINE(line_reset_);
-   DECLARE_REFERENCE_LINE(line_int_);
-   DECLARE_REFERENCE_LINE(line_hsync_);
+   /////////////////////////////////////
+   // Various lines, in order of the ship (begining top, clockwork)
    DECLARE_REFERENCE_LINE(line_vsync_);
+   DECLARE_REFERENCE_LINE(line_hsync_);
    DECLARE_REFERENCE_LINE(line_dispen_);
-   DECLARE_REFERENCE_LINE(line_cpu_addr_);
-   DECLARE_REFERENCE_LINE(line_m1_);
-   DECLARE_REFERENCE_LINE(line_iorq_);
-   DECLARE_REFERENCE_LINE(line_rd_);
-   DECLARE_REFERENCE_LINE(line_mreq_);
 
-   DECLARE_REFERENCE_BUS_ADDRESS(bus_address_);
-   DECLARE_REFERENCE_BUS_DATA(bus_data_);
+   // R, G, B : No dedicated lines for color output to VDU
+   // Sync either
+   // VDD1-2 and VSS1,2,3 : not connected
+
+   DECLARE_REFERENCE_LINE(line_romen_);            // NROMEN
+   DECLARE_REFERENCE_LINE(line_int_);              // NINTERRUPT
+   DECLARE_REFERENCE_LINE(line_iorq_);             // NIORQ
+   DECLARE_REFERENCE_LINE(line_rd_);               // NRD
+   DECLARE_REFERENCE_LINE(line_m1_);               // NM1
+   DECLARE_REFERENCE_LINE(line_mreq_);             // NMREQ
+   DECLARE_REFERENCE_LINE(line_4_mhz_);            // NPHI
+   DECLARE_REFERENCE_LINE(line_reset_);            // NRESET
+   DECLARE_REFERENCE_LINE(line_ready_);            // READY
+   DECLARE_REFERENCE_BUS_ADDRESS(bus_address_);    // Address
+   DECLARE_REFERENCE_LINE(line_ramrd_);            // NRAMRD
+   DECLARE_REFERENCE_LINE(line_16_mhz_);           // CK16 
+   DECLARE_REFERENCE_BUS_DATA(bus_data_);          // Data
+   DECLARE_REFERENCE_LINE(line_n24en_);            // N24EN
+   DECLARE_REFERENCE_LINE(line_ras_);              // NRAS
+   DECLARE_REFERENCE_LINE(line_ncas_);             // NCAS
+   DECLARE_REFERENCE_LINE(line_we_)                // NMWE
+   DECLARE_REFERENCE_LINE(line_CCLK_mhz_);         // CCLK
+   DECLARE_REFERENCE_LINE(line_casad);             // NCASAD 
+   DECLARE_REFERENCE_LINE(line_CPU_ADDR_mhz_);     // NCPU
 
    //////////////////////////
    // Test : Convenient methods to access inner data

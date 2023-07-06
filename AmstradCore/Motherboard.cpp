@@ -28,21 +28,31 @@ void Motherboard::Create()
 
    ///////////////////////////
    // Chip creation & link
-   LINK_LINE(gate_array_, line_4_mhz_);
-   LINK_LINE(gate_array_, line_CCLK_mhz_);
-   LINK_LINE(gate_array_, line_CPU_ADDR_mhz_);
-   LINK_LINE(gate_array_, line_ready_);
-   LINK_LINE(gate_array_, line_int_);
-   LINK_LINE(gate_array_, line_reset_);
-   LINK_LINE(gate_array_, line_hsync_);
    LINK_LINE(gate_array_, line_vsync_);
+   LINK_LINE(gate_array_, line_hsync_);
    LINK_LINE(gate_array_, line_dispen_);
-   LINK_LINE(gate_array_, line_m1_);
+   LINK_LINE(gate_array_, line_romen_);
+   LINK_LINE(gate_array_, line_int_);
    LINK_LINE(gate_array_, line_iorq_);
    LINK_LINE(gate_array_, line_rd_);
-
+   LINK_LINE(gate_array_, line_m1_);
+   LINK_LINE(gate_array_, line_mreq_);
+   LINK_LINE(gate_array_, line_4_mhz_);
+   LINK_LINE(gate_array_, line_reset_);
+   LINK_LINE(gate_array_, line_ready_);
    LINK_BUS(gate_array_, bus_address_);
+   LINK_LINE(gate_array_, line_ramrd_);
+   LINK_LINE(gate_array_, line_16_mhz_);
    LINK_BUS(gate_array_, bus_data_);
+   LINK_LINE(gate_array_, line_n24en_);
+   LINK_LINE(gate_array_, line_ras_);
+   LINK_LINE(gate_array_, line_ncas_);
+   LINK_LINE(gate_array_, line_we_)
+   LINK_LINE(gate_array_, line_CCLK_mhz_);
+   LINK_LINE(gate_array_, line_casad);
+   LINK_LINE(gate_array_, line_CPU_ADDR_mhz_);
+
+   
 
    LINK_LINE(z80_, line_4_mhz_);
    LINK_LINE(z80_, line_ready_);
