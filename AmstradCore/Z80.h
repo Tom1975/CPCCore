@@ -25,11 +25,11 @@ public:
    DECLARE_REFERENCE_LINE(line_int_);              // INT      - In
    DECLARE_REFERENCE_LINE(line_nm1_);              // NM1      - In
    DECLARE_REFERENCE_LINE(line_ready_);            // READY    - In
-   DECLARE_REFERENCE_LINE(line_bus_ak_);           // BUSAK    - Out
+   DECLARE_REFERENCE_LINE(line_busak_);           // BUSAK    - Out
    DECLARE_REFERENCE_LINE(line_halt_);             // HALT     - Out
    DECLARE_REFERENCE_LINE(line_mreq_);             // NMREQ    - Out
    DECLARE_REFERENCE_LINE(line_m1_);               // NM1      - Out
-   DECLARE_REFERENCE_LINE(line_refresh_);          // RFSH     - Out
+   DECLARE_REFERENCE_LINE(line_rfsh_);          // RFSH     - Out
    DECLARE_REFERENCE_LINE(line_4_mhz_);            // PHI      - In
    DECLARE_REFERENCE_LINE(line_iorq_);             // NIORQ    - Out
    DECLARE_REFERENCE_LINE(line_wr_);               // WR       - Out

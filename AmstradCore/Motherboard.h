@@ -44,6 +44,8 @@ public:
    Bus<unsigned short> bus_address_;
    Bus<unsigned char> bus_data_;
 
+   Bus<unsigned char> bus_data_ppi_ay_;
+
    // Line are alphabetically sorted
    BusLine line_16_mhz_;
    BusLine line_4_mhz_;
@@ -56,16 +58,20 @@ public:
    BusLine line_casad;
    BusLine line_CCLK_mhz_;
    BusLine line_CPU_ADDR_mhz_;
+   BusLine line_cursor_;
    BusLine line_dispen_;
    BusLine line_exp_;
    BusLine line_halt_;
    BusLine line_hsync_;
    BusLine line_int_;
    BusLine line_iorq_;
+   BusLine line_iord_;
+   BusLine line_iowr_;
    BusLine line_lk1_;
    BusLine line_lk2_;
    BusLine line_lk3_;
    BusLine line_lk4_;
+   BusLine line_lpen_;
    BusLine line_m1_;
    BusLine line_mreq_;
    BusLine line_motor_;
