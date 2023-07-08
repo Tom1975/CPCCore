@@ -25,6 +25,8 @@ void Motherboard::Create()
    // Clock lines : which components are triggered
    line_16_mhz_.AddComponent(&gate_array_);
    line_4_mhz_.AddComponent(&z80_);
+   line_CPU_ADDR_mhz_.AddComponent(&ay8912_);
+   line_CCLK_mhz_.AddComponent(&crtc0_);
 
    ///////////////////////////
    // Chip creation & link
@@ -130,43 +132,3 @@ void Motherboard::Tick()
    line_16_mhz_.Tick();
 
 }
-
-/*
-int main(int argc, char* argv[])
-{
-   Motherboard mb;
-   mb.Create();
-
-   for (int i = 0; i < 128; i++)
-   {
-      mb.Tick();
-   }
-
-   mb.StartSample();
-
-   // Generate 128 ticks (16 us) for timing
-   for (int i = 0; i < 128; i++)
-   {
-      mb.Tick();
-   }
-   const auto sp = mb.StopSample();
-
-   // Check speed of the simulation
-   const auto start = std::chrono::high_resolution_clock::now();
-
-   for (int i = 0; i < 1000000*16; i++)
-   {
-      // Run 1 second
-      mb.Tick();
-   }
-   const auto elapsed = std::chrono::high_resolution_clock::now() - start;
-
-   const long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-      elapsed).count();
-
-   std::cout << "Elapsed time for 1000000 us : " << microseconds << " - Speed is " << ((1000000.0/ static_cast<double>(microseconds))*100.0)<< "%"<<std::endl;
-
-   std::cout << sp << std::endl;
-
-   return 0;
-}*/

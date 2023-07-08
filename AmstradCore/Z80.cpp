@@ -7,7 +7,7 @@
 ///////////////////////////////////////
 // Z80
 //
-Z80::Z80() : counter(0)
+Z80::Z80() 
 {
    
 }
@@ -23,7 +23,6 @@ void Z80::Create()
 
 void Z80::Reset()
 {
-   // Reset inner counters
    
 }
 

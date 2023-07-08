@@ -39,7 +39,6 @@ IF(MSVC)
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
 ENDIF(MSVC)
 
-
 if (USE_SHARED_CRT)
 else()
    foreach(CompilerFlag ${CompilerFlags})

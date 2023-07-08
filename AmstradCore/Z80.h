@@ -40,6 +40,49 @@ public:
    
 
 protected:
-   unsigned int counter;
+
+   /////////////////////////////////////
+   // Registres
+   union Register
+   {
+      struct {
+         unsigned char l;
+         unsigned char h;
+      } b;
+      unsigned short w;
+   };
+
+   Register af_;
+   Register bc_;
+   Register de_;
+   Register hl_;
+
+   Register af_p_;
+   Register bc_p_;
+   Register de_p_;
+   Register hl_p_;
+
+   Register ix_;    // IX
+   Register iy_;    // IY
+
+   Register ir_;
+
+   unsigned short sp_;
+   unsigned short pc_;
+
+   bool iff1_;
+   bool iff2_;
+
+   unsigned char q_;
+   Register mem_ptr_;
+
+   // Mode d'interruption
+   char interrupt_mode_;
+
+
+   unsigned short address_;
+   unsigned char data_;
+
+
 };
 
