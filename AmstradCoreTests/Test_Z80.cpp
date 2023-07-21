@@ -20,7 +20,7 @@
 #include "Motherboard.h"
 #include "gtest/gtest.h"
 
-namespace Z80
+namespace TEST_Z80
 {
    /////////////////////////////////////////////////////////////
    // Check 
@@ -31,6 +31,10 @@ namespace Z80
       mb.Create();
 
       // Check fetch sample
+      sampler.AddLineToSample("4MHz", &mb.line_4_mhz_);
+      sampler.AddLineToSample("Wait", &mb.line_ready_);
+
 
    }
+}
 

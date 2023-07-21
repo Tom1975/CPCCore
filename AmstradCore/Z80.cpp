@@ -26,11 +26,15 @@ void Z80::Reset()
    
 }
 
-void Z80::TickUp()
-{
-}
-
 void Z80::TickDown()
 {
+   // Forget it : It will probably not be used 
+}
+
+
+void Z80::TickUp()
+{
+   ++counter_;
+   (this->*(tick_functions_)[machine_cycle_ | t_])();
 }
 

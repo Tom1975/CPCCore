@@ -20,7 +20,7 @@
 #include "Motherboard.h"
 #include "gtest/gtest.h"
 
-namespace GATE_ARRAY
+namespace TEST_GATE_ARRAY
 {
    /////////////////////////////////////////////////////////////
    // Check the various clocks & signals (16mhz, 4mhz, cclk, cpu_addr, wait )

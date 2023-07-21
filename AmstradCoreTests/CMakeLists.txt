@@ -28,6 +28,7 @@ set(CompilerFlags
 
 add_executable( AmstradCoreTests  
    Test_GateArray.cpp
+   Test_Z80.cpp
 )
 
 gtest_discover_tests(  AmstradCoreTests

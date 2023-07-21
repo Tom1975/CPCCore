@@ -9,6 +9,7 @@ file( GLOB HEADERS
 	"*.h" "*.hpp"
 )
 
+
 #Fichier ressource
 MESSAGE ("CMAKE_CURRENT_BINARY_DIR =" ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${INSTALL_INC_DIR}  ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
