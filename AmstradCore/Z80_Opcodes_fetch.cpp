@@ -5,40 +5,54 @@
 template<Z80::OpcodeType type>
 void Z80::FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
 {
-   Opcode* op;
-   ListFunction* fetch;
    switch (type)
    {
    case None:
-      op = &liste_opcodes_[opcode];
-      fetch = &fetch_func;
+      fetch_func[opcode] = func;
       break;
    case CB:
-      op = &liste_opcodes_cb_[opcode];
-      fetch = &fetch_func_cb_;
+      fetch_func_cb_[opcode] = func;
       break;
    case ED:
-      op = &liste_opcodes_ed_[opcode];
-      fetch = &fetch_func_ed_;
+      fetch_func_ed_[opcode] = func;
       break;
    case DD:
-      op = &liste_opcodes_dd_[opcode];
-      fetch = &fetch_func_dd_;
+      fetch_func_dd_[opcode] = func;
       break;
    case FD:
-      op = &liste_opcodes_fd_[opcode];
-      fetch = &fetch_func_fd_;
+      fetch_func_fd_[opcode] = func;
       break;
    }
-   op->size = Size;
-   strcpy(op->disassembly, disassembly);
-   (*fetch)[opcode] = func;
 };
+
+template<Z80::OpcodeType type>
+void Z80::FillStructOpcodeMemr(unsigned char opcode, unsigned int(Z80::* func)())
+{
+   ListFunction* memr;
+   switch (type)
+   {
+   case None:
+      memr = &memr_func_;
+      break;
+   case CB:
+      memr = &memr_func_cb_;
+      break;
+   case ED:
+      memr = &memr_func_ed_;
+      break;
+   case DD:
+      memr = &memr_func_dd_;
+      break;
+   case FD:
+      memr = &memr_func_fd_;
+      break;
+   }
+   (*memr)[opcode] = func;
+}
+
 
 void Z80::InitOpcodeShortcuts()
 {
-   unsigned int j;
-
    // Par defaut, tout le monde pointe sur NOP
    for (unsigned int i = 0; i < 256; i++)
    {
@@ -54,12 +68,14 @@ void Z80::InitOpcodeShortcuts()
       FillStructOpcodeMemr<DD>(i, &Z80::OpcodeMEMR);
       FillStructOpcodeMemr<FD>(i, &Z80::OpcodeMEMR);
    }
-   current_function_ = &fetch_func;
 
    FillStructOpcode<None>(0xCB, &Z80::Opcode_CB, 1, "%CB");
    FillStructOpcode<None>(0xED, &Z80::Opcode_ED, 1, "%ED");
    FillStructOpcode<None>(0xDD, &Z80::Opcode_DD, 1, "%DD");
    FillStructOpcode<None>(0xFD, &Z80::Opcode_FD, 1, "%FD");
+
+#if 0
+   current_function_ = &fetch_func;
 
    // Opcodes standards
    ///////////////////////////////////////////////////////////////////////////////////////
@@ -727,7 +743,11 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcodeMemr<None>(0xFA, &Z80::MEMR_JP_Cond<true, SF>);
    FillStructOpcodeMemr<None>(0xFC, &Z80::MEMR_Call_Cond<true, SF>);
    FillStructOpcodeMemr<None>(0xFE, &Z80::Memr_Cp_n);
+
+#endif
 }
+
+#if 0
 
 #define SET_FUNC(i)\
    tick_functions_[i] = &Z80::DefaultTick<i>;\
@@ -779,3 +799,4 @@ void Z80::InitTickFunctions()
    tick_functions_[M_M1_NMI + 4] = &Z80::Tick_NMI_2_4;
    tick_functions_[M_M1_NMI + 5] = &Z80::Tick_NMI_5;
 }
+#endif

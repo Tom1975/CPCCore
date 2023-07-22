@@ -134,6 +134,9 @@ protected:
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly);
 
+   template<OpcodeType type>
+   void FillStructOpcodeMemr(unsigned char opcode, unsigned int(Z80::* func)());
+
    /////////////////////////////////////
    // Opcodes
    unsigned int DefaultFetch();
@@ -143,6 +146,13 @@ protected:
    unsigned int Opcode_ED();
    unsigned int Opcode_DD();
    unsigned int Opcode_FD();
+
+   unsigned int OpcodeIOR();
+   unsigned int OpcodeIOW();
+   unsigned int OpcodeMEMR();
+   unsigned int OpcodeMEMW();
+   unsigned int OpcodeWAIT();
+
 
 };
 
