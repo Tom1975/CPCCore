@@ -47,7 +47,7 @@ public:
    virtual void Reset () = 0;
    virtual void FullScreenToggle () = 0;
    virtual void ForceFullScreen (bool fullscreen ) = 0;
-   virtual void Screenshot () = 0;
+   virtual void Screenshot (const char* scr_path) = 0;
    virtual void ScreenshotEveryFrame(int on) = 0;
    virtual bool IsEveryFrameScreened() = 0;
 
