@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 #include "Z80Disassembler.h"
 
