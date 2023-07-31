@@ -60,7 +60,9 @@ endif()
 # Link test executable against gtest & gtest_main
 target_link_libraries(AmstradCoreTests PUBLIC zlibstatic gtest gtest_main AmstradCore ${LIBZA} )
 
-add_test( NAME AmstradCoreTests COMMAND AmstradCoreTests)
+add_test(   NAME AmstradCoreTests 
+            COMMAND AmstradCoreTests
+            WORKING_DIRECTORY ".")
 
 install(TARGETS AmstradCoreTests 
             RUNTIME DESTINATION "."
