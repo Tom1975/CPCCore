@@ -17,7 +17,9 @@ jobs:
     needs: call-workflow
     runs-on: windows-latest
     steps:
-    
+      - uses: GuillaumeFalourd/wait-sleep-action@v1
+        with:
+          time: '60' # for 60 seconds    
     
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
