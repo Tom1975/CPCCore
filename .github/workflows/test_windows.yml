@@ -26,6 +26,7 @@ jobs:
           workflow: build_windows.yml
           name: CPCCore_Win
           path: ${{github.workspace}}
+          search_artifacts: true
           
       - name: Test
         working-directory: ${{github.workspace}}
