@@ -17,18 +17,10 @@ jobs:
     needs: call-workflow
     runs-on: windows-latest
     steps:
-      - uses: GuillaumeFalourd/wait-sleep-action@v1
-        with:
-          time: '60' # for 60 seconds    
-    
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build_windows.yml
           name: CPCCore_Win
-          path: ${{github.workspace}}
-          search_artifacts: true
           
       - name: Test
         working-directory: ${{github.workspace}}
