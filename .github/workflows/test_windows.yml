@@ -17,15 +17,10 @@ jobs:
     needs: call-workflow
     runs-on: windows-latest
     steps:
-    
-    
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build_windows.yml
           name: CPCCore_Win
-          path: ${{github.workspace}}
           
       - name: Test
         working-directory: ${{github.workspace}}
