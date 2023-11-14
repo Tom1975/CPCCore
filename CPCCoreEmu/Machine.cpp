@@ -650,6 +650,20 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 
 }
 
+void EmulatorEngine::LoadConfiguration(const char* config_name_file)
+{
+   delete current_settings_;
+   char tmp_buffer[MAX_SIZE_BUFFER];
+   current_settings_ = MachineSettings::CreateSettings(configuration_manager_, config_name_file);
+   if (current_settings_ == nullptr)
+   {
+      current_settings_ = new MachineSettings();
+   }
+
+   current_settings_->Load();
+   ChangeConfig(current_settings_);
+}
+
 void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* ini_file)
 {
    if (configuration_manager_ == nullptr) return;
@@ -679,15 +693,7 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
 
    configuration_manager_->GetConfiguration(config_name, "Machine_Settings", default_path_cfg.string().c_str(), tmp_buffer, MAX_SIZE_BUFFER, ini_file);
 
-   delete current_settings_;
-   current_settings_ = MachineSettings::CreateSettings(configuration_manager_, tmp_buffer);
-   if (current_settings_ == nullptr)
-   {
-      current_settings_ = new MachineSettings();
-   }
-
-   current_settings_->Load();
-   ChangeConfig(current_settings_);
+   LoadConfiguration(tmp_buffer);
 
    emulator_settings_.Load(ini_file);
    UpdateFromSettings();
