@@ -1,0 +1,134 @@
+#include "Motherboard.h"
+
+#include <chrono>
+#include <iostream>
+#include <sstream>
+
+///////////////////////////////////////
+// Bus line
+//
+
+///////////////////////////////////////
+// Motherboard
+//
+
+Motherboard::Motherboard()
+{
+}
+
+Motherboard::~Motherboard()
+= default;
+
+void Motherboard::Create()
+{
+   ///////////////////////////
+   // Clock lines : which components are triggered
+   line_16_mhz_.AddComponent(&gate_array_);
+   line_4_mhz_.AddComponent(&z80_);
+   line_CPU_ADDR_mhz_.AddComponent(&ay8912_);
+   line_CCLK_mhz_.AddComponent(&crtc0_);
+
+   ///////////////////////////
+   // Chip creation & link
+
+   // Gate Array
+   LINK_LINE(gate_array_, line_vsync_);
+   LINK_LINE(gate_array_, line_hsync_);
+   LINK_LINE(gate_array_, line_dispen_);
+   LINK_LINE(gate_array_, line_romen_);
+   LINK_LINE(gate_array_, line_int_);
+   LINK_LINE(gate_array_, line_iorq_);
+   LINK_LINE(gate_array_, line_rd_);
+   LINK_LINE(gate_array_, line_m1_);
+   LINK_LINE(gate_array_, line_mreq_);
+   LINK_LINE(gate_array_, line_4_mhz_);
+   LINK_LINE(gate_array_, line_reset_);
+   LINK_LINE(gate_array_, line_ready_);
+   LINK_BUS(gate_array_, bus_address_);
+   LINK_LINE(gate_array_, line_ramrd_);
+   LINK_LINE(gate_array_, line_16_mhz_);
+   LINK_BUS(gate_array_, bus_data_);
+   LINK_LINE(gate_array_, line_n24en_);
+   LINK_LINE(gate_array_, line_ras_);
+   LINK_LINE(gate_array_, line_ncas_);
+   LINK_LINE(gate_array_, line_we_)
+   LINK_LINE(gate_array_, line_CCLK_mhz_);
+   LINK_LINE(gate_array_, line_casad);
+   LINK_LINE(gate_array_, line_CPU_ADDR_mhz_);
+
+   // AY8910
+   LINK_LINE(ay8912_, line_CPU_ADDR_mhz_);
+   LINK_LINE(ay8912_, line_reset_);
+   LINK_LINE(ay8912_, line_bc1_);
+   LINK_LINE(ay8912_, line_bdir_);
+   LINK_BUS(ay8912_, bus_data_ppi_ay_);
+
+   // PPI 8255
+   LINK_LINE(ppi8255_, line_bc1_);
+   LINK_LINE(ppi8255_, line_bdir_);
+   LINK_BUS(ppi8255_, bus_data_ppi_ay_);
+   LINK_LINE(ppi8255_, line_wr_data_);
+   LINK_LINE(ppi8255_, line_motor_);
+   LINK_LINE(ppi8255_, line_rd_data_);
+   LINK_LINE(ppi8255_, line_busy_);
+   LINK_LINE(ppi8255_, line_exp_);
+   LINK_LINE(ppi8255_, line_lk1_);
+   LINK_LINE(ppi8255_, line_lk2_);
+   LINK_LINE(ppi8255_, line_lk3_);
+   LINK_LINE(ppi8255_, line_lk4_);
+   LINK_LINE(ppi8255_, line_vsync_);
+   LINK_LINE(ppi8255_, line_reset_);
+   LINK_LINE(ppi8255_, line_iowr_);
+   LINK_LINE(ppi8255_, line_iord_);
+   LINK_BUS(ppi8255_, bus_data_);
+
+   // Z80
+   LINK_LINE(z80_, line_reset_);     
+   LINK_LINE(z80_, line_busrq_);     
+   LINK_LINE(z80_, line_int_);       
+   LINK_LINE(z80_, line_nm1_);       
+   LINK_LINE(z80_, line_ready_);     
+   LINK_LINE(z80_, line_busak_);     
+   LINK_LINE(z80_, line_halt_);      
+   LINK_LINE(z80_, line_mreq_);      
+   LINK_LINE(z80_, line_m1_);        
+   LINK_LINE(z80_, line_rfsh_);      
+   LINK_LINE(z80_, line_4_mhz_);     
+   LINK_LINE(z80_, line_iorq_);      
+   LINK_LINE(z80_, line_wr_);        
+   LINK_LINE(z80_, line_rd_);        
+   LINK_BUS(z80_, bus_address_);
+   LINK_BUS(z80_, bus_data_);
+
+   // CRTC
+   LINK_BUS(crtc0_, bus_data_);       
+   LINK_LINE(crtc0_,line_reset_);     
+   LINK_LINE(crtc0_,line_lpen_);      
+   LINK_LINE(crtc0_,line_cursor_);    
+   // EN - ??
+   LINK_LINE(crtc0_,line_dispen_);    
+   LINK_LINE(crtc0_,line_hsync_);     
+   LINK_LINE(crtc0_,line_vsync_);     
+   LINK_LINE(crtc0_,line_CCLK_mhz_);  
+
+
+   gate_array_.Create();
+   z80_.Create();
+   crtc0_.Create();
+   ppi8255_.Create();
+   ay8912_.Create();
+
+   line_ready_.ForceLevel(true);
+}
+
+void Motherboard::Reset()
+{
+   // Set the Reset line.
+   // todo
+}
+
+void Motherboard::Tick()
+{
+   line_16_mhz_.Tick();
+
+}

@@ -40,12 +40,15 @@ set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core
 
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
+add_subdirectory(AmstradCore)
+#add_subdirectory(ShakerGenerator)
 
 if (GENERATE_UNITTESTS)
    
    add_subdirectory(googletest/googletest)
    set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
+   add_subdirectory(AmstradCoreTests)
 
 endif()
 

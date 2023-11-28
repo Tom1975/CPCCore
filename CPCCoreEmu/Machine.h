@@ -3,6 +3,7 @@
 #include <list>
 #include <thread>
 
+#include "SugarboxInitialisation.h"
 #include "Motherboard.h"
 #include "Z80_Full.h"
 #include "BreakpointHandler.h"
@@ -127,7 +128,8 @@ public:
 
    virtual void SetDefaultConfiguration ();
    virtual void SaveConfiguration (const char* config_name, const char* ini_file);
-   virtual void LoadConfiguration (const char* config_name, const char* ini_file);
+   virtual void LoadConfiguration (const char* config_name, const char* ini_file, SugarboxInitialisation* init = nullptr);
+   virtual void LoadConfiguration(const char* config_name_file, SugarboxInitialisation* init = nullptr);
 
    void SetLog(ILog* log) { log_ = log; motherboard_.SetLog(log_);sound_mixer_.SetLog(log_);}
    void SetNotifier(IFdcNotify* notifier) { notifier_ = notifier; sna_handler_.SetNotifier(notifier);motherboard_.SetNotifier(notifier);}

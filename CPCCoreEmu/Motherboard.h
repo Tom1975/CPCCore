@@ -14,6 +14,7 @@
 #include "DskTypeManager.h"
 
 #include "Breakpoint.h"
+#include "GateArray.h"
 
 
 class NetList : public IClockable
@@ -171,6 +172,7 @@ protected:
    Asic asic_;
    DMA dma_[3];
    GateArray vga_;
+   VideoGateArray gate_array;
    CRTC crtc_;
    PPI8255 ppi_;
    Monitor monitor_;
