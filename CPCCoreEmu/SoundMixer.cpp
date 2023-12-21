@@ -7,6 +7,9 @@
 
 #include "simple_stdio.h"
 
+#ifndef RASPPI
+#include <regex>
+#endif
 #ifndef NOFILTER
 
 #include <regex>
