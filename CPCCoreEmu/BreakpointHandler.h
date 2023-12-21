@@ -27,7 +27,6 @@ public:
    virtual void ToggleBreakpoint ( unsigned short addr );
    virtual int GetBreakpointNumber() { return breakpoint_number_; };
    void AddBreakpoint(IBreakpointItem* breakpoint);
-   // Implémentation
 
    void ClearBreakpoints();
    void CreateBreakpoint(int indice, std::vector<std::string> param);

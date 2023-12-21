@@ -1018,34 +1018,34 @@ void FDC::ReadId() // 4a
    rqm_ = false;
    DECODE_SIDE
 
-      if (!disk_[current_drive_].IsDiskReady())
-      {
-         // No disk
-         status_0_ = 0x48;
-         int i =0;
-         results_[i++] = status_0_; // m_Status0;
-         results_[i++] = status_1_;
-         results_[i++] = status_2_;
-         results_[i++] = tr_;// disk_[current_drive_].GetCurrentTrack() /*m_CurrentTrack*/; //TR;
-         results_[i++] = hd_;
-         results_[i++] = ls_;
-         results_[i++] = sz_;
+   if (!disk_[current_drive_].IsDiskReady())
+   {
+      // No disk
+      status_0_ = 0x48;
+      int i =0;
+      results_[i++] = status_0_; // m_Status0;
+      results_[i++] = status_1_;
+      results_[i++] = status_2_;
+      results_[i++] = tr_;// disk_[current_drive_].GetCurrentTrack() /*m_CurrentTrack*/; //TR;
+      results_[i++] = hd_;
+      results_[i++] = ls_;
+      results_[i++] = sz_;
 
-         interrupt_occured_ = true;
-         sz_ = 0;
-         dio_ = true; exm_ = false; rqm_ = true;
-         state_ = RESULT;
-         return;
-      }
+      interrupt_occured_ = true;
+      sz_ = 0;
+      dio_ = true; exm_ = false; rqm_ = true;
+      state_ = RESULT;
+      return;
+   }
 
-      status_1_ = 0x01;   // MA
+   status_1_ = 0x01;   // MA
 
-      // Begin the command, by finding IDAM
-      InitHandleSyncField ();
-      on_index_ = false;
+   // Begin the command, by finding IDAM
+   InitHandleSyncField ();
+   on_index_ = false;
 
-      if ( disk_[current_drive_].NewBitAvailable ())
-         ReadIdTick ();
+   if ( disk_[current_drive_].NewBitAvailable ())
+      ReadIdTick ();
 }
 
 void FDC::ReadIdTick ()
@@ -1110,6 +1110,7 @@ void FDC::ReadIdTick ()
          break;
       case R_FIND_IDAM:
       case R_FIND_ADRESS_MARK:
+      case R_FIND_IDAM_FOUND:
          switch ( HandleIDAM (&car_buffer) )
          {
          case 0: // Nothing to do
@@ -1154,13 +1155,15 @@ void FDC::ReadIdTick ()
       case R_CHECK_CRC:
          {
             unsigned int retCrc = HandleCRC ();
-            if (retCrc  != 0)
+            if (retCrc != 0)
             {
                if (retCrc == 2)
                {
                   status_1_ |= 0x4;
                   nd_ = true;
+                  status_2_ = status_2_ | 0x2;
                }
+
                // Let's have a return !
                results_[0] = status_0_; // m_Status0;
                results_[1] = status_1_;
@@ -1324,6 +1327,7 @@ void FDC::ReadSectorTick ()   // 6
       break;
    case R_FIND_IDAM:
    case R_FIND_ADRESS_MARK:
+   case R_FIND_IDAM_FOUND:
       switch ( HandleIDAM (&car_buffer) )
       {
       case 0: break;
@@ -1882,6 +1886,7 @@ void FDC::WriteSectorTick ()
       break;
    case R_FIND_IDAM:
    case R_FIND_ADRESS_MARK:
+   case R_FIND_IDAM_FOUND:
       switch ( HandleIDAM (&car_buffer) )
       {
       case 0: break;
@@ -2686,6 +2691,7 @@ void FDC::ScanTick()
       break;
    case R_FIND_IDAM:
    case R_FIND_ADRESS_MARK:
+   case R_FIND_IDAM_FOUND:
       switch ( HandleIDAM (&car_buffer) )
       {
       case 0: break;
@@ -3136,6 +3142,7 @@ void FDC::ReadTrackTick ()
       break;
    case R_FIND_IDAM:
    case R_FIND_ADRESS_MARK:
+   case R_FIND_IDAM_FOUND:
       switch ( HandleIDAM (&car_buffer) )
       {
       case 0: break;
@@ -3589,45 +3596,46 @@ int FDC::HandleIDAM (unsigned char *next_byte)
          ++bit_count_;
 
          // If waiting for Adress mark :
-         if (current_command_phase_ == R_FIND_ADRESS_MARK)
+            // Otherwise check for sync
+         if (disk_[current_drive_].IsSync()
+            || (bit_count_ == 8 && current_command_phase_ == R_FIND_IDAM_FOUND) )
          {
-            // Adress mark ok : Next state
-            if ( bit_count_ == 8 )
-            {
-               crc_.AddByteToCrc (current_data_byte_);
-
-               *next_byte = current_data_byte_ ;
 #ifdef LOG_MAX
-               LOG( "Adress Mark = ");
-               LOGB(current_data_byte_); LOGEOL;
+            LOG("MFM Sync Byte = ");
+            LOGB(current_data_byte_); LOGEOL;
 #endif
-               bit_count_ = 0;
-               ret = 1;
-               if (read_sector_state_ == 0 )
-               {
-                  //m_Status1 &= (~0x1); // Remove the ND flag
-               }
+            current_command_phase_ = R_FIND_IDAM_FOUND;
+            crc_.AddByteToCrc(current_data_byte_);
+            // Sync : increase count
+            ++sync_count_;
+            bit_count_ = 0;
+            // Enough ? Wait for specific byte
+            if (sync_count_ == 3)
+            {
+               // Yes, look for the adress mark
+               current_command_phase_ = R_FIND_ADRESS_MARK;
             }
          }
          else
          {
-            // Otherwise check for sync
-            if ( disk_[current_drive_].IsSync ())
+            if (current_command_phase_ == R_FIND_ADRESS_MARK)
             {
-#ifdef LOG_MAX
-               LOG( "MFM Sync Byte = ");
-               LOGB(current_data_byte_); LOGEOL;
-#endif
-               crc_.AddByteToCrc (current_data_byte_);
-               // Sync : increase count
-               ++sync_count_;
-               bit_count_ = 0;
-               // Enough ? Wait for specific byte
-               if (sync_count_ == 3)
+               // Adress mark ok : Next state
+               if ( bit_count_ == 8 )
                {
-                  // Yes, look for the adress mark
-                  current_command_phase_ = R_FIND_ADRESS_MARK;
+                  crc_.AddByteToCrc (current_data_byte_);
 
+                  *next_byte = current_data_byte_ ;
+   #ifdef LOG_MAX
+                  LOG( "Adress Mark = ");
+                  LOGB(current_data_byte_); LOGEOL;
+   #endif
+                  bit_count_ = 0;
+                  ret = 1;
+                  if (read_sector_state_ == 0 )
+                  {
+                     //m_Status1 &= (~0x1); // Remove the ND flag
+                  }
                }
             }
             else

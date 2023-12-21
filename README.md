@@ -1,7 +1,11 @@
 # CPCCore
 
-[![Build Status](https://travis-ci.com/Tom1975/CPCCore.svg?branch=master)](https://travis-ci.com/Tom1975/CPCCore)
-[![Build status](https://ci.appveyor.com/api/projects/status/tn3qcw2p4k2xf7gr?svg=true)](https://ci.appveyor.com/project/Tom1975/cpccore)
+[![Build Windows](https://github.com/Tom1975/CPCCore/actions/workflows/build_windows.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/build_windows.yml)
+[![Build Ubuntu](https://github.com/Tom1975/CPCCore/actions/workflows/build_ubuntu.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/build_ubuntu.yml)
+[![Build MacOS](https://github.com/Tom1975/CPCCore/actions/workflows/build_macos.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/build_macos.yml)
+
+[![Test_Windows](https://github.com/Tom1975/CPCCore/actions/workflows/test_windows.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/test_windows.yml)
+[![Test_Ubuntu](https://github.com/Tom1975/CPCCore/actions/workflows/test_ubuntu.yml/badge.svg)](https://github.com/Tom1975/CPCCore/actions/workflows/test_ubuntu.yml)
 
 Amstrad CPC cross platform core emulation.
 This can be used as a library for any project.

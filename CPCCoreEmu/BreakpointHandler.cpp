@@ -329,6 +329,8 @@ void BreakpointHandler::AddBreakpoint(IBreakpointItem* breakpoint)
    }
 
    breakpoint_list_[breakpoint_number_++] = breakpoint;
+   EnableBreakpoint(breakpoint_number_);
+
 
 }
 

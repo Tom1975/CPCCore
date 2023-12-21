@@ -495,28 +495,29 @@ bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 #ifndef RASPPI
    bool name_is_ok = false;
 
-   char exe_path[MAX_PATH];
-   strcpy(exe_path, ".\\REC\\");
+   const fs::path exe_path =  "./REC/";
 
+   // Create record directory if necessary
+   if (!fs::exists(exe_path))
+   {
+      fs::create_directories(exe_path);
+   }
    // Create new sound file
    unsigned int inc = 0;
 
    while (!name_is_ok && inc <= 9999)
    {
-      sprintf(buffer, "%sSND%4.4i.WAV", exe_path, inc);
-      const std::regex my_filter(buffer);
+      char sound_name[16];
+      sprintf(sound_name, "SND%4.4i.WAV", inc++);
 
-      for (auto& p : fs::directory_iterator(exe_path))
+      fs::path sound_file = exe_path / fs::path(sound_name);
+
+      if ( !fs::exists(sound_file))
       {
-         if (fs::is_regular_file(p.status()))
-         {
-            if (regex_match(p.path().filename().generic_string().c_str(), my_filter))
-            {
-               name_is_ok = true;
-               break;
-            }
-         }
+         name_is_ok = true;
+         strncpy(buffer, sound_file.string().c_str(), size);
       }
+
    }
    return name_is_ok;
 #else

@@ -9,6 +9,7 @@ Z80::Z80(void) :
    stop_on_fetch_(false), 
    rw_opcode_(false),
    log_(nullptr), 
+   new_instruction_(true),
    count_(0)
 {
 
@@ -145,6 +146,7 @@ void Z80::PreciseTick()
 
 unsigned int Z80::Tick_Fetch_1()
 {
+   new_instruction_ = false;
    INC_R
    // Set PC to address bus
    address_ = pc_++;
@@ -176,7 +178,6 @@ unsigned int Z80::Tick_Fetch_3()
 
 unsigned int Z80::Tick_Fetch_4()
 {
-   //if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
    if ((current_opcode_ & 0xF7) != 0x37)
       q_ = 0;
    return (this->*(*current_function_)[current_opcode_ & 0xFF])();

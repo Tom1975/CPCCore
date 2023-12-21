@@ -5,6 +5,15 @@
 #define _CRT_NONSTDC_NO_DEPRECATE
 #endif
 
+#if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
+#ifdef MINIMUM_DEPENDENCIES
+#else
+#define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
+#include <sys/stat.h>
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
+#endif
+#endif
+
 #include <iostream>
 #include "simple_stdio.h"
 #include "gtest/gtest.h"

@@ -1,0 +1,29 @@
+name: Test_Windows
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ "master", "develop" ]
+    
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  
+jobs:
+  call-workflow:
+    uses:  ./.github/workflows/build_windows.yml
+    
+  notify:
+    needs: call-workflow
+    runs-on: windows-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: CPCCore_Win
+          
+      - name: Test
+        working-directory: ${{github.workspace}}
+        run: |
+          bin\unitTests.exe
+

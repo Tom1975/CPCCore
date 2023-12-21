@@ -70,7 +70,7 @@ public:
    // Bus d'adresse
    Bus* address_bus_;
 
-   // Bus de données
+   // Data bus
    Bus* data_bus_;
 
    // ASIC

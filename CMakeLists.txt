@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.0)
 # Nom du projet
 project(CPCCore)
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(GENERATE_BENCHMARK OFF CACHE BOOL "Generate SugarBenchmark")
 set(GENERATE_UNITTESTS OFF CACHE BOOL "Generate UnitTests")
 set(BUILD_SHARED_LIBS FALSE)
@@ -38,12 +40,15 @@ set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core
 
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
+add_subdirectory(AmstradCore)
+#add_subdirectory(ShakerGenerator)
 
 if (GENERATE_UNITTESTS)
    
    add_subdirectory(googletest/googletest)
    set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
+   add_subdirectory(AmstradCoreTests)
 
 endif()
 
@@ -53,5 +58,6 @@ if (GENERATE_BENCHMARK)
 endif()
 
 if ( USE_SFML)
+   set (SFML_BUILD_AUDIO FALSE )
    add_subdirectory(SFML)
 endif()

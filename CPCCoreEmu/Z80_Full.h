@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <map>
 
 #include "IComponent.h"
 #include "Memoire.h"
@@ -21,10 +23,10 @@
             else {machine_cycle_=M_FETCH;t_ = 1;rw_opcode_=false;\
             current_opcode_ = 0;return 1;}
 
-#define NEXT_INSTR         current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
+#define NEXT_INSTR         new_instruction_=true;current_function_ = &fetch_func;if (!sig_->nmi_){if ((!sig_->int_) || !iff1_) {SET_NOINT;}else{SET_INT;}}else {SET_NMI;}
 
 #define NEXT_INSTR_RES(reset_ptr)\
-   /*if(reset_ptr)*/current_function_ = &fetch_func;\
+   /*if(reset_ptr)*/current_function_ = &fetch_func;new_instruction_=true;\
    if (!sig_->nmi_ && ((!sig_->int_) || !iff1_)){\
          SET_NOINT;}\
       if ((sig_->int_) && iff1_) {\
@@ -160,6 +162,7 @@ public:
       memory_ = memory; sig_ = sig; log_ = log;
    }
 
+
    void InitOpcodeShortcuts();
    void InitTickFunctions();
    unsigned char GetOpcodeSize(unsigned short address);
@@ -260,6 +263,8 @@ public:
    } MachineCycle;
    MachineCycle machine_cycle_;
 
+   bool new_instruction_;
+
    // Inner helper attributes
    unsigned int counter_;
    unsigned int read_count_;
@@ -286,6 +291,90 @@ public:
       DD,
       FD,
    } OpcodeType;
+
+
+   std::function<void(unsigned int)> custom_opcode_decoder_;
+   std::map<unsigned int, Func> custom_commands;
+
+   unsigned int CustomOpcode()
+   {
+      custom_opcode_decoder_(current_opcode_);
+      // Execute custom call
+      if (custom_commands.find(current_opcode_) != custom_commands.end())
+      {
+         return (this->*(custom_commands[current_opcode_]))();
+      }
+      // Execute old behaviours
+      return 0;
+   }
+
+   template<OpcodeType type>
+   void ClearCustom()
+   {
+      for (auto & it: custom_commands)
+      {
+         ListFunction* fetch;
+         switch (type)
+         {
+         case None:
+            fetch = &fetch_func;
+            break;
+         case CB:
+            fetch = &fetch_func_cb_;
+            break;
+         case ED:
+            fetch = &fetch_func_ed_;
+            break;
+         case DD:
+            fetch = &fetch_func_dd_;
+            break;
+         case FD:
+            fetch = &fetch_func_fd_;
+            break;
+         }
+         (*fetch)[it.first] = it.second;
+      }
+   }
+
+   template<OpcodeType type>
+   void SetCustomOpcode(unsigned char opcode, std::function<void(unsigned int)> func )
+   {
+      Opcode* op;
+      ListFunction* fetch;
+      unsigned short replaced_opcode = 0;
+      switch (type)
+      {
+      case None:
+         op = &liste_opcodes_[opcode];
+         fetch = &fetch_func;
+         replaced_opcode = opcode;
+         break;
+      case CB:
+         op = &liste_opcodes_cb_[opcode];
+         fetch = &fetch_func_cb_;
+         replaced_opcode = 0xCB00|opcode;
+         break;
+      case ED:
+         op = &liste_opcodes_ed_[opcode];
+         fetch = &fetch_func_ed_;
+         replaced_opcode = 0xED00 | opcode;
+         break;
+      case DD:
+         op = &liste_opcodes_dd_[opcode];
+         fetch = &fetch_func_dd_;
+         replaced_opcode = 0xDD00 | opcode;
+         break;
+      case FD:
+         op = &liste_opcodes_fd_[opcode];
+         fetch = &fetch_func_fd_;
+         replaced_opcode = 0xFD00 | opcode;
+         break;
+      }
+      custom_opcode_decoder_ = func;
+      Func old_f = (*fetch)[opcode];
+      custom_commands[replaced_opcode] = old_f;
+      (*fetch)[opcode] = &Z80::CustomOpcode;
+   };
 
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
