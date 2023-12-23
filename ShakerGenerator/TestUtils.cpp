@@ -21,10 +21,40 @@
 #include <string>
 #include "TestUtils.h"
 
+std::map<std::string, std::pair<unsigned int, unsigned int>> Escape_map_ = {
+   {"\\(ESC)", { 8, 2 }},
+   {"\\(TAB)", { 8, 4 }},
+   {"\\(CAP)", { 8, 6 }},
+   {"\\(SHI)", { 2, 5 }},
+   {"\\(CTR)", { 2, 7 }},
+   {"\\(COP)", { 2, 1 }},
+   {"\\(CLR)", { 2, 0 }},
+   {"\\(DEL)", { 9, 7 }},
+   {"\\(RET)", { 2, 2 }},
+   {"\\(ENT)", { 0, 6 }},
+   {"\\(ARL)", { 1, 0 }},
+   {"\\(ARR)", { 0, 1 }},
+   {"\\(ARU)", { 0, 0 }},
+   {"\\(ARD)", { 0, 2 }},
+   {"\\(F0)", { 1, 7 }},
+   {"\\(F1)", { 1, 5 }},
+   {"\\(F2)", { 1, 6 }},
+   {"\\(F3)", { 0, 5 }},
+   {"\\(F4)", { 2, 4 }},
+   {"\\(F5)", { 1, 4 }},
+   {"\\(F6)", { 0, 4 }},
+   {"\\(F7)", { 1, 2 }},
+   {"\\(F8)", { 1, 3 }},
+   {"\\(F9)", { 0, 3 }},
+   {"\\({)", { 2, 1 }},
+   {"\\(})", { 2, 3 }},
+   {"\\(\\)", { 2, 6 }},
+   {"\\(')", { 5, 1 }}
+};
 
 FileLog::FileLog(const char* file)
 {
-   fopen_s(&f_, file, "w");
+    errno_t result = fopen_s(&f_, file, "w");
 }
 
 FileLog::~FileLog()
@@ -265,7 +295,7 @@ void TestDump::SetScreenshotHandler()
    
 }
 
-bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
+bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
    
@@ -290,20 +320,6 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    //  Fix a seed for randomness
    srand(seed);
    machine_->SetFixedSpeed(bFixedSpeed);
-
-   // Load disk
-   machine_->LoadDisk(dump_to_load.string().c_str(), 0, false);
-   //DiskContainer* container = machine_->CanLoad(dump_to_load);
-   //machine_->LoadMedia(container);
-
-   // Set run command
-   machine_->Paste(run_command);
-
-   int nbcycle_for_paste = strlen(run_command) * 3;
-   for (int i = 0; i < nbcycle_for_paste; i++)
-   {
-      machine_->RunTimeSlice(false);
-   }
 
    // Run preliminary actions
    bool no_error = cmd_list->RunFirstCommand(machine_);

@@ -101,11 +101,124 @@ public:
    }
 };
 
+extern std::map<std::string, std::pair<unsigned int, unsigned int>> Escape_map_;
+
+class CommandList;
 
 class ICommand
 {
 public:
-   virtual bool Action(EmulatorEngine* machine) = 0;
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) = 0;
+
+protected:
+    static void Wait(EmulatorEngine* machine, unsigned int nb_us)
+    {
+        while (nb_us > 0)
+        {
+            unsigned long tick_to_run;
+            if (nb_us < 4000 * 10) // 10ms
+            {
+                tick_to_run = nb_us;
+            }
+            else
+            {
+                tick_to_run = 4000 * 10;
+            }
+            machine->GetMotherboard()->DebugNew(tick_to_run);
+
+            nb_us -= tick_to_run;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+};
+
+class CommandList
+{
+public:
+    CommandList() {};
+    virtual ~CommandList()
+    {
+        for (std::vector<ICommand*>::iterator it = command_list_.begin(); it != command_list_.end(); it++)
+        {
+            delete* it;
+        }
+    };
+
+    void AddCommand(ICommand* cmd)
+    {
+        command_list_.push_back(cmd);
+    }
+
+    bool RunFirstCommand(EmulatorEngine* machine)
+    {
+        it_ = command_list_.begin();
+        if (it_ != command_list_.end())
+        {
+            return (*it_++)->Action(machine, this);
+
+        }
+        else return false;
+    }
+
+    bool RunNextCommand(EmulatorEngine* machine)
+    {
+        if (it_ != command_list_.end())
+        {
+            return (*it_++)->Action(machine, this);
+        }
+        else return false;
+
+    }
+
+    bool IsFinished()
+    {
+        return (it_ == command_list_.end());
+    }
+
+    void SetKeyDelay(unsigned int delay_press, unsigned int delay, unsigned int delay_cr)
+    {
+        delay_ = delay;
+        delay_press_ = delay_press;
+        delay_cr_ = delay_cr_;
+    }
+
+    unsigned int GetKeyPressDelay() { return delay_press_; }
+    unsigned int GetKeyDelay() { return delay_; }
+    unsigned int GetKeyDelayCR() { return delay_cr_; }
+protected:
+    std::vector<ICommand*> command_list_;
+    std::vector<ICommand*>::iterator it_;
+
+    unsigned int delay_press_;
+    unsigned int delay_;
+    unsigned int delay_cr_;
+};
+
+class CommandSelectCRTC : public ICommand
+{
+public:
+    CommandSelectCRTC(std::string& crtc)
+    {
+        CRTC::TypeCRTC type_crtc = CRTC::HD6845S;
+
+        if (crtc == "0") type_crtc_ = CRTC::HD6845S;
+        else if (crtc == "1") type_crtc_ = CRTC::UM6845R;
+        else if (crtc == "1A") type_crtc_ = CRTC::UM6845R;
+        else if (crtc == "1B") type_crtc_ = CRTC::UM6845R;
+        else if (crtc == "2") type_crtc_ = CRTC::MC6845;
+        else if (crtc == "3") type_crtc_ = CRTC::AMS40489;
+        else if (crtc == "4") type_crtc_ = CRTC::AMS40226;
+        else if (crtc == "PUSSY") type_crtc_ = CRTC::UM6845R; // ?
+    }
+
+    virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) 
+    { 
+        machine->GetCRTC()->DefinirTypeCRTC(type_crtc_);
+        return true; 
+    };
+
+protected:
+    CRTC::TypeCRTC type_crtc_;
 };
 
 class CommandAddBreakpoint : public ICommand
@@ -115,7 +228,7 @@ public:
    CommandAddBreakpoint(unsigned short bp) : bp_(bp)
    {
    }
-   virtual bool Action(EmulatorEngine* machine) { machine->AddBreakpoint(bp_); return true; };
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) { machine->AddBreakpoint(bp_); return true; };
 protected:
    unsigned short bp_;
 };
@@ -123,7 +236,7 @@ protected:
 class CommandEjectDisk : public ICommand
 {
 public:
-   virtual bool Action(EmulatorEngine* machine) { machine->Eject(); return true; };
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) { machine->Eject(); return true; };
 
 protected:
 
@@ -132,7 +245,12 @@ class CommandInsertDisk : public ICommand
 {
 public:
    CommandInsertDisk(const char* pathfile) :pathfile_(pathfile) {};
-   virtual bool Action(EmulatorEngine* machine) { return machine->LoadDisk(pathfile_.string().c_str(), 0, false) == 0; };
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) 
+   { 
+       std::filesystem::path path = "C:/Thierry/Amstrad/DSK/DSK/Developpement";
+
+       return machine->LoadDisk((path / pathfile_).string().c_str(), 0, false) == 0;
+   };
 
 protected:
    std::filesystem::path pathfile_;
@@ -146,7 +264,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       for (int i = 0; i < nb_cycles_; i++)
       {
@@ -168,7 +286,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       machine->AddBreakpoint(bp_);
       for (int i = 0; i < nb_cycles_; i++)
@@ -197,7 +315,7 @@ public:
    {
 
    }
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       if (!display_->InitScreenshotDetection(filename_.c_str())) return false;
       for (int i = 0; i < nb_cycles_timeout_; i++)
@@ -225,7 +343,7 @@ public:
    {
 
    }
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       // Get current screen
       // Verify or save ?
@@ -268,7 +386,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       lambda_(machine);
       return true;
@@ -285,7 +403,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       for (int i = 0; i < nb_cycles_; i++)
       {
@@ -304,6 +422,24 @@ protected:
 
 };
 
+class CommandWait : public ICommand
+{
+public:
+    CommandWait(unsigned int nb_us) :nb_us_(nb_us)
+    {
+    }
+
+    virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
+    {
+        Wait(machine, nb_us_);
+
+        return true;
+    }
+
+protected:
+    unsigned int nb_us_;
+};
+
 class CommandKeyboard : public ICommand
 {
 public:
@@ -311,13 +447,158 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       machine->Paste(command_.c_str());
       return true;
    }
 protected:
    std::string command_;
+};
+
+class CommandKeyOutput : public ICommand
+{
+public:
+    CommandKeyOutput(const char* command) :command_(command)
+    {
+    }
+
+    virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
+    {
+        // For each character :
+        int index = 0;
+        std::vector<unsigned int> next_char;
+        index = GetNextKey(command_, index, next_char, machine);
+        while (index != -1)
+        {
+            // Press the key
+            for (auto& it : next_char)
+            {
+                if ((it & 0xFFFFFF00) == 0)
+                {
+                    machine->GetKeyboardHandler()->CharPressed(it);
+                }
+                else
+                {
+                    machine->GetKeyboardHandler()->SendScanCode(it, true);
+                }
+
+            }
+
+            // wait
+            Wait(machine, cmd_list->GetKeyPressDelay());
+
+            // unpress the key
+            for (auto& it : next_char)
+            {
+                if ((it & 0xFFFFFF00) == 0)
+                {
+                    machine->GetKeyboardHandler()->CharReleased(it);
+                }
+                else
+                {
+                    machine->GetKeyboardHandler()->SendScanCode(it, false);
+                }
+            }
+
+            // wait again
+            // wait
+            Wait(machine, cmd_list->GetKeyDelay());
+
+            next_char.clear();
+            index = GetNextKey(command_, index, next_char, machine);
+        }
+
+        return true;
+    }
+
+protected:
+    std::string command_;
+
+    static int GetNextKey(std::string& line, int index, std::vector<unsigned int>& next, EmulatorEngine* machine)
+    {
+        int return_index = -1;
+        if (index < line.size())
+        {
+            if (strncmp(&line[index], "\\(", 2) == 0)
+            {
+                auto endseq = std::find(line.begin() + index, line.end(), ')');
+                std::string spec = line.substr(index, endseq - line.begin() + index);
+
+                if (Escape_map_.find(spec) != Escape_map_.end())
+                {
+                    unsigned int line = Escape_map_[spec].first;
+                    unsigned int bit = Escape_map_[spec].second;
+
+                    unsigned int scanCode = machine->GetKeyboardHandler()->GetScanCode(line, bit);
+                    next.push_back(scanCode);
+                }
+                else
+                {
+                    return return_index;
+                }
+                return_index = index + spec.size();
+            }
+            else if (strncmp(&line[index], "\\{", 2) == 0)
+            {
+                auto endseq = std::find(line.begin() + index, line.end(), '}');
+                std::string spec = line.substr(index, endseq - line.begin() + index);
+                if (spec.size() > 0)
+                {
+                    return_index = index + spec.size();
+                    for (auto& c : spec)
+                    {
+                        next.push_back((int)c & 0xFF);
+                    }
+
+                }
+            }
+            else
+            {
+                next.push_back((int)line[index++] & 0xFF);
+                return_index = index;
+            }
+        }
+
+        return return_index;
+    }
+};
+
+class CommandKeyDelay : public ICommand
+{
+public:
+    CommandKeyDelay(std::vector<std::string>& param)
+    {
+        if (param.size() < 3)
+        {
+            return;
+        }
+
+        unsigned int delay1, delay2, delay3;
+        char* end;
+        delay_press_ = strtol(param[1].c_str(), &end, 10);
+        delay_ = strtol(param[2].c_str(), &end, 10);
+        if (param.size() == 4)
+        {
+            delay_cr_ = strtol(param[3].c_str(), &end, 10);
+        }
+        else
+        {
+            delay_cr_ = delay_;
+        }
+    }
+
+    virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
+    {
+        cmd_list->SetKeyDelay(delay_press_, delay_, delay_cr_);
+
+        return true;
+    }
+
+protected:
+    unsigned int delay_press_;
+    unsigned int delay_;
+    unsigned int delay_cr_;
 };
 
 class CommandScanCode : public ICommand
@@ -327,7 +608,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
       return true;
@@ -346,7 +627,7 @@ public:
    {
    }
 
-   virtual bool Action(EmulatorEngine* machine)
+   virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
    {
       machine->GetKeyboardHandler()->JoystickAction(joy_, action_);
       return true;
@@ -356,52 +637,18 @@ protected:
    int joy_;
 };
 
-class CommandList
+class CommandReset : public ICommand
 {
 public:
-   CommandList() {};
-   virtual ~CommandList()
-   {
-      for (std::vector<ICommand*>::iterator it = command_list_.begin(); it != command_list_.end(); it++)
-      {
-         delete *it;
-      }
-   };
+    CommandReset()
+    {
+    }
 
-   void AddCommand(ICommand* cmd)
-   {
-      command_list_.push_back(cmd);
-   }
-
-   bool RunFirstCommand(EmulatorEngine* machine)
-   {
-      it_ = command_list_.begin();
-      if (it_ != command_list_.end())
-      {
-         return (*it_++)->Action(machine);
-
-      }
-      else return false;
-   }
-
-   bool RunNextCommand(EmulatorEngine* machine)
-   {
-      if (it_ != command_list_.end())
-      {
-         return (*it_++)->Action(machine);
-      }
-      else return false;
-
-   }
-
-   bool IsFinished()
-   {
-      return (it_ == command_list_.end());
-   }
-protected:
-   std::vector<ICommand*> command_list_;
-   std::vector<ICommand*>::iterator it_;
-
+    virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list)
+    {
+        machine->OnOff();
+        return true;
+    }
 };
 
 class TestDump
@@ -418,7 +665,7 @@ public:
 
    void CustomFunction(unsigned int i);
    void SetScreenshotHandler();
-   bool Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
+   bool Test(std::filesystem::path conf, std::filesystem::path initfile, CommandList* cmd_list, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
 
    bool display_;
    DirectoriesImp dirImp;
