@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 
    bool show = argument_list.find("-show") != argument_list.end();
 
-   std::filesystem::path path = "C:/Thierry/Amstrad/Dev/git/SugarboxV2/out/build/x64-Debug/install/Shaker/Shaker_CSL/CSL/MODULE_A/SHAKE25A-0.CSL";
+   std::filesystem::path path = "C:/Thierry/Amstrad/Dev/Shakerland/Shaker_CSL/CSL/MODULE_A/SHAKE25A-0.CSL";
 
    CommandList cmd_list;
    LoadScript(path, &cmd_list);
