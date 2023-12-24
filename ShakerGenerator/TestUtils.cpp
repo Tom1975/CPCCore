@@ -276,23 +276,56 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
+unsigned int screenshot_HHLL_ = 0;
+unsigned char screenshot_count_ = 0;
+
 void TestDump::CustomFunction(unsigned int i)
 {
-   // Create screenshot from current frame, name is generated from opcode
-   std::string filename = "screenshot.jpg";
+    unsigned int value = i & 0xff;
+    if (screenshot_count_ == 1)
+    {
+        screenshot_HHLL_ |= value << 8;
 
-   display.TakeScreenshot(filename.c_str());
+        // Create screenshot from current frame, name is generated from opcode
+
+        unsigned int type_crtc = machine_->GetCRTC()->type_crtc_;
+
+        char filename[255];
+        snprintf(filename, sizeof(filename), "sugarbox_%d_%04x.jpg", type_crtc, screenshot_HHLL_);
+
+        display.TakeScreenshot(filename);
+
+        screenshot_count_ = 0;
+        screenshot_HHLL_ = 0;
+    }
+    else
+    {
+        screenshot_HHLL_ = value;
+
+        screenshot_count_++;
+    }
 }
 
 
 void TestDump::SetScreenshotHandler()
 {
-   for (unsigned char i = 0; i < 0x1F; i++)
-   {
-      machine_->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode);});
-   }
-      
-   
+    std::list<std::pair<unsigned char, unsigned char>> edOpCodeRanges = {
+        { 0x00, 0x3F },
+        { 0x7F, 0x9F },
+        { 0xA4, 0xA7 },
+        { 0xAC, 0xAF },
+        { 0xB4, 0xB7 },
+        { 0xBC, 0xBF },
+        { 0xC0, 0xFD },
+    };
+
+    for (auto& it : edOpCodeRanges)
+    {
+        for (unsigned char i = it.first; i <= it.second; i++)
+        {
+            machine_->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode); });
+        }
+    }
 }
 
 bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, CommandList* cmd_list, bool bFixedSpeed, int seed)

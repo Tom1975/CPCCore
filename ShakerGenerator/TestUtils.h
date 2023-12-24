@@ -213,6 +213,7 @@ public:
 
     virtual bool Action(EmulatorEngine* machine, CommandList* cmd_list) 
     { 
+        machine->GetSettings()->SetCRTCType(type_crtc_);
         machine->GetCRTC()->DefinirTypeCRTC(type_crtc_);
         return true; 
     };
