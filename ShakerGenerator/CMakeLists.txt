@@ -28,7 +28,12 @@ add_executable( ShakerGenerator
                 TestUtils.h
                 TestUtils.cpp
                 Test_Shaker_generation.cpp 
-)
+                "Script/CSLScriptRunner.h"
+                "Script/CSLScriptRunner.cpp"
+                "Script/ICommand.h"
+                "Script/IScriptRunner.h"
+                "Script/Commands.h"
+                "Script/Commands.cpp")
 
 target_link_libraries(ShakerGenerator PUBLIC zlibstatic CPCCoreEmu sfml-graphics ${LIBZA} )
 
