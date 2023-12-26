@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 class IScriptRunner;
 
@@ -40,6 +41,10 @@ public:
 
     bool RunNextCommand(IScriptRunner* scriptRunner)
     {
+        unsigned int index = it_ - command_list_.begin();
+
+        std::cout << "Running command script " << index << std::endl;
+
         if (it_ != command_list_.end())
         {
             return (*it_++)->Action(scriptRunner);
