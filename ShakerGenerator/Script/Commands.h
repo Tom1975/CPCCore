@@ -464,3 +464,20 @@ public:
         return true;
     }
 };
+
+class CommandLoadScript : public ICommand
+{
+public:
+    CommandLoadScript(const char* scriptpath): script_path_(scriptpath)
+    {
+    }
+
+    virtual bool Action(IScriptRunner* script_runner)
+    {
+        script_runner->LoadScript(script_path_);
+        return true;
+    }
+
+private:
+    std::filesystem::path script_path_;
+};

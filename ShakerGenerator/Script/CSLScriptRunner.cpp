@@ -28,7 +28,7 @@ std::map<std::string, std::function<ICommand* (std::vector<std::string>&)>> CSLS
     { "screenshot_dir" , [](std::vector<std::string>& args)->ICommand* { return nullptr; }},
     { "screenshot" , [](std::vector<std::string>& args)->ICommand* { return nullptr; }},
     { "snapshot" , [](std::vector<std::string>& args)->ICommand* { return nullptr; }},
-    { "csl_load" , [](std::vector<std::string>& args)->ICommand* { return nullptr; }}
+    { "csl_load" , [](std::vector<std::string>& args)->ICommand* { return new CommandLoadScript(args[1].c_str()); }}
 };
 
 ICommand* CSLScriptRunner::GetCommand(std::vector<std::string>& args)
