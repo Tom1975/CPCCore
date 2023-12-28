@@ -246,58 +246,6 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
-unsigned int screenshot_HHLL_ = 0;
-unsigned char screenshot_count_ = 0;
-
-void TestDump::CustomFunction(unsigned int i)
-{
-    unsigned int value = i & 0xff;
-    if (screenshot_count_ == 1)
-    {
-        screenshot_HHLL_ |= value << 8;
-
-        // Create screenshot from current frame, name is generated from opcode
-
-        unsigned int type_crtc = machine_->GetCRTC()->type_crtc_;
-
-        char filename[255];
-        snprintf(filename, sizeof(filename), "sugarbox_%d_%04x.jpg", type_crtc, screenshot_HHLL_);
-
-        display.TakeScreenshot(filename);
-
-        screenshot_count_ = 0;
-        screenshot_HHLL_ = 0;
-    }
-    else
-    {
-        screenshot_HHLL_ = value;
-
-        screenshot_count_++;
-    }
-}
-
-
-void TestDump::SetScreenshotHandler()
-{
-    std::list<std::pair<unsigned char, unsigned char>> edOpCodeRanges = {
-        { 0x00, 0x3F },
-        { 0x7F, 0x9F },
-        { 0xA4, 0xA7 },
-        { 0xAC, 0xAF },
-        { 0xB4, 0xB7 },
-        { 0xBC, 0xBF },
-        { 0xC0, 0xFD },
-    };
-
-    for (auto& it : edOpCodeRanges)
-    {
-        for (unsigned char i = it.first; i <= it.second; i++)
-        {
-            machine_->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode); });
-        }
-    }
-}
-
 bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path scriptfile, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
@@ -313,7 +261,6 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 
    machine_->Init(&display, &soundFactory);
 
-   SetScreenshotHandler();
    machine_->GetMem()->Initialisation();
    machine_->GetMem()->Initialisation();
 
@@ -324,9 +271,13 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    srand(seed);
    machine_->SetFixedSpeed(bFixedSpeed);
 
-   CSLScriptRunner runner(machine_);
+   CSLScriptRunner runner(machine_, &display);
+   runner.SetScriptDirectory("C:/Thierry/Amstrad/Dev/Shakerland/Shaker_CSL/CSL/MODULE_A");
+   runner.SetDiskDirectory("C:/Thierry/Amstrad/Dev/Shakerland");
+   runner.SetScreenshotDirectory("C:/Thierry/Amstrad/Dev/Shakerland/Result/MODULE_A");
+   runner.SetScreenshotHandler();
 
-   runner.LoadScript(scriptfile);
+   runner.LoadScript((runner.GetScriptDirectory() / "SHAKE25A-0.CSL").string().c_str());
    
    return runner.Run();
 }

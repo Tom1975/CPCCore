@@ -3,9 +3,10 @@
 #include "Commands.h"
 #include <iostream>
 #include <fstream>
+#include "../Display.h"
 
 std::map<std::string, std::function<ICommand* (std::vector<std::string>&)>> CSLScriptRunner::function_map_ = {
-    { "csl_version" , [](std::vector<std::string>& args)->ICommand* { return nullptr; }},
+    { "csl_version" , [](std::vector<std::string>& args)->ICommand* { return new CommandShowVersion(args[1]); }},
     { "reset" , [](std::vector<std::string>& args)->ICommand* { return new CommandReset(); }},
     { "crtc_select" , [](std::vector<std::string>& args)->ICommand* { return new CommandSelectCRTC(args[1]); }},
     { "disk_insert" , [](std::vector<std::string>& args)->ICommand* { return new CommandInsertDisk(args[1].c_str()); }},
@@ -41,7 +42,7 @@ ICommand* CSLScriptRunner::GetCommand(std::vector<std::string>& args)
     return current_command;
 }
 
-void CSLScriptRunner::LoadScript(std::filesystem::path& script_path)
+void CSLScriptRunner::LoadScript(const char* script_path)
 {
     std::ifstream f(script_path);
     std::string line;
@@ -106,6 +107,57 @@ void CSLScriptRunner::LoadScript(std::filesystem::path& script_path)
         else
         {
             std::cout << "unknow command : " << command_parameters[0] << std::endl;
+        }
+    }
+}
+
+void CSLScriptRunner::CustomFunction(unsigned int i)
+{
+    unsigned int value = i & 0xff;
+    if (screenshot_count_ == 1)
+    {
+        screenshot_HHLL_ |= value << 8;
+
+        // Create screenshot from current frame, name is generated from opcode
+
+        unsigned int type_crtc = GetEmulatorEngine()->GetCRTC()->type_crtc_;
+
+        char filename[255];
+        snprintf(filename, sizeof(filename), "sugarbox_%d_%04x.jpg", type_crtc, screenshot_HHLL_);
+
+        std::filesystem::path filepath = screenshot_path_ / filename;
+
+        display_->TakeScreenshot((const char*)filepath.string().c_str());
+
+        screenshot_count_ = 0;
+        screenshot_HHLL_ = 0;
+    }
+    else
+    {
+        screenshot_HHLL_ = value;
+
+        screenshot_count_++;
+    }
+}
+
+
+void CSLScriptRunner::SetScreenshotHandler()
+{
+    std::list<std::pair<unsigned char, unsigned char>> edOpCodeRanges = {
+        { 0x00, 0x3F },
+        { 0x7F, 0x9F },
+        { 0xA4, 0xA7 },
+        { 0xAC, 0xAF },
+        { 0xB4, 0xB7 },
+        { 0xBC, 0xBF },
+        { 0xC0, 0xFD },
+    };
+
+    for (auto& it : edOpCodeRanges)
+    {
+        for (unsigned char i = it.first; i <= it.second; i++)
+        {
+            GetEmulatorEngine()->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode); });
         }
     }
 }

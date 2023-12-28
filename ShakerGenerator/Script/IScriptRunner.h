@@ -12,7 +12,7 @@ public:
 	IScriptRunner(EmulatorEngine* emulator_engine) : emulator_engine_(emulator_engine)
 	{}
 
-	virtual void LoadScript(std::filesystem::path& path) = 0;
+	virtual void LoadScript(const char* path) = 0;
 	void AddCommand(ICommand* cmd)
 	{
 		command_list_.AddCommand(cmd);
@@ -20,10 +20,12 @@ public:
 
 	EmulatorEngine* GetEmulatorEngine() { return emulator_engine_; }
 
+	virtual void SetScreenshotHandler() = 0;
+
 	bool Run()
 	{
-		bool no_error = command_list_.RunFirstCommand(this);
-		while (command_list_.IsFinished() == false && no_error)
+		bool no_error = true;
+		while (!command_list_.IsFinished() && no_error)
 		{
 			no_error = command_list_.RunNextCommand(this);
 		}
@@ -61,6 +63,15 @@ public:
 		}
 	}
 
+	std::filesystem::path GetScriptDirectory() { return script_path_; }
+	void SetScriptDirectory(const char* path) { script_path_ = path; }
+
+	std::filesystem::path GetDiskDirectory() { return disk_path_; }
+	void SetDiskDirectory(const char* path) { disk_path_ = path; }
+
+	std::filesystem::path GetScreenshotDirectory() { return screenshot_path_; }
+	void SetScreenshotDirectory(const char* path) { screenshot_path_ = path; }
+
 protected:
 	CommandList command_list_;
 	EmulatorEngine* emulator_engine_;
@@ -68,4 +79,8 @@ protected:
 	unsigned int delay_press_;
 	unsigned int delay_;
 	unsigned int delay_cr_;
+
+	std::filesystem::path script_path_;
+	std::filesystem::path disk_path_;
+	std::filesystem::path screenshot_path_;
 };

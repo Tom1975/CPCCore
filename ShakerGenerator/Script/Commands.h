@@ -5,6 +5,23 @@
 #include "Machine.h"
 #include "../Display.h"
 
+class CommandShowVersion : public ICommand
+{
+public:
+    CommandShowVersion(std::string& version): version_(version)
+    {
+    }
+
+    virtual bool Action(IScriptRunner* script_runner)
+    {
+        std::cout << "CSL Version " << version_ << std::endl;
+
+        return true;
+    }
+private:
+    std::string version_;
+};
+
 class CommandSelectCRTC : public ICommand
 {
 public:
@@ -59,9 +76,7 @@ public:
     CommandInsertDisk(const char* pathfile) :pathfile_(pathfile) {};
     virtual bool Action(IScriptRunner* script_runner)
     {
-        std::filesystem::path path = "C:/Thierry/Amstrad/DSK/DSK/Developpement";
-
-        return script_runner->GetEmulatorEngine()->LoadDisk((path / pathfile_).string().c_str(), 0, false) == 0;
+        return script_runner->GetEmulatorEngine()->LoadDisk((script_runner->GetDiskDirectory() / pathfile_).string().c_str(), 0, false) == 0;
     };
 
 protected:
@@ -468,16 +483,16 @@ public:
 class CommandLoadScript : public ICommand
 {
 public:
-    CommandLoadScript(const char* scriptpath): script_path_(scriptpath)
+    CommandLoadScript(const char* scriptfilename): script_filename_(scriptfilename)
     {
     }
 
     virtual bool Action(IScriptRunner* script_runner)
     {
-        script_runner->LoadScript(script_path_);
+        script_runner->LoadScript((script_runner->GetScriptDirectory() / (script_filename_ + ".csl")).string().c_str());
         return true;
     }
 
 private:
-    std::filesystem::path script_path_;
+    std::string script_filename_;
 };

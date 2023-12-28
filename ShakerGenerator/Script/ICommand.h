@@ -14,7 +14,10 @@ public:
 class CommandList
 {
 public:
-    CommandList() {};
+    CommandList(): index_(0) 
+    {
+    }
+    ;
     virtual ~CommandList()
     {
         for (std::vector<ICommand*>::iterator it = command_list_.begin(); it != command_list_.end(); it++)
@@ -28,26 +31,13 @@ public:
         command_list_.push_back(cmd);
     }
 
-    bool RunFirstCommand(IScriptRunner* scriptRunner)
-    {
-        it_ = command_list_.begin();
-        if (it_ != command_list_.end())
-        {
-            return (*it_++)->Action(scriptRunner);
-
-        }
-        else return false;
-    }
-
     bool RunNextCommand(IScriptRunner* scriptRunner)
     {
-        unsigned int index = it_ - command_list_.begin();
+        std::cout << "Running command script " << index_ << std::endl;
 
-        std::cout << "Running command script " << index << std::endl;
-
-        if (it_ != command_list_.end())
+        if (index_ < command_list_.size())
         {
-            return (*it_++)->Action(scriptRunner);
+            return command_list_[index_++]->Action(scriptRunner);
         }
         else return false;
 
@@ -55,10 +45,10 @@ public:
 
     bool IsFinished()
     {
-        return (it_ == command_list_.end());
+        return (index_ == command_list_.size());
     }
 
 protected:
     std::vector<ICommand*> command_list_;
-    std::vector<ICommand*>::iterator it_;
+    unsigned int index_;
 };
