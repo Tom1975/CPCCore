@@ -172,7 +172,7 @@ protected:
    Asic asic_;
    DMA dma_[3];
    GateArray vga_;
-   VideoGateArray gate_array;
+   //VideoGateArray gate_array;
    CRTC crtc_;
    PPI8255 ppi_;
    Monitor monitor_;

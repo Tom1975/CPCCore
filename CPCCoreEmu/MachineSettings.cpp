@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "MachineSettings.h"
-#include <sstream>
 
 MachineSettings::MachineSettings() :configuration_manager_(nullptr), loaded_(false)
 {
@@ -33,7 +32,6 @@ bool MachineSettings::operator== (MachineSettings& other) const
    p2 = p2.filename();
 
    return (p1 == p2);
-   //return (strcmp(other.GetFilePath(), GetFilePath()) == 0);
 }
 
 MachineSettings *MachineSettings::CreateSettings(IConfiguration * configuration_manager, const char* path)
@@ -82,7 +80,7 @@ bool MachineSettings::Load(bool force_reload)
 {
    if (loaded_ && !force_reload) return true;
 
-   if (file_path_.empty() || configuration_manager_ == nullptr) return false;
+   if (file_path_.size()==0 || configuration_manager_ == nullptr) return false;
 
    char buffer[1024];
    configuration_manager_->GetConfiguration("Generic", "Desc", "", buffer, sizeof buffer, file_path_.c_str());
@@ -128,21 +126,19 @@ bool MachineSettings::Load(bool force_reload)
 bool MachineSettings::Save(const char* new_name)
 {
    if (new_name != nullptr) file_path_ = new_name;
-   if (file_path_.empty() || configuration_manager_ == nullptr) return false;
+   if (file_path_.size() == 0|| configuration_manager_ == nullptr) return false;
 
    configuration_manager_->SetConfiguration("Generic", "Desc", description_.c_str(), file_path_.c_str());
    configuration_manager_->SetConfiguration("Generic", "ShortDesc", short_description_.c_str(), file_path_.c_str());
 
 
    // Hardware
-   std::ostringstream hard_type_str;
-
-   hard_type_str << hardware_type_;
-   configuration_manager_->SetConfiguration("Hardware", "Type", hard_type_str.str().c_str(), file_path_.c_str());
+   char buffer[16];
+   sprintf(buffer, "%i", hardware_type_);
+   configuration_manager_->SetConfiguration("Hardware", "Type", buffer, file_path_.c_str());
    
-   std::ostringstream crtc_type_str;
-   crtc_type_str << type_crtc_;
-   configuration_manager_->SetConfiguration("Hardware", "Type_CRTC", crtc_type_str.str().c_str(), file_path_.c_str());
+   sprintf(buffer, "%i", type_crtc_);
+   configuration_manager_->SetConfiguration("Hardware", "Type_CRTC", buffer, file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "PAL", pal_present_ ? "1" : "0", file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "FDC", fdc_present_ ? "1" : "0", file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "Tape", tape_present_ ? "1" : "0", file_path_.c_str());

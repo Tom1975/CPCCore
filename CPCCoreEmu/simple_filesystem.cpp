@@ -14,6 +14,10 @@ namespace std::filesystem
       path_ = path_file;
    }
 
+   path::path(const std::string& path)
+   {
+      path_ = path;
+   }
 
 
    path path::filename() 
@@ -35,6 +39,10 @@ namespace std::filesystem
       path_.append(PATH_SLASH_STRING);
       path_.append(ext);
       return *this;
+   }
+   unsigned int path::operator==(const std::filesystem::path& other)
+   {
+      return (path_ == other.path_);
    }
 
    std::string path::string() const
