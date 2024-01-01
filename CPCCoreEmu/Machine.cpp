@@ -650,7 +650,29 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 
 }
 
-void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* ini_file)
+void EmulatorEngine::LoadConfiguration(const char* config_name_file, SugarboxInitialisation* init)
+{
+   delete current_settings_;
+   char tmp_buffer[MAX_SIZE_BUFFER];
+   current_settings_ = MachineSettings::CreateSettings(configuration_manager_, config_name_file);
+   if (current_settings_ == nullptr)
+   {
+      current_settings_ = new MachineSettings();
+      current_settings_->Init(configuration_manager_);
+   }
+
+   current_settings_->Load();
+
+   // Update with init.
+   if (init != nullptr && !init->_cart_inserted.empty()) 
+   {
+      current_settings_->SetDefaultCartridge(init->_cart_inserted.string().c_str());
+   }
+
+   ChangeConfig(current_settings_);
+}
+
+void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* ini_file, SugarboxInitialisation* init)
 {
    if (configuration_manager_ == nullptr) return;
    char tmp_buffer [MAX_SIZE_BUFFER ];
@@ -674,20 +696,19 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    }
 
    // Configuration
-   fs::path default_path_cfg = "CONF";
-   default_path_cfg /= "CPC6128PLUSEN.cfg";
+   fs::path path_cfg = "CONF";
 
-   configuration_manager_->GetConfiguration(config_name, "Machine_Settings", default_path_cfg.string().c_str(), tmp_buffer, MAX_SIZE_BUFFER, ini_file);
-
-   delete current_settings_;
-   current_settings_ = MachineSettings::CreateSettings(configuration_manager_, tmp_buffer);
-   if (current_settings_ == nullptr)
+   if (init != nullptr && init->_hardware_configuration.size() > 0)
    {
-      current_settings_ = new MachineSettings();
+      path_cfg = init->_hardware_configuration;
    }
-
-   current_settings_->Load();
-   ChangeConfig(current_settings_);
+   else
+   {
+      path_cfg /= "CPC6128PLUSEN.cfg";
+      configuration_manager_->GetConfiguration(config_name, "Machine_Settings", path_cfg.string().c_str(), tmp_buffer, MAX_SIZE_BUFFER, ini_file);
+      path_cfg = tmp_buffer;
+   }
+   LoadConfiguration(path_cfg.string().c_str(), init);
 
    emulator_settings_.Load(ini_file);
    UpdateFromSettings();
@@ -705,13 +726,13 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    // Speed
    configuration_manager_->GetConfiguration(config_name, "Speed", "100", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    sscanf (tmp_buffer, "%i", &speed_ );
+   SetSpeed(speed_);
 
    // Snapshot quick load/save
    configuration_manager_->GetConfiguration(config_name, "QuickSnap", "", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    quick_sna_path_ = tmp_buffer;
    quick_sna_available_ = quick_sna_path_.size()>0;
 
-   SetSpeed(speed_);
 }
 
 ///////////////////////////////////////////////////
