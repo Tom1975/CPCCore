@@ -118,7 +118,7 @@ public:
       delete machine_;
    }
 
-   bool Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path scriptfile, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
+   bool Test(std::filesystem::path conf, std::filesystem::path initfile, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
 
    bool display_;
    DirectoriesImp dirImp;

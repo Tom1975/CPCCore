@@ -246,7 +246,7 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
-bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path scriptfile, bool bFixedSpeed, int seed)
+bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, bool bFixedSpeed, int seed)
 {
    // Creation dela machine
    
@@ -272,9 +272,10 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    machine_->SetFixedSpeed(bFixedSpeed);
 
    CSLScriptRunner runner(machine_, &display);
-   runner.SetScriptDirectory("C:/Thierry/Amstrad/Dev/Shakerland/Shaker_CSL/CSL/MODULE_A");
-   runner.SetDiskDirectory("C:/Thierry/Amstrad/Dev/Shakerland");
-   runner.SetScreenshotDirectory("C:/Thierry/Amstrad/Dev/Shakerland/Result/MODULE_A");
+   runner.SetScriptDirectory("./Shaker/Shaker_25/MODULE_A");
+   runner.SetDiskDirectory("./Shaker");
+   runner.SetScreenshotDirectory("./Shaker/Shaker_25/result/MODULE_A");
+   std::filesystem::create_directories("./Shaker/Shaker_25/result/MODULE_A");
    runner.SetScreenshotHandler();
 
    runner.LoadScript((runner.GetScriptDirectory() / "SHAKE25A-0.CSL").string().c_str());

@@ -53,10 +53,8 @@ int main(int argc, char* argv[])
 
    bool show = argument_list.find("-show") != argument_list.end();
 
-   std::filesystem::path script_path = "C:/Thierry/Amstrad/Dev/Shakerland/Shaker_CSL/CSL/MODULE_A/SHAKE25A-0.CSL";
-
    std::filesystem::path ini_file = "./TestConf.ini";
 
    TestDump test_dump(show);
-   test_dump.Test("6128", ini_file, script_path);
+   test_dump.Test("6128", ini_file);
 }
