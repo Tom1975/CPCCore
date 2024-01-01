@@ -43,11 +43,10 @@ int main(int argc, char* argv[])
    {
       // Display help
       std::cout << "A Sugarbox text to generate Shaker tests." << std::endl;
-      std::cout << "Usage : ShakerGenerator [-help] [-show] [-out][-crtc crtc_num] [-module module_name] [-test test_name]" << std::endl;
+      std::cout << "Usage : ShakerGenerator [-help] [-show] [-out][-crtc crtc_num] [-module module_name]" << std::endl;
       std::cout << "    -help   : display this message" << std::endl;
       std::cout << "    -crtc   : list the CRTC type to generate, from 0 to 4. It can be a list (ShakerGenerator -crtc 0 2 4)" << std::endl;
       std::cout << "    -module : module name to filter : can be A, B, C, D. Can also be a list." << std::endl;
-      std::cout << "    -test   : tests to execute, by its name. Ex : -test A7 A8 BRETURN CR" << std::endl;
       std::cout << "    -show   : show the executed test in a window while generated" << std::endl;
       std::cout << "  Do not use -module with -test : Only the wanted test will be executed !" << std::endl;
    }
@@ -56,7 +55,7 @@ int main(int argc, char* argv[])
 
    std::filesystem::path script_path = "C:/Thierry/Amstrad/Dev/Shakerland/Shaker_CSL/CSL/MODULE_A/SHAKE25A-0.CSL";
 
-   std::filesystem::path ini_file = "./TestConf_0.ini";
+   std::filesystem::path ini_file = "./TestConf.ini";
 
    TestDump test_dump(show);
    test_dump.Test("6128", ini_file, script_path);
