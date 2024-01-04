@@ -1,6 +1,9 @@
 #pragma once
-#include <functional>
-#include <map>
+
+#ifndef NO_CUSTOM_OPCODES
+   #include <functional>
+   #include <map>
+#endif
 
 #include "IComponent.h"
 #include "Memoire.h"
@@ -292,10 +295,9 @@ public:
       FD,
    } OpcodeType;
 
-
+#ifndef NO_CUSTOM_OPCODES
    std::function<void(unsigned int)> custom_opcode_decoder_;
    std::map<unsigned int, Func> custom_commands;
-
    unsigned int CustomOpcode()
    {
       custom_opcode_decoder_(current_opcode_);
@@ -375,6 +377,7 @@ public:
       custom_commands[replaced_opcode] = old_f;
       (*fetch)[opcode] = &Z80::CustomOpcode;
    };
+#endif
 
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
