@@ -11,8 +11,6 @@
 #include <proto/dos.h>
 #endif
 
-#define LOGFDC
-
 #include "macro.h"
 #if _MSC_VER < 1900
 #ifndef __GNUC__
@@ -40,7 +38,7 @@ size_t InsertShort(FILE* f, unsigned short data)
    buf[1] = (data & 0xFF);
    buf[0] = ((data >> 8) & 0xFF);
 
-   const int size = fwrite(buf, 1, 2, f);
+   const size_t size = fwrite(buf, 1, 2, f);
    return size;
 }
 

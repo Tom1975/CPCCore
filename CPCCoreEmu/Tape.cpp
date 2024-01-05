@@ -18,8 +18,6 @@
 #include "mkfilter.h"
 #endif
 
-#define LOGFDC
-
 #ifdef LOGFDC
 #define LOG(str) \
    if (log_) log_->WriteLog (str);
