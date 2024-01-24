@@ -49,7 +49,7 @@ size_t Token::FindValue(std::string str, int& token_length)
    unsigned int value;
    if (sscanf (str.c_str(), "%xH", &value) == 1)
    {
-      token_length = str.size();
+      token_length = static_cast<int>(str.size());
       return 0;
    }
    return std::string::npos;
@@ -178,7 +178,7 @@ Token* TokenConditionOperationEquality::StringToToken(std::string str, EmulatorE
    if (indice != std::string::npos) 
    {
       // Set PC as register
-      pos_of_token = indice; 
+      pos_of_token = static_cast<int>(indice);
       size_of_token = token_length;
       return new TokenConditionOperationEquality(emulator);
    }
@@ -269,7 +269,7 @@ Token* TokenRegisterValue<T>::StringToToken(std::string str, EmulatorEngine* emu
    {
 
       pos_of_token = 0;
-      size_of_token = str.size();
+      size_of_token = static_cast<int>(str.size());
 
       if (register_token_list_[str] == REG_PC)
       {
@@ -291,7 +291,7 @@ Token* TokenImmediateValue::StringToToken(std::string str, EmulatorEngine* emula
    if (sscanf(str.c_str(), "%xH", &value) == 1)
    {
       pos_of_token = 0;
-      size_of_token = str.size();
+      size_of_token = static_cast<int>(str.size());
       token = new TokenImmediateValue(value, emulator);
    }
    return token;
