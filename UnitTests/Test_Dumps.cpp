@@ -506,6 +506,19 @@ TEST(Dumps_Disk, Fire)
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Fire !.raw", "|cpm\r", &cmd_list, true));
 }
 
+// Fighter Bomber
+TEST(Dumps_Disk, FighterBomber)
+{
+   TestDump test_dump;
+   CommandList cmd_list;
+   cmd_list.AddCommand(new CommandRunCycles(1500));
+   cmd_list.AddCommand(new CommandScanCode(test_dump.machine_->GetKeyboardHandler(), 0x39, 1));
+   cmd_list.AddCommand(new CommandRunCycles(800));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/Fighter Bomber (UK) (Face A) (1989) (UK retail version) [Original].dsk.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Fighter Bomber (UK) (Face A) (1989) (UK retail version) [Original].dsk", "run\"disc\r", &cmd_list, true));
+}
+
+
 TEST(Dumps_Disk, Fugitif)
 {
    TestDump test_dump;
