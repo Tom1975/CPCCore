@@ -114,20 +114,36 @@ void CSLScriptRunner::LoadScript(const char* script_path)
 void CSLScriptRunner::CustomFunction(unsigned int i)
 {
     unsigned int value = i & 0xff;
-    if (screenshot_count_ == 1)
+
+    if (value == 0xFF)
+    {
+        // TODO emulator must save snapshot_name snapshot
+    }
+    else if (value == 0xFE)
+    {
+        // TODO emulator must save screenshot_name screenshot
+    }
+    else if (screenshot_count_ == 1)
     {
         screenshot_HHLL_ |= value << 8;
 
-        // Create screenshot from current frame, name is generated from opcode
+        if (screenshot_HHLL_ == 0x0000)
+        {
+            // wait_ssm0000 support in script
+        }
+        else
+        {
+            // Create screenshot from current frame, name is generated from opcode
 
-        unsigned int type_crtc = GetEmulatorEngine()->GetCRTC()->type_crtc_;
+            unsigned int type_crtc = GetEmulatorEngine()->GetCRTC()->type_crtc_;
 
-        char filename[255];
-        snprintf(filename, sizeof(filename), "sugarbox_%d_%04x.jpg", type_crtc, screenshot_HHLL_);
+            char filename[255];
+            snprintf(filename, sizeof(filename), "sugarbox_%d_%04x.jpg", type_crtc, screenshot_HHLL_);
 
-        std::filesystem::path filepath = screenshot_path_ / filename;
+            std::filesystem::path filepath = screenshot_path_ / filename;
 
-        display_->TakeScreenshot((const char*)filepath.string().c_str());
+            display_->TakeScreenshot((const char*)filepath.string().c_str());
+        }
 
         screenshot_count_ = 0;
         screenshot_HHLL_ = 0;
