@@ -188,4 +188,4 @@ key_output ' '
 wait 1000000		; menu
 
 
-cls_load 'SHAKE25D-4'
+csl_load 'SHAKE25D-4'

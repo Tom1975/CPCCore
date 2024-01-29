@@ -226,4 +226,4 @@ wait 1000000	; 3b7
 key_output ' '
 wait 1000000  ; menu
 
-cls_load 'SHAKE25D-2'
+csl_load 'SHAKE25D-2'

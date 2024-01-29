@@ -268,4 +268,4 @@ wait 500000	; 336980
 key_output ' '	
 wait 1000000
 ;
-cls_load 'SHAKE25B-2'
+csl_load 'SHAKE25B-2'

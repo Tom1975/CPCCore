@@ -274,4 +274,4 @@ wait 2000000 ; 3e4
 key_output ' '
 wait 1000000		; menu
 
-cls_load 'SHAKE25D-3'
+csl_load 'SHAKE25D-3'
