@@ -5,6 +5,19 @@
 #include "Machine.h"
 #include "../Display.h"
 
+class CommandNull : public ICommand
+{
+public:
+    CommandNull()
+    {
+    }
+
+    virtual bool Action(IScriptRunner* script_runner)
+    {
+        return true;
+    }
+};
+
 class CommandShowVersion : public ICommand
 {
 public:

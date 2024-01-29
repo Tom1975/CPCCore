@@ -46,27 +46,50 @@ void CSLScriptRunner::LoadScript(const char* script_path)
 {
     std::ifstream f(script_path);
     std::string line;
+    std::string lineNoComment;
+
+    int lineNum = 0;
 
     while (std::getline(f, line))
     {
+        lineNum++;
+
         // Handle line
         std::string::size_type begin = line.find_first_not_of(" \f\t\v");
 
         // Skip blank lines
-        if (begin == std::string::npos) continue;
+        if (begin == std::string::npos)
+        {
+            char lineStr[512];
+            sprintf(lineStr, "%s(%d): %s", script_path, lineNum, line.c_str());
+
+            AddCommand(new CommandNull(), lineStr);
+
+            continue;
+        }
         // Skip commentary
         std::string::size_type end = line.find_first_of(";");
         if (end != std::string::npos)
-            line = line.substr(begin, end);
+            lineNoComment = line.substr(begin, end);
+        else
+            lineNoComment = line;
 
-        if (line.empty()) continue;
+        if (lineNoComment.empty())
+        {
+            char lineStr[512];
+            sprintf(lineStr, "%s(%d): %s", script_path, lineNum, line.c_str());
+
+            AddCommand(new CommandNull(), lineStr);
+
+            continue;
+        }
 
         // Get command
         std::vector<std::string> command_parameters;
 
         std::string current_parameter;
         char current_delim = ' ';
-        for (auto& c : line)
+        for (auto& c : lineNoComment)
         {
             if (c == ';')
             {
@@ -102,7 +125,10 @@ void CSLScriptRunner::LoadScript(const char* script_path)
 
         if (command != nullptr)
         {
-            AddCommand(command);
+            char lineStr[512];
+            sprintf(lineStr, "%s(%d): %s", script_path, lineNum, line.c_str());
+
+            AddCommand(command, lineStr);
         }
         else
         {
@@ -143,6 +169,8 @@ void CSLScriptRunner::CustomFunction(unsigned int i)
             std::filesystem::path filepath = screenshot_path_ / filename;
 
             display_->TakeScreenshot((const char*)filepath.string().c_str());
+
+            std::cout << "Screenshot: " << filepath << std::endl;
         }
 
         screenshot_count_ = 0;

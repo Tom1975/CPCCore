@@ -13,9 +13,9 @@ public:
 	{}
 
 	virtual void LoadScript(const char* path) = 0;
-	void AddCommand(ICommand* cmd)
+	void AddCommand(ICommand* cmd, const char* str)
 	{
-		command_list_.AddCommand(cmd);
+		command_list_.AddCommand(cmd, str);
 	};
 
 	EmulatorEngine* GetEmulatorEngine() { return emulator_engine_; }

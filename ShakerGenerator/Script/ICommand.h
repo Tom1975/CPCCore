@@ -26,17 +26,17 @@ public:
         }
     };
 
-    void AddCommand(ICommand* cmd)
+    void AddCommand(ICommand* cmd, const char* str)
     {
         command_list_.push_back(cmd);
+        command_list_str_.push_back(str);
     }
 
     bool RunNextCommand(IScriptRunner* scriptRunner)
     {
-        std::cout << "Running command script " << index_ << std::endl;
-
         if (index_ < command_list_.size())
         {
+            std::cout << command_list_str_[index_] << std::endl;
             return command_list_[index_++]->Action(scriptRunner);
         }
         else return false;
@@ -50,5 +50,6 @@ public:
 
 protected:
     std::vector<ICommand*> command_list_;
+    std::vector<std::string> command_list_str_;
     unsigned int index_;
 };
