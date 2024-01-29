@@ -104,28 +104,27 @@ public:
 extern std::map<std::string, std::pair<unsigned int, unsigned int>> Escape_map_;
 
 class CommandList;
-
+class CSLScriptRunner;
 
 class TestDump
 {
 public:
-   TestDump(bool display = false) : display_(display)
-   {
-      machine_ = new EmulatorEngine();
-   }
+   TestDump(bool display = false);
    virtual ~TestDump()
    {
       delete machine_;
+      delete runner_;
    }
 
-   bool Test(std::filesystem::path conf, std::filesystem::path initfile, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
+   bool Test(std::filesystem::path conf, std::filesystem::path initfile, char moduleName, bool bFixedSpeed = true, int seed = 0xFEED1EE7);
 
-   bool display_;
-   DirectoriesImp dirImp;
-   CDisplay display;
-   Log log;
-   SoundFactory soundFactory;
+   DirectoriesImp dirImp_;
+   CDisplay display_;
+   Log log_;
+   ConfigurationManager conf_manager_;
+   SoundFactory soundFactory_;
    EmulatorEngine* machine_;
+   CSLScriptRunner* runner_;
 };
 
 class TestTape

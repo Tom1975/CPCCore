@@ -246,24 +246,28 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
-bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, bool bFixedSpeed, int seed)
+TestDump::TestDump(bool show)
 {
-   // Creation dela machine
-   
-   display.Init(display_);
-   display.Show(display_);
+    // Creation de la machine
+    machine_ = new EmulatorEngine();
 
-   machine_->SetDirectories(&dirImp);
-   machine_->SetLog(&log);
+    display_.Init(show);
+    display_.Show(show);
 
-   ConfigurationManager conf_manager;
-   machine_->SetConfigurationManager(&conf_manager);
+    machine_->SetDirectories(&dirImp_);
+    machine_->SetLog(&log_);
+    machine_->SetConfigurationManager(&conf_manager_);
 
-   machine_->Init(&display, &soundFactory);
+    machine_->Init(&display_, &soundFactory_);
 
-   machine_->GetMem()->Initialisation();
-   machine_->GetMem()->Initialisation();
+    machine_->GetMem()->Initialisation();
 
+    runner_ = new CSLScriptRunner(machine_, &display_);
+    runner_->SetScreenshotHandler();
+}
+
+bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, char moduleName, bool bFixedSpeed, int seed)
+{
    machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());
    machine_->Reinit();
 
@@ -271,16 +275,24 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    srand(seed);
    machine_->SetFixedSpeed(bFixedSpeed);
 
-   CSLScriptRunner runner(machine_, &display);
-   runner.SetScriptDirectory("./Shaker/Shaker_25/MODULE_A");
-   runner.SetDiskDirectory("./Shaker");
-   runner.SetScreenshotDirectory("./Shaker/Shaker_25/result/MODULE_A");
-   std::filesystem::create_directories("./Shaker/Shaker_25/result/MODULE_A");
-   runner.SetScreenshotHandler();
+   char scriptDir[256];
+   sprintf(scriptDir, "./Shaker/Shaker_25/MODULE_%c", moduleName);
 
-   runner.LoadScript((runner.GetScriptDirectory() / "SHAKE25A-0.CSL").string().c_str());
+   runner_->SetScriptDirectory(scriptDir);
+   runner_->SetDiskDirectory("./Shaker");
+
+   char resultDir[256];
+   sprintf(resultDir, "./Shaker/Shaker_25/result/MODULE_%c", moduleName);
+
+   runner_->SetScreenshotDirectory(resultDir);
+   std::filesystem::create_directories(resultDir);
+
+   char scriptFilename[256];
+   sprintf(scriptFilename, "SHAKE25%c-0.CSL", moduleName);
+
+   runner_->LoadScript((runner_->GetScriptDirectory() / scriptFilename).string().c_str());
    
-   return runner.Run();
+   return runner_->Run();
 }
 
 

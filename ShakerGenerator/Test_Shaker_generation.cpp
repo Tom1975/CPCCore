@@ -55,6 +55,9 @@ int main(int argc, char* argv[])
 
    std::filesystem::path ini_file = "./TestConf.ini";
 
-   TestDump test_dump(show);
-   test_dump.Test("6128", ini_file);
+   TestDump shaker(show);
+   shaker.Test("6128", ini_file, 'A');
+   shaker.Test("6128", ini_file, 'B');
+   shaker.Test("6128", ini_file, 'C');
+   shaker.Test("6128", ini_file, 'D');
 }
