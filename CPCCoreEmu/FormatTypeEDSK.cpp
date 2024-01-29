@@ -996,16 +996,18 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
       unsigned int final_index_begin = index_iam + 16 + 50;
       unsigned int total_gap = final_index_begin * 16 + final_gap;
 
-      if (final_gap < 150 * 16)
+      if (final_gap < (index_iam + 16 + 50)*16 && final_gap < 2500)
       {
          // Adjust : We need to have the final gap at least 100 bytes 
-         unsigned int adjust = 150 * 16 - final_gap;
+         /*unsigned int adjust = (index_iam + 16 + 50) * 16 - final_gap;
+         if (adjust > 2500) adjust = 2500;
 
          unsigned int move_begin = (index_iam + 16 + 50) * 16;
          unsigned int move_end = (index_iam + 16 + 50) * 16 - adjust;
          // Move the whole track 
          memmove( &track_byte[move_end], &track_byte[move_begin], adjust);
          index_bit -= adjust;
+         */
       }
 
       // Add missing gap

@@ -1141,7 +1141,7 @@ TEST(Dumps_Disk, SecuTrack)
    TestDump test_dump;
    CommandList cmd_list;
    cmd_list.AddCommand(new CommandRunCycles(600));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/secutrack.bmp", SCR_CREATE/*SCR_COMPARE*/));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/secutrack.bmp", SCR_COMPARE/*SCR_COMPARE*/));
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/secutrack.hfe", "|cpm\r", &cmd_list, true));
 }
 
