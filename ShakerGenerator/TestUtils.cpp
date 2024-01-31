@@ -24,7 +24,7 @@
 
 FileLog::FileLog(const char* file)
 {
-    errno_t result = fopen_s(&f_, file, "w");
+    fopen_s(&f_, file, "w");
 }
 
 FileLog::~FileLog()
