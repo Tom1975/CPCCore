@@ -1003,7 +1003,7 @@ TEST(Dumps_Disk, Prof_Detective)
    cmd_list.AddCommand(new CommandRunCycles(350));
    // move joystick upn "play"
    cmd_list.AddCommand(new CommandJoystick(0, 2));
-   cmd_list.AddCommand(new CommandRunCycles(517));
+   cmd_list.AddCommand(new CommandRunCycles(495));
    cmd_list.AddCommand(new CommandJoystick(0, 64));
    cmd_list.AddCommand(new CommandRunCycles(20));
    cmd_list.AddCommand(new CommandJoystick(0, 0));
