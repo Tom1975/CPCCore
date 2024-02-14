@@ -322,8 +322,6 @@ void FormatTypeRAW::HandleOOB(FILE* file)
          char* info = new char[size];
 
          ReadASCII(file, info, size);
-         OutputDebugString(info);
-         OutputDebugString("\n");
          // Handle it
          HandleHWInfo(info, size);
          delete[]info;
@@ -426,8 +424,6 @@ void FormatTypeRAW::HandleOOB(const unsigned char* buffer, int& pos)
          char* info = new char[size];
 
          ReadASCIIFromBuffer(buffer, pos, info, size);
-         OutputDebugString(info);
-         OutputDebugString("\n");
          // Handle it
          HandleHWInfo(info, size);
          delete[]info;

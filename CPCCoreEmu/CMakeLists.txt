@@ -9,12 +9,23 @@ file( GLOB HEADERS
 	"*.h" "*.hpp"
 )
 
+set (EXTRA
+    ../.github/workflows/build_macos.yml
+    ../.github/workflows/build_ubuntu.yml
+    ../.github/workflows/build_windows.yml
+    ../.github/workflows/test_ubuntu.yml
+    ../.github/workflows/test_windows.yml
+   )
+
+
+source_group("Github Action" FILES ${EXTRA} )
+
 list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
 
 #Fichier ressource
 MESSAGE ("CMAKE_CURRENT_BINARY_DIR =" ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${INSTALL_INC_DIR}  ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
-add_library(CPCCoreEmu ${SRCS} ${HEADERS})
+add_library(CPCCoreEmu ${SRCS} ${HEADERS} ${EXTRA})
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib ${CMAKE_CURRENT_BINARY_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(CPCCoreEmu PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
