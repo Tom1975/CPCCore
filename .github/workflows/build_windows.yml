@@ -27,7 +27,7 @@ jobs:
     - name: Install
       # Build your program with the given configuration
       run: |
-        cmake --install ${{github.workspace}}\build\UnitTests\Release
+        cmake --install ${{github.workspace}}\build
         dir ${{github.workspace}}\build\UnitTests\Release
         
     - name: Archive zip
