@@ -26,7 +26,7 @@ jobs:
         working-directory: ${{github.workspace}}
         run: |
           ls
-          chmod +777 bin/unitTests
-          xvfb-run --auto-servernum bin/unitTests
+          chmod +777 ./unitTests
+          xvfb-run --auto-servernum ./unitTests
     
         
