@@ -27,17 +27,17 @@ jobs:
     - name: Install
       # Build your program with the given configuration
       run: |
-        cmake --install ${{github.workspace}}\build
-        dir ${{github.workspace}}\build
+        cmake --install ${{github.workspace}}\build\UnitTests\Release
+        dir ${{github.workspace}}\build\UnitTests\Release
         
     - name: Archive zip
       uses: actions/upload-artifact@v3
       with:
           name: CPCCore_Win
           path: |
-            ${{github.workspace}}/build/bin/unitTests.exe
-            ${{github.workspace}}/build/TestConf.ini
-            ${{github.workspace}}/build/res/
-            ${{github.workspace}}/build/CONF/
-            ${{github.workspace}}/build/CART/
-            ${{github.workspace}}/build/ROM/
+            ${{github.workspace}}/build/UnitTests/Release/unitTests.exe
+            ${{github.workspace}}/build/UnitTests/Release/TestConf.ini
+            ${{github.workspace}}/build/UnitTests/Release/res/
+            ${{github.workspace}}/build/UnitTests/Release/CONF/
+            ${{github.workspace}}/build/UnitTests/Release/CART/
+            ${{github.workspace}}/build/UnitTests/Release/ROM/
