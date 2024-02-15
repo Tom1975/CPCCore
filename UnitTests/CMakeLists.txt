@@ -74,15 +74,25 @@ endif()
 # Link test executable against gtest & gtest_main
 target_link_libraries(unitTests PUBLIC zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA} )
 
-add_test( NAME unitTests COMMAND unitTests)
+set (WORKING_DIR_TEST "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+MESSAGE ( STATUS "Unit test working dir = ${WORKING_DIR_TEST}")
+MESSAGE ( STATUS "Unit test Current binary dir = ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+
+add_test( NAME unitTests COMMAND unitTests WORKING_DIRECTORY ${WORKING_DIR_TEST})
 
 install(TARGETS unitTests 
-            RUNTIME DESTINATION "."
-            LIBRARY DESTINATION "."
-            ARCHIVE DESTINATION lib/static)
+            RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+            LIBRARY DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+            ARCHIVE DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
 
-install ( FILES "./TestConf.ini" DESTINATION ${PROJECT_BINARY_DIR}/..) 
-install ( DIRECTORY "./ROM" DESTINATION ${PROJECT_BINARY_DIR}/..) 
-install ( DIRECTORY "./CART" DESTINATION ${PROJECT_BINARY_DIR}/..) 
-install ( DIRECTORY "./CONF" DESTINATION ${PROJECT_BINARY_DIR}/..) 
-install ( DIRECTORY "./res" DESTINATION ${PROJECT_BINARY_DIR}/..) 
+install ( FILES "./TestConf.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>) 
+install ( FILES "./TestConf_0.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( FILES "./TestConf_1.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( FILES "./TestConf_2.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( FILES "./TestConf_3.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( FILES "./TestConf_4.ini" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+
+install ( DIRECTORY "./ROM" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>) 
+install ( DIRECTORY "./CART" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( DIRECTORY "./CONF" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
+install ( DIRECTORY "./res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>) 

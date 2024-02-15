@@ -29,11 +29,14 @@ namespace fs = std::filesystem;
 #elif __MORPHOS__
 // fs does not exist there
 
+
 #elif __circle__
+
 #include "simple_filesystem.h"
 // fs does not exist there
 namespace fs = std::filesystem;
 #else
+
 
 // fs does not exist there
 #include <filesystem>
@@ -65,8 +68,6 @@ typedef unsigned int FILE;
 
 
 #if 1
-
-#define OutputDebugString(x)
 
 #define DWORD unsigned int
 

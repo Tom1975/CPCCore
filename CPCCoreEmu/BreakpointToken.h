@@ -57,7 +57,7 @@ public:
    static size_t FindValue(std::string base_string, int& token_length);
    static size_t FindString ( std::string base_string, std::string token, int& token_length)
    {
-      token_length = token.size();
+      token_length = static_cast<int>(token.size());
       return base_string.find(token);
    };
    static unsigned int ParseToken(std::string str, std::vector<Token>& token_list);

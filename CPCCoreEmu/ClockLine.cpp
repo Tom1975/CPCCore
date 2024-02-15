@@ -60,7 +60,7 @@ unsigned int CClockLine::Tick ()
    // What is attach to this line ?
    for (unsigned int i = 0; i < nb_components_; i++)
    {
-      component_array_[i]->Tick (/*m_bSignalUp*/);
+      component_array_[i]->Tick ();
    }
    return 1;
 }

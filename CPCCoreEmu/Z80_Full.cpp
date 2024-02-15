@@ -178,7 +178,6 @@ unsigned int Z80::Tick_Fetch_3()
 
 unsigned int Z80::Tick_Fetch_4()
 {
-   //if (current_opcode_ != 0x37 && current_opcode_ != 0x3F)
    if ((current_opcode_ & 0xF7) != 0x37)
       q_ = 0;
    return (this->*(*current_function_)[current_opcode_ & 0xFF])();
@@ -305,7 +304,6 @@ void Z80::TraceTape(unsigned short pc, unsigned char value)
       sprintf(c, "%2.2X ", value);
 
       log_->WriteLog(c);
-      OutputDebugString(c);
       if (++count_ == 16)
       {
          log_->EndOfLine();

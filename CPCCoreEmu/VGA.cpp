@@ -103,18 +103,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
                               + ((i & 0x20) ? 0x4 : 0) + ((i & 0x2) ? 0x8 : 0)+ ((i & 0x10) ? 0x1 : 0) + ((i & 0x1) ? 0x2 : 0);
    }
 
-   // Init mode 0
-   /*
-   for (i = 0; i < 0x100; i++)
-   {
-      ByteToPixel00[i] = ((i&0x80)?1:0) + ((i&0x8)?2:0) +((i&0x20)?4:0) +((i&0x2)?8:0);
-      ByteToPixel01[i] = ((i&0x40)?1:0) + ((i&0x4)?2:0) +((i&0x10)?4:0) +((i&0x1)?8:0);
-      ByteToPixel03[i] = ((i&0x80)?1:0) + ((i&0x8)?2:0) ;
-      ByteToPixel03_B[i] = ((i&0x40)?1:0) + ((i&0x4)?2:0);
-   }*/
    monitor_ = NULL;
-   //m_VideoBuffer = NULL;
-   //m_Screen = NULL;
 
    Reset();
    type_gate_array_ = GA_40010;
@@ -150,11 +139,6 @@ void GateArray::Reset()
    interrupt_raised_ = false;
    interrupt_counter_ = 0;
    wait_for_hsync_ = 0;
-   //   m_X = 0;
-   //   m_Y = 0;
-
-      /*if (m_Screen!= NULL)
-         m_BeginingOfLine = m_VideoBuffer = m_Screen->GetVideoBuffer (m_Y);*/
 
    prev_col_ = 0;
    screen_mode_ = 0; // TODO : Check this
@@ -212,7 +196,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
    // Falling edge of HSync
    if (sig_handler_->hsync_fall_)
-      //if ( HOldSync == true && m_Sig->HSync == false )
    {
       interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
 
@@ -230,8 +213,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       }
       else
       {
-
-         //m_ModeEcranCached = m_ModeEcran ;
          if (wait_for_hsync_ > 0)
          {
             wait_for_hsync_--;
@@ -289,13 +270,9 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       {
          vsync_ = false;
       }
-
-      //m_Sig->HsyncFallWr = false;
       sig_handler_->hsync_fall_ = false;
-
    }
 
-   //m_VSync = m_Sig->VSync;
    // Seems that it should occur either on HSync fall or when Monitor hsync is falling (ie 6us after hsync start at most)
    if ((sig_handler_->hsync_raise_)
       || (sig_handler_->h_sync_on_begining_of_line_)
