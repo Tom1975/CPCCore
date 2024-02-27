@@ -129,12 +129,18 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
       int nbtracks = ((new_disk->nb_sides_ == 1) ? (endTrack) : (endTrack) / 2) + 1;
       for (int side = 0; side < new_disk->nb_sides_; side++)
       {
+         // take care of last track, if odd number of tracks : Remove the last one
+         if (side == 1 && nbtracks * 2 != endTrack)
+         {
+            nbtracks--;
+         }
+
          new_disk->side_[side].nb_tracks = nbtracks;
          new_disk->side_[side].tracks = new IDisk::MFMTrack[nbtracks];
          memset(new_disk->side_[side].tracks, 0, sizeof(IDisk::MFMTrack) * nbtracks);
          for (int tr = 0; tr < nbtracks; tr++)
          {
-            new_disk->side_[side].tracks[tr].nb_revolutions = 1;
+            new_disk->side_[side].tracks[tr].nb_revolutions = 0;
          }
       }
 
