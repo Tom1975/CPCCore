@@ -977,7 +977,7 @@ unsigned short IDisk::GetTrackInfoForRev(int side, int track, Track* track_buffe
       0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
    };
 
-   if (side_[side].tracks[track].revolution[rev].size - (int)sizeof(pattern_fe))
+   if (side_[side].tracks[track].revolution[rev].size < (int)sizeof(pattern_fe))
    {
       return 0;
    }

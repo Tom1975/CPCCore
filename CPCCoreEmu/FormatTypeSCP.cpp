@@ -130,7 +130,7 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
       for (int side = 0; side < new_disk->nb_sides_; side++)
       {
          // take care of last track, if odd number of tracks : Remove the last one
-         if (side == 1 && nbtracks * 2 != endTrack)
+         if (side == 1 && nbtracks * 2 != (endTrack+1))
          {
             nbtracks--;
          }
