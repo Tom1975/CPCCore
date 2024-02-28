@@ -1317,6 +1317,15 @@ TEST(Dumps_Disk, TheFury)
    cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/The Fury (UK) (1988) [Original].dsk.bmp", SCR_COMPARE));
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/The Fury (UK) (1988) [Original].dsk", "run\"fury\r", &cmd_list, true));
 }
+
+// UDisk21_SideA.scp (check for crash)
+TEST(Dumps_Disk, UDisk21_SideA)
+{
+    DiskGen disk;
+    ASSERT_EQ ( true, disk.CreateDisk("./res/DSK/UDisk21_SideA.scp", nullptr, nullptr) != nullptr );
+}
+
+
 //lappend testlist[SingleTest dsk60{ 6128 } {disk} {Titan(UK, F) (1988) (CPM)[Original].dsk} { | cpm} {331} {Titan}]
 TEST(Dumps_Disk, Titan)
 {
