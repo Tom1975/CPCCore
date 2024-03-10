@@ -11,6 +11,15 @@ IF(MSVC)
 	SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z)
+   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      set (LIBZA libz.a )
+   else()
+      set (LIBZA libz.a stdc++fs)
+   endif()
+endif()
+
 set(CompilerFlags
         CMAKE_CXX_FLAGS
         CMAKE_CXX_FLAGS_DEBUG
@@ -28,7 +37,12 @@ add_executable( ShakerGenerator
                 TestUtils.h
                 TestUtils.cpp
                 Test_Shaker_generation.cpp 
-)
+                "Script/CSLScriptRunner.h"
+                "Script/CSLScriptRunner.cpp"
+                "Script/ICommand.h"
+                "Script/IScriptRunner.h"
+                "Script/Commands.h"
+                "Script/Commands.cpp")
 
 target_link_libraries(ShakerGenerator PUBLIC zlibstatic CPCCoreEmu sfml-graphics ${LIBZA} )
 
@@ -37,12 +51,7 @@ install(TARGETS ShakerGenerator
             LIBRARY DESTINATION "./Shaker"
             ARCHIVE DESTINATION lib/static)
 
-install ( FILES "./TestConf.ini" DESTINATION "./Shaker") 
-install ( FILES "./TestConf_0.ini" DESTINATION "./Shaker") 
-install ( FILES "./TestConf_1.ini" DESTINATION "./Shaker")  
-install ( FILES "./TestConf_2.ini" DESTINATION "./Shaker")  
-install ( FILES "./TestConf_3.ini" DESTINATION "./Shaker")  
-install ( FILES "./TestConf_4.ini" DESTINATION "./Shaker")  
+install ( FILES "./TestConf.ini" DESTINATION "./Shaker")
 
 install ( DIRECTORY "../UnitTests/ROM" DESTINATION "./Shaker") 
 install ( DIRECTORY "../UnitTests/CART" DESTINATION "./Shaker") 
