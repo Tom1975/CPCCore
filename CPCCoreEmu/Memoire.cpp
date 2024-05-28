@@ -398,7 +398,7 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       r <<= 4;
       g <<= 4;
       b <<= 4;
-      monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b);
+      monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b) | 0xFF000000;
       monitor_->RecomputeAllColors();
    }
    else
@@ -532,7 +532,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             g <<= 4;
             b <<= 4;
 
-            monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b);
+            monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b) | 0xFF000000;
          }
          else if (addr == 0x6420 || addr == 0x6421)
          {

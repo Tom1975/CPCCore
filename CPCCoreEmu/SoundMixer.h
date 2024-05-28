@@ -51,6 +51,7 @@ public:
    void AddSound(double  volume_left, double  volume_right);
    unsigned int Tick();
    void PrepareBufferThread();
+   void Loop();
 
    void BeginRecord();
    void EndRecord() {

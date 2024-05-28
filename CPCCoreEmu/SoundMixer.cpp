@@ -438,7 +438,11 @@ void SoundMixer::PrepareBufferThread()
       current_wav_buffer_ = sound_->GetFreeBuffer();
       current_wav_index_ = 0;
    }
+   Loop();
+}
 
+void SoundMixer::Loop()
+{
 #ifndef NO_MULTITHREAD
    while (!finished_)
 #endif
