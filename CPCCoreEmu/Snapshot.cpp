@@ -281,7 +281,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[/*ListeColorsIndexConvert[*/header[0x3F/*]*/]];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[header[0x3F] & 0xFF];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[(header[0x3F] & 0x1F)|0x40];
-   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40];
+   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40] + 0xFF000000;
    machine_->GetMem()->UpdateAsicPalette(0x10, (header[0x3F] & 0x1F));
 
    //m_pMachine->GetMonitor()->SetBorder ( ListeColorsIndex[(header[0x3F] & 0x1F)|0x40] );
@@ -661,7 +661,7 @@ void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* i
       else if (i==16)
       {
          for (int j = 0; j < NB_BYTE_BORDER; j++)
-            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b);
+            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b) + 0xFF000000;
       }
    }
    machine_->GetMonitor()->RecomputeAllColors();
