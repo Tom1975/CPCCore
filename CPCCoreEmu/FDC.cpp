@@ -334,6 +334,7 @@ void FDC::Out (unsigned short addr, unsigned char data)
             last_interrupt_result_ = -1;
             LOG ("Instruction : ");
             LOGB (data);
+            LOG(" ");
             break;
          case READWRITE:
             recalibrate_ = false;

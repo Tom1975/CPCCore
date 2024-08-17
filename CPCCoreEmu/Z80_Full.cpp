@@ -304,7 +304,6 @@ void Z80::TraceTape(unsigned short pc, unsigned char value)
       sprintf(c, "%2.2X ", value);
 
       log_->WriteLog(c);
-      OutputDebugString(c);
       if (++count_ == 16)
       {
          log_->EndOfLine();

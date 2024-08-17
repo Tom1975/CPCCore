@@ -7,6 +7,10 @@
 #include "Display.h"
 #include <filesystem>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 // SCR_CREATE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
 #define NO_INIT_SCREENSHOT
@@ -72,17 +76,31 @@ protected:
    FILE * f_;
 };
 
+#ifdef WIN32
 class Log : public ILog
 {
 public:
 
-   virtual void WriteLog(const char* pLog) {  };
-   virtual void WriteLogByte(unsigned char pNumber) { char buf[256]; sprintf(buf, " %2.2X ", pNumber); }
-   virtual void WriteLogShort(unsigned short pNumber) { char buf[256]; sprintf(buf, " %4.4X ", pNumber); }
-   virtual void WriteLog(unsigned int pNumber) { char buf[256]; sprintf(buf, " %8.8X ", pNumber); };
+   virtual void WriteLog(const char* pLog) { OutputDebugString(pLog); };
+   virtual void WriteLogByte(unsigned char pNumber) { char buffer[16]; sprintf(buffer, " %2.2X", pNumber); OutputDebugString(buffer); }
+   virtual void WriteLogShort(unsigned short pNumber) { char buffer[16]; sprintf(buffer, " %4.4X", pNumber); OutputDebugString(buffer);  }
+   virtual void WriteLog(unsigned int pNumber) { char buffer[16]; sprintf(buffer, " %8.8X", pNumber); OutputDebugString(buffer); };
+   virtual void EndOfLine() { OutputDebugString("\n"); };
+
+};
+#else
+class Log : public ILog
+{
+public:
+
+   virtual void WriteLog(const char* pLog) { };
+   virtual void WriteLogByte(unsigned char pNumber) {  }
+   virtual void WriteLogShort(unsigned short pNumber) {  }
+   virtual void WriteLog(unsigned int pNumber) { };
    virtual void EndOfLine() { };
 
 };
+#endif
 class SoundFactory : public ISoundFactory
 {
    virtual ISound* GetSound(const char* pName) { return nullptr; };

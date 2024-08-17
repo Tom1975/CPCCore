@@ -968,7 +968,9 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    
    ////////////////////////////////////////
    // Also, check if it's an overlapping track. If yes (by looking for A1A1A1FC sync Pattern), adjust total size to keep shifting as describe here.
-   // TODO !!!
+   int index_last_gap = 0;
+   // Check of IAM (we can remove it if necessary)
+
    if (begining_found)
    {
       if (exact_size == 0)
@@ -978,15 +980,55 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    }
    else if (add_end_of_track)
    {
+      // Exception : 10 sector track (or BIG size sectors, or....) can lead to an overrun of the IAM by the end GAP.
+      // Ex : Fighter bomber.
+      // Rules : Compute all sector sizes (data+crc+gap+headers).
+      // That shall give us the remaining GAP, divided at the end / begining of the track.
+      // If less than 150 bytes are left, just don't add the IAM, we assume it's overwrittent at any time
+      // Total gap 
+      // Remove some data from the IAM sector - Envenly share GAP between end and begin of the track
+      unsigned int final_gap = 0;
+      index_last_gap = index_bit;
+      if (index_bit < 6250 * 16)
+      {
+         final_gap = (6250 * 16 - index_last_gap);
+      }
+
+      unsigned int final_index_begin = index_iam + 16 + 50;
+      unsigned int total_gap = final_index_begin * 16 + final_gap;
+
+      if (final_gap < (150)*16 )
+      {
+         // Adjust : We need to have the final gap at least 100 bytes 
+         unsigned int adjust = (150) * 16 - final_gap;
+
+         // check : if we have a offset-info for the first sector, use it
+         if (extended_offset_ && side_[side].tracks[track].sectors[0].sector_index > 0 && side_[side].tracks[track].sectors[0].sector_index < final_index_begin)
+         {
+            adjust = (final_index_begin - side_[side].tracks[track].sectors[0].sector_index) * 16;
+         }
+         
+         unsigned int move_begin = (index_iam + 16 + 50) * 16;
+         unsigned int move_end = (index_iam + 16 + 50) * 16 - adjust;
+         // Move the whole track 
+         memmove( &track_byte[move_end], &track_byte[move_begin], index_bit-move_begin );
+         index_bit -= adjust;
+         
+      }
+
+      // Add missing gap
       while (index_bit + 16 < 6250 * 16)
       {
          index_bit = IDisk::AddByteToTrack(track_byte, index_bit, 0x4E);
       }
    }
 
+
+   // 
    // Copy these data to bitfield
    new_disk->side_[side].tracks[track].revolution[indexRevolution].size = index_bit;
    new_disk->side_[side].tracks[track].revolution[indexRevolution].bitfield = new unsigned char[index_bit];
+
    memcpy(new_disk->side_[side].tracks[track].revolution[indexRevolution].bitfield, track_byte, index_bit);
 
    // Clear allocated datas

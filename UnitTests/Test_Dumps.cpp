@@ -506,6 +506,19 @@ TEST(Dumps_Disk, Fire)
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Fire !.raw", "|cpm\r", &cmd_list, true));
 }
 
+// Fighter Bomber
+TEST(Dumps_Disk, FighterBomber)
+{
+   TestDump test_dump;
+   CommandList cmd_list;
+   cmd_list.AddCommand(new CommandRunCycles(1500));
+   cmd_list.AddCommand(new CommandScanCode(test_dump.machine_->GetKeyboardHandler(), 0x39, 1));
+   cmd_list.AddCommand(new CommandRunCycles(800));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/Fighter Bomber (UK) (Face A) (1989) (UK retail version) [Original].dsk.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Fighter Bomber (UK) (Face A) (1989) (UK retail version) [Original].dsk", "run\"disc\r", &cmd_list, true));
+}
+
+
 TEST(Dumps_Disk, Fugitif)
 {
    TestDump test_dump;
@@ -990,7 +1003,7 @@ TEST(Dumps_Disk, Prof_Detective)
    cmd_list.AddCommand(new CommandRunCycles(350));
    // move joystick upn "play"
    cmd_list.AddCommand(new CommandJoystick(0, 2));
-   cmd_list.AddCommand(new CommandRunCycles(517));
+   cmd_list.AddCommand(new CommandRunCycles(495));
    cmd_list.AddCommand(new CommandJoystick(0, 64));
    cmd_list.AddCommand(new CommandRunCycles(20));
    cmd_list.AddCommand(new CommandJoystick(0, 0));
@@ -1128,7 +1141,7 @@ TEST(Dumps_Disk, SecuTrack)
    TestDump test_dump;
    CommandList cmd_list;
    cmd_list.AddCommand(new CommandRunCycles(600));
-   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/secutrack.bmp", SCR_CREATE/*SCR_COMPARE*/));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/secutrack.bmp", SCR_COMPARE/*SCR_COMPARE*/));
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/secutrack.hfe", "|cpm\r", &cmd_list, true));
 }
 
@@ -1304,6 +1317,15 @@ TEST(Dumps_Disk, TheFury)
    cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/The Fury (UK) (1988) [Original].dsk.bmp", SCR_COMPARE));
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/The Fury (UK) (1988) [Original].dsk", "run\"fury\r", &cmd_list, true));
 }
+
+// UDisk21_SideA.scp (check for crash)
+TEST(Dumps_Disk, UDisk21_SideA)
+{
+    DiskGen disk;
+    ASSERT_EQ ( true, disk.CreateDisk("./res/DSK/UDisk21_SideA.scp", nullptr, nullptr) != nullptr );
+}
+
+
 //lappend testlist[SingleTest dsk60{ 6128 } {disk} {Titan(UK, F) (1988) (CPM)[Original].dsk} { | cpm} {331} {Titan}]
 TEST(Dumps_Disk, Titan)
 {
