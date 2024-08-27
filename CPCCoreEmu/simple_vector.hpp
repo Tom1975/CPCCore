@@ -80,7 +80,7 @@ namespace std
             //memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
             for (unsigned int idx = 0; idx < size_; idx++)
             {
-               element_list_[idx] = tmp[idx];
+               element_list_[idx] = _Right.element_list_[idx];
             }
 
          }

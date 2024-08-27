@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "simple_vector.hpp"
+#include <vector>
 
 #include "IComponent.h"
 
