@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef MINIMUM_DEPENDENCIES
+#if defined (MINIMUM_DEPENDENCIES) ||defined (TEST_VECTOR)
 #include "simple_string.h"
 
 namespace std::filesystem
@@ -26,5 +26,6 @@ namespace std::filesystem
 }
 
 #else
+#include <filesystem>
 
 #endif

@@ -12,10 +12,10 @@
 #define NR 0x8
 
 
-#define LOGFDC
-#define LOG_SENSE_INT
-#define LOG_EXEC
-#define LOG_MAX
+//#define LOGFDC
+//#define LOG_SENSE_INT
+//#define LOG_EXEC
+//#define LOG_MAX
 
 #ifdef LOGFDC
 #define LOG(str) \

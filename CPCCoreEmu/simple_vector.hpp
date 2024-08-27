@@ -1,15 +1,12 @@
 #pragma once
 
-#ifndef MINIMUM_DEPENDENCIES   
-   #include <vector>
-#else
+#if defined (MINIMUM_DEPENDENCIES) ||defined (TEST_VECTOR)
 
 #pragma pack(push, 1)
 
-#include <circle/logger.h>
-
 namespace std
 {
+#ifdef  __circle__
    template <class _Ty>
    constexpr const _Ty& (min)(const _Ty& _Left,
       const _Ty& _Right) 
@@ -31,6 +28,7 @@ namespace std
       }
       return _Left;
    }
+#endif
 
    template <typename T>
    class vector {
@@ -39,7 +37,7 @@ namespace std
       typedef T* iterator;
       typedef const T* const_iterator;
 
-      vector();
+      vector() noexcept;
       vector(unsigned int size);
       //vector(const T&);
       vector(const vector& v);
@@ -79,7 +77,12 @@ namespace std
             }
             
             size_ = _Right.size_;
-            memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            //memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            for (unsigned int idx = 0; idx < size_; idx++)
+            {
+               element_list_[idx] = tmp[idx];
+            }
+
          }
          return *this;
       }
@@ -98,7 +101,12 @@ namespace std
             }
             
             size_ = _Right.size_;
-            memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            //memcpy ( element_list_, _Right.element_list_, sizeof(T)*size_);
+            for (unsigned int idx = 0; idx < size_; idx++)
+            {
+               element_list_[idx] = _Right.element_list_[idx];
+            }
+
          }
          return *this;
       }   
@@ -110,7 +118,7 @@ namespace std
    };
 
    template <typename T>
-   vector<T>::vector() : size_(0), size_of_element_list_(0), element_list_(nullptr)
+   vector<T>::vector() noexcept  : size_(0), size_of_element_list_(0), element_list_(nullptr)
    {
 
    }
@@ -147,7 +155,11 @@ namespace std
          size_of_element_list_ = (size_of_element_list_+1)*2;
          T* tmp = element_list_;
          element_list_ = new T[ size_of_element_list_]();
-         memcpy(element_list_, tmp, size_ * sizeof(T));
+         for (unsigned int idx = 0; idx < size_; idx++)
+         {
+            element_list_[idx] = tmp[idx];
+         }
+         //memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
       }
       element_list_[size_]= _Val;
@@ -163,7 +175,11 @@ namespace std
          size_of_element_list_ = (size_of_element_list_+1)*2;
          T* tmp = element_list_;
          element_list_ = new T[ size_of_element_list_]();
-         memcpy(element_list_, tmp, size_ * sizeof(T));
+         for (unsigned int idx = 0; idx < size_; idx++)
+         {
+            element_list_[idx] = tmp[idx];
+         }
+         //memcpy(element_list_, tmp, size_ * sizeof(T));
          delete[] tmp;
       }
       element_list_[size_] = _Val;
@@ -215,5 +231,6 @@ namespace std
    }
 }
 #pragma pack(pop)
-
+#else
+   #include <vector>
 #endif

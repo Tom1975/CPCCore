@@ -1,7 +1,7 @@
 
 #include "simple_filesystem.h"
 
-#ifdef MINIMUM_DEPENDENCIES
+#if defined(RASPPI) || defined(TEST_VECTOR)
 
 #define PATH_SLASH '/'
 #define PATH_SLASH_STRING "/"

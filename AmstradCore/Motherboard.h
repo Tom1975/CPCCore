@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include "simple_vector.hpp"
+
 
 #include "IComponent.h"
 #include "BusLine.h"

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include "simple_vector.hpp"
+
 
 #define DECLARE_REFERENCE_LINE(l) BusLine *l;
 #define DECLARE_REFERENCE_BUS_ADDRESS(b) Bus<unsigned short>*b;

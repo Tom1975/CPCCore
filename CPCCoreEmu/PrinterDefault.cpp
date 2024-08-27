@@ -61,7 +61,7 @@ bool PrinterDefault::Busy ()
 
 bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
 {
-#ifndef MINIMUM_DEPENDENCIES
+#if !defined(MINIMUM_DEPENDENCIES) && !defined(TEST_VECTOR)
    if (diretories_ == NULL)
       return false;
 

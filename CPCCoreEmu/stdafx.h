@@ -23,7 +23,8 @@
 #define _CRT_NONSTDC_NO_DEPRECATE
 #define _CRTDBG_MAP_ALLOC
 
-#include <filesystem>
+//#include <filesystem>
+#include "simple_filesystem.h"
 namespace fs = std::filesystem;
 
 #elif __MORPHOS__
@@ -53,8 +54,8 @@ typedef void FILE;
 //#include <stdio.h>
 
 #else
-#include <stdlib.h>
-#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdio.h>
 #endif
 
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
@@ -69,19 +70,19 @@ typedef void FILE;
 
 #if 1
 
-#define DWORD unsigned int
+   #define DWORD unsigned int
 
-#ifdef __MORPHOS__
-#define MAX_PATH 1024 // There should be no max...
-#else
-#define MAX_PATH  260
-#endif
+   #ifdef __MORPHOS__
+   #define MAX_PATH 1024 // There should be no max...
+   #else
+   #define MAX_PATH  260
+   #endif
 
-typedef void* HINSTANCE;
-typedef void* HWND;
+   typedef void* HINSTANCE;
+   typedef void* HWND;
 #else
-#include <windows.h>
-#include <tchar.h>
+   #include <windows.h>
+   #include <tchar.h>
 #endif
 
 // C RunTime Header Files

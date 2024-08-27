@@ -34,9 +34,9 @@ static unsigned char MFMStartOfTrackPattern2 [16 * 6];
 
 size_t InsertShort(FILE* f, unsigned short data)
 {
-   unsigned char buf[2];
-   buf[1] = (data & 0xFF);
-   buf[0] = ((data >> 8) & 0xFF);
+   unsigned char buf[2] = { ((data >> 8) & 0xFF), (data & 0xFF) };
+   //buf[1] = (data & 0xFF);
+   //buf[0] = ((data >> 8) & 0xFF);
 
    const size_t size = fwrite(buf, 1, 2, f);
    return size;
@@ -44,11 +44,16 @@ size_t InsertShort(FILE* f, unsigned short data)
 
 size_t InsertInt(FILE* f, unsigned int data)
 {
-   unsigned char buf[4];
-   buf[3] = (data & 0xFF);
-   buf[2] = ((data >> 8) & 0xFF);
-   buf[1] = ((data >> 16) & 0xFF);
-   buf[0] = ((data >> 24) & 0xFF);
+   unsigned char buf[4] = {
+      ((data >> 24) & 0xFF),
+      ((data >> 16) & 0xFF),
+      ((data >> 8) & 0xFF),
+      (data & 0xFF)
+   };
+   //buf[3] = (data & 0xFF);
+   //buf[2] = ((data >> 8) & 0xFF);
+   //buf[1] = ((data >> 16) & 0xFF);
+   //buf[0] = ((data >> 24) & 0xFF);
    return fwrite(buf, 1, 2, f);
 }
 
@@ -2725,7 +2730,7 @@ void IDisk::SetName(const char* new_filepath)
       }
    }
 #else 
-#ifndef RASPPI
+#if !defined(RASPPI) && !defined(TEST_VECTOR)
    fs::path path(new_filepath);
 
    if (!path.has_root_path())
