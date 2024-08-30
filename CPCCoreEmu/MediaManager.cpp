@@ -2,7 +2,7 @@
 #include "MediaManager.h"
 
 #include "simple_regex.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 
 IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* log)

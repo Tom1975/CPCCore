@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "FormatTypeEDSK.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 
 // Data pattern : 0 0 0 0 0 0 0 0 0 0 A1 A1 A1

@@ -50,7 +50,7 @@ namespace fs = std::filesystem;
 #endif
 
 #ifdef __circle__
-typedef void FILE;
+//typedef void FILE;
 //#include <stdio.h>
 
 #else
@@ -59,19 +59,17 @@ typedef void FILE;
 #endif
 
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
-#ifdef MINIMUM_DEPENDENCIES
-#else
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
 #endif
 
 
 #if 1
 
-   #define DWORD unsigned int
-
+   #ifndef DWORD
+      #define DWORD unsigned int
+   #endif
    #ifdef __MORPHOS__
    #define MAX_PATH 1024 // There should be no max...
    #else

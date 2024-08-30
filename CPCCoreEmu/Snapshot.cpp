@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Snapshot.h"
 #include "Motherboard.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
@@ -587,8 +587,8 @@ void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, 
    // ACE's Symbols
 
    // 1 octet -> taille du symbole (0 est une valeur invalide)
-   // n octets->le nom du symbole(sans 0 à la fin puisqu'on connait la taille)
-   // 6 octets->réservé(ça sera utilisé plus tard pour des symbols contextuels)
+   // n octets->le nom du symbole(sans 0 ï¿½ la fin puisqu'on connait la taille)
+   // 6 octets->rï¿½servï¿½(ï¿½a sera utilisï¿½ plus tard pour des symbols contextuels)
    // 2 octets->l'adresse du symbole (en big endian)
 }
 

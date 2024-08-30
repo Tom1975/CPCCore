@@ -2,7 +2,7 @@
 #include "FDC.h"
 
 //#include <algorithm>
-#include "simple_stdio.h"
+#include <stdio.h>
 #include <vector>
 #include "simple_math.h"
 

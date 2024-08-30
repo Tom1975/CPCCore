@@ -3,7 +3,7 @@
 #include "FDC765.h"
 
 #include "simple_filesystem.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <vector>
 

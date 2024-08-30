@@ -6,7 +6,7 @@
 
 #include "FileAccess.h"
 
-#include "simple_stdio.h"
+#include <stdio.h>
 using namespace std;
 
 #define TXT_OUT_PROF _T("Duree load disk")
@@ -879,7 +879,7 @@ FormatTypeRAW::OperationReturn FormatTypeRAW::GetFileListFromName(const char* fi
    }
    else
    {
-      // Otherwise, its a file : build a généric mask from this file
+      // Otherwise, its a file : build a gï¿½nï¿½ric mask from this file
       std::string full_path = GetFullPath(file_path);
       std::string filename = GetFileFromPath(file_path);
 

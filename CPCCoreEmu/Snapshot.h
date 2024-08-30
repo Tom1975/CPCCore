@@ -1,4 +1,7 @@
 #pragma once
+
+#include <stdio.h>
+
 #include "IPlayback.h"
 #include "Inotify.h"
 #include "ILog.h"

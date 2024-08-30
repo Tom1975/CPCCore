@@ -2,7 +2,7 @@
 
 #include "DiskContainer.h"
 #include "FileAccess.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #ifndef NOZLIB
 #include "zlib.h"

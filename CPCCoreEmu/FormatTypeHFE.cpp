@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "FormatTypeHFE.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #define IBMPC_DD_FLOPPYMODE 0x00
 #define IBMPC_HD_FLOPPYMODE 0x01
@@ -27,7 +27,7 @@
 
 typedef struct Picfileformatheader
 {
-   unsigned char header_signature[8]; // “HXCPICFE”
+   unsigned char header_signature[8]; // ï¿½HXCPICFEï¿½
    unsigned char formatrevision; // Revision 0
    unsigned char number_of_track; // Number of track in the file
    unsigned char number_of_side; // Number of valid side (Not used by the emulator)
@@ -41,7 +41,7 @@ typedef struct Picfileformatheader
    unsigned short track_list_offset; // Offset of the track list LUT in block of 512 bytes
    // (Ex: 1=0x200)
    unsigned char write_allowed; // The Floppy image is write protected ?
-   unsigned char single_step; // 0xFF : Single Step – 0x00 Double Step mode
+   unsigned char single_step; // 0xFF : Single Step ï¿½ 0x00 Double Step mode
    unsigned char track0_s0_altencoding; // 0x00 : Use an alternate track_encoding for track 0 Side 0
    unsigned char track0_s0_encoding; // alternate track_encoding for track 0 Side 0
    unsigned char track0_s1_altencoding; // 0x00 : Use an alternate track_encoding for track 0 Side 1

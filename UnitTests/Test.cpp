@@ -15,7 +15,7 @@
 #endif
 
 #include <iostream>
-#include "simple_stdio.h"
+#include <stdio.h>
 #include "gtest/gtest.h"
 #include "DiskContainer.h"
 #include "FormatTypeRAW.h"

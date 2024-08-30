@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PrinterDefault.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #define SCR_PATH "PRINT"
 

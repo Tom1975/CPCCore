@@ -7,7 +7,7 @@
 
 #include "PrinterDefault.h"
 #include "MediaManager.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #ifdef PROF
 #define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);

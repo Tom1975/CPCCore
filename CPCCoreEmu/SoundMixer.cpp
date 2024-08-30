@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "SoundMixer.h"
 
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #ifndef RASPPI
 #include <regex>

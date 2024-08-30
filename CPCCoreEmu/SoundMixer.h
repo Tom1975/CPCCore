@@ -6,7 +6,7 @@
  * 
  *
  */
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #include "ISound.h"
 #include "ILog.h"

@@ -1,9 +1,9 @@
 
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #ifdef __circle__
 
-#include <circle/addon/fatfs/ff.h>
+#include <addon/fatfs/ff.h>
 #include <circle/logger.h>
 
 #include "simple_string.h"
