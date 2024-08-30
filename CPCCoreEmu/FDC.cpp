@@ -3,7 +3,7 @@
 
 //#include <algorithm>
 #include "simple_stdio.h"
-#include "simple_vector.hpp"
+#include <vector>
 #include "simple_math.h"
 
 // Parameter definition for FDC commands

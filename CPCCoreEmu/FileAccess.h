@@ -1,7 +1,7 @@
 #pragma once
 
 #include "simple_string.h"
-#include "simple_vector.hpp"
+#include <vector>
 
 ///////////////////////////////////////////////////
 // Generic function : Easier to port to various OS

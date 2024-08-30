@@ -15,7 +15,7 @@
 #include "IConfiguration.h"
 
 #include "simple_string.h"
-#include "simple_vector.hpp"
+#include <vector>
 
 class SettingsList
 {

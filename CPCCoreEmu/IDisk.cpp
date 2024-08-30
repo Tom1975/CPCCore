@@ -5,7 +5,7 @@
 #include "simple_filesystem.h"
 #include "simple_stdio.h"
 #include <stdlib.h>
-#include "simple_vector.hpp"
+#include <vector>
 
 #ifdef __MORPHOS__
 #include <proto/dos.h>

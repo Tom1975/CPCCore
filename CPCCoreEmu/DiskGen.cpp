@@ -2,7 +2,7 @@
 #include "DiskGen.h"
 //#include "rand.h"
 #include <stdlib.h>
-#include "simple_vector.hpp"
+#include <vector>
 #include "MediaManager.h"
 
 #define SPEED_COUNTER 1

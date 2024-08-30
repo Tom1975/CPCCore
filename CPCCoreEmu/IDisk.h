@@ -14,7 +14,7 @@
 #include "CRC.h"
 
 #include "simple_stdio.h"
-#include "simple_vector.hpp"
+#include <vector>
 #include "simple_string.h"
 
 ///////////////////////////////////////////////////////////////
