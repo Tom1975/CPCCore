@@ -14,7 +14,7 @@
 #include "MachineSettings.h"
 #include "IConfiguration.h"
 
-#include <string.h>
+#include <string>
 #include <vector>
 
 class SettingsList

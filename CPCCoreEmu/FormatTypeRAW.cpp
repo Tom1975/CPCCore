@@ -488,7 +488,7 @@ void FormatTypeRAW::HandleHWInfo(char* info, int size)
 int FormatTypeRAW::ComputeTrack(IDisk*& created_disk, int side, int track)
 {
    // Number of Index copy :
-   int indexNumber = index_list_.size();
+   unsigned int indexNumber = static_cast<unsigned int>(index_list_.size());
 
    if (indexNumber < 2)
       return -1;

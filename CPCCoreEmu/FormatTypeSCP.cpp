@@ -520,8 +520,8 @@ unsigned int FormatTypeSCP::ComputeTrack(unsigned char* bitfield, const unsigned
          }
 
          /* Clamp the clock's adjustment range. */
-         clock = std::max(CLOCK_MIN(clock_centre),
-                          std::min(CLOCK_MAX(clock_centre), clock));
+         clock = std::max<int>(CLOCK_MIN(clock_centre),
+                          std::min<int>(CLOCK_MAX(clock_centre), clock));
          flux = flux / 2;
       }
    }

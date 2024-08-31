@@ -17,7 +17,6 @@ set (EXTRA
     ../.github/workflows/test_windows.yml
    )
 
-
 source_group("Github Action" FILES ${EXTRA} )
 
 list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)

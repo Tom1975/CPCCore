@@ -12,7 +12,7 @@
 #define NR 0x8
 
 
-//#define LOGFDC
+#define LOGFDC
 //#define LOG_SENSE_INT
 //#define LOG_EXEC
 //#define LOG_MAX
@@ -552,12 +552,14 @@ unsigned char FDC::In ( unsigned short Addr_P )
          if ( results_count_ == 0)
          {
             if (current_command_ != C_SENSE_INT_STATE)
-               LOGEOL
+            {
+               LOGEOL;
+            }
 
-               // special case : If Seekend but no seek command, dont do this
-               // After a while, reset m_bSeekEnd
-               if ( time_ == 0) //!m_bSeekEnd  || (m_bSeekCmd))
-                  cb_ = false;
+            // special case : If Seekend but no seek command, dont do this
+            // After a while, reset m_bSeekEnd
+            if ( time_ == 0) //!m_bSeekEnd  || (m_bSeekCmd))
+               cb_ = false;
             // if (!m_bSeekEnd) // FAUX !
             rqm_ = true;
             dio_ = false;

@@ -1601,7 +1601,7 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
                   // Max comp : pTmp -> pNextCorrectIndex
                   unsigned int max_comp_1 = next_correct_index[i] - tmp_buffer[i];
                   unsigned int max_comp_2 = next_correct_index[j] - tmp_buffer[j];
-                  unsigned int min_comp = std::min<unsigned char>(max_comp_1, max_comp_2);
+                  unsigned int min_comp = std::min<unsigned int>(max_comp_1, max_comp_2);
 
                   while (revolution_comp_ok && localcount <= min_comp)
                   {

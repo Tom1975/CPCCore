@@ -120,7 +120,7 @@ NodeFS* NodeFS::InsertNode(std::string node_name)
 NodeFS* NodeFS::InsertDir(std::string node_name)
 {
    // Parse the name to get the complete tree
-   int pos = node_name.find('/', 0);
+   size_t pos = node_name.find('/', 0);
    if (pos != std::string::npos)
    {
       // Subdirectory inside :
@@ -140,7 +140,7 @@ NodeFS* NodeFS::InsertDir(std::string node_name)
 NodeFS* NodeFS::InsertFile(std::string node_name, unsigned char* full_buffer)
 {
    // Parse the name to get the complete tree
-   int pos = node_name.find('/', 0);
+   size_t pos = node_name.find('/', 0);
    if (pos != std::string::npos)
    {
       // Subdirectory inside :
