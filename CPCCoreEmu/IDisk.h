@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 #include <vector>
-#include "simple_string.h"
+#include <string>
 
 ///////////////////////////////////////////////////////////////
 // Generic define for MFM

@@ -5,6 +5,12 @@
 #include <vector>
 #include "MediaManager.h"
 
+#ifdef  __circle__
+#include <strings.h>
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
+#endif
+
 #define SPEED_COUNTER 1
 #define SPEED_CHANGE 20 /*20000*/
 

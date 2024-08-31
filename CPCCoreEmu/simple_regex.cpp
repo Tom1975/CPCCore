@@ -2,7 +2,7 @@
 #include "simple_regex.h"
 
 #ifdef MINIMUM_DEPENDENCIES
-#include "simple_string.h"
+#include <string.h>
 
 bool IsExtensionMatch(const char* str, const char* ext)
 {

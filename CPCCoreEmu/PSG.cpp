@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "PSG.h"
 
-#include "simple_string.h"
+#include <string.h>
 #include "simple_filesystem.h"
 #include "IDirectories.h"
 

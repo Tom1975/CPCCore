@@ -65,7 +65,7 @@ namespace fs = std::filesystem;
 #endif
 
 
-#if 1
+#ifndef _WIN32
 
    #ifndef DWORD
       #define DWORD unsigned int

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "simple_string.h"
+#include <string.h>
 
 #define CPCCOREEMU_API 
 

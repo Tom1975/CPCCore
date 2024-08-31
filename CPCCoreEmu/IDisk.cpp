@@ -805,7 +805,7 @@ unsigned int IDisk::GetTrackInfo(MFMTrack* mfm_track, Track* track_buffer)
                }
 
                // Now, gather datas...
-               int sectorsize = (0x80 << (std::min(sector.n, (unsigned char)0x8)));
+               int sectorsize = (0x80 << (std::min<unsigned char>(sector.n, (unsigned char)0x8)));
                for (int data_count = 0;
                     data_count < sectorsize; data_count++)
                {
@@ -1601,7 +1601,7 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
                   // Max comp : pTmp -> pNextCorrectIndex
                   unsigned int max_comp_1 = next_correct_index[i] - tmp_buffer[i];
                   unsigned int max_comp_2 = next_correct_index[j] - tmp_buffer[j];
-                  unsigned int min_comp = std::min(max_comp_1, max_comp_2);
+                  unsigned int min_comp = std::min<unsigned char>(max_comp_1, max_comp_2);
 
                   while (revolution_comp_ok && localcount <= min_comp)
                   {
@@ -2626,7 +2626,7 @@ int IDisk::CompareToDisk(IDisk* other_disk, bool exact)
 {
    int idem = 0;
 
-   int max_side = std::max(nb_sides_, other_disk->nb_sides_);
+   int max_side = std::max<unsigned char>(nb_sides_, other_disk->nb_sides_);
 
    for (int side = 0; side < max_side && idem == 0; side ++)
    {
@@ -2636,7 +2636,7 @@ int IDisk::CompareToDisk(IDisk* other_disk, bool exact)
          return -1;
       }
 
-      unsigned int maxTrack = std::max(side_[side].nb_tracks, other_disk->side_[side].nb_tracks);
+      unsigned int maxTrack = std::max<unsigned int>(side_[side].nb_tracks, other_disk->side_[side].nb_tracks);
       for (unsigned int track = 0; track < maxTrack && idem == 0; track++)
       {
          // For each track :

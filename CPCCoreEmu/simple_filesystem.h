@@ -1,7 +1,8 @@
 #pragma once
 
 #if defined (MINIMUM_DEPENDENCIES) ||defined (TEST_VECTOR)
-#include "simple_string.h"
+
+#include <string>
 
 namespace std::filesystem
 {

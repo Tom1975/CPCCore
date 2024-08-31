@@ -2,7 +2,7 @@
 
 #include "Tape.h"
 
-#include "simple_math.h"
+#include <cmath>
 #include "simple_regex.h"
 #include "simple_filesystem.h"
 #include <stdio.h>
@@ -29,6 +29,11 @@
 #define LOGB(str)
 #define LOGEOL
 #endif
+
+double Round(double d)
+{
+   return floor(d + 0.5);
+}
 
 // Delay : 50 ms ?  - TODO : seems to be 180 ms
 #define MOTOR_DELAY   240000

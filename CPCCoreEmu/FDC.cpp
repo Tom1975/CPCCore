@@ -4,7 +4,7 @@
 //#include <algorithm>
 #include <stdio.h>
 #include <vector>
-#include "simple_math.h"
+#include <cmath>
 
 // Parameter definition for FDC commands
 
@@ -1390,8 +1390,8 @@ void FDC::ReadSectorTick ()   // 6
                      status_2_ |= 0x40;      // Set control mark
                      tc_ = true;
                      //int size = 0x80<<(( Sz == 0 )?SL:Sz);
-                     int size = (0x80 << (std::min(sz_, (unsigned char)0x8)));
-                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                     int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
+                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                      InitHandleReadData ( size );
                   }
                }
@@ -1399,8 +1399,8 @@ void FDC::ReadSectorTick ()   // 6
                {
                   // Normal behaviour
                   //int size = 0x80<<(( Sz == 0 )?SL:Sz);
-                  int size = (0x80 << (std::min(sz_, (unsigned char)0x8)));
-                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                  int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
+                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                   //int size = (Sz == 0) ? SL : (0x80 << Sz);
                   InitHandleReadData ( size );
                }
@@ -2754,8 +2754,8 @@ void FDC::ScanTick()
                      status_2_ |= 0x40;      // Set control mark
                      tc_ = true;
                      //int size = 0x80<<(( Sz == 0 )?SL:Sz);
-                     int size = (0x80 << (std::min(sz_, (unsigned char)0x8 )));
-                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                     int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8 )));
+                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                      InitHandleReadData ( size );
                   }
                }
@@ -2763,8 +2763,8 @@ void FDC::ScanTick()
                {
                   // Normal behaviour
                   //int size = 0x80<<(( Sz == 0 )?SL:Sz);
-                  int size = (0x80 << (std::min(sz_, (unsigned char)0x8)));
-                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                  int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
+                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                   //int size = (Sz == 0) ? SL : (0x80 << Sz);
                   InitHandleReadData ( size );
                }
@@ -3213,8 +3213,8 @@ void FDC::ReadTrackTick ()
                   {
                      //  - Otherwise, dont skip.
                      //int size = 0x80<<(( Sz == 0 )?SL:Sz);
-                     int size = (0x80 << (std::min(sz_, (unsigned char)0x8)));
-                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                     int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
+                     data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                      first_sector_found_ = true;
                      //m_ND = (results_[5] != SC);
                      InitHandleReadData(size);
@@ -3225,8 +3225,8 @@ void FDC::ReadTrackTick ()
                   // Normal behaviour
                   //int size = 0x80<<(( Sz == 0 )?SL:(Sz&0x7));
 
-                  int size = (0x80 << (std::min(sz_, (unsigned char)0x8)));
-                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min(sz_, (unsigned char)0x8)));
+                  int size = (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
+                  data_to_return_ = (sz_ == 0) ? (((sl_ & 1) == 0) ? 0x50 : 0x28) : (0x80 << (std::min<unsigned char>(sz_, (unsigned char)0x8)));
                   // CHANGE : USE CHRN INSTEAD !
                   //int size = 0x80<<(( Sz == 0 )?SL:Sz); a a
                   first_sector_found_ = true;
