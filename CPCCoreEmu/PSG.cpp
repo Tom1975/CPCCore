@@ -383,7 +383,6 @@ unsigned int Ay8912::Tick ( /*unsigned int nbTicks*/)
 {
    if (sound_ == NULL)
    {
-      if(log_) log_->WriteLog("PSG : sound = null");
       return 4000000;   // No need to update this more than one every seconds
    }
    TickSound ();

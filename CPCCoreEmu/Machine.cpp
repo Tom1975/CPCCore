@@ -700,7 +700,7 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
 
    if (init != nullptr && init->_hardware_configuration.size() > 0)
    {
-      path_cfg = init->_hardware_configuration;
+      path_cfg /= init->_hardware_configuration;
    }
    else
    {

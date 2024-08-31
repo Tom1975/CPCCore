@@ -19,14 +19,14 @@
 
 #ifdef LOGFDC
 #define LOG(str) \
-   if (log_) log_->WriteLog (str);
-#define LOGEOL if (log_) log_->EndOfLine ();
+   if (log_) {log_->WriteLog (str);}
+#define LOGEOL if (log_) {log_->EndOfLine ();}
 #define LOGB(str) \
-   if (log_) log_->WriteLogByte (str);
+   if (log_) {log_->WriteLogByte (str);}
 #else
-#define LOG(str)
-#define LOGB(str)
-#define LOGEOL
+#define LOG(str) ;
+#define LOGB(str) ;
+#define LOGEOL ;
 #endif
 
 #define FDC_OUT_BUFFER_SIZE    1
@@ -375,8 +375,8 @@ void FDC::Out (unsigned short addr, unsigned char data)
             state_ = RESULT;
 
             LOGB (index_fdc_command_);
-            LOGEOL
-               LOG ("Result : ");
+            LOGEOL;
+            LOG ("Result : ");
 
             time_for_bad_instruction_ = 32;
             //m_DIO = true;
@@ -488,12 +488,12 @@ void FDC::Out (unsigned short addr, unsigned char data)
       else
       {
          LOG("Unknown state : m_State = ");
-         LOGB(state_)
-            LOG(" - Mainstatus = ");
+         LOGB(state_);
+         LOG(" - Mainstatus = ");
          LOGB(main_status_);
          LOG (" Data = ");
          LOGB ( data );
-         LOGEOL
+         LOGEOL;
 
             // Set to result phase, with a '80' result
             exm_ = false;
@@ -505,7 +505,7 @@ void FDC::Out (unsigned short addr, unsigned char data)
          results_[0] = 0x80;
          state_ = RESULT;
          LOGEOL
-            LOG ("Result : ");
+         LOG ("Result : ");
          dio_ = true;
       }
    }
@@ -544,8 +544,10 @@ unsigned char FDC::In ( unsigned short Addr_P )
          if ( results_count_ > 0)
          {
             data_register_ = results_[fdc_command_ [index_fdc_command_].result_number - (results_count_--)];
-            if ( current_command_ != C_SENSE_INT_STATE)
-               LOGB ( data_register_ );
+            if (current_command_ != C_SENSE_INT_STATE)
+            {
+               LOGB(data_register_);
+            }
          }
          if ( results_count_ == 0)
          {
@@ -667,7 +669,9 @@ void FDC::ExecPhase ()
    state_ = EXEC;
 
    if (current_command_ != C_SENSE_INT_STATE)
-      LOG ("Exec : ");
+   {
+      LOG("Exec : ");
+   }
 
    nb_data_offset_ = nb_data_in_buffer_ = 0;
    if ( fdc_command_[index_fdc_command_].transfer_type == READ
@@ -713,19 +717,21 @@ void FDC::ResultPhase ()
    state_ = RESULT;
    if (current_command_ != C_SENSE_INT_STATE)
    {
-      LOGEOL
-         LOG("Result : ");
+      LOGEOL;
+      LOG("Result : ");
    }
    if ( results_count_ == 0)
    {
       // Finish ? Reset the status to available;
       if (current_command_ != C_SENSE_INT_STATE)
+      {
          LOGEOL
+      }
 
-         // TO CHECK ! What about bit 1-5 ????
-         //if ( !m_bSeekEnd  || (m_bSeekCmd))
-         if (time_ == 0)
-            cb_ = false;
+      // TO CHECK ! What about bit 1-5 ????
+      //if ( !m_bSeekEnd  || (m_bSeekCmd))
+      if (time_ == 0)
+         cb_ = false;
       exm_ = false;
       dio_ = false;
       //if (!m_bSeekEnd)
@@ -1242,8 +1248,8 @@ void FDC::ReadSectorTick ()   // 6
    bool bOnIndex = disk_[current_drive_].IsHeadOnIndex ();
    if ((bOnIndex && (!on_index_)) && current_command_phase_ == R_READ_DATA)
    {
-      LOG("[[ ** INDEX ** ]]")
-      LOGEOL
+      LOG("[[ ** INDEX ** ]]");
+      LOGEOL;
    }
 
    if ( ( bOnIndex && (!on_index_)) && ( current_command_phase_ != R_READ_DATA/*read_sector_state_ == 0*/) )
@@ -1640,7 +1646,7 @@ void FDC::SenseIntState () // 08
 #ifdef LOG_SENSE_INT
          if (last_interrupt_result_ != results_[0])
          {
-            LOGEOL
+            LOGEOL;
                LOG("Instruction : 08 - Result : ");
             last_interrupt_result_ = results_[0];
             LOGB(last_interrupt_result_);
@@ -1703,7 +1709,7 @@ void FDC::SenseIntState () // 08
 #ifdef LOG_SENSE_INT
    if (last_interrupt_result_ != results_[0])
    {
-      LOGEOL
+      LOGEOL;
          LOG("Instruction : 08 - Result : ");
       last_interrupt_result_ = results_[0];
       for (int i = 0; i < results_count_; i++)
@@ -1809,8 +1815,8 @@ void FDC::WriteSectorTick ()
    {
       // Yes, increment counter.
       LOG( " Pos = 0 ->");
-      LOGB( disk_[current_drive_].GetPos ())
-         LOG( " ");
+      LOGB(disk_[current_drive_].GetPos());
+      LOG( " ");
       LOG( "index_hole_encountered_++ ");
       ++index_hole_encountered_;
       // Encountered twice ?
@@ -1920,43 +1926,43 @@ void FDC::WriteSectorTick ()
             LOGB (results_[4]);
             LOGB (results_[5]);
             LOGB (results_[6]);
-            LOGEOL
-               // Set the next phase, if CHRN are ok :
-               if (
-                  /*results_[3] == TR
-                  &&*/ results_[4] == hd_
-                  && results_[5] == sc_
-                  && results_[6] == sz_
-                  )
+            LOGEOL;
+            // Set the next phase, if CHRN are ok :
+            if (
+               /*results_[3] == TR
+               &&*/ results_[4] == hd_
+               && results_[5] == sc_
+               && results_[6] == sz_
+               )
+            {
+               if (results_[3] == tr_)
                {
-                  if (results_[3] == tr_)
-                  {
-                     rqm_ = true;
-                     nd_ = false;
-                     ma_ = true;
-                     LOG("Trouve");
-                     status_1_ &= (~0x4); // Remove the ND flag
-                     InitHandleCRC();
-                  }
-                  else
-                  {
-                     if (results_[3] == 0xFF)
-                     {
-                        // BC set !
-                        status_2_ |= 0x2;
-                     }
-                     // WC is set
-                     status_2_ |= 0x10;
-                     InitHandleSyncField();
-                  }
+                  rqm_ = true;
+                  nd_ = false;
+                  ma_ = true;
+                  LOG("Trouve");
+                  status_1_ &= (~0x4); // Remove the ND flag
+                  InitHandleCRC();
                }
-               else // Otherwise, back to search of sync bytes
+               else
                {
-                  LOG( "Next");
-                  InitHandleSyncField ();
+                  if (results_[3] == 0xFF)
+                  {
+                     // BC set !
+                     status_2_ |= 0x2;
+                  }
+                  // WC is set
+                  status_2_ |= 0x10;
+                  InitHandleSyncField();
                }
+            }
+            else // Otherwise, back to search of sync bytes
+            {
+               LOG( "Next");
+               InitHandleSyncField ();
+            }
 
-               break;
+            break;
          case 3: // Error !? TODO ??
             break;
          }
