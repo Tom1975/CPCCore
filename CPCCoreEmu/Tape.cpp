@@ -2,7 +2,7 @@
 
 #include "Tape.h"
 
-#include "simple_math.h"
+#include <cmath>
 #include "simple_regex.h"
 #include <filesystem>
 #include <stdio.h>

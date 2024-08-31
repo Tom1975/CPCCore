@@ -2,7 +2,7 @@
 #include "PSG.h"
 
 #include <string>
-#include "simple_filesystem.h"
+#include <filesystem>
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
