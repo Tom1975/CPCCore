@@ -24,7 +24,7 @@
 #define _CRTDBG_MAP_ALLOC
 
 //#include <filesystem>
-#include "simple_filesystem.h"
+#include <filesystem>
 namespace fs = std::filesystem;
 
 #elif __MORPHOS__
@@ -33,7 +33,7 @@ namespace fs = std::filesystem;
 
 #elif __circle__
 #define BIG_ENDIAN
-#include "simple_filesystem.h"
+#include <filesystem>
 // fs does not exist there
 namespace fs = std::filesystem;
 #else

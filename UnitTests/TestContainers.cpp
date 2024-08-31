@@ -11,7 +11,7 @@ namespace fs = std::filesystem;
 // fs does not exist there
 
 #elif __circle__
-#include "simple_filesystem.h"
+#include <filesystem>
 // fs does not exist there
 namespace fs = std::filesystem;
 #else

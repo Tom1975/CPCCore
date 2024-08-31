@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "KeyboardHandler.h"
 
-#include "simple_filesystem.h"
+#include <filesystem>
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
