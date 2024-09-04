@@ -159,9 +159,20 @@ void ConfigurationManager::OpenFile(const char* config_file)
    }
 }
 
+void ConfigurationManager::CloseFile()
+{
+
+}
+
 void ConfigurationManager::SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file)
 {
    OpenFile(file);
+   // Add or update key
+   // rewrite whole file
+}
+
+void ConfigurationManager::SetConfiguration(const char* section, const char* cle, const char* valeur)
+{
    // Add or update key
    // rewrite whole file
 }
@@ -190,6 +201,11 @@ unsigned int ConfigurationManager::GetConfiguration(const char* section, const c
    return 0;
 }
 
+unsigned int ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size)
+{
+   return 0;
+}
+
 unsigned int ConfigurationManager::GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file)
 {
    OpenFile(file);
@@ -204,6 +220,30 @@ unsigned int ConfigurationManager::GetConfigurationInt(const char* section, cons
    return default_value;
 }
 
+unsigned int ConfigurationManager::GetConfigurationInt(const char* section, const char* cle, unsigned int default_value)
+{
+   return 0;
+}
+
+const char* ConfigurationManager::GetFirstSection()
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetNextSection()
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetFirstKey(const char* section)
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetNextKey()
+{
+   return nullptr;
+}
 
 /////////////////////////////////////////////////////////////
 /// Helper functions - Disk
