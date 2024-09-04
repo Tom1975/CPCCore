@@ -1,5 +1,4 @@
 #pragma once
-//#include "Mmsystem.h"
 #include "ICfg.h"
 
 class IWaveHDR

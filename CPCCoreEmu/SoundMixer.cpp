@@ -5,8 +5,11 @@
 #include "stdafx.h"
 #include "SoundMixer.h"
 
-#include "simple_stdio.h"
+#include <stdio.h>
 
+#ifndef RASPPI
+#include <regex>
+#endif
 #ifndef NOFILTER
 
 #include <regex>
@@ -435,7 +438,11 @@ void SoundMixer::PrepareBufferThread()
       current_wav_buffer_ = sound_->GetFreeBuffer();
       current_wav_index_ = 0;
    }
+   Loop();
+}
 
+void SoundMixer::Loop()
+{
 #ifndef NO_MULTITHREAD
    while (!finished_)
 #endif
@@ -489,7 +496,7 @@ void SoundMixer::PrepareBufferThread()
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 {
-#ifndef RASPPI
+#if !defined(RASPPI) && !defined(TEST_VECTOR)
    bool name_is_ok = false;
 
    const fs::path exe_path =  "./REC/";

@@ -398,7 +398,7 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       r <<= 4;
       g <<= 4;
       b <<= 4;
-      monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b);
+      monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b) | 0xFF000000;
       monitor_->RecomputeAllColors();
    }
    else
@@ -406,7 +406,7 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       // Border
       asic_io_[0x2420] = (b | (r << 4));
       asic_io_[0x2421] = (g);
-      for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40];
+      for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40] | 0xFF000000;
    }
 }
 
@@ -532,7 +532,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             g <<= 4;
             b <<= 4;
 
-            monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b);
+            monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b) | 0xFF000000;
          }
          else if (addr == 0x6420 || addr == 0x6421)
          {
@@ -544,7 +544,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             r <<= 4;
             g <<= 4;
             b <<= 4;
-            for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = (r << 16) + (g << 8) + (b);
+            for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = (r << 16) + (g << 8) + (b) + 0xFF000000;
          }
          // Sprite palette
          else if (addr >= 0x6422 && addr < 0x6440)
@@ -559,7 +559,7 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
             g <<= 4;
             b <<= 4;
 
-            monitor_->gate_array_->sprite_ink_list_[p] = (r << 16) + (g << 8) + (b);
+            monitor_->gate_array_->sprite_ink_list_[p] = (r << 16) + (g << 8) + (b) + 0xFF000000;
 
          }
          // SSA

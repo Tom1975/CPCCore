@@ -1,6 +1,5 @@
 #pragma once
 
-#include "simple_string.h"
 #include "ILog.h"
 
 #include "DiskContainer.h"

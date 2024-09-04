@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <functional>
-#include "simple_stdio.h"
+#include <stdio.h>
 #include "Machine.h"
 #include "Display.h"
 #include <filesystem>
@@ -38,9 +38,22 @@ public:
    virtual ~ConfigurationManager();
 
    virtual void OpenFile(const char* config_file);
+   virtual void CloseFile();
+
    virtual void SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file);
+   virtual void SetConfiguration(const char* section, const char* key, const char* value);
+
    virtual unsigned int GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size, const char* file);
+   virtual unsigned int GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size);
+
    virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file);
+   virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value);
+
+   virtual const char* GetFirstSection();
+   virtual const char* GetNextSection();
+
+   virtual const char* GetFirstKey(const char* section);
+   virtual const char* GetNextKey();
 
 protected:
    void Clear();

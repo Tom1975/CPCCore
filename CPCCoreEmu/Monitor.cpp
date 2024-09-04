@@ -4,7 +4,7 @@
 #include "VGA.h"
 
 
-#include "simple_math.h"
+#include <cmath>
 
 //#define PROF
 #ifdef PROF
@@ -132,7 +132,7 @@ void Monitor::RecomputeColors()
       // todo : if plus (otherwise : not needed !)
       //memory_->UpdateAsicPalette( p, m_pVGA->m_CachedInk);
 
-      gate_array_->ink_list_[p] = gate_array_->buffered_ink_;
+      gate_array_->ink_list_[p] = gate_array_->buffered_ink_ | 0xFF000000;
 
       // Look up table mode 0, 1, 2
       for (int b = 0; b < 0x100; ++b)
@@ -290,7 +290,7 @@ void Monitor::Tick( )
                      expected_hbl_ += hsync_total_ + (line_sync_);
                   }
 
-                  // HERE §!!!!!
+                  // HERE ï¿½!!!!!
                   //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
                   int tot = (expected_hbl_ - hsync_total_);
 

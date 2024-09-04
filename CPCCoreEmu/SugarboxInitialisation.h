@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string.h>
+#include <string>
 #include <filesystem>
 
 class SugarboxInitialisation

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "VGA.h"
 #include "CRTC.h"
-#include <math.h>
+//#include <math.h>
 #include "DMA.h"
 
 // MACRO de profilage
@@ -414,7 +414,9 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
          //|| vsync_)
          || sig_handler_->v_sync_)
       {
-         memset(buffer_to_display, 0, 64);
+         for (int i = 0; i < 16; i++)
+            buffer_to_display[i] = 0xFF000000;
+         //memset(buffer_to_display, 0, 64);
          if (buffered_ink_available_) { monitor_->RecomputeColors(); }
          END_OF_DISPLAY
       }

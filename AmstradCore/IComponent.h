@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+
 #define DECLARE_REFERENCE_LINE(l) BusLine *l;
 #define DECLARE_REFERENCE_BUS_ADDRESS(b) Bus<unsigned short>*b;
 #define DECLARE_REFERENCE_BUS_DATA(b) Bus<unsigned char>*b;

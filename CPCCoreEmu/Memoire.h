@@ -1,8 +1,8 @@
 #pragma once
 
-#include "simple_vector.hpp"
+#include <vector>
 #include <memory.h>
-#include "simple_string.h"
+#include <string.h>
 #include "IExpansion.h"
 #include "DMAStop.h"
 

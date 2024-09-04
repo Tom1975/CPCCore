@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "KeyboardHandler.h"
 
-#include "simple_filesystem.h"
+#include <filesystem>
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
@@ -163,7 +163,7 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
             if (bPressed) keyboard_lines_[l] &= ~(1<<b);
                else keyboard_lines_[l] |= (1<<b);
             keyboard_lines_[2] |= (1<<5);
-            *register_replaced_ = true;
+            if (register_replaced_ != nullptr) *register_replaced_ = true;
             return;
          }
          else if (  keyboard_map_[l][b].c_upper == c
@@ -175,7 +175,8 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
             if (bPressed) keyboard_lines_[2] &= ~(1<<5);
                else keyboard_lines_[2] |= (1<<5);
 
-            *register_replaced_ = true;
+            if (register_replaced_ != nullptr)
+               *register_replaced_ = true;
             return;
          }
       }
@@ -185,11 +186,11 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
 #define SET_KEY_LINE_BIT(val, line, bit)\
    if ( (action & val) == val )\
    {\
-      if ((keyboard_lines_[line]&(1<<bit))!=0) *register_replaced_ = true;\
+      if ((keyboard_lines_[line]&(1<<bit))!=0 && (register_replaced_ != nullptr)) *register_replaced_ = true;\
       keyboard_lines_[line] &= ~(1<<bit);\
    }\
    else \
-   { if ((keyboard_lines_[line]&(1<<bit))==0)\
+   { if ((keyboard_lines_[line]&(1<<bit))==0 && (register_replaced_ != nullptr))\
       *register_replaced_ = true;\
    keyboard_lines_[line] |= (1<<bit);\
    }\
@@ -235,12 +236,12 @@ void KeyboardHandler::SendScanCode ( unsigned int scanCode, bool bPressed )
             //
             if (bPressed)
             {
-               if ((keyboard_lines_[line] & (1 << b)) != 0) *register_replaced_ = true;
+               if ((keyboard_lines_[line] & (1 << b)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
                keyboard_lines_[line] &= ~(1<<b);
             }
             else
             {
-               if ((keyboard_lines_[line] & (1 << b)) != 1) *register_replaced_ = true;
+               if ((keyboard_lines_[line] & (1 << b)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
                keyboard_lines_[line] |= (1<<b);
             }
          }

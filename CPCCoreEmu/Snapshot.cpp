@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Snapshot.h"
 #include "Motherboard.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
@@ -281,7 +281,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[/*ListeColorsIndexConvert[*/header[0x3F/*]*/]];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[header[0x3F] & 0xFF];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[(header[0x3F] & 0x1F)|0x40];
-   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40];
+   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40] + 0xFF000000;
    machine_->GetMem()->UpdateAsicPalette(0x10, (header[0x3F] & 0x1F));
 
    //m_pMachine->GetMonitor()->SetBorder ( ListeColorsIndex[(header[0x3F] & 0x1F)|0x40] );
@@ -587,8 +587,8 @@ void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, 
    // ACE's Symbols
 
    // 1 octet -> taille du symbole (0 est une valeur invalide)
-   // n octets->le nom du symbole(sans 0 à la fin puisqu'on connait la taille)
-   // 6 octets->réservé(ça sera utilisé plus tard pour des symbols contextuels)
+   // n octets->le nom du symbole(sans 0 ï¿½ la fin puisqu'on connait la taille)
+   // 6 octets->rï¿½servï¿½(ï¿½a sera utilisï¿½ plus tard pour des symbols contextuels)
    // 2 octets->l'adresse du symbole (en big endian)
 }
 
@@ -661,7 +661,7 @@ void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* i
       else if (i==16)
       {
          for (int j = 0; j < NB_BYTE_BORDER; j++)
-            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b);
+            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b) + 0xFF000000;
       }
    }
    machine_->GetMonitor()->RecomputeAllColors();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "simple_string.h"
+#include <string.h>
 
 #include "ILoadingProgress.h"
 #include "IDisk.h"
@@ -19,6 +19,8 @@ public:
       OK = 0
    };
 
+   virtual ~FormatType(){}
+   
    //////////////////////////////////////////////////////////
    // Format description : Name, descriptor, extension
    virtual const char* GetFormatName() = 0;

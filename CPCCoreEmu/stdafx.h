@@ -23,6 +23,7 @@
 #define _CRT_NONSTDC_NO_DEPRECATE
 #define _CRTDBG_MAP_ALLOC
 
+//#include <filesystem>
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -31,8 +32,8 @@ namespace fs = std::filesystem;
 
 
 #elif __circle__
-
-#include "simple_filesystem.h"
+#define BIG_ENDIAN
+#include <filesystem>
 // fs does not exist there
 namespace fs = std::filesystem;
 #else
@@ -49,39 +50,37 @@ namespace fs = std::filesystem;
 #endif
 
 #ifdef __circle__
-typedef unsigned int FILE;
+//typedef void FILE;
 //#include <stdio.h>
 
 #else
-#include <stdlib.h>
-#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdio.h>
 #endif
 
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
-#ifdef MINIMUM_DEPENDENCIES
-#else
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
-#endif
 
 
-#if 1
+#ifndef _WIN32
 
-#define DWORD unsigned int
+   #ifndef DWORD
+      #define DWORD unsigned int
+   #endif
+   #ifdef __MORPHOS__
+   #define MAX_PATH 1024 // There should be no max...
+   #else
+   #define MAX_PATH  260
+   #endif
 
-#ifdef __MORPHOS__
-#define MAX_PATH 1024 // There should be no max...
+   typedef void* HINSTANCE;
+   typedef void* HWND;
 #else
-#define MAX_PATH  260
-#endif
-
-typedef void* HINSTANCE;
-typedef void* HWND;
-#else
-#include <windows.h>
-#include <tchar.h>
+   #include <windows.h>
+   #include <tchar.h>
 #endif
 
 // C RunTime Header Files

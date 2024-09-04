@@ -13,9 +13,9 @@
 #include "ILog.h"
 #include "CRC.h"
 
-#include "simple_stdio.h"
-#include "simple_vector.hpp"
-#include "simple_string.h"
+#include <stdio.h>
+#include <vector>
+#include <string>
 
 ///////////////////////////////////////////////////////////////
 // Generic define for MFM

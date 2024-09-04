@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "PSG.h"
 
-#include "simple_string.h"
-#include "simple_filesystem.h"
+#include <string>
+#include <filesystem>
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
@@ -383,7 +383,6 @@ unsigned int Ay8912::Tick ( /*unsigned int nbTicks*/)
 {
    if (sound_ == NULL)
    {
-      if(log_) log_->WriteLog("PSG : sound = null");
       return 4000000;   // No need to update this more than one every seconds
    }
    TickSound ();
