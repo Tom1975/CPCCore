@@ -1,7 +1,9 @@
 #include "stdafx.h"
+#include <filesystem>
+
 #include "MediaManager.h"
 
-#include "simple_regex.h"
+//#include "simple_regex.h"
 #include <stdio.h>
 
 
@@ -201,27 +203,34 @@ int MediaManager::GetTypeFromFile(const char*  str)
    if (return_type == MEDIA_UNDEF)
    {
       // Check file extension
-      if (IsExtensionMatch(str, "rom"))
+      std::filesystem::path file_ext (str);
+      //if (IsExtensionMatch(str, "rom"))
+      if ( strcmp( file_ext.extension().c_str(), ".rom" )==0)
       {
          return_type = MEDIA_ROM;
       }
-      else if (IsExtensionMatch(str, "raw"))
+      //else if (IsExtensionMatch(str, "raw"))
+      if ( strcmp( file_ext.extension().c_str(), ".raw" )==0)
       {
          return_type = MEDIA_DISK;
       }
-      else if (IsExtensionMatch(str,"tap"))
+      //else if (IsExtensionMatch(str,"tap"))
+      if ( strcmp( file_ext.extension().c_str(), ".tap" )==0)
       {
          return_type = MEDIA_TAPE;
       }
-      else if (IsExtensionMatch(str,"bin"))
+      //else if (IsExtensionMatch(str,"bin"))
+      if ( strcmp( file_ext.extension().c_str(), ".bin" )==0)
       {
          return_type = MEDIA_BIN;
       }
-      else if (IsExtensionMatch(str,"cpr"))
+      //else if (IsExtensionMatch(str,"cpr"))
+      if ( strcmp( file_ext.extension().c_str(), ".cpr" )==0)
       {
          return_type = MEDIA_CPR;
       }
-      else if (IsExtensionMatch(str, "xpr"))
+      //else if (IsExtensionMatch(str, "xpr"))
+      if ( strcmp( file_ext.extension().c_str(), ".xpr" )==0)
       {
          return_type = MEDIA_XPR;
       }
