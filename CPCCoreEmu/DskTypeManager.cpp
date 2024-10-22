@@ -57,30 +57,32 @@ int DskTypeManager::GetTypeFromBuffer (unsigned char* buffer, int size)
 int DskTypeManager::GetTypeFromFile(const char* str)
 {
    std::filesystem::path file_ext (str);
-   const char* ext = file_ext.string().c_str();
-   auto toto = file_ext.extension().c_str();
-   if ( strcmp( ext, ".rom" ) ==0)
+   std::string ext = file_ext.extension().string();
+   std::transform(ext.begin(), ext.end(), ext.begin(),
+      [](unsigned char c) { return std::tolower(c); });
+
+   if ( strcmp( ext.c_str(), ".rom") == 0)
    //if (IsExtensionMatch(str, "rom"))
    {
       return 2;
    }
    //else if (IsExtensionMatch(str, "raw"))
-   else if ( strcmp( ext, ".raw" ) ==0)
+   else if ( strcmp(ext.c_str(), ".raw" ) ==0)
    {
       return 3;
    }
    //else if (IsExtensionMatch(str, "tap"))
-   else if ( strcmp( ext, ".tap" ) ==0)
+   else if ( strcmp(ext.c_str(), ".tap" ) ==0)
    {
       return 4;
    }
    //else if (IsExtensionMatch(str, "bin"))
-   else if ( strcmp( ext, ".bin" )==0)
+   else if ( strcmp(ext.c_str(), ".bin" )==0)
    {
       return 6;
    }
    //else if (IsExtensionMatch(str, "cpr"))
-   else if ( strcmp( ext, ".cpr" )==0)
+   else if ( strcmp(ext.c_str(), ".cpr" )==0)
    {
       return 7;
    }

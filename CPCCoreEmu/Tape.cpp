@@ -1190,15 +1190,22 @@ int CTape::InsertTapeDelayed()
       //else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
 
 
-      else if ( strcmp( std::filesystem::path(current_tape_).extension().string().c_str(), ".tap" ) == 0)
-      {
-         ret = LoadTap(current_tape_.c_str());
-      }
       else
       {
-         // Unknown format
-         current_tape_.clear();
-         ret = -2;
+         std::filesystem::path file_ext(current_tape_);
+         std::string extens = file_ext.extension().string();
+         std::transform(extens.begin(), extens.end(), extens.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+         if (strcmp(extens.c_str(), ".tap") == 0)
+         {
+            ret = LoadTap(current_tape_.c_str());
+         }
+         else
+         {
+            // Unknown format
+            current_tape_.clear();
+            ret = -2;
+         }
       }
    }
    else

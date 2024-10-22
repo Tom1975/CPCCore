@@ -204,7 +204,11 @@ int MediaManager::GetTypeFromFile(const char*  str)
    {
       // Check file extension
       std::filesystem::path file_ext(str);
-      const char* ext = file_ext.string().c_str();
+      std::string extens = file_ext.extension().string();
+      std::transform(extens.begin(), extens.end(), extens.begin(),
+         [](unsigned char c) { return std::tolower(c); });
+
+      const char* ext = extens.c_str();
 
       //if (IsExtensionMatch(str, "rom"))
       if ( strcmp( ext, ".rom" )==0)
