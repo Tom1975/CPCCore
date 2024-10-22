@@ -4,6 +4,7 @@
 
 #include <cmath>
 //#include "simple_regex.h"
+#include <algorithm>
 #include <filesystem>
 #include <stdio.h>
 

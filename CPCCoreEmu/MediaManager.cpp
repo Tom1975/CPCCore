@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <filesystem>
+#include <algorithm>
 
 #include "MediaManager.h"
 
