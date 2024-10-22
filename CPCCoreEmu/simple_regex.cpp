@@ -48,12 +48,12 @@ static bool MatchTextWithWildcards(const std::string &text, std::string wildcard
 
    return std::regex_match(text, pattern);
 }
-
+/*
 bool IsExtensionMatch(const char* str, const char* ext)
 {
    std::string extension = "*.";
    extension += ext;
    return MatchTextWithWildcards(str, extension);
-}
+}*/
 
 //#endif
