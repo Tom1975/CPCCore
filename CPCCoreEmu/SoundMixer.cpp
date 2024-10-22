@@ -496,7 +496,6 @@ void SoundMixer::Loop()
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 {
-#if !defined(RASPPI) && !defined(TEST_VECTOR)
    bool name_is_ok = false;
 
    const fs::path exe_path =  "./REC/";
@@ -524,10 +523,6 @@ bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 
    }
    return name_is_ok;
-#else
-	strcpy(buffer, "/REC/SoundOutput.wav");
-	return true;
-#endif
 }
 
 

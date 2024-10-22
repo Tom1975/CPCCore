@@ -61,7 +61,6 @@ bool PrinterDefault::Busy ()
 
 bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
 {
-#if !defined(MINIMUM_DEPENDENCIES) && !defined(TEST_VECTOR)
    if (diretories_ == NULL)
       return false;
 
@@ -95,7 +94,4 @@ bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
       }
    }
    return name_ok;
-#else
-   return false;
-#endif
 }
