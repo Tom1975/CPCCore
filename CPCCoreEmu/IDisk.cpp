@@ -2738,7 +2738,7 @@ void IDisk::SetName(const char* new_filepath)
    {
       // no implementation for PI
    }
-#endif
+#endif   
 #endif
    else
    {

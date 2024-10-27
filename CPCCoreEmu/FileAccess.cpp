@@ -31,7 +31,7 @@ bool IsDirectory(const char* path)
     }
     return isDir;
 #elif defined(RASPPI) || defined(TEST_VECTOR)
-   return false;  // todo PI
+   return false;  // todo PI    
 #else
    return (fs::is_directory(fs::status(fs::path(path))));
 #endif
@@ -66,7 +66,7 @@ unsigned int GetDirectoryContent(const char* path, std::vector<std::string>& fil
     UnLock(dirLock);
     FreeDosObject(DOS_FIB, fib);
 #elif defined(RASPPI) || defined(TEST_VECTOR)
-   // todo
+   // todo    
 #else
    std::error_code ec;
    for (auto& p : fs::directory_iterator(path, ec))
@@ -115,7 +115,7 @@ std::string GetFullPath(const char* path)
    return std::string((char *)buffer);
 #elif defined(RASPPI) || defined(TEST_VECTOR)
    // todo
-   return "";
+   return "";   
 #else
    fs::path full_path(path);
    return full_path.string();
@@ -127,7 +127,8 @@ std::string GetFileFromPath(const char* path)
 #ifdef __MORPHOS__
     return std::string(FilePart(path));
 #elif defined(RASPPI) || defined(TEST_VECTOR)
-   return "";
+   // todo
+   return "";    
 #else
    fs::path full_path(path);
    return full_path.filename().string();
@@ -135,6 +136,7 @@ std::string GetFileFromPath(const char* path)
 }
 
 #if !defined(RASPPI) && !defined(TEST_VECTOR)
+   // todo
 // todo
 
 size_t ReplaceAll(std::string& str, const std::string& from, const std::string& to)

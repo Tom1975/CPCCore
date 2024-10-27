@@ -97,5 +97,5 @@ bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
    return name_ok;
 #else
    return false;
-#endif
+#endif   
 }

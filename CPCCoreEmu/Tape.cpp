@@ -3,7 +3,8 @@
 #include "Tape.h"
 
 #include <cmath>
-#include "simple_regex.h"
+//#include "simple_regex.h"
+#include <algorithm>
 #include <filesystem>
 #include <stdio.h>
 
@@ -1187,15 +1188,25 @@ int CTape::InsertTapeDelayed()
       {
          ret = LoadVOC (current_tape_.c_str());
       }
-      else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
-      {
-         ret = LoadTap(current_tape_.c_str());
-      }
+      //else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
+
+
       else
       {
-         // Unknown format
-         current_tape_.clear();
-         ret = -2;
+         std::filesystem::path file_ext(current_tape_);
+         std::string extens = file_ext.extension().string();
+         std::transform(extens.begin(), extens.end(), extens.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+         if (strcmp(extens.c_str(), ".tap") == 0)
+         {
+            ret = LoadTap(current_tape_.c_str());
+         }
+         else
+         {
+            // Unknown format
+            current_tape_.clear();
+            ret = -2;
+         }
       }
    }
    else
