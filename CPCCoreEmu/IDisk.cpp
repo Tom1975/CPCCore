@@ -2725,6 +2725,7 @@ void IDisk::SetName(const char* new_filepath)
       }
    }
 #else 
+#if !defined(RASPPI) && !defined(TEST_VECTOR)
    fs::path path(new_filepath);
 
    if (!path.has_root_path())
@@ -2732,6 +2733,12 @@ void IDisk::SetName(const char* new_filepath)
       path = fs::current_path() / path;
       current_disk_path_ = path.filename().string();
    }
+#else
+   if (false)
+   {
+      // no implementation for PI
+   }
+#endif   
 #endif
    else
    {
