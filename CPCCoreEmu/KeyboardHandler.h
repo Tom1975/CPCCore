@@ -22,6 +22,14 @@ public:
    
    typedef Key Keymap[10][8];
 
+   struct RawToCPC
+   {
+      int line_number;
+      unsigned char* line_index;
+      unsigned char bit;
+   };
+   RawToCPC raw_to_cpc_map_[0x100];
+
    KeyboardHandler();
    virtual ~KeyboardHandler(void);
 
@@ -34,6 +42,9 @@ public:
    KeyboardHandler::Keymap& GetKeyboardMap() { return keyboard_map_; }
 
    unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
+
+   virtual bool LoadScanCodeToMatrix(const char* path);
+   void InitKeyboard(unsigned char key_map[10][8]);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );

@@ -6,6 +6,54 @@
 
 extern const char * SugarboxPath;
 
+#ifdef _WIN32
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
+#else
+   #pragma error "TODO : Generate a keyboard map for your OS !" 
+#endif
+
+unsigned char default_raw_map[10][8] =
+{                                                        // This is a UK keyboard.
+   {0x52, 0x4F, 0x51, 0x61, 0x5E, 0x5B, 0x58, 0x63, },   // Cur_up Cur_right Cur_down F9 F6 F3 Enter F.
+   {0x50, 0xE2, 0x5F, 0x60, 0x5D, 0x59, 0x5A, 0x62, },   // cur_left Copy f7 f8 f5 f1 f2 f0
+   {0x4C, 0x30, 0x28, 0x32, 0x5C, 0xE5, 0x38, 0xE0, },   // Clr {[ Return }] F4 Shift `\ Ctrl
+   {0x2E, 0x2D, 0x2F, 0x13, 0x34, 0x33, 0x2E, 0x37, },   // ^£ =- |@ P +; *: ?/ >,
+   {0x27, 0x26, 0x12, 0x0C, 0x0F, 0x0E, 0x10, 0x36, },   // _0 )9 O I L K M <.
+   {0x25, 0x24, 0x18, 0x1C, 0x0B, 0x0D, 0x11, 0x2C, },   // (8 '7 U Y H J N Space
+   {0x23, 0x22, 0x15, 0x17, 0x0A, 0x09, 0x05, 0x19, },   // &,6,Joy1_Up %,5,Joy1_down, R,Joy1_Left T,Joy1_Right G,Joy1Fire2 F,Joy1Fire1 B V
+   {0x21, 0x20, 0x08, 0x1A, 0x16, 0x07, 0x06, 0x1B, },   // $4 #3 E W S D C X
+   {0x1E, 0x1F, 0x29, 0x14, 0x2B, 0x10, 0x39, 0x1D, },   // !1 "2 Esc Q Tab A CapsLock Z
+   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, }    // Joy0up Joy0down Joy0left Joy0right Joy0F1 Joy0F2 unused Del
+};
+
+unsigned int getline(const char* buffer, int size, std::string& out)
+{
+   if (size == 0)
+   {
+      return 0;
+   }
+
+   // looking for /n
+   int offset = 0;
+   while (buffer[offset] != 0x0A && buffer[offset] != 0x0D && offset < size)
+   {
+      offset++;
+   }
+
+   char* line = new char[offset + 1];
+   memcpy(line, buffer, offset);
+   line[offset] = '\0';
+   out = std::string(line);
+   delete[]line;
+   return (offset == size) ? offset : offset + 1;
+}
+
+/// <summary>
+/// Keyboard handler.
+/// Main goal is to associate :
+/// - a hardware scan code for each line/bit of the matrix keyboard (handle key pressed)
+/// - Association between a character and scan code, to allow pasting to be done properly
+/// </summary>
 
 KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
 {
@@ -120,6 +168,90 @@ const char* KeyboardHandler::GetKeyboardConfig ()
    return keyboard_config_;
 }
 
+bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
+{
+   // Open file
+   FILE* f;
+   f = fopen(path, "r");
+   if (f == NULL)
+   {
+      return false;
+   }
+
+   // Load every known gamepad to internal structure
+   fseek(f, 0, SEEK_END);
+   unsigned int buffer_size_ = ftell(f);
+   rewind(f);
+   unsigned char* buff = new unsigned char[buffer_size_];
+   unsigned nBytesRead;
+
+   nBytesRead = fread(buff, 1, buffer_size_, f);
+   if (buffer_size_ != nBytesRead)
+   {
+      // ERROR
+      fclose(f);
+      return false;
+   }
+
+   // get next line
+   const char* ptr_buffer = (char*)buff;
+   unsigned int offset = 0;
+   unsigned int end_line;
+   std::string s;
+   int line_index = 0;
+   while ((end_line = getline(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 10)
+   {
+      nBytesRead -= end_line;
+
+      // Do not use emty lines, and comment lines
+      if (s.size() == 0 || s[0] == '#')
+      {
+         offset += end_line;
+         continue;
+      }
+
+      // Decode line to buffer
+      // Remove spaces
+      while (ptr_buffer[offset] == ' ')
+      {
+         offset++;
+         end_line--;
+      }
+      for (unsigned int raw_key = 0; raw_key < 8 && (2 + raw_key * 3) < end_line; raw_key++)
+      {
+         char number[3];
+         memcpy(number, &ptr_buffer[offset + raw_key * 3], 2);
+         number[2] = '\0';
+         unsigned char value = strtoul(number, NULL, 16);
+         default_raw_map[line_index][raw_key] = value;
+      }
+      offset += end_line;
+      line_index++;
+   }
+   delete[]buff;
+   fclose(f);
+
+   InitKeyboard(default_raw_map);
+}
+
+void KeyboardHandler::InitKeyboard(unsigned char key_map[10][8])
+{
+   // TODO : check how old_raw_keys_ in reset on implementation
+   memset(raw_to_cpc_map_, 0, sizeof raw_to_cpc_map_);
+
+   for (int line = 0; line < 10; line++)
+   {
+      for (int bit = 0; bit < 8; bit++)
+      {
+         unsigned char raw_key = key_map[line][bit];
+         raw_to_cpc_map_[raw_key].line_index = &keyboard_lines_[line];
+         raw_to_cpc_map_[raw_key].line_number = line;
+         raw_to_cpc_map_[raw_key].bit = 1 << bit;
+         keyboard_map_[line][bit].scan_code = raw_key;
+      }
+   }
+}
+
 void KeyboardHandler::LoadKeyboardMap (const char * config)
 {
    strcpy ( keyboard_config_, config );
@@ -133,6 +265,15 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
          keyboard_map_[line][b] = GetKeyValues ( config, line, b );
       }
    }
+   
+   // Load scan code association
+   // This one depends on the keyboard type : It should be the same for AZERTY,QWERTY and so one.
+   // Maybe it can differ depending on the keyboad ? (Pi can be different from PC for example)
+   // TODO : Handle these keyboard in a smart way
+   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+   exe_path /= "CONF";
+   exe_path /= KEYBOARD_SCANCODES_FILE;
+   LoadScanCodeToMatrix(exe_path.string().c_str());
 }
 
 void KeyboardHandler::InitKeyboard ()
@@ -221,16 +362,33 @@ void KeyboardHandler::JoystickAction (unsigned int joy, unsigned int action)
    }*/
 }
 
-void KeyboardHandler::SendScanCode ( unsigned int scanCode, bool bPressed )
+void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
 {
+   if (raw_to_cpc_map_[scancode & 0xFF].bit != 0)
+   {
+      if (bPressed)
+      {
+         if ((keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] & (raw_to_cpc_map_[scancode & 0xFF].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] &= ~(raw_to_cpc_map_[scancode & 0xFF].bit);
+      }
+      else
+      {
+         if ((keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] & (raw_to_cpc_map_[scancode & 0xFF].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] |= (raw_to_cpc_map_[scancode & 0xFF].bit);
+      }
+      //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & 0xFF].line_number, raw_to_cpc_map_[scancode & 0xFF].bit);
+      //*raw_to_cpc_map_[scancode & 0xFF].line_index &= ~(raw_to_cpc_map_[scancode & 0xFF].bit);
+   }
+   return;
+
    // Look for scan code in the base
    for (auto line = 0; line < 10; line++)
    {
       for (auto b=7; b >=0; b--)
       {
          // Get values from conf
-         if ( (keyboard_map_[line][b].scan_code == scanCode)
-            ||(keyboard_map_[line][b].scan_code_alt == scanCode)
+         if ( (keyboard_map_[line][b].scan_code == scancode)
+            ||(keyboard_map_[line][b].scan_code_alt == scancode)
             )
          {
             //
