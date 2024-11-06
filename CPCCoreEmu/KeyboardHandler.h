@@ -28,7 +28,9 @@ public:
       unsigned char* line_index;
       unsigned char bit;
    };
-   RawToCPC raw_to_cpc_map_[0x100];
+
+#define SCANCODE_MAP_SIZE 0x200
+   RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
 
    KeyboardHandler();
    virtual ~KeyboardHandler(void);
@@ -44,7 +46,7 @@ public:
    unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
 
    virtual bool LoadScanCodeToMatrix(const char* path);
-   void InitKeyboard(unsigned char key_map[10][8]);
+   void InitKeyboard(unsigned short key_map[10][8]);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );

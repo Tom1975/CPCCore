@@ -9,11 +9,12 @@ extern const char * SugarboxPath;
 #ifdef _WIN32
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
 #else
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
    #pragma error "TODO : Generate a keyboard map for your OS !" 
 #endif
 
-unsigned char default_raw_map[10][8] =
-{                                                        // This is a UK keyboard.
+unsigned short default_raw_map[10][8] =
+{  //  0     1     2     3     4     5     6     7       // This is a UK keyboard.
    {0x52, 0x4F, 0x51, 0x61, 0x5E, 0x5B, 0x58, 0x63, },   // Cur_up Cur_right Cur_down F9 F6 F3 Enter F.
    {0x50, 0xE2, 0x5F, 0x60, 0x5D, 0x59, 0x5A, 0x62, },   // cur_left Copy f7 f8 f5 f1 f2 f0
    {0x4C, 0x30, 0x28, 0x32, 0x5C, 0xE5, 0x38, 0xE0, },   // Clr {[ Return }] F4 Shift `\ Ctrl
@@ -217,13 +218,55 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
          offset++;
          end_line--;
       }
-      for (unsigned int raw_key = 0; raw_key < 8 && (2 + raw_key * 3) < end_line; raw_key++)
+
+      // Extract every word in a list
+      // words are separated with spaces
+      std::vector< std::vector<std::string>> key_list;
+
+      while (ptr_buffer[offset] != '#' && end_line > 0)
       {
-         char number[3];
-         memcpy(number, &ptr_buffer[offset + raw_key * 3], 2);
-         number[2] = '\0';
-         unsigned char value = strtoul(number, NULL, 16);
-         default_raw_map[line_index][raw_key] = value;
+         std::vector<std::string> current_word_list;
+         std::string new_word;
+         while (ptr_buffer[offset] != ' ' && ptr_buffer[offset] != '#' )
+         {
+            if (ptr_buffer[offset] != ';')
+            {
+               new_word += ptr_buffer[offset];
+               offset++;
+               end_line--;
+            }
+            else
+            {
+               // New word !
+               current_word_list.push_back(new_word);
+               new_word.clear();
+            }
+         }
+         if (new_word.size() > 0)
+         {
+            current_word_list.push_back(new_word);
+            key_list.push_back(current_word_list);
+         }
+
+         if (ptr_buffer[offset] == '#')
+            break;
+         offset++;
+         end_line--;
+      }
+
+      //for (unsigned int raw_key = 0; raw_key < 8 && (2 + raw_key * 3) < end_line; raw_key++)
+      unsigned int raw_key = 0;
+      for (auto& it : key_list)
+      {
+         //char number[4];
+         //memcpy(number, &ptr_buffer[offset + raw_key * 4], 3);
+         //number[3] = '\0';
+         for (auto& it2 : it)
+         {
+            unsigned short value = strtoul(it2.c_str(), NULL, 16);
+            default_raw_map[line_index][raw_key] = value;
+         }
+         raw_key++;
       }
       offset += end_line;
       line_index++;
@@ -234,7 +277,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    InitKeyboard(default_raw_map);
 }
 
-void KeyboardHandler::InitKeyboard(unsigned char key_map[10][8])
+void KeyboardHandler::InitKeyboard(unsigned short key_map[10][8])
 {
    // TODO : check how old_raw_keys_ in reset on implementation
    memset(raw_to_cpc_map_, 0, sizeof raw_to_cpc_map_);
@@ -243,7 +286,7 @@ void KeyboardHandler::InitKeyboard(unsigned char key_map[10][8])
    {
       for (int bit = 0; bit < 8; bit++)
       {
-         unsigned char raw_key = key_map[line][bit];
+         unsigned short raw_key = key_map[line][bit];
          raw_to_cpc_map_[raw_key].line_index = &keyboard_lines_[line];
          raw_to_cpc_map_[raw_key].line_number = line;
          raw_to_cpc_map_[raw_key].bit = 1 << bit;
@@ -271,7 +314,7 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    // Maybe it can differ depending on the keyboad ? (Pi can be different from PC for example)
    // TODO : Handle these keyboard in a smart way
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
-   exe_path /= "CONF";
+   exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
    LoadScanCodeToMatrix(exe_path.string().c_str());
 }
@@ -364,20 +407,20 @@ void KeyboardHandler::JoystickAction (unsigned int joy, unsigned int action)
 
 void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
 {
-   if (raw_to_cpc_map_[scancode & 0xFF].bit != 0)
+   if (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit != 0)
    {
       if (bPressed)
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] & (raw_to_cpc_map_[scancode & 0xFF].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] &= ~(raw_to_cpc_map_[scancode & 0xFF].bit);
+         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit);
       }
       else
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] & (raw_to_cpc_map_[scancode & 0xFF].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & 0xFF].line_number] |= (raw_to_cpc_map_[scancode & 0xFF].bit);
+         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       }
-      //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & 0xFF].line_number, raw_to_cpc_map_[scancode & 0xFF].bit);
-      //*raw_to_cpc_map_[scancode & 0xFF].line_index &= ~(raw_to_cpc_map_[scancode & 0xFF].bit);
+      //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
+      //*raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_index &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
    }
    return;
 

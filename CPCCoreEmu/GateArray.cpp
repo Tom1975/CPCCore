@@ -794,7 +794,7 @@ void VideoGateArray::TickIO()
             }
             else
             {
-               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
+               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F] | 0xFF000000;
             }
 
          }
