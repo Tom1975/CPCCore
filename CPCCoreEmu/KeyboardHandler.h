@@ -46,7 +46,6 @@ public:
    unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
 
    virtual bool LoadScanCodeToMatrix(const char* path);
-   void InitKeyboard(unsigned short key_map[10][8]);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );

@@ -171,6 +171,10 @@ const char* KeyboardHandler::GetKeyboardConfig ()
 
 bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
 {
+   RawToCPC raw_to_cpc_map_tmp_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   memset(raw_to_cpc_map_tmp_, 0, sizeof raw_to_cpc_map_tmp_);
+
+
    // Open file
    FILE* f;
    f = fopen(path, "r");
@@ -232,8 +236,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
             if (ptr_buffer[offset] != ';')
             {
                new_word += ptr_buffer[offset];
-               offset++;
-               end_line--;
             }
             else
             {
@@ -241,6 +243,8 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
                current_word_list.push_back(new_word);
                new_word.clear();
             }
+            offset++;
+            end_line--;
          }
          if (new_word.size() > 0)
          {
@@ -254,17 +258,19 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
          end_line--;
       }
 
-      //for (unsigned int raw_key = 0; raw_key < 8 && (2 + raw_key * 3) < end_line; raw_key++)
       unsigned int raw_key = 0;
       for (auto& it : key_list)
       {
-         //char number[4];
-         //memcpy(number, &ptr_buffer[offset + raw_key * 4], 3);
-         //number[3] = '\0';
          for (auto& it2 : it)
          {
             unsigned short value = strtoul(it2.c_str(), NULL, 16);
             default_raw_map[line_index][raw_key] = value;
+
+            raw_to_cpc_map_tmp_[value].line_index = &keyboard_lines_[line_index];
+            raw_to_cpc_map_tmp_[value].line_number = line_index;
+            raw_to_cpc_map_tmp_[value].bit = 1 << raw_key;
+
+            keyboard_map_[line_index][raw_key].scan_code = value;
          }
          raw_key++;
       }
@@ -274,25 +280,8 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    delete[]buff;
    fclose(f);
 
-   InitKeyboard(default_raw_map);
-}
+   memcpy(raw_to_cpc_map_, raw_to_cpc_map_tmp_, sizeof(raw_to_cpc_map_tmp_));
 
-void KeyboardHandler::InitKeyboard(unsigned short key_map[10][8])
-{
-   // TODO : check how old_raw_keys_ in reset on implementation
-   memset(raw_to_cpc_map_, 0, sizeof raw_to_cpc_map_);
-
-   for (int line = 0; line < 10; line++)
-   {
-      for (int bit = 0; bit < 8; bit++)
-      {
-         unsigned short raw_key = key_map[line][bit];
-         raw_to_cpc_map_[raw_key].line_index = &keyboard_lines_[line];
-         raw_to_cpc_map_[raw_key].line_number = line;
-         raw_to_cpc_map_[raw_key].bit = 1 << bit;
-         keyboard_map_[line][bit].scan_code = raw_key;
-      }
-   }
 }
 
 void KeyboardHandler::LoadKeyboardMap (const char * config)
