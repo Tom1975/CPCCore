@@ -54,4 +54,5 @@ jobs:
             ${{github.workspace}}/build/UnitTests/Release/CONF/
             ${{github.workspace}}/build/UnitTests/Release/CART/
             ${{github.workspace}}/build/UnitTests/Release/ROM/
+            ${{github.workspace}}/build/UnitTests/Release/Keyboards/
             
