@@ -26,5 +26,6 @@ jobs:
         working-directory: ${{github.workspace}}
         run: |
           dir
+          dir Keyboards
           .\unitTests.exe
 
