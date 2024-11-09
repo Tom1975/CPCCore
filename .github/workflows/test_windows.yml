@@ -25,5 +25,6 @@ jobs:
       - name: Test
         working-directory: ${{github.workspace}}
         run: |
+          dir
           .\unitTests.exe
 
