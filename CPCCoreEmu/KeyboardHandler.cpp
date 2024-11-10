@@ -178,7 +178,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
 
    // Open file
    FILE* f;
-   f = fopen(path, "r");
+   f = fopen(path, "r+b");
    if (f == NULL)
    {
       printf("*** ERROR LOADING Keyboard %s\n", path);
@@ -193,13 +193,13 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    unsigned nBytesRead;
 
    nBytesRead = fread(buff, 1, buffer_size_, f);
-   /*if (buffer_size_ != nBytesRead)
+   if (buffer_size_ != nBytesRead)
    {
       // ERROR
       printf("*** ERROR READING Keyboard %s\n", path);
       fclose(f);
       return false;
-   }*/
+   }
 
    // get next line
    const char* ptr_buffer = (char*)buff;
