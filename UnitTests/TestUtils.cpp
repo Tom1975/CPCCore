@@ -307,7 +307,6 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 
    machine_->Init(&display, &soundFactory);
    machine_->GetMem()->Initialisation();
-   machine_->GetMem()->Initialisation();
 
    machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());
    machine_->Reinit();

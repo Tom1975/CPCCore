@@ -175,7 +175,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    RawToCPC raw_to_cpc_map_tmp_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
    memset(raw_to_cpc_map_tmp_, 0, sizeof raw_to_cpc_map_tmp_);
 
-
    // Open file
    FILE* f;
    f = fopen(path, "r+b");
@@ -285,6 +284,8 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
 
    memcpy(raw_to_cpc_map_, raw_to_cpc_map_tmp_, sizeof(raw_to_cpc_map_tmp_));
    printf("Keyboard %s read properly\n", path);
+
+   return true;
 }
 
 void KeyboardHandler::LoadKeyboardMap (const char * config)
