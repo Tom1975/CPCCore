@@ -10,7 +10,7 @@
    148 14D 150 049 04D 051 11C 053    # 0 Cur_up Cur_right Cur_down F9 F6 F3 Enter F.
    14B 038 047 048 04C 04F 050 052    # 1 cur_left Copy f7 f8 f5 f1 f2 f0
    153 01B 01C 02B 04B 02A;36 035 01D    # 2 Clr {[ Return }] F4 Shift `\ Ctrl => 36 and 2A are all connected to SHIFT key
-   00D 00C 01A 019 028 027 056 033    # 3 ^£ =- |@ P +; *: ?/ >,
+   00D 00C 81A 019 028 027 056 033    # 3 ^£ =- |@ P +; *: ?/ >,
    00B 00A 018 017 026 025 032 034    # 4 _0 )9 O I L K M <.
    009 008 016 015 023 024 031 039    # 5 (8 '7 U Y H J N Space
    007 006 013 014 022 021 030 02F    # 6 &,6,Joy1_Up %,5,Joy1_down, R,Joy1_Left T,Joy1_Right G,Joy1Fire2 F,Joy1Fire1 B V

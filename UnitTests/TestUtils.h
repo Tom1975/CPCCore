@@ -354,16 +354,18 @@ protected:
 class CommandScanCode : public ICommand
 {
 public:
-   CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed) : pKeyHandler_(pKeyHandler), scancode_(scancode), pressed_(pressed)
-   {
-   }
+   CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed);
+   
+   virtual bool Action(EmulatorEngine* machine);
 
-   virtual bool Action(EmulatorEngine* machine)
-   {
-      pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
-      return true;
-   }
 protected:
+
+   static KeyboardHandler::RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   static unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   static bool init_convert_map_;
+   static KeyboardHandler::Keymap keyboard_map_;
+   static unsigned char keyboard_lines_[10];
+
    IKeyboard* pKeyHandler_;
    unsigned short scancode_;
    unsigned int pressed_;

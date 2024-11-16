@@ -21,6 +21,55 @@
 #include <string>
 #include "TestUtils.h"
 
+#ifdef _WIN32
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
+#elif __linux__ 
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
+#else
+#pragma error "TODO : Generate a keyboard map for your OS !" 
+#endif
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_[SCANCODE_MAP_SIZE];
+bool CommandScanCode::init_convert_map_ = false;
+KeyboardHandler::Keymap CommandScanCode::keyboard_map_;
+unsigned char CommandScanCode::keyboard_lines_[10];
+
+CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed) : pKeyHandler_(pKeyHandler), scancode_(scancode), pressed_(pressed)
+{
+#ifdef __linux__ 
+   if (!init_convert_map_)
+   {
+      fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+      exe_path /= "Keyboards";
+      exe_path /= "101_keyboard_win";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
+         keyboard_lines_ , &keyboard_map_);
+      init_convert_map_ = true;
+   }
+
+   // Convert french/windows scancode to target scancode.
+   if (pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
+   {
+      for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
+      {
+         if (CommandScanCode::raw_to_cpc_map_[sc].line_number == pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number
+            && CommandScanCode::raw_to_cpc_map_[sc].bit == pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)
+         {
+            scancode_ = sc;
+            break;
+         }
+      }
+   }
+#endif
+}
+
+bool CommandScanCode::Action(EmulatorEngine* machine)
+{
+   pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
+   return true;
+}
 
 FileLog::FileLog(const char* file)
 {
