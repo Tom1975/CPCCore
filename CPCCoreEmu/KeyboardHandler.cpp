@@ -12,6 +12,7 @@ extern const char * SugarboxPath;
 #elif __linux__ 
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
 #else
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
    #pragma error "TODO : Generate a keyboard map for your OS !" 
 #endif
 
