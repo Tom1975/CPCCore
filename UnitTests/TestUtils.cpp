@@ -43,7 +43,7 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
 #ifdef __linux__ 
    if (!init_convert_map_)
    {
-      fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+      fs::path exe_path( ".");
       exe_path /= "Keyboards";
       exe_path /= "101_keyboard_win";
 
@@ -53,12 +53,13 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
    }
 
    // Convert french/windows scancode to target scancode.
-   if (pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
+   KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>pKeyHandler_;
+   if (handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
    {
       for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
       {
-         if (CommandScanCode::raw_to_cpc_map_[sc].line_number == pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number
-            && CommandScanCode::raw_to_cpc_map_[sc].bit == pKeyHandler_->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)
+         if (CommandScanCode::raw_to_cpc_map_[sc].line_number == handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number
+            && CommandScanCode::raw_to_cpc_map_[sc].bit == handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)
          {
             scancode_ = sc;
             break;
