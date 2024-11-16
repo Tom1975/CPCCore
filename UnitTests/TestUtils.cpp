@@ -53,7 +53,7 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
    }
 
    // Convert french/windows scancode to target scancode.
-   KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>pKeyHandler_;
+   KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>(pKeyHandler_);
    if (handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
    {
       for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
