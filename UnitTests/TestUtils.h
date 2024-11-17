@@ -362,6 +362,9 @@ protected:
 
    static KeyboardHandler::RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
    static unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   static KeyboardHandler::RawToCPC raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   static unsigned char dead_key_linux[SCANCODE_MAP_SIZE];
+
    static bool init_convert_map_;
    static KeyboardHandler::Keymap keyboard_map_;
    static unsigned char keyboard_lines_[10];

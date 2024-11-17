@@ -34,6 +34,10 @@ namespace fs = std::filesystem;
 
 KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
 unsigned char CommandScanCode::dead_key_[SCANCODE_MAP_SIZE];
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_linux[SCANCODE_MAP_SIZE];
+
 bool CommandScanCode::init_convert_map_ = false;
 KeyboardHandler::Keymap CommandScanCode::keyboard_map_;
 unsigned char CommandScanCode::keyboard_lines_[10];
@@ -43,24 +47,40 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
 #ifdef __linux__ 
    if (!init_convert_map_)
    {
+      printf("Loading convertion\n");
       fs::path exe_path( ".");
       exe_path /= "Keyboards";
       exe_path /= "101_keyboard_win";
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
          keyboard_lines_ , &keyboard_map_);
+
+      fs::path exe_path_linux(".");
+      exe_path_linux /= "Keyboards";
+      exe_path_linux /= "101_keyboard_linux";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
+         keyboard_lines_, &keyboard_map_);
+
+
       init_convert_map_ = true;
    }
 
    // Convert french/windows scancode to target scancode.
+   printf("Converting scancode %X\n", scancode);
    KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>(pKeyHandler_);
-   if (handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
+   //if (handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit != 0)
    {
+      printf("Trying to find corresponding - Line = %i; bit = %X\n",
+         CommandScanCode::raw_to_cpc_map_[scancode].line_number, CommandScanCode::raw_to_cpc_map_[scancode].bit);
       for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
       {
-         if (CommandScanCode::raw_to_cpc_map_[sc].line_number == handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number
-            && CommandScanCode::raw_to_cpc_map_[sc].bit == handler->raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)
+         printf("Current guess : %X - Line = %i; bit = %X\n",
+            sc, CommandScanCode::raw_to_cpc_map_linux[sc].line_number, CommandScanCode::raw_to_cpc_map_linux[sc].bit);
+         if (CommandScanCode::raw_to_cpc_map_[scancode].line_number == CommandScanCode::raw_to_cpc_map_linux[sc].line_number
+            && CommandScanCode::raw_to_cpc_map_[scancode].bit == CommandScanCode::raw_to_cpc_map_linux[sc].bit)
          {
+            printf("Ok ! ; scancode = %X\n", sc);
             scancode_ = sc;
             break;
          }
