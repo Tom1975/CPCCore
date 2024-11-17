@@ -4,6 +4,8 @@
 #include "IDirectories.h"
 #include "IKeyboard.h"
 
+#define SCANCODE_MAP_SIZE 0x200
+
 class KeyboardHandler : public IKeyboard, public IKeyboardHandler
 {
 public:
@@ -29,8 +31,8 @@ public:
       unsigned char bit;
    };
 
-#define SCANCODE_MAP_SIZE 0x200
    RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   unsigned char dead_key_[SCANCODE_MAP_SIZE];
 
    KeyboardHandler();
    virtual ~KeyboardHandler(void);
@@ -45,7 +47,7 @@ public:
 
    unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
 
-   virtual bool LoadScanCodeToMatrix(const char* path);
+   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char* keyboard_lines, Keymap* keyboard_map);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );
@@ -63,7 +65,7 @@ public:
    virtual void CharReleased (char c) ;
 
    virtual void SendScanCode ( unsigned int, bool pressed );
-
+   virtual bool IsDeadKey(unsigned int);
 
 
    virtual void JoystickAction (unsigned int joy, unsigned int action);

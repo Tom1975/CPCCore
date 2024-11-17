@@ -45,7 +45,8 @@ add_subdirectory(AmstradCore)
 
 if (GENERATE_UNITTESTS)
    
-   add_subdirectory(googletest/googletest)
+   #add_subdirectory(googletest/googletest)
+   add_subdirectory(googletest)
    set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
    add_subdirectory(AmstradCoreTests)

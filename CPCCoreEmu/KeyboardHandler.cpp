@@ -9,24 +9,12 @@ extern const char * SugarboxPath;
 
 #ifdef _WIN32
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
+#elif __linux__ 
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
 #else
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
    #pragma error "TODO : Generate a keyboard map for your OS !" 
 #endif
-
-unsigned short default_raw_map[10][8] =
-{  //  0     1     2     3     4     5     6     7       // This is a UK keyboard.
-   {0x52, 0x4F, 0x51, 0x61, 0x5E, 0x5B, 0x58, 0x63, },   // Cur_up Cur_right Cur_down F9 F6 F3 Enter F.
-   {0x50, 0xE2, 0x5F, 0x60, 0x5D, 0x59, 0x5A, 0x62, },   // cur_left Copy f7 f8 f5 f1 f2 f0
-   {0x4C, 0x30, 0x28, 0x32, 0x5C, 0xE5, 0x38, 0xE0, },   // Clr {[ Return }] F4 Shift `\ Ctrl
-   {0x2E, 0x2D, 0x2F, 0x13, 0x34, 0x33, 0x2E, 0x37, },   // ^£ =- |@ P +; *: ?/ >,
-   {0x27, 0x26, 0x12, 0x0C, 0x0F, 0x0E, 0x10, 0x36, },   // _0 )9 O I L K M <.
-   {0x25, 0x24, 0x18, 0x1C, 0x0B, 0x0D, 0x11, 0x2C, },   // (8 '7 U Y H J N Space
-   {0x23, 0x22, 0x15, 0x17, 0x0A, 0x09, 0x05, 0x19, },   // &,6,Joy1_Up %,5,Joy1_down, R,Joy1_Left T,Joy1_Right G,Joy1Fire2 F,Joy1Fire1 B V
-   {0x21, 0x20, 0x08, 0x1A, 0x16, 0x07, 0x06, 0x1B, },   // $4 #3 E W S D C X
-   {0x1E, 0x1F, 0x29, 0x14, 0x2B, 0x10, 0x39, 0x1D, },   // !1 "2 Esc Q Tab A CapsLock Z
-   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, }    // Joy0up Joy0down Joy0left Joy0right Joy0F1 Joy0F2 unused Del
-};
 
 unsigned int getline(const char* buffer, int size, std::string& out)
 {
@@ -170,10 +158,8 @@ const char* KeyboardHandler::GetKeyboardConfig ()
    return keyboard_config_;
 }
 
-bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
+bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char *keyboard_lines, Keymap * keyboard_map)
 {
-   RawToCPC raw_to_cpc_map_tmp_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
-   memset(raw_to_cpc_map_tmp_, 0, sizeof raw_to_cpc_map_tmp_);
 
    // Open file
    FILE* f;
@@ -196,9 +182,13 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    {
       // ERROR
       printf("*** ERROR READING Keyboard %s\n", path);
+      delete[]buff;
       fclose(f);
       return false;
    }
+
+   memset(char_map, 0, sizeof raw_to_cpc_map_);
+   memset(dead_key, 0, sizeof dead_key_);
 
    // get next line
    const char* ptr_buffer = (char*)buff;
@@ -266,13 +256,17 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
          for (auto& it2 : it)
          {
             unsigned short value = strtoul(it2.c_str(), NULL, 16);
-            default_raw_map[line_index][raw_key] = value;
+            if ((value & 0x800) == 0x800)
+            {
+               value &= ~0x800;
+               dead_key[value] = 1;
+            }
 
-            raw_to_cpc_map_tmp_[value].line_index = &keyboard_lines_[line_index];
-            raw_to_cpc_map_tmp_[value].line_number = line_index;
-            raw_to_cpc_map_tmp_[value].bit = 1 << raw_key;
+            char_map[value].line_index = &keyboard_lines[line_index];
+            char_map[value].line_number = line_index;
+            char_map[value].bit = 1 << raw_key;
 
-            keyboard_map_[line_index][raw_key].scan_code = value;
+            (*keyboard_map)[line_index][raw_key].scan_code = value;
          }
          raw_key++;
       }
@@ -281,10 +275,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path)
    }
    delete[]buff;
    fclose(f);
-
-   memcpy(raw_to_cpc_map_, raw_to_cpc_map_tmp_, sizeof(raw_to_cpc_map_tmp_));
-   printf("Keyboard %s read properly\n", path);
-
    return true;
 }
 
@@ -309,7 +299,7 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
-   LoadScanCodeToMatrix(exe_path.string().c_str());
+   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
 }
 
 void KeyboardHandler::InitKeyboard ()
@@ -397,6 +387,12 @@ void KeyboardHandler::JoystickAction (unsigned int joy, unsigned int action)
       SET_KEY_LINE_BIT(joy_but3, 6, 4);
    }*/
 }
+
+bool KeyboardHandler::IsDeadKey(unsigned int car)
+{
+   return (dead_key_[car] == 1);
+}
+
 
 void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
 {

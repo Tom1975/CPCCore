@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
 
 #include <stdio.h>
@@ -21,6 +23,67 @@
 #include <string>
 #include "TestUtils.h"
 
+#ifdef _WIN32
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
+#elif __linux__ 
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
+#else
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
+#pragma error "TODO : Generate a keyboard map for your OS !" 
+#endif
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_[SCANCODE_MAP_SIZE];
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_linux[SCANCODE_MAP_SIZE];
+
+bool CommandScanCode::init_convert_map_ = false;
+KeyboardHandler::Keymap CommandScanCode::keyboard_map_;
+unsigned char CommandScanCode::keyboard_lines_[10];
+
+CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed) : pKeyHandler_(pKeyHandler), scancode_(scancode), pressed_(pressed)
+{
+#ifdef __linux__ 
+   if (!init_convert_map_)
+   {
+      fs::path exe_path( ".");
+      exe_path /= "Keyboards";
+      exe_path /= "101_keyboard_win";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
+         keyboard_lines_ , &keyboard_map_);
+
+      fs::path exe_path_linux(".");
+      exe_path_linux /= "Keyboards";
+      exe_path_linux /= "101_keyboard_linux";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
+         keyboard_lines_, &keyboard_map_);
+
+
+      init_convert_map_ = true;
+   }
+
+   // Convert french/windows scancode to target scancode.
+   KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>(pKeyHandler_);
+   for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
+   {
+      if (CommandScanCode::raw_to_cpc_map_[scancode].line_number == CommandScanCode::raw_to_cpc_map_linux[sc].line_number
+         && CommandScanCode::raw_to_cpc_map_[scancode].bit == CommandScanCode::raw_to_cpc_map_linux[sc].bit)
+      {
+         scancode_ = sc;
+         break;
+      }
+   }
+#endif
+}
+
+bool CommandScanCode::Action(EmulatorEngine* machine)
+{
+   pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
+   return true;
+}
 
 FileLog::FileLog(const char* file)
 {
