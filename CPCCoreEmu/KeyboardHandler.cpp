@@ -275,9 +275,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
    }
    delete[]buff;
    fclose(f);
-
-   printf("Keyboard %s read properly\n", path);
-
    return true;
 }
 
