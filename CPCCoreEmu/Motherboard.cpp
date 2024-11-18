@@ -476,7 +476,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
       if (!run_) supervisor_->EmulationStopped();
       if (counter_ >= 4000000)
       {
-         supervisor_->SetEfficience(GetSpeed());
+         //supervisor_->SetEfficience(GetSpeedPercent());
          supervisor_->RefreshRunningData();
          // Refresh ?
       }
@@ -620,7 +620,7 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       if (!run_) supervisor_->EmulationStopped();
       if (counter_ >= 4000000)
       {
-         supervisor_->SetEfficience(GetSpeed());
+         //supervisor_->SetEfficience(GetSpeedPercent());
          supervisor_->RefreshRunningData();
          // Refresh ?
       }

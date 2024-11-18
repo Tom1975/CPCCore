@@ -46,13 +46,12 @@ EmulatorEngine::EmulatorEngine() :
    time_elapsed_ = std::chrono::steady_clock::now();
    time_computed_ = 0;
 
-   speed_limit_ = E_NONE;
+   speed_limit_ = E_FULL;
    memset (paste_buffer_, 0, sizeof(paste_buffer_));
    paste_wait_time_ = 3;
    paste_vkey_ = 0;
    speed_percent_ = 0;
 
-   speed_ = 100;
    notifier_ = NULL;
    stop_pc_ = 0;
    remember_step_ = false;
@@ -120,11 +119,6 @@ ISoundMixer* EmulatorEngine::GetMixer()
    return &sound_mixer_;
 }
 
-
-EmulatorEngine::SpeedLimit EmulatorEngine::IsSpeedLimited()
-{
-   return speed_limit_;
-}
 
 // 0 : Not present;  1 : No; 2 : Read; 3 : Write
 int EmulatorEngine::IsDiskRunning (int drive )
@@ -614,9 +608,12 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
       case E_VBL:
          configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "V", ini_file);
          break;
-      case E_NONE:
+      case E_SOUND:
+         configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "S", ini_file);
+         break;
+      case E_CUSTOM:
       default:
-         configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "N", ini_file);
+         configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "C", ini_file);
    }
 
    // Disk in drive
@@ -636,10 +633,6 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
    int scanlines = GetVGA()->GetScanlines ( );
    sprintf ( tmp_buffer,  "%i", scanlines);
    configuration_manager_->SetConfiguration(config_name, "SCANLINES", tmp_buffer, ini_file);
-
-   // Speed
-   sprintf( tmp_buffer,  "%i", speed_);
-   configuration_manager_->SetConfiguration(config_name, "Speed", tmp_buffer, ini_file);
 
    // Snapshot quick load/save
    configuration_manager_->SetConfiguration(config_name, "QuickSnap", tmp_buffer, ini_file);
@@ -680,7 +673,8 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    configuration_manager_->GetConfiguration(config_name, "LimitSpeed", "Y", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    if ( tmp_buffer[0] == 'F') speed_limit_ = E_FULL;
    else if ( tmp_buffer[0] == 'V') speed_limit_ = E_VBL ;
-   else speed_limit_ = E_NONE ;
+   else if (tmp_buffer[0] == 'S') speed_limit_ = E_SOUND;
+   else speed_limit_ = E_CUSTOM;
 
    configuration_manager_->GetConfiguration(config_name, "FD1_Path", "", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    if ( strlen(tmp_buffer) > 0)
@@ -722,11 +716,6 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    configuration_manager_->GetConfiguration(config_name, "SCANLINES", "1", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    sscanf (tmp_buffer, "%i", &scanlines );
    GetVGA()->SetScanlines(scanlines);
-
-   // Speed
-   configuration_manager_->GetConfiguration(config_name, "Speed", "100", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
-   sscanf (tmp_buffer, "%i", &speed_ );
-   SetSpeed(speed_);
 
    // Snapshot quick load/save
    configuration_manager_->GetConfiguration(config_name, "QuickSnap", "", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
@@ -833,17 +822,27 @@ void EmulatorEngine::RemoveBreakpoint ( unsigned short addr)
    motherboard_.RemoveBreakpoint(addr);
 }
 
-void EmulatorEngine::SetSpeed ( int speedLimit )
+void EmulatorEngine::SetSpeed(int speed)
 {
-   if ( speedLimit == -1)
+   speed_ = speed;
+}
+
+void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
+{
+   speed_limit_ = speedLimit;
+   switch (speed_limit_)
    {
-      display_->SetSyncWithVbl (-1);
+   case E_SOUND:
+      //display_->SyncWithFrame(false);
+      sound_mixer_.SyncOnSound(true);
+      break;
+   case E_VBL:
+      sound_mixer_.SyncOnSound(false);
+      break;
+   default:
+      sound_mixer_.SyncOnSound(false);
+      break;
    }
-   else
-   {
-      display_->SetSyncWithVbl (speedLimit / 2);
-   }
-   speed_ = speedLimit;
 }
 
 #define TARGET_RESOLUTION 1         // 1-millisecond target resolution
@@ -942,18 +941,24 @@ void EmulatorEngine::HandleSyncro(int run_time)
    //unsigned long long real_time = time_elapsed_end - TimeElapsed;
    //unsigned long long baserealTime_L = real_time ;
 
-   if (!display_->IsWaitHandled())
-   {
-      if (speed_ != 0)
-      {
-         real_time = real_time * speed_ / 100;
-         speed_limit_ = E_FULL;
-      }
-      else
-      {
-         speed_limit_ = E_NONE;
-      }
+   // Various wait : 
+   // VBL : Wait for Vertical Blank
+   // Sound : Wit until there is one chunk of osund
+   // percent : do it the old way
 
+   //if (!display_->IsWaitHandled())
+   switch (speed_limit_)
+   {
+   case E_VBL:
+      // Wait next VBL - Done during VSync function
+      break;
+   case E_SOUND:
+      // Sound sync is done is the sound mixer part. 
+      break;
+   case E_FULL:
+      break;
+   case E_CUSTOM:
+      real_time = real_time * speed_ / 100;
       if (std::chrono::milliseconds(time_computed_) > real_time)
       {
          // Depends on the type of wait :
@@ -989,18 +994,17 @@ void EmulatorEngine::HandleSyncro(int run_time)
             speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
          }
       }
+      break;
+   }
+   if (base_realtime.count() != 0)
+   {
+      speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
    }
    else
    {
-      if (base_realtime.count() != 0)
-      {
-         speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
-      }
-      else
-      {
-         speed_percent_ = 1000;
-      }
+      speed_percent_ = 1000;
    }
+
 
    // Renew the total elapsed time (every 5 seconds)
    if (paste_wait_time_ > 0)

@@ -66,9 +66,10 @@ class CPCCOREEMU_API EmulatorEngine : public ILoadingProgree
 {
 public:
    typedef enum {
-      E_NONE,
+      E_CUSTOM,
       E_FULL,
-      E_VBL
+      E_VBL,
+      E_SOUND
    } SpeedLimit;
 
 
@@ -124,7 +125,6 @@ public:
    virtual void Paste (const char* command);
    virtual bool PasteBufferIsEmpty() {
       return paste_size_ == 0;}
-   virtual SpeedLimit IsSpeedLimited();
 
    virtual void SetDefaultConfiguration ();
    virtual void SaveConfiguration (const char* config_name, const char* ini_file);
@@ -258,14 +258,14 @@ public:
    void SetPAL ( bool bPAL) { pal_present_ = bPAL; GetVGA()->SetPAL( bPAL);};
    void SetFDCPlugged ( bool bFDCPlugged) { fdc_present_ = bFDCPlugged;GetSig()->fdc_present_ = fdc_present_;GetPPI()->SetExpSignal ( fdc_present_ );};
    void ChangeConfig (MachineSettings* current_settings);
-   void LimitSpeed (SpeedLimit bLimit){speed_limit_ = bLimit;};
 
-   void SetSpeed ( int speed_limit );
-   unsigned int GetSpeedLimit (){return speed_;}
-   unsigned int GetSpeed (){return speed_percent_;}
+   void SetSpeed ( int speed);
+   unsigned int GetSpeed(){return speed_;}
+   void SetSpeedLimit(SpeedLimit speed_limit );
+   SpeedLimit GetSpeedLimit (){return speed_limit_;}
+   unsigned int GetSpeedPercent (){return speed_percent_;}
 
    int speed_;
-
    bool bin_to_load_;
    std::string bin_to_load_path_;
 

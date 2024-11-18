@@ -659,12 +659,12 @@ unsigned int SoundMixer::Tick()
          #endif
       } 
       int next_to_play = -1;
-      for (int i = 0; i < NB_BUFFERS; i++)
+      for (int i = 0; i < NB_BUFFERS && next_to_play == -1; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::FREE)
          {
             next_to_play = i;
-            break;
+            //break;
          }
 
       }
