@@ -963,37 +963,10 @@ void EmulatorEngine::HandleSyncro(int run_time)
       real_time = real_time * speed_ / 100;
       if (std::chrono::milliseconds(time_computed_) > real_time)
       {
-         // Depends on the type of wait :
-         // based on sound
-         /*if (speed_limit_ == E_Full && speed_ == 100)
-         {
-            //sound_player_->SyncWithSound();
-         }
-         else*/
          // Standard
-         if (speed_limit_ == E_FULL && (std::chrono::milliseconds(time_computed_) - real_time) > std::chrono::milliseconds(10))
+         if ((std::chrono::milliseconds(time_computed_) - real_time) > std::chrono::milliseconds(10))
          {
             std::this_thread::sleep_for(std::chrono::microseconds((std::chrono::milliseconds(time_computed_) - real_time)));
-            //Sleep( (DWORD)(TimeComputed-real_time) );
-            //Speed = 100;
-            if (real_time != std::chrono::milliseconds(0))
-            {
-               speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
-            }
-         }
-         else
-         {
-            if (base_realtime.count() != 0)
-            {
-               speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
-            }
-         }
-      }
-      else
-      {
-         if (base_realtime.count() != 0)
-         {
-            speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());
          }
       }
       break;
