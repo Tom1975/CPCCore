@@ -25,6 +25,8 @@ public :
    {
       return screenshot_take_;
    }
+
+   void SyncOnFrame(bool set) override {} ;
    virtual unsigned int ConvertRGB(unsigned int rgb);
    virtual void SetScanlines ( int scan ) {};
    virtual void ScreenshotToFile(const char* pathFile);

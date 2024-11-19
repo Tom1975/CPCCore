@@ -36,7 +36,7 @@ public:
    virtual void SetSize (SizeEnum size) = 0;
    virtual SizeEnum  GetSize () = 0; 
    virtual void VSync (bool dbg=false) = 0;
-
+   virtual void SyncOnFrame( bool set) = 0;
    // Start of sync
    virtual void StartSync() = 0;
    // Wait VBL

@@ -833,13 +833,15 @@ void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
    switch (speed_limit_)
    {
    case E_SOUND:
-      //display_->SyncWithFrame(false);
+      display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(true);
       break;
    case E_VBL:
+      display_->SyncOnFrame(true);
       sound_mixer_.SyncOnSound(false);
       break;
    default:
+      display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(false);
       break;
    }
