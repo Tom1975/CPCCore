@@ -833,6 +833,7 @@ void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
    switch (speed_limit_)
    {
    case E_SOUND:
+      speed_ = 100;
       display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(true);
       break;
@@ -937,9 +938,12 @@ void EmulatorEngine::HandleSyncro(int run_time)
    // Wait if needed
    //TimeElapsedEnd = GetTickCount ();
    std::chrono::time_point<std::chrono::steady_clock> time_elapsed_end = std::chrono::steady_clock::now();
+   std::chrono::milliseconds real_time;// = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
+   if (time_elapsed_end > time_elapsed_)
+      real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
+   else
+      real_time = std::chrono::milliseconds(0);
 
-   std::chrono::milliseconds real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
-   std::chrono::milliseconds base_realtime = real_time;
    //unsigned long long real_time = time_elapsed_end - TimeElapsed;
    //unsigned long long baserealTime_L = real_time ;
 
@@ -954,11 +958,17 @@ void EmulatorEngine::HandleSyncro(int run_time)
    case E_VBL:
       // Wait next VBL - Done during VSync function
       break;
-   case E_SOUND:
-      // Sound sync is done is the sound mixer part. 
-      break;
    case E_FULL:
       break;
+   case E_SOUND:
+      // Sound sync is done is the sound mixer part. 
+      sound_mixer_.SyncWithSound();
+      // Then... wait a bit !
+      time_elapsed_end = std::chrono::steady_clock::now();
+      if (time_elapsed_end > time_elapsed_)
+         real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
+      else
+         real_time = std::chrono::milliseconds(0);
    case E_CUSTOM:
       real_time = real_time * speed_ / 100;
       if (std::chrono::milliseconds(time_computed_) > real_time)
@@ -971,6 +981,8 @@ void EmulatorEngine::HandleSyncro(int run_time)
       }
       break;
    }
+
+   std::chrono::milliseconds base_realtime = real_time;
    if (base_realtime.count() != 0)
    {
       speed_percent_ = (unsigned int)(time_computed_ * 100 / base_realtime.count());

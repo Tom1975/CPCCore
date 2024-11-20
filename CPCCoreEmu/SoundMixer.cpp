@@ -97,6 +97,7 @@ SoundMixer::SoundMixer() :
 #else
    finished_(true),
 #endif
+   sound_(nullptr),
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
    tape_(nullptr),
@@ -464,9 +465,9 @@ void SoundMixer::Loop()
 
       if (index_to_convert != -1)
       {
-         char logbuf[32];
+         /*char logbuf[32];
          sprintf(logbuf, "Playing sample number :, %i\n", buffer_list_[index_to_convert].sample_number_);
-         LOG( logbuf);
+         LOG( logbuf);*/
          buffer_list_[index_to_convert].status_ = BufferItem::LOCKED;
 
          // Release mutex (todo)
@@ -622,6 +623,10 @@ void SoundMixer::EndRecordImp()
    }
 }
 
+void SoundMixer::SyncWithSound()
+{
+   sound_->SyncWithSound();
+}
 
 // Sound Mixer : The soundmixer tick is 8us (125 khz)
 // This is a pragmatic value, set because it is the tick rate of AY8912 used by both CPC and PlayCITY
@@ -639,7 +644,7 @@ unsigned int SoundMixer::Tick()
       // Synchronize on Sound ?
       // Synchronize
       int free_buffer = 0;
-      while ( sync_on_sound_ && free_buffer < NB_BUFFERS/2)
+      /*while (sync_on_sound_ && free_buffer < NB_BUFFERS / 2)
       {
 #ifdef  __circle__
          mutex_sound.Acquire();
@@ -660,7 +665,7 @@ unsigned int SoundMixer::Tick()
          #elif __circle
                   CTimer::Get()->MsDelay(1);
          #endif
-      } 
+      } */
       int next_to_play = -1;
       for (int i = 0; i < NB_BUFFERS && next_to_play == -1; i++)
       {
