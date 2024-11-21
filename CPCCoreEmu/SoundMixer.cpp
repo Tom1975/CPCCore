@@ -623,6 +623,12 @@ void SoundMixer::EndRecordImp()
    }
 }
 
+void SoundMixer::SyncOnSound(bool set)
+{
+   sync_on_sound_ = set; 
+   sound_->SyncOnSound(set);
+};
+
 void SoundMixer::SyncWithSound()
 {
    sound_->SyncWithSound();

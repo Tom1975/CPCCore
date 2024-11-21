@@ -39,7 +39,7 @@ public:
 
    virtual IWaveHDR* GetFreeBuffer() = 0;
    virtual void AddBufferToPlay(IWaveHDR*) = 0;
-
+   virtual void SyncOnSound(bool set) = 0;
    virtual void SyncWithSound() {};
 };
 

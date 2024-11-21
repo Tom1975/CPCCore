@@ -671,10 +671,12 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    char tmp_buffer [MAX_SIZE_BUFFER ];
 
    configuration_manager_->GetConfiguration(config_name, "LimitSpeed", "Y", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
-   if ( tmp_buffer[0] == 'F') speed_limit_ = E_FULL;
-   else if ( tmp_buffer[0] == 'V') speed_limit_ = E_VBL ;
-   else if (tmp_buffer[0] == 'S') speed_limit_ = E_SOUND;
-   else speed_limit_ = E_CUSTOM;
+   SpeedLimit speed_limit;
+   if ( tmp_buffer[0] == 'F') speed_limit = E_FULL;
+   else if ( tmp_buffer[0] == 'V') speed_limit = E_VBL ;
+   else if (tmp_buffer[0] == 'S') speed_limit = E_SOUND;
+   else speed_limit = E_CUSTOM;
+   SetSpeedLimit(speed_limit);
 
    configuration_manager_->GetConfiguration(config_name, "FD1_Path", "", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    if ( strlen(tmp_buffer) > 0)
