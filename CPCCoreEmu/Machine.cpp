@@ -611,6 +611,9 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
       case E_SOUND:
          configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "S", ini_file);
          break;
+      case E_SOUND_AND_VBL:
+         configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "G", ini_file);
+         break;
       case E_CUSTOM:
       default:
          configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "C", ini_file);
@@ -675,6 +678,7 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    if ( tmp_buffer[0] == 'F') speed_limit = E_FULL;
    else if ( tmp_buffer[0] == 'V') speed_limit = E_VBL ;
    else if (tmp_buffer[0] == 'S') speed_limit = E_SOUND;
+   else if (tmp_buffer[0] == 'G') speed_limit = E_SOUND_AND_VBL;
    else speed_limit = E_CUSTOM;
    SetSpeedLimit(speed_limit);
 
@@ -834,12 +838,19 @@ void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
    speed_limit_ = speedLimit;
    switch (speed_limit_)
    {
+   case E_SOUND_AND_VBL:
+      speed_ = 100;
+      display_->SyncOnFrame(true);
+      sound_mixer_.SyncOnSound(true);
+      break;
+      break;
    case E_SOUND:
       speed_ = 100;
       display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(true);
       break;
    case E_VBL:
+      speed_ = 100;
       display_->SyncOnFrame(true);
       sound_mixer_.SyncOnSound(false);
       break;
@@ -962,6 +973,7 @@ void EmulatorEngine::HandleSyncro(int run_time)
       break;
    case E_FULL:
       break;
+   case E_SOUND_AND_VBL:
    case E_SOUND:
       // Sound sync is done is the sound mixer part. 
       sound_mixer_.SyncWithSound();

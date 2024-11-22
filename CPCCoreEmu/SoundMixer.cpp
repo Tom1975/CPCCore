@@ -698,7 +698,7 @@ unsigned int SoundMixer::Tick()
       else
       {
          // Buffer missing : We're way too fast ! (shouldn't happen if sync on sound)
-         LOG("Buffer is missing, we're way too fast !\n");
+         //LOG("Buffer is missing, we're way too fast !\n");
          buffer_list_[index_current_buffer_].buffer_.InitBuffer();
       }
       buffer_list_[index_current_buffer_].status_ = BufferItem::IN_USE;

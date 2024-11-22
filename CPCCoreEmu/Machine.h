@@ -69,7 +69,8 @@ public:
       E_CUSTOM,
       E_FULL,
       E_VBL,
-      E_SOUND
+      E_SOUND,
+      E_SOUND_AND_VBL
    } SpeedLimit;
 
 
