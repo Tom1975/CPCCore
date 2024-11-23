@@ -66,11 +66,11 @@ class CPCCOREEMU_API EmulatorEngine : public ILoadingProgree
 {
 public:
    typedef enum {
-      E_CUSTOM,
-      E_FULL,
-      E_VBL,
-      E_SOUND,
-      E_SOUND_AND_VBL
+      E_CUSTOM,         //  50 - 400%
+      E_FULL,           // No limit
+      E_VBL,            // Sync on VBL
+      E_SOUND,          // Sync on sound
+      E_SOUND_AND_VBL   // Async on sound (but with VBL !)
    } SpeedLimit;
 
 

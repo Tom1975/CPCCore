@@ -35,7 +35,7 @@ const char* CartPath = "CART";
 EmulatorEngine::EmulatorEngine() :
    log_(nullptr), paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
    do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_)
+   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_), speed_()
 {
    breakpoint_handler_.Init(this);
    fdc_present_ = true;
@@ -677,6 +677,7 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    SpeedLimit speed_limit;
    if ( tmp_buffer[0] == 'F') speed_limit = E_FULL;
    else if ( tmp_buffer[0] == 'V') speed_limit = E_VBL ;
+   else if (tmp_buffer[0] == 'N') { speed_limit = E_FULL; }  // Old way
    else if (tmp_buffer[0] == 'S') speed_limit = E_SOUND;
    else if (tmp_buffer[0] == 'G') speed_limit = E_SOUND_AND_VBL;
    else speed_limit = E_CUSTOM;

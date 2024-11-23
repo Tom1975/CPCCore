@@ -626,12 +626,19 @@ void SoundMixer::EndRecordImp()
 void SoundMixer::SyncOnSound(bool set)
 {
    sync_on_sound_ = set; 
-   sound_->SyncOnSound(set);
+   if (sound_ != nullptr)
+   {
+      sound_->SyncOnSound(set);
+   }
+   
 };
 
 void SoundMixer::SyncWithSound()
 {
-   sound_->SyncWithSound();
+   if (sound_ != nullptr)
+   {
+      sound_->SyncWithSound();
+   }
 }
 
 // Sound Mixer : The soundmixer tick is 8us (125 khz)
