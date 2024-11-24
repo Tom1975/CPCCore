@@ -26,7 +26,18 @@ set(CompilerFlags
 		_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING 
         )
 
+set ( TEST_CONF
+   TestConf.ini
+   TestConf_0.ini
+   TestConf_1.ini
+   TestConf_2.ini
+   TestConf_3.ini
+   TestConf_4.ini
+)
+source_group("Test configurations" FILES ${TEST_CONF} )
+
 add_executable( unitTests  
+                  ${TEST_CONF}
 						   ASIC.cpp
                      Display.cpp 
                      Display.h 

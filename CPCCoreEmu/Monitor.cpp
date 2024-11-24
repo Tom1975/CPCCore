@@ -490,12 +490,16 @@ void Monitor::Tick( )
 
    if (!playback_sync_)
    {
+      START_CHRONO
+
       // SNR value !
       if (playback_)playback_->Playback();
       playback_sync_ = true;
+
+      STOP_CHRONO
    }
 
-   STOP_CHRONO
+   
 
 //      return this_tick_time_ = NBPIXELADDED / 4;
 

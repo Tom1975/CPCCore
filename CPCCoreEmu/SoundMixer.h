@@ -59,7 +59,8 @@ public:
    };
    bool IsRecording() { return record_; };
 
-   void SyncOnSound (bool set){sync_on_sound_ = set;};
+   void SyncOnSound(bool set);
+   void SyncWithSound();
 
 protected:
    ILog* log_;

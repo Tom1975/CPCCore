@@ -61,7 +61,6 @@ namespace fs = std::filesystem;
 #if defined (__unix) || (__MORPHOS__) || (__APPLE__) || (RASPPI)
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
 
 
