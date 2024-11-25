@@ -305,6 +305,11 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
 void KeyboardHandler::InitKeyboard ()
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
+   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+   exe_path /= "Keyboards";
+   exe_path /= KEYBOARD_SCANCODES_FILE;
+   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
+
 }
 
 void KeyboardHandler::CharPressed (char c)
