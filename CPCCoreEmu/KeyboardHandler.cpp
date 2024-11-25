@@ -2,6 +2,7 @@
 #include "KeyboardHandler.h"
 
 #include <filesystem>
+
 #include <vector>
 #include "IDirectories.h"
 
@@ -16,7 +17,7 @@ extern const char * SugarboxPath;
    #pragma error "TODO : Generate a keyboard map for your OS !" 
 #endif
 
-unsigned int getline(const char* buffer, int size, std::string& out)
+unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 {
    if (size == 0)
    {
@@ -196,7 +197,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
    unsigned int end_line;
    std::string s;
    int line_index = 0;
-   while ((end_line = getline(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 10)
+   while ((end_line = ExtractLine(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 10)
    {
       nBytesRead -= end_line;
 
