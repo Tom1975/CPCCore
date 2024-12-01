@@ -7,13 +7,13 @@
 #
 #  0  1  2  3  4  5  6  7
 
-   48 4D 50 49 4D 51 1C 53    # 0
-   4B 38 47 48 4C 4F 50 52    # 1
-   53 1B 1C 2B 4B 2A 35 1D    # 2 
-   04 0C 1A 19 28 27 56 33    # 3 56 -> \' 
-   0B 0A 18 17 26 25 32 34    # 4
-   09 08 16 15 23 24 31 39    # 5
-   07 06 13 14 22 21 30 2F    # 6
-   05 04 12 11 1F 20 2E 2D    # 7
-   02 03 01 10 0F 1E 36 2C    # 8
-   00 00 00 00 00 00 00 0E    # 9
+52 4F 51 61 5E 5B 28 63    # 0 Cur_up Cur_right Cur_down F9 F6 F3 Enter F.
+50 00 5F 60 5D 59 5A 62    # 1 cur_left Copy f7 f8 f5 f1 f2 f0
+4C 30 54 31 5C 00 38 00    # 2 Clr {[ Return }] F4 Shift `\ Ctrl => 36 and 2A are all connected to SHIFT key
+2E 2D 2F 13 34 33 37 36    # 3 ^£ =- |@ P +; *: ?/ >,
+27 26 12 0C 0F 0E 10 64    # 4 _0 )9 O I L K M <.
+25 24 18 1C 0B 0D 11 2C    # 5 (8 '7 U Y H J N Space
+23 22 15 17 0A 09 05 19    # 6 &,6,Joy1_Up %,5,Joy1_down, R,Joy1_Left T,Joy1_Right G,Joy1Fire2 F,Joy1Fire1 B V
+21 20 08 1A 16 07 06 1B    # 7 $4 #3 E W S D C X
+1E 1F 29 14 2B 04 39 1D    # 8 !1 "2 Esc Q Tab A CapsLock Z
+00 00 00 00 00 00 00 4C    # 9 Joy0up Joy0down Joy0left Joy0right Joy0F1 Joy0F2 unused Del
