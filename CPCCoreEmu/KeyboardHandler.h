@@ -74,13 +74,14 @@ public:
    void ForceKeyboardState ( unsigned char key_states[10]){ memcpy (keyboard_lines_, key_states, 10 );};
    unsigned char* GetKeyboardState () {return keyboard_lines_;};
 
+   void InitKeyboard (const char* path);
+
 protected :
 
    /////////////////////////////////
    // Keyboard   
    Keymap keyboard_map_;
 
-   void InitKeyboard ();
    bool* register_replaced_;
    // Keyboard definition
    unsigned char keyboard_lines_ [10];

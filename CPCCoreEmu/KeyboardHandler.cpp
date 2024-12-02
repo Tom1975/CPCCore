@@ -8,7 +8,9 @@
 
 extern const char * SugarboxPath;
 
-#ifdef _WIN32
+#ifdef __circle__
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard"
+#elif  _WIN32
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
 #elif __linux__ 
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
@@ -48,7 +50,10 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 
 KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
 {
-   InitKeyboard ();
+   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+   exe_path /= "Keyboards";
+   exe_path /= KEYBOARD_SCANCODES_FILE;   
+   InitKeyboard (exe_path.string().c_str());
    memset ( keyboard_config_, 0, sizeof keyboard_config_);
 }
 
@@ -303,13 +308,11 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
 }
 
-void KeyboardHandler::InitKeyboard ()
+void KeyboardHandler::InitKeyboard (const char* path)
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
-   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
-   exe_path /= "Keyboards";
-   exe_path /= KEYBOARD_SCANCODES_FILE;
-   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
+
+   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
 
 }
 
