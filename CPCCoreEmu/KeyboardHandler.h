@@ -46,7 +46,9 @@ public:
    virtual const char* GetKeyboardConfig ();
    KeyboardHandler::Keymap& GetKeyboardMap() { return keyboard_map_; }
 
-   unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
+   // Return current Keyboard map validated
+   virtual void ValidateKeyboardMap();
+   unsigned char GetKeyboardMap(int index);
 
    static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char* keyboard_lines, Keymap* keyboard_map);
 
@@ -72,7 +74,7 @@ public:
    virtual void JoystickAction (unsigned int joy, unsigned int action);
 
    void ForceKeyboardState ( unsigned char key_states[10]){ memcpy (keyboard_lines_, key_states, 10 );};
-   unsigned char* GetKeyboardState () {return keyboard_lines_;};
+   unsigned char* GetKeyboardState () {return keyboard_lines_cached_;};
 
    void InitKeyboard (const char* path);
 
@@ -83,8 +85,11 @@ protected :
    Keymap keyboard_map_;
 
    bool* register_replaced_;
+
    // Keyboard definition
    unsigned char keyboard_lines_ [10];
+   unsigned char keyboard_lines_cached_ [10];
+
 
    void CharAction(char c, bool pressed) ;
 

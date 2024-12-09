@@ -69,6 +69,18 @@ void KeyboardHandler::Init(bool* register_replaced)
 
 #define KEY_BUFFER_SIZE 32
 
+void KeyboardHandler::ValidateKeyboardMap()
+{
+   memcpy(keyboard_lines_, keyboard_lines_cached_, sizeof(keyboard_lines_cached_));
+}
+
+unsigned char KeyboardHandler::GetKeyboardMap(int index)
+{
+   
+    return keyboard_lines_[index]; 
+}
+
+
 KeyboardHandler::Key KeyboardHandler::GetKeyValues ( const char* config, unsigned int line, unsigned int bit )
 {
    Key key;
