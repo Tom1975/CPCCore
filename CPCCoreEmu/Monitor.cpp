@@ -441,11 +441,11 @@ void Monitor::Tick( )
                            expected_vertical_sync_start_ = 286;
                      }
 
-                     // Keyboard validation
-                     if (keyboard_) keyboard_->ValidateKeyboardMap();
-
                      screen_->VSync();
 
+                     // Keyboard validation
+                     if (keyboard_) keyboard_->ValidateKeyboardMap();
+                     
                      playback_sync_ = false;
 
                      vertical_sync_start_ = 0;

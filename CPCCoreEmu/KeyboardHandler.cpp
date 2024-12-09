@@ -317,14 +317,15 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
-   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
+   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_cached_, &keyboard_map_);
 }
 
 void KeyboardHandler::InitKeyboard (const char* path)
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
+   memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_));
 
-   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
+   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, keyboard_lines_cached_, &keyboard_map_);
 
 }
 
