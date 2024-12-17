@@ -34,6 +34,7 @@ public:
 
    RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
    unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   unsigned char raw_to_functions_[SCANCODE_MAP_SIZE];
 
    KeyboardHandler();
    virtual ~KeyboardHandler(void);
@@ -50,7 +51,7 @@ public:
    virtual void ValidateKeyboardMap();
    unsigned char GetKeyboardMap(int index);
 
-   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char* keyboard_lines, Keymap* keyboard_map);
+   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char* keyboard_lines, Keymap* keyboard_map, unsigned char* raw_to_functions);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );
