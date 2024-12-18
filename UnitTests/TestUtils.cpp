@@ -33,9 +33,11 @@ namespace fs = std::filesystem;
 
 KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
 unsigned char CommandScanCode::dead_key_[SCANCODE_MAP_SIZE];
+unsigned char CommandScanCode::raw_to_functions_[SCANCODE_MAP_SIZE];
 
 KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
 unsigned char CommandScanCode::dead_key_linux[SCANCODE_MAP_SIZE];
+unsigned char CommandScanCode::raw_to_functions_linux_[SCANCODE_MAP_SIZE];
 
 bool CommandScanCode::init_convert_map_ = false;
 KeyboardHandler::Keymap CommandScanCode::keyboard_map_;
@@ -51,14 +53,14 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
       exe_path /= "101_keyboard_win";
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
-         keyboard_lines_ , &keyboard_map_);
+         keyboard_lines_ , &keyboard_map_, raw_to_functions_);
 
       fs::path exe_path_linux(".");
       exe_path_linux /= "Keyboards";
       exe_path_linux /= "101_keyboard_linux";
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
-         keyboard_lines_, &keyboard_map_);
+         keyboard_lines_, &keyboard_map_, raw_to_functions_linux_);
 
 
       init_convert_map_ = true;
