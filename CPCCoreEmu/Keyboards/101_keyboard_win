@@ -17,3 +17,11 @@
    005 004 012 011 01F 020 02E 02D    # 7 $4 #3 E W S D C X
    002 003 001 010 00F 01E 03A 02C    # 8 !1 "2 Esc Q Tab A CapsLock Z
    000 000 000 000 000 000 000 00E    # 9 Joy0up Joy0down Joy0left Joy0right Joy0F1 Joy0F2 unused Del
+
+# Function keys : 1 to ... 
+# Functions : 
+# 1 : Base menu
+# 2 : 
+# 3 : 
+
+   3B 3C 3D 3E 3F 40 41 42 43 44 57 58

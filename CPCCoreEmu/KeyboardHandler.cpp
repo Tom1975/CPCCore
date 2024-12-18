@@ -212,7 +212,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
    // get next line
    const char* ptr_buffer = (char*)buff;
    unsigned int offset = 0;
-   unsigned int end_line;
+   int end_line;
    std::string s;
    int line_index = 0;
    while ((end_line = ExtractLine(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 11)
@@ -428,6 +428,7 @@ bool KeyboardHandler::IsDeadKey(unsigned int car)
 
 void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
 {
+
    if (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit != 0)
    {
       if (bPressed)
