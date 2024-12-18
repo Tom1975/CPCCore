@@ -495,6 +495,8 @@ class KeyboardForTest : public IKeyboardHandler
 public:
    KeyboardForTest() {};
    virtual ~KeyboardForTest() {};
+
+   virtual void ValidateKeyboardMap() {};
    virtual unsigned char GetKeyboardMap(int index) { return 0xFF; }
    virtual void Init(bool* register_replaced) {}
    virtual void ForceKeyboardState(unsigned char key_states[10]) {};
