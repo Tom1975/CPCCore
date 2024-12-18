@@ -359,20 +359,20 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
          if ( keyboard_map_[l][b].c == c
             ||keyboard_map_[l][b].c_alt == c)
          {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
-            keyboard_lines_[2] |= (1<<5);
+            if (bPressed) keyboard_lines_cached_[l] &= ~(1<<b);
+               else keyboard_lines_cached_[l] |= (1<<b);
+            keyboard_lines_cached_[2] |= (1<<5);
             if (register_replaced_ != nullptr) *register_replaced_ = true;
             return;
          }
          else if (  keyboard_map_[l][b].c_upper == c
                   ||keyboard_map_[l][b].c_upper_alt == c)
          {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
+            if (bPressed) keyboard_lines_cached_[l] &= ~(1<<b);
+               else keyboard_lines_cached_[l] |= (1<<b);
             // Shift
-            if (bPressed) keyboard_lines_[2] &= ~(1<<5);
-               else keyboard_lines_[2] |= (1<<5);
+            if (bPressed) keyboard_lines_cached_[2] &= ~(1<<5);
+               else keyboard_lines_cached_[2] |= (1<<5);
 
             if (register_replaced_ != nullptr)
                *register_replaced_ = true;
@@ -385,13 +385,13 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
 #define SET_KEY_LINE_BIT(val, line, bit)\
    if ( (action & val) == val )\
    {\
-      if ((keyboard_lines_[line]&(1<<bit))!=0 && (register_replaced_ != nullptr)) *register_replaced_ = true;\
-      keyboard_lines_[line] &= ~(1<<bit);\
+      if ((keyboard_lines_cached_[line]&(1<<bit))!=0 && (register_replaced_ != nullptr)) *register_replaced_ = true;\
+      keyboard_lines_cached_[line] &= ~(1<<bit);\
    }\
    else \
-   { if ((keyboard_lines_[line]&(1<<bit))==0 && (register_replaced_ != nullptr))\
+   { if ((keyboard_lines_cached_[line]&(1<<bit))==0 && (register_replaced_ != nullptr))\
       *register_replaced_ = true;\
-   keyboard_lines_[line] |= (1<<bit);\
+   keyboard_lines_cached_[line] |= (1<<bit);\
    }\
 
 
@@ -433,41 +433,17 @@ void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
    {
       if (bPressed)
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit);
+         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit);
       }
       else
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
+         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       }
       //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       //*raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_index &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
    }
    return;
 
-   // Look for scan code in the base
-   for (auto line = 0; line < 10; line++)
-   {
-      for (auto b=7; b >=0; b--)
-      {
-         // Get values from conf
-         if ( (keyboard_map_[line][b].scan_code == scancode)
-            ||(keyboard_map_[line][b].scan_code_alt == scancode)
-            )
-         {
-            //
-            if (bPressed)
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-               keyboard_lines_[line] &= ~(1<<b);
-            }
-            else
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-               keyboard_lines_[line] |= (1<<b);
-            }
-         }
-      }
-   }
 }
