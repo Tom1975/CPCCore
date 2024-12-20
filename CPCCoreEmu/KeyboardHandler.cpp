@@ -298,7 +298,9 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
          raw_key++;
       }
       offset += end_line;
-      line_index++;
+
+      if (key_list.size()>0)
+         line_index++;
    }
 
    delete[]buff;
