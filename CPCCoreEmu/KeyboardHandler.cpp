@@ -32,12 +32,13 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
    {
       offset++;
    }
-
-   char* line = new char[offset + 1];
-   memcpy(line, buffer, offset);
-   line[offset] = '\0';
-   out = std::string(line);
-   delete[]line;
+   out.reserve(offset + 1);
+   //char* line = new char[offset + 1];
+   memcpy(&out[0], buffer, offset);
+   out += '\0';
+   //line[offset] = '\0';
+   //out = std::string(line);
+   //delete[]line;
    return (offset == size) ? offset : offset + 1;
 }
 
@@ -176,7 +177,7 @@ const char* KeyboardHandler::GetKeyboardConfig ()
    return keyboard_config_;
 }
 
-bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char *keyboard_lines, Keymap * keyboard_map, unsigned char* raw_to_functions)
+bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, Keymap * keyboard_map, unsigned char* raw_to_functions)
 {
 
    // Open file
@@ -283,7 +284,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
 
             if (line_index < 10)
             {
-               char_map[value].line_index = &keyboard_lines[line_index];
                char_map[value].line_number = line_index;
                char_map[value].bit = 1 << raw_key;
 
@@ -327,15 +327,15 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
-   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_cached_, &keyboard_map_, raw_to_functions_);
+   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
 }
 
 void KeyboardHandler::InitKeyboard (const char* path)
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
-   memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_));
+   memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
 
-   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, keyboard_lines_cached_, &keyboard_map_, raw_to_functions_);
+   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
 
 }
 
@@ -441,8 +441,6 @@ void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
          if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
          keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       }
-      //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
-      //*raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_index &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
    }
    return;
 

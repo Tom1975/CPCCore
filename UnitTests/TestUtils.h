@@ -11,12 +11,10 @@
 #include <windows.h>
 #endif
 
-// SCR_CREATE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
 #define NO_INIT_SCREENSHOT
 
 #define  SCR_COMPARE true
-#define  SCR_CREATE false
 
 /////////////////////////////////////////////////////////////
 /// Helper functions

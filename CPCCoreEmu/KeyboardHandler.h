@@ -28,7 +28,6 @@ public:
    struct RawToCPC
    {
       int line_number;
-      unsigned char* line_index;
       unsigned char bit;
    };
 
@@ -51,7 +50,7 @@ public:
    virtual void ValidateKeyboardMap();
    unsigned char GetKeyboardMap(int index);
 
-   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char* keyboard_lines, Keymap* keyboard_map, unsigned char* raw_to_functions);
+   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* keyboard_lines, Keymap* keyboard_map, unsigned char* raw_to_functions);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );
