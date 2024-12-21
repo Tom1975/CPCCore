@@ -53,14 +53,14 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
       exe_path /= "101_keyboard_win";
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
-         keyboard_lines_ , &keyboard_map_, raw_to_functions_);
+         &keyboard_map_, raw_to_functions_);
 
       fs::path exe_path_linux(".");
       exe_path_linux /= "Keyboards";
       exe_path_linux /= "101_keyboard_linux";
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
-         keyboard_lines_, &keyboard_map_, raw_to_functions_linux_);
+         &keyboard_map_, raw_to_functions_linux_);
 
 
       init_convert_map_ = true;
