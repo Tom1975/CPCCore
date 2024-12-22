@@ -37,6 +37,11 @@ jobs:
           path: |
             ${{github.workspace}}/build/UnitTests/Release/unitTests.exe
             ${{github.workspace}}/build/UnitTests/Release/TestConf.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_0.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_1.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_2.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_3.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_4.ini
             ${{github.workspace}}/build/UnitTests/Release/res/
             ${{github.workspace}}/build/UnitTests/Release/CONF/
             ${{github.workspace}}/build/UnitTests/Release/CART/
