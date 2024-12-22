@@ -27,7 +27,8 @@ void PrinterDefault::Out ( unsigned char c)
 #ifndef MINIMUM_DEPENDENCIES
    char buff[8] = { 0 };
    sprintf ( buff, "%c", c&0x7F );
-   if (!busy_ && c & 0x80 )
+   if (false) // TODO : remove this when it will be REALLY ready !
+   //if (!busy_ && c & 0x80 )
    {
       // Strobe : Write char to default
       if ( file_ptr_ == NULL)
