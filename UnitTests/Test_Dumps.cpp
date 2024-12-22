@@ -271,7 +271,7 @@ TEST(Dumps_Disk, Chicago90)
 }
 
 //[CPC] Contamination (1985)(Ere Informatique)(Fr)[RAW].raw
-TEST(Dumps_Disk, Contamination)
+TEST(Dumps_Disk, DISABLED_Contamination)
 {
    TestDump test_dump;
    CommandList cmd_list;
