@@ -44,7 +44,7 @@ jobs:
         cmake --install ${{github.workspace}}/build
 
     - name: Archive 
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: CPCCore_linux
           path: |

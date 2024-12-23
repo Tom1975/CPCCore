@@ -31,7 +31,7 @@ jobs:
         dir ${{github.workspace}}\build\UnitTests\Release
         
     - name: Archive zip
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: CPCCore_Win
           path: |
