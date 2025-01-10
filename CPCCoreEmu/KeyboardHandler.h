@@ -75,6 +75,7 @@ public:
 
    void ForceKeyboardState ( unsigned char key_states[10]){ memcpy (keyboard_lines_, key_states, 10 );};
    unsigned char* GetKeyboardState () {return keyboard_lines_cached_;};
+   unsigned char* GetRealKeyboardState() { return keyboard_lines_; };
 
    void InitKeyboard (const char* path);
 
