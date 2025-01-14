@@ -105,7 +105,7 @@ protected:
    class BufferItem
    {
    public:
-      BufferItem() {}
+      BufferItem():status_(FREE), sample_number_(0){}
       virtual ~BufferItem(){}
       void Init() {
          status_ = FREE; buffer_.InitBuffer();
