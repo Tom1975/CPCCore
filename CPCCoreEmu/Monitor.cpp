@@ -37,7 +37,7 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
-Monitor::Monitor(void) : memory_(0), playback_sync_(false)
+Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr)
 {
    playback_ = nullptr;
    int i, b;
@@ -443,6 +443,9 @@ void Monitor::Tick( )
 
                      screen_->VSync();
 
+                     // Keyboard validation
+                     if (keyboard_) keyboard_->ValidateKeyboardMap();
+                     
                      playback_sync_ = false;
 
                      vertical_sync_start_ = 0;

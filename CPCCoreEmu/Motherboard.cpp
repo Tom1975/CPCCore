@@ -57,6 +57,7 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    // Gate array
    monitor_.SetCRTC(&crtc_);
    monitor_.SetVGA(&vga_);
+   monitor_.SetKeyboard(keyboardhandler_);
    monitor_.SetScreen(display);
    monitor_.SetPlayback(sna_handler);
 
@@ -219,7 +220,7 @@ void Motherboard::InitStartOptimized()
    component_list_[nb_components_] = &fdc_;
    component_list_[nb_components_]->this_tick_time_ = 8;
 
-   // SET sur 6128 ou si DDI ( dependant de la présenc du FDC, donc ?)
+   // SET sur 6128 ou si DDI ( dependant de la prï¿½senc du FDC, donc ?)
    ppi_.SetExpSignal(true);
 
    nb_components_++;
@@ -272,7 +273,7 @@ void Motherboard::InitStartOptimizedPlus()
    component_list_[nb_components_]->this_tick_time_ = 11;
    nb_components_++;
 
-   // SET sur 6128 ou si DDI ( dependant de la présenc du FDC, donc ?)
+   // SET sur 6128 ou si DDI ( dependant de la prï¿½senc du FDC, donc ?)
    ppi_.SetExpSignal(true);
 
    for (int j = 0; j < nb_components_; j++)
@@ -319,7 +320,7 @@ void Motherboard::Resync()
    // z80
    ForceTick(&z80_, 0);
 
-   // CRTC§Asic
+   // CRTCï¿½Asic
    if (plus_)
    {
       ForceTick(&asic_, 11);

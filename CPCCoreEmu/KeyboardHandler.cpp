@@ -2,12 +2,15 @@
 #include "KeyboardHandler.h"
 
 #include <filesystem>
+
 #include <vector>
 #include "IDirectories.h"
 
 extern const char * SugarboxPath;
 
-#ifdef _WIN32
+#ifdef __circle__
+   #define KEYBOARD_SCANCODES_FILE "101_keyboard"
+#elif  _WIN32
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
 #elif __linux__ 
    #define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
@@ -16,7 +19,7 @@ extern const char * SugarboxPath;
    #pragma error "TODO : Generate a keyboard map for your OS !" 
 #endif
 
-unsigned int getline(const char* buffer, int size, std::string& out)
+unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 {
    if (size == 0)
    {
@@ -29,12 +32,13 @@ unsigned int getline(const char* buffer, int size, std::string& out)
    {
       offset++;
    }
-
-   char* line = new char[offset + 1];
-   memcpy(line, buffer, offset);
-   line[offset] = '\0';
-   out = std::string(line);
-   delete[]line;
+   out.reserve(offset + 1);
+   //char* line = new char[offset + 1];
+   memcpy(&out[0], buffer, offset);
+   out += '\0';
+   //line[offset] = '\0';
+   //out = std::string(line);
+   //delete[]line;
    return (offset == size) ? offset : offset + 1;
 }
 
@@ -47,7 +51,10 @@ unsigned int getline(const char* buffer, int size, std::string& out)
 
 KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
 {
-   InitKeyboard ();
+   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
+   exe_path /= "Keyboards";
+   exe_path /= KEYBOARD_SCANCODES_FILE;   
+   InitKeyboard (exe_path.string().c_str());
    memset ( keyboard_config_, 0, sizeof keyboard_config_);
 }
 
@@ -62,6 +69,18 @@ void KeyboardHandler::Init(bool* register_replaced)
 }
 
 #define KEY_BUFFER_SIZE 32
+
+void KeyboardHandler::ValidateKeyboardMap()
+{
+   memcpy(keyboard_lines_, keyboard_lines_cached_, sizeof(keyboard_lines_cached_));
+}
+
+unsigned char KeyboardHandler::GetKeyboardMap(int index)
+{
+   
+    return keyboard_lines_[index]; 
+}
+
 
 KeyboardHandler::Key KeyboardHandler::GetKeyValues ( const char* config, unsigned int line, unsigned int bit )
 {
@@ -158,12 +177,12 @@ const char* KeyboardHandler::GetKeyboardConfig ()
    return keyboard_config_;
 }
 
-bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, unsigned char *keyboard_lines, Keymap * keyboard_map)
+bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* dead_key, Keymap * keyboard_map, unsigned char* raw_to_functions)
 {
 
    // Open file
    FILE* f;
-   f = fopen(path, "r+b");
+   f = fopen(path, "r");
    if (f == NULL)
    {
       printf("*** ERROR LOADING Keyboard %s\n", path);
@@ -178,25 +197,18 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
    unsigned nBytesRead;
 
    nBytesRead = fread(buff, 1, buffer_size_, f);
-   if (buffer_size_ != nBytesRead)
-   {
-      // ERROR
-      printf("*** ERROR READING Keyboard %s\n", path);
-      delete[]buff;
-      fclose(f);
-      return false;
-   }
 
    memset(char_map, 0, sizeof raw_to_cpc_map_);
    memset(dead_key, 0, sizeof dead_key_);
-
+   memset(dead_key, 0, sizeof raw_to_functions_);
+   
    // get next line
    const char* ptr_buffer = (char*)buff;
    unsigned int offset = 0;
-   unsigned int end_line;
+   int end_line;
    std::string s;
    int line_index = 0;
-   while ((end_line = getline(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 10)
+   while ((end_line = ExtractLine(&ptr_buffer[offset], nBytesRead, s)) > 0 && line_index < 11)
    {
       nBytesRead -= end_line;
 
@@ -262,17 +274,27 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
                dead_key[value] = 1;
             }
 
-            char_map[value].line_index = &keyboard_lines[line_index];
-            char_map[value].line_number = line_index;
-            char_map[value].bit = 1 << raw_key;
+            if (line_index < 10)
+            {
+               char_map[value].line_number = line_index;
+               char_map[value].bit = 1 << raw_key;
 
-            (*keyboard_map)[line_index][raw_key].scan_code = value;
+               (*keyboard_map)[line_index][raw_key].scan_code = value;
+            }
+            else
+            {
+               // Function key
+               raw_to_functions[value] = raw_key+1;   // Function from 1 to...
+            }
          }
          raw_key++;
       }
       offset += end_line;
-      line_index++;
+
+      if (key_list.size()>0)
+         line_index++;
    }
+
    delete[]buff;
    fclose(f);
    return true;
@@ -299,12 +321,16 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
-   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, keyboard_lines_, &keyboard_map_);
+   LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
 }
 
-void KeyboardHandler::InitKeyboard ()
+void KeyboardHandler::InitKeyboard (const char* path)
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
+   memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
+
+   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
+
 }
 
 void KeyboardHandler::CharPressed (char c)
@@ -327,20 +353,20 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
          if ( keyboard_map_[l][b].c == c
             ||keyboard_map_[l][b].c_alt == c)
          {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
-            keyboard_lines_[2] |= (1<<5);
+            if (bPressed) keyboard_lines_cached_[l] &= ~(1<<b);
+               else keyboard_lines_cached_[l] |= (1<<b);
+            keyboard_lines_cached_[2] |= (1<<5);
             if (register_replaced_ != nullptr) *register_replaced_ = true;
             return;
          }
          else if (  keyboard_map_[l][b].c_upper == c
                   ||keyboard_map_[l][b].c_upper_alt == c)
          {
-            if (bPressed) keyboard_lines_[l] &= ~(1<<b);
-               else keyboard_lines_[l] |= (1<<b);
+            if (bPressed) keyboard_lines_cached_[l] &= ~(1<<b);
+               else keyboard_lines_cached_[l] |= (1<<b);
             // Shift
-            if (bPressed) keyboard_lines_[2] &= ~(1<<5);
-               else keyboard_lines_[2] |= (1<<5);
+            if (bPressed) keyboard_lines_cached_[2] &= ~(1<<5);
+               else keyboard_lines_cached_[2] |= (1<<5);
 
             if (register_replaced_ != nullptr)
                *register_replaced_ = true;
@@ -353,13 +379,13 @@ void KeyboardHandler::CharAction (char c, bool bPressed)
 #define SET_KEY_LINE_BIT(val, line, bit)\
    if ( (action & val) == val )\
    {\
-      if ((keyboard_lines_[line]&(1<<bit))!=0 && (register_replaced_ != nullptr)) *register_replaced_ = true;\
-      keyboard_lines_[line] &= ~(1<<bit);\
+      if ((keyboard_lines_cached_[line]&(1<<bit))!=0 && (register_replaced_ != nullptr)) *register_replaced_ = true;\
+      keyboard_lines_cached_[line] &= ~(1<<bit);\
    }\
    else \
-   { if ((keyboard_lines_[line]&(1<<bit))==0 && (register_replaced_ != nullptr))\
+   { if ((keyboard_lines_cached_[line]&(1<<bit))==0 && (register_replaced_ != nullptr))\
       *register_replaced_ = true;\
-   keyboard_lines_[line] |= (1<<bit);\
+   keyboard_lines_cached_[line] |= (1<<bit);\
    }\
 
 
@@ -396,45 +422,20 @@ bool KeyboardHandler::IsDeadKey(unsigned int car)
 
 void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
 {
+
    if (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit != 0)
    {
       if (bPressed)
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit);
+         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].line_number] &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE - 1)].bit);
       }
       else
       {
-         if ((keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-         keyboard_lines_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
+         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       }
-      //logger_->Write("KeyboardPi", LogNotice, "UnpressKey %X - line : %i, bit : %X", scancode, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number, raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
-      //*raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_index &= ~(raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
    }
    return;
 
-   // Look for scan code in the base
-   for (auto line = 0; line < 10; line++)
-   {
-      for (auto b=7; b >=0; b--)
-      {
-         // Get values from conf
-         if ( (keyboard_map_[line][b].scan_code == scancode)
-            ||(keyboard_map_[line][b].scan_code_alt == scancode)
-            )
-         {
-            //
-            if (bPressed)
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-               keyboard_lines_[line] &= ~(1<<b);
-            }
-            else
-            {
-               if ((keyboard_lines_[line] & (1 << b)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
-               keyboard_lines_[line] |= (1<<b);
-            }
-         }
-      }
-   }
 }

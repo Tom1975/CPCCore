@@ -11,12 +11,10 @@
 #include <windows.h>
 #endif
 
-// SCR_CREATE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
 #define NO_INIT_SCREENSHOT
 
 #define  SCR_COMPARE true
-#define  SCR_CREATE false
 
 /////////////////////////////////////////////////////////////
 /// Helper functions
@@ -362,8 +360,11 @@ protected:
 
    static KeyboardHandler::RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
    static unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   static unsigned char raw_to_functions_[SCANCODE_MAP_SIZE];
+
    static KeyboardHandler::RawToCPC raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
    static unsigned char dead_key_linux[SCANCODE_MAP_SIZE];
+   static unsigned char raw_to_functions_linux_[SCANCODE_MAP_SIZE];
 
    static bool init_convert_map_;
    static KeyboardHandler::Keymap keyboard_map_;
@@ -495,6 +496,8 @@ class KeyboardForTest : public IKeyboardHandler
 public:
    KeyboardForTest() {};
    virtual ~KeyboardForTest() {};
+
+   virtual void ValidateKeyboardMap() {};
    virtual unsigned char GetKeyboardMap(int index) { return 0xFF; }
    virtual void Init(bool* register_replaced) {}
    virtual void ForceKeyboardState(unsigned char key_states[10]) {};

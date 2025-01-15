@@ -12,6 +12,7 @@ public:
    static const unsigned int joy_but2 = 0x0020;
    static const unsigned int joy_but3 = 0x0040;
 
+   virtual void ValidateKeyboardMap() = 0;
    virtual unsigned char GetKeyboardMap(int index) = 0;
    virtual void Init(bool* register_replaced) = 0;
    virtual void ForceKeyboardState(unsigned char key_states[10]) = 0;
