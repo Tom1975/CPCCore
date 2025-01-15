@@ -182,7 +182,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
 
    // Open file
    FILE* f;
-   f = fopen(path, "r+b");
+   f = fopen(path, "r");
    if (f == NULL)
    {
       printf("*** ERROR LOADING Keyboard %s\n", path);
@@ -197,14 +197,6 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
    unsigned nBytesRead;
 
    nBytesRead = fread(buff, 1, buffer_size_, f);
-   if (buffer_size_ != nBytesRead)
-   {
-      // ERROR
-      printf("*** ERROR READING Keyboard %s\n", path);
-      delete[]buff;
-      fclose(f);
-      return false;
-   }
 
    memset(char_map, 0, sizeof raw_to_cpc_map_);
    memset(dead_key, 0, sizeof dead_key_);
