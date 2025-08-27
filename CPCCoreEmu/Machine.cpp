@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 #include "PrinterDefault.h"
 #include "MediaManager.h"
@@ -305,6 +306,9 @@ int EmulatorEngine::LoadCpr( const char* file_path)
       fread(buffer, buffer_size, 1, f);
       fclose(f);
       int ret = LoadCprFromBuffer(buffer, buffer_size);
+
+      // Trying to load Symbols
+      LoadSymbols(file_path, true);
       delete[]buffer;
       return ret;
    }
@@ -1568,3 +1572,15 @@ void EmulatorEngine::UpdateFromSettings()
    InitSound(emulator_settings_.GetSound());
    // 
 }
+
+int EmulatorEngine::LoadSymbolsRASM(const char* file_path, bool search)
+{
+   return 0;
+}
+
+int EmulatorEngine::LoadSymbols(const char* file_path, bool search)
+{
+   return symbols_handler_.load_symbols(file_path, search);
+
+}
+

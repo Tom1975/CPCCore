@@ -38,6 +38,7 @@
 #include "MachineSettings.h"
 #include "EmulatorSettings.h"
 #include "KeyboardHandler.h"
+#include <SymbolsHandler.h>
 
 #define CPCCOREEMU_API
 
@@ -221,6 +222,10 @@ public:
    int GetDiskSide ( int drive){return GetFDC()->GetCurrentSide(drive);};
    int GetCurrentDrive ( ) {return GetFDC()->GetCurrentDrive ();};
 
+   // Symbols
+   int LoadSymbols(const char* file_path, bool search);
+   int LoadSymbolsRASM(const char* file_path, bool search);
+
    // Tape
    int LoadTape ( const char* file_path);
    int LoadTape(IContainedElement* container );
@@ -288,6 +293,8 @@ public:
 
    DMA* GetDMA(int i) { return motherboard_.GetDMA(i); }
    Motherboard * GetMotherboard() {return &motherboard_;}
+
+   SymbolsHandler symbols_handler_;
 
 protected:
 
