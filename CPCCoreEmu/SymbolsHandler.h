@@ -1,4 +1,4 @@
-// SymbolLoader.hpp - Parser générique de fichiers symboles Z80 (C++17)
+// SymbolLoader.hpp - Parser generique de fichiers symboles Z80 (C++17)
 // Supporte :
 //   - .sym WinAPE/RASM/Caprice : "LABEL  &8000" ou "8000 LABEL"
 //   - Hex : &8000, 8000h, 0x8000, 8000

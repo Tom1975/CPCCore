@@ -14,7 +14,7 @@ BreakpointHandler::BreakpointHandler() : current_breakpoint_(nullptr)
    breakpoint_list_size_ = 10;
    breakpoint_list_ = new IBreakpointItem*[breakpoint_list_size_];
    breakpoint_number_ = 0;
-   gloal_breakpoints_enabled_ = false;
+   gloal_breakpoints_enabled_ = true;
    for (auto i = 0; i < NB_BP_MAX; i++)
    {
       breakpoints_enabled_[i] = false;

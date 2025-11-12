@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 # Nom du projet
 project(CPCCore)
@@ -39,8 +39,12 @@ set (SFML_USE_STATIC_STD_LIBS FALSE BOOL)
 set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core Emu"		FORCE)
 
 add_subdirectory(zlib)
-add_subdirectory(CPCCoreEmu)
-add_subdirectory(AmstradCore)
+if (NEW_CORE)
+    add_subdirectory(AmstradCore)
+else()
+    add_subdirectory(CPCCoreEmu)
+endif()
+
 #add_subdirectory(ShakerGenerator)
 
 if (GENERATE_UNITTESTS)
@@ -49,7 +53,9 @@ if (GENERATE_UNITTESTS)
    add_subdirectory(googletest)
    set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
-   add_subdirectory(AmstradCoreTests)
+   if (NEW_CORE)
+        add_subdirectory(AmstradCoreTests)
+   endif()
 
 endif()
 

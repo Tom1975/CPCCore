@@ -129,7 +129,7 @@ void Z80::InterruptInit()
 unsigned short Z80::GetPC()
 {
    //
-   if (machine_cycle_ == M_M1_INT || machine_cycle_ == M_M1_NMI)
+   if (machine_cycle_ == M_M1_INT || machine_cycle_ == M_M1_NMI || new_instruction_)
    {
       return pc_;
    }
