@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 # Nom du projet
 project(CPCCore)
@@ -41,6 +41,7 @@ set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
 add_subdirectory(AmstradCore)
+add_subdirectory(TapeFilterGenerator)
 #add_subdirectory(ShakerGenerator)
 
 if (GENERATE_UNITTESTS)
