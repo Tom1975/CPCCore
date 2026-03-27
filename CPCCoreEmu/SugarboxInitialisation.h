@@ -12,7 +12,7 @@ public:
    std::string _hardware_configuration;
    std::filesystem::path _script_to_run;
    std::filesystem::path _cart_inserted;
-   std::string _gdb_server;
+   std::string _dbs_server;
 
 };
 
