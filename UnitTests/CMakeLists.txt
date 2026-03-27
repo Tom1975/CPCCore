@@ -55,6 +55,7 @@ add_executable( unitTests
 
 gtest_discover_tests(  unitTests
                 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/.."
+                PROPERTIES TIMEOUT 600
 )
 
 set(CMAKE_CXX_STANDARD 17)

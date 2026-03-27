@@ -5,6 +5,7 @@
 #include <cmath>
 //#include "simple_regex.h"
 #include <algorithm>
+#include <memory>
 #include <filesystem>
 #include <stdio.h>
 
@@ -141,6 +142,7 @@ CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_bu
    filter_type_hp_ = 2;
    filter_order_lp_ = 3;
    filter_type_lp_ = 2;
+   use_tcn_filter_ = true;
 
    /*m_FilterGain = 0.008;
    m_FcHP = 640;
@@ -1620,7 +1622,11 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
    // todo : Frequency 
    //Filter = 
 #ifndef NOFILTER
-   StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
+   std::unique_ptr<IGenericFunction> filter;
+   if (use_tcn_filter_)
+      filter = std::make_unique<TcnFilter>();
+   else
+      filter = std::make_unique<StandardFilter>(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
 #endif
    //Filter hp_filter(m_TypeOfFilterHP, false, m_Frequency, m_FcHP, m_FilterOrderHP);
    //Filter lp_filter(m_TypeOfFilterLP, false, m_Frequency, m_FcLP, m_FilterOrderLP);
@@ -1664,7 +1670,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
          // Data
          HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -1673,7 +1679,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
       case 0x02:  // Sound data continuation
          HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -1716,7 +1722,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
 
          HandleVOCData(first, (&buffer[12]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -2743,9 +2749,11 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
             // one sample = 4 Mhz / freq
             unsigned int bit_per_sample = fmt[14] + (fmt[15] << 8);
 #ifndef NOFILTER
-            StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
-            Filter hp_filter (filter_type_hp_, false, frequency_, fc_hp_, filter_order_hp_);
-            Filter lp_filter (filter_type_lp_, true, frequency_, fc_lp_, filter_order_lp_);
+            std::unique_ptr<IGenericFunction> filter;
+            if (use_tcn_filter_)
+               filter = std::make_unique<TcnFilter>();
+            else
+               filter = std::make_unique<StandardFilter>(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
 #endif
             // Other chunks :
             bool not_finished = true;
@@ -2824,7 +2832,7 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
                         // Handle this sample array                        
                         ConvertSampleArray(first, value_array, sample_count, frequency_
 #ifndef NOFILTER
-                           , square_wave?nullptr:&filter
+                           , square_wave?nullptr:filter.get()
 #endif
                         );
                         first = false;

@@ -162,6 +162,8 @@ public:
    bool IsPLUS() { return motherboard_.IsPLUS(); }
 
    void SetStepIn(bool set) { motherboard_.step_in_ = set; }
+   void SetStepTo(unsigned short addr) { motherboard_.SetStepTo(addr); }
+   void SetStepOver() { motherboard_.SetStepOver(); }
    void SetRun(bool set) { motherboard_.run_ = set; }
    bool IsRunning() { return motherboard_.run_; }
    void Stop ();

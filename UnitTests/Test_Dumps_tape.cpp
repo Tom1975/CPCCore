@@ -10,7 +10,7 @@
 
 #include "TestUtils.h"
 
-#define BUILD 1
+#define BUILD 0
 #define EXECUTE 0
 
 ////////////////////////////////////
@@ -1010,8 +1010,64 @@ TEST(Dumps_Tape_Other, Mask_12_jeux_exceptionnles_cdt)
 TEST(Dumps_Tape_Other, Skate_Crazy_cdt)
 {
    TestTape test;
-   ASSERT_EQ(true, test.Test("464", "./TestConf.ini", 
-                           "./res/Tape/SkateCrazy (UK) (Face A) (1988) (Part 1) [Original] TAPE].cdt", 
+   ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
+                           "./res/Tape/SkateCrazy (UK) (Face A) (1988) (Part 1) [Original] TAPE].cdt",
                            "./res/Tape/Record/SkateCrazy (UK) (Face A) (1988) (Part 1) [Original] TAPE].cdt_1.txt", 0x0AE7, 0xC36, "A", 60000, EXECUTE)) ;
+}
+
+////////////////////////////////////
+// WAV TESTS
+////////////////////////////////////
+
+////////////////////////////////////
+// Speedlock V1
+// 10th_Frame.wav
+TEST(Dumps_Tape_WAV, SpeedlockV1_10thFrame_wav)
+{
+   TestTape test;
+   ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
+      "./res/Tape/10th_Frame.wav",
+      "./res/Tape/Record/10th_Frame.wav_1.txt", 0xBC18, 0x0400, "L", 60000, BUILD));
+}
+
+////////////////////////////////////
+// Spectrum Variant
+// Gryzor.wav
+TEST(Dumps_Tape_WAV, SpecVar_Gryzor_wav)
+{
+   TestTape test;
+   ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
+      "./res/Tape/Gryzor.wav",
+      "./res/Tape/Record/Gryzor.wav_1.txt", 0x80EE, 0x0700, "L", 31000, BUILD));
+
+   // Press space
+   CommandKeyboard cmd_space(" ");
+   CommandRunCycles run_cycles(100);
+   run_cycles.Action(test.machine_);
+   cmd_space.Action(test.machine_);
+
+   // Second part
+   ASSERT_EQ(true, test.MoreTest("./res/Tape/Record/Gryzor.wav_2.txt",
+      0x1F58, 0x5D4, "L", 26000, BUILD));
+}
+
+////////////////////////////////////
+// Speedlock V2 Chaine Type 1
+// Combat School.wav
+TEST(Dumps_Tape_WAV, SpeedlockV2ChaineType1_CombatSchool_wav)
+{
+   TestTape test;
+   ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
+      "./res/Tape/Combat School.wav",
+      "./res/Tape/Record/Combat School.wav_1.txt", 0xA527, 0x3E8, "A", 52000, BUILD));
+
+   CommandKeyboard cmd_space(" ");
+   CommandRunCycles run_cycles(100);
+   run_cycles.Action(test.machine_);
+   cmd_space.Action(test.machine_);
+
+   // Second part
+   ASSERT_EQ(true, test.MoreTest("./res/Tape/Record/Combat School.wav_2.txt",
+      0xA0D1, 0xF5F, "L", 18000, BUILD));
 }
 

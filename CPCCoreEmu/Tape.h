@@ -15,6 +15,8 @@
 class PPI8255;
 
 #ifndef NOFILTER
+#include "tcn_tape_to_ppi.h"
+
 class Filter
 {
 public:
@@ -57,6 +59,23 @@ protected:
    Filter lp_filter_;
 
    float gain_;
+};
+
+class TcnFilter : public IGenericFunction
+{
+public:
+   TcnFilter() = default;
+   virtual ~TcnFilter() = default;
+
+   virtual void Filtrer(double* array, unsigned int nb_samples)
+   {
+      std::vector<double> v(array, array + nb_samples);
+      tcn_.Filtrer(v);
+      std::copy(v.begin(), v.end(), array);
+   }
+
+private:
+   TcnTapeToPPI tcn_;
 };
 #endif
 
@@ -159,6 +178,7 @@ public:
    int filter_order_hp_;
    int filter_type_lp_;
    int filter_type_hp_;
+   bool use_tcn_filter_;
    unsigned int tape_length_;
 
 protected:

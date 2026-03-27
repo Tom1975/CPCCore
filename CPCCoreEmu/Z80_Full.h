@@ -187,6 +187,16 @@ public:
    unsigned int GetCurrentOpcode() { return current_opcode_; };
    unsigned short GetPC();
 
+   // Reset the Z80 to a clean "about to fetch from addr" state (for debugger use)
+   void PrepareForFetch(unsigned short addr) {
+      pc_ = addr;
+      current_function_ = &fetch_func;
+      new_instruction_ = true;
+      machine_cycle_ = M_FETCH;
+      t_ = 1;
+      current_opcode_ = 0;
+   }
+
    int OpcodeIOR();
    int OpcodeIOW();
    unsigned int OpcodeMEMR();

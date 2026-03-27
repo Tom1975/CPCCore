@@ -1104,6 +1104,9 @@ void EmulatorEngine::RunFullSpeed()
 EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opcode_to_run)
 {
    GetProc()->stop_on_fetch_ = true;
+   // Clear any pre-existing instruction boundary so DebugOpcodes doesn't
+   // immediately count it as "one instruction executed" before actually ticking.
+   GetProc()->new_instruction_ = false;
    //
    bool breakpoint_reached = false;
    DebugRunResult result = DBG_OPCODE_END;
