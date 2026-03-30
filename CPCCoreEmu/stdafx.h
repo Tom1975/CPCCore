@@ -78,6 +78,9 @@ namespace fs = std::filesystem;
    typedef void* HINSTANCE;
    typedef void* HWND;
 #else
+   #ifndef WIN32_LEAN_AND_MEAN
+   #define WIN32_LEAN_AND_MEAN
+   #endif
    #include <windows.h>
    #include <tchar.h>
 #endif
