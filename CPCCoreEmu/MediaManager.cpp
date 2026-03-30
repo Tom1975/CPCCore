@@ -45,7 +45,7 @@ void MediaManager::ClearList()
 {
    for (auto& it : media_list_)
    {
-      delete []it;
+      delete it;
    }
    media_list_.clear();
 }
