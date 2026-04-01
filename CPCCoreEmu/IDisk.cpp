@@ -2,6 +2,7 @@
 #include "IDisk.h"
 #include "FDC765.h"
 
+#include <cerrno>
 #include <filesystem>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2691,8 +2692,11 @@ int IDisk::SmartOpen(FILE** file, const char* file_path, const char* file_ext)
    {
       // Add extension
       char full_path[MAX_PATH];
-      strcpy(full_path, file_path);
-      strcat(full_path, file_ext);
+      int written = snprintf(full_path, sizeof(full_path), "%s%s", file_path, file_ext);
+      if (written < 0 || written >= (int)sizeof(full_path))
+      {
+         return ENAMETOOLONG;
+      }
       res = fopen_s(file, full_path, "wb");
       if (res == 0)
       {

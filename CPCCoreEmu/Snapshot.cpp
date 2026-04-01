@@ -602,7 +602,8 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
 
    // Read lower rom
    char rom_name [128];
-   strcpy ( rom_name, (char*)&in_buffer[off] );
+   strncpy(rom_name, (char*)&in_buffer[off], sizeof(rom_name) - 1);
+   rom_name[sizeof(rom_name) - 1] = '\0';
    off += strlen (rom_name);
    off ++;
    // Load it
@@ -614,7 +615,8 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
    for (int i = 0; i < 8; i++)
    {
       // Read next ROM
-      strcpy ( rom_name, (char*)&in_buffer[off] );
+      strncpy(rom_name, (char*)&in_buffer[off], sizeof(rom_name) - 1);
+      rom_name[sizeof(rom_name) - 1] = '\0';
       off += strlen (rom_name);
       off ++;
       // todo

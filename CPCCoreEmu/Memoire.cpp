@@ -39,7 +39,7 @@ Memory::Memory(Monitor* monitor) :
 Memory::~Memory(void)
 {
    EjectCartridge();
-   delete[]cart_default_;
+   delete cart_default_;
 }
 
 
@@ -176,7 +176,7 @@ unsigned short Memory::GetDebugMaxAdress(DbgMemAccess acces)
 
 unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned short adress_start, unsigned int size_of_buffer, DbgMemAccess acces, unsigned int data)
 {
-   // Fill the buffer with values from needed accès
+   // Fill the buffer with values from needed accï¿½s
    unsigned short max_size = 0;
    switch (acces)
    {
@@ -625,7 +625,7 @@ void Memory::Initialisation  ()
    }
 
    inf_rom_connected_ = true;
-   //  #0000 à #003F : réservé (copie de la ROM inférieure) (64 octets)
+   //  #0000 ï¿½ #003F : rï¿½servï¿½ (copie de la ROM infï¿½rieure) (64 octets)
    memset(asic_io_, DEFAUT_VALUE, sizeof(asic_io_));
 
    //
@@ -747,7 +747,7 @@ void Memory::SetMemoryMap ()
       // depending on bank :
       switch (b)
       {
-      case 0: // RAM centrale lineaire bank deconnectées
+      case 0: // RAM centrale lineaire bank deconnectï¿½es
          {
          }
          break;

@@ -200,7 +200,7 @@ bool KeyboardHandler::LoadScanCodeToMatrix(const char* path, RawToCPC* char_map,
 
    memset(char_map, 0, sizeof raw_to_cpc_map_);
    memset(dead_key, 0, sizeof dead_key_);
-   memset(dead_key, 0, sizeof raw_to_functions_);
+   memset(raw_to_functions, 0, sizeof raw_to_functions_);
    
    // get next line
    const char* ptr_buffer = (char*)buff;
@@ -432,7 +432,7 @@ void KeyboardHandler::SendScanCode ( unsigned int scancode, bool bPressed )
       }
       else
       {
-         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 1 && (register_replaced_ != nullptr)) *register_replaced_ = true;
+         if ((keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] & (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit)) != 0 && (register_replaced_ != nullptr)) *register_replaced_ = true;
          keyboard_lines_cached_[raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].line_number] |= (raw_to_cpc_map_[scancode & (SCANCODE_MAP_SIZE-1)].bit);
       }
    }
