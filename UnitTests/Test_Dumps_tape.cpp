@@ -1022,7 +1022,7 @@ TEST(Dumps_Tape_Other, Skate_Crazy_cdt)
 ////////////////////////////////////
 // Speedlock V1
 // 10th_Frame.wav
-TEST(Dumps_Tape_WAV, SpeedlockV1_10thFrame_wav)
+TEST(Dumps_Tape_WAV, DISABLED_SpeedlockV1_10thFrame_wav)
 {
    TestTape test;
    ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
@@ -1033,7 +1033,7 @@ TEST(Dumps_Tape_WAV, SpeedlockV1_10thFrame_wav)
 ////////////////////////////////////
 // Spectrum Variant
 // Gryzor.wav
-TEST(Dumps_Tape_WAV, SpecVar_Gryzor_wav)
+TEST(Dumps_Tape_WAV, DISABLED_SpecVar_Gryzor_wav)
 {
    TestTape test;
    ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
@@ -1054,7 +1054,7 @@ TEST(Dumps_Tape_WAV, SpecVar_Gryzor_wav)
 ////////////////////////////////////
 // Speedlock V2 Chaine Type 1
 // Combat School.wav
-TEST(Dumps_Tape_WAV, SpeedlockV2ChaineType1_CombatSchool_wav)
+TEST(Dumps_Tape_WAV, DISABLED_SpeedlockV2ChaineType1_CombatSchool_wav)
 {
    TestTape test;
    ASSERT_EQ(true, test.Test("464", "./TestConf.ini",

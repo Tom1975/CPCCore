@@ -14,6 +14,7 @@ public :
    IMedia(int type) : type_(type)
    {
    }
+   virtual ~IMedia() = default;
 
    virtual int GetType() { return type_; }
 
