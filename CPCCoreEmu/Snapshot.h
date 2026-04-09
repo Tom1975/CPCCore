@@ -28,6 +28,7 @@ public:
    bool HandleSnr ( FILE* f );
    void HandleChunkBRKC(unsigned char* chunk, unsigned char* buffer, int size);
    void HandleChunkBRKS(unsigned char* chunk, unsigned char* buffer, int size);
+   void HandleChunkREMU(unsigned char* chunk, unsigned char* buffer, int size);
    void HandleChunkCPCPLUS(unsigned char* chunk, unsigned char* buffer, int size);
    void HandleChunkMem ( unsigned char* chunk, unsigned char* buffer, int size );
    void HandleChunkROMS(unsigned char* chunk, unsigned char* buffer, int size);

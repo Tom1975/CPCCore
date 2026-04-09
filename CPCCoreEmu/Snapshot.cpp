@@ -582,6 +582,44 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
+void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, int size)
+{
+   // Pure ASCII chunk: semicolon-separated tags
+   // brk ADDR BANK       — exec breakpoint in RAM at logical address ADDR, bank BANK
+   // rombrk ADDR ROM     — exec breakpoint in ROM (not yet supported)
+   // label/romlabel/alias/comz/romcomz — symbol info, ignored here (parsed by debug adapter)
+
+   const char* text = reinterpret_cast<const char*>(in_buffer);
+   const char* end  = text + size;
+
+   while (text < end)
+   {
+      // Find end of tag (';' or end of buffer)
+      const char* semi = text;
+      while (semi < end && *semi != ';') ++semi;
+
+      std::string token(text, semi);
+      text = (semi < end) ? semi + 1 : end;
+
+      // Trim leading whitespace
+      size_t first = token.find_first_not_of(" \t\r\n");
+      if (first == std::string::npos) continue;
+      token = token.substr(first);
+      if (token.empty()) continue;
+
+      // "brk " (not "rombrk")
+      if (token.size() >= 4 && token.compare(0, 4, "brk ") == 0)
+      {
+         unsigned int addr = 0, bank = 0;
+         if (sscanf(token.c_str() + 4, "%u %u", &addr, &bank) >= 1)
+         {
+            machine_->AddBreakpoint(static_cast<unsigned short>(addr));
+         }
+      }
+      // rombrk: ROM-aware breakpoints not yet supported by AddBreakpoint
+   }
+}
+
 void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, int size)
 {
    // ACE's Symbols
@@ -1199,6 +1237,10 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
          else if (memcmp(chunk, "SYMB", 4) == 0)
          {
             HandleChunkSYMB(chunk, buffer, length);
+         }
+         else if (memcmp(chunk, "REMU", 4) == 0)
+         {
+            HandleChunkREMU(chunk, buffer, length);
          }
          delete []buffer;
       }
