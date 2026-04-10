@@ -88,6 +88,7 @@ public:
    bool LoadSnr (const char* path_file) {return sna_handler_.LoadSnr (path_file);}
    bool LoadBin(const char* path_file);
    bool LoadSnapshot (const char* path_file);
+   bool LoadSnapshotNow(const char* path_file);
    bool LoadSnapshotDelayed();
    bool SaveSnapshot (const char* path_file);
    bool IsQuickSnapAvailable ();

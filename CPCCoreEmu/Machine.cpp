@@ -1268,6 +1268,14 @@ bool EmulatorEngine::LoadSnapshot(const char* path_file)
    return true;
 }
 
+bool EmulatorEngine::LoadSnapshotNow(const char* path_file)
+{
+   // Immediate synchronous load — does not use the deferred flag mechanism
+   // (which requires HandleSnapshots() to run, unavailable in DBG_BREAK state).
+   sna_path_to_load_ = path_file;
+   return LoadSnapshotDelayed();
+}
+
 bool EmulatorEngine::LoadSnapshotDelayed()
 {
    if ( sna_handler_.LoadSnapshot (sna_path_to_load_.c_str()))
