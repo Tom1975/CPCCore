@@ -340,10 +340,8 @@ unsigned int  Z80::Opcode_Emu_Break()
    // Break !
    break_ = true;
 
-   //
-
    // Default ED/FF
-   DefaultFetch();
+   return DefaultFetch();  
 }
 
 unsigned int Z80::Opcode_DefaultToSimple()
