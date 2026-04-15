@@ -438,6 +438,12 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
          old_counter = component_elapsed_time_[z80_index_];
          {
             nb_opcodes--;
+            if ( z80_.IsBreak())
+            {
+               run_ = false;
+               z80_.AckBreak();
+            }
+
             if (generic_breakpoint_)
             {
                run_ = generic_breakpoint_->IsBreak() ? false : true;
@@ -568,6 +574,11 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
          counter_ += (component_elapsed_time_[z80_index_] - old_counter + 1);
          old_counter = component_elapsed_time_[z80_index_];
          {
+            if ( z80_.IsBreak())
+            {
+               run_ = false;
+               z80_.AckBreak();
+            }
             if (generic_breakpoint_)
             {
                run_ = generic_breakpoint_->IsBreak() ? false : true;

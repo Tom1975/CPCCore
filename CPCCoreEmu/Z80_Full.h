@@ -171,6 +171,9 @@ public:
    unsigned char GetOpcodeSize(unsigned short address);
    bool IsCallInstruction(unsigned short address);
 
+   bool IsBreak(){return break_;}
+   void AckBreak(){break_ = false;}
+
 
    // Don't use : Force an inline usage for more efficiency
    inline unsigned int Tick( ) 
@@ -277,6 +280,7 @@ public:
    MachineCycle machine_cycle_;
 
    bool new_instruction_;
+   bool break_;
 
    // Inner helper attributes
    unsigned int counter_;
@@ -503,6 +507,8 @@ public:
    unsigned int Opcode_ED();
    unsigned int Opcode_DD();
    unsigned int Opcode_FD();
+
+   unsigned int Opcode_Emu_Break();
 
    typedef enum
    {

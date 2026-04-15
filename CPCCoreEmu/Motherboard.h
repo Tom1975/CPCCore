@@ -231,6 +231,13 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
    while (next_cycle < nb_cycles)
    {
+      if ( z80_.IsBreak())
+      {
+         
+         run_ = false;
+         z80_.AckBreak();
+      }
+
       if (elapsed_time_psg == next_cycle)
       {
          elapsed_time_psg += psg_.Tick();
