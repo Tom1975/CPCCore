@@ -69,6 +69,13 @@ public:
    void SetMotor ( bool on);
    bool IsMotorOn () { return disk_[0].IsMotorOn ();}
 
+   // Debug accessors
+   unsigned char GetDebugStatus0() { return GetStatus0(); }
+   unsigned char GetDebugStatus1() { return GetStatus1(); }
+   unsigned char GetDebugStatus2() { return GetStatus2(); }
+   unsigned char GetDebugStatus3() { return GetStatus3(); }
+   unsigned char GetMainStatus() const { return main_status_; }
+
 protected:
 
    int load_progress_;
