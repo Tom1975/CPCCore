@@ -153,6 +153,28 @@ public:
    const char* GetTapePath () { return current_tape_.c_str(); };
 
    bool IsSaveAvailable () {return nb_inversions_ > 0;};
+
+   // Debug signal access
+   struct DebugFlux {
+      unsigned long long length;
+      unsigned long long place;
+      unsigned short blockNumber;
+      unsigned char  blockType;
+      bool high;
+   };
+   unsigned int GetTapePosition()  const { return tape_position_; }
+   unsigned int GetNbInversions()  const { return nb_inversions_; }
+   int GetCurrentBlock()           const { return current_block_; }
+   int GetCurrentBlockType()       const { return current_block_type_; }
+   bool GetFlux(unsigned int idx, DebugFlux& out) const {
+      if (!tape_array_ || idx >= nb_inversions_) return false;
+      out.length      = tape_array_[idx].length;
+      out.place       = tape_array_[idx].place;
+      out.blockNumber = tape_array_[idx].block_number;
+      out.blockType   = tape_array_[idx].block_type;
+      out.high        = tape_array_[idx].high;
+      return true;
+   }
    void SaveAsWav (const char* filepath);
    void SaveAsCdtDrb (const char* filepath);
 #ifndef NOZLIB
