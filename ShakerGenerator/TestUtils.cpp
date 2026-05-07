@@ -20,11 +20,11 @@
 #include <map>
 #include <string>
 #include "TestUtils.h"
-
+#include "Script/CSLScriptRunner.h"
 
 FileLog::FileLog(const char* file)
 {
-   fopen_s(&f_, file, "w");
+    fopen_s(&f_, file, "w");
 }
 
 FileLog::~FileLog()
@@ -246,44 +246,28 @@ bool CompareTape(std::string p1)
    return (t1.CompareToTape(&t2) == 0);
 }
 
-void TestDump::CustomFunction(unsigned int i)
+TestDump::TestDump(bool show)
 {
-   // Create screenshot from current frame, name is generated from opcode
-   std::string filename = "screenshot.jpg";
+    // Creation de la machine
+    machine_ = new EmulatorEngine();
 
-   display.TakeScreenshot(filename.c_str());
+    display_.Init(show);
+    display_.Show(show);
+
+    machine_->SetDirectories(&dirImp_);
+    machine_->SetLog(&log_);
+    machine_->SetConfigurationManager(&conf_manager_);
+
+    machine_->Init(&display_, &soundFactory_);
+
+    machine_->GetMem()->Initialisation();
+
+    runner_ = new CSLScriptRunner(machine_, &display_);
+    runner_->SetScreenshotHandler();
 }
 
-
-void TestDump::SetScreenshotHandler()
+bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, char moduleName, bool bFixedSpeed, int seed)
 {
-   for (unsigned char i = 0; i < 0x1F; i++)
-   {
-      machine_->GetProc()->SetCustomOpcode<Z80::ED>(i, [=](unsigned int opcode) {CustomFunction(opcode);});
-   }
-      
-   
-}
-
-bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
-{
-   // Creation dela machine
-   
-   display.Init(display_);
-   display.Show(display_);
-
-   machine_->SetDirectories(&dirImp);
-   machine_->SetLog(&log);
-
-   ConfigurationManager conf_manager;
-   machine_->SetConfigurationManager(&conf_manager);
-
-   machine_->Init(&display, &soundFactory);
-
-   SetScreenshotHandler();
-   machine_->GetMem()->Initialisation();
-   machine_->GetMem()->Initialisation();
-
    machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());
    machine_->Reinit();
 
@@ -291,27 +275,24 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    srand(seed);
    machine_->SetFixedSpeed(bFixedSpeed);
 
-   // Load disk
-   machine_->LoadDisk(dump_to_load.string().c_str(), 0, false);
-   //DiskContainer* container = machine_->CanLoad(dump_to_load);
-   //machine_->LoadMedia(container);
+   char scriptDir[256];
+   sprintf(scriptDir, "./Shaker/Shaker_25/MODULE_%c", moduleName);
 
-   // Set run command
-   machine_->Paste(run_command);
+   runner_->SetScriptDirectory(scriptDir);
+   runner_->SetDiskDirectory("./Shaker");
 
-   int nbcycle_for_paste = strlen(run_command) * 3;
-   for (int i = 0; i < nbcycle_for_paste; i++)
-   {
-      machine_->RunTimeSlice(false);
-   }
+   char resultDir[256];
+   sprintf(resultDir, "./Shaker/Shaker_25/result/MODULE_%c", moduleName);
 
-   // Run preliminary actions
-   bool no_error = cmd_list->RunFirstCommand(machine_);
-   while (cmd_list->IsFinished() == false && no_error)
-   {
-      no_error = cmd_list->RunNextCommand(machine_);
-   }
-   return no_error;
+   runner_->SetScreenshotDirectory(resultDir);
+   std::filesystem::create_directories(resultDir);
+
+   char scriptFilename[256];
+   sprintf(scriptFilename, "SHAKE25%c-0.CSL", moduleName);
+
+   runner_->LoadScript((runner_->GetScriptDirectory() / scriptFilename).string().c_str());
+   
+   return runner_->Run();
 }
 
 

@@ -31,7 +31,8 @@
 *.out
 *.app
 /.vs/**
-/CPCCoreEmu/.vs/**
+/*/.vs/**
+/*/out/**
 /out/**
 
 /tmp/**

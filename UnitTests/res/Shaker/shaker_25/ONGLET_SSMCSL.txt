@@ -1,0 +1,50 @@
+Emulator Add-on
+
+A common difficulty encountered by several emulator authors during an update concerns non-regression tests.
+Indeed, a correction made in the emulation to satisfy the requirements of a particular program can generate side effects on other programs.
+In order to simplify the non-regressions management between 2 versions, the following method uses at least one of the two standards described below.
+
+The main method is based on the principle of the automatic screenshots generation by the emulator.
+By then comparing the screenshots generated with those of a reference file using a script, it is possible to quickly detect any regression.
+
+CSL: Cpc Scripting Language
+
+This is a new type of ascii file format containing instructions that an emulator can interpret.
+The instructions make it possible to replace the user with commands in order to control the emulation.
+It is possible to insert a floppy disk, to reset the cpc, to change crtc, to simulate a keyboard input or to define different delays (in emulated µseconds).
+It is also possible to override the standard name of a screenshot (or a snapshot) and generate it on demand, or launch another script.
+This enables the creation of a script capable of loading a game or a demo in a specific configuration and generating one or more screenshots.
+It is then possible to detect regression by simply comparing the content of the generated files with that of the reference files considered to be correct.
+
+This format may have other practical applications.
+For example, this file could be used to present software that requires some interactivity.
+Used on a web emulator, it avoids storing videos on lost servers in northern Sweden. :-)
+An emulator could also record and save a CSL file.
+
+SSM: ScreenShot Management
+This standard allows a program written in Z80A to ask the emulator to generate screenshots (or snapshots).
+This implies that the simulated Z80A code takes this standard into account, unlike the screenshots generated via a CSL file.
+This system is neutral for real hardware because it uses unwired instructions with the prefix ED, which has no other effect than to waste time (to my knowledge).
+One of the advantages of this system lies in its precision since the screenshot takes place at the exact moment when the code requests it.
+
+The autonomous SSM system specifies, in its request, a 16-bit code that numbers the image.
+Although it is possible to generate a screenshot with great precision in the CSL format, the latter is more adapted to programs whose code is "frozen".
+In general, changes in the code of a program imply a modification of the delays defined in the CSL.
+The SSM standard is here more suitable for live programs that evolve regularly.
+However, two reserved codes of the SSM format allow the emulation to operate in conjunction with a CSL file, which notably enables file naming via the CSL script.
+
+In the context of SHAKER and the SHAKERLAND portal:
+CSL files are used to automatically launch the different SHAKER test modules and run all the tests.
+Since version 1.5 of SHAKER, the tests of the different modules generate SSM codes that allow screenshot generation.
+These screenshots represent those available on the portal from photos taken on the real hardware. Images are then produced by different emulators at exactly the same time.
+
+They can also allow us to easily integrate all the images produced by an emulator automatically on the portal.
+To this end, an EXCEL file allows us to establish the correspondence of the 16-bit SSM codes with the images stored in the SHAKERLAND databases.
+
+The main purpose of the SSM standard is to allow non-regression testing of the emulator.
+It is advisable to create an optional activation of the SSM code management in the emulation of the Z80A.
+It is also very important to separate the emulation of the different CRTC models.
+Unlike the various GATE ARRAY models, which are practically similar, there are too many differences in internal CRTC architecture, which makes it impossible to have a single, readable, and maintainable source for the various component versions.
+
+The slightest change in the emulation of a given CRTC can then have a direct impact on the behavior of the other types of emulated CRTCs.
+This is not difficult to do, insofar as it suffices to duplicate the source concerned several times and write the specific tests for each one.
