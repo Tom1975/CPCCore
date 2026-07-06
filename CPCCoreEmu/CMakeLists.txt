@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16...3.28)
 project(CPCCoreEmu)
 
 file( GLOB SRCS
@@ -51,7 +51,7 @@ target_compile_features(CPCCoreEmu PRIVATE cxx_std_17)
 
 IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
-   set_property(TARGET CPCCoreEmu APPEND PROPERTY LINK_FLAGS /DEBUG)
+   target_link_options(CPCCoreEmu PRIVATE /DEBUG)
    ADD_DEFINITIONS(/arch:SSE2)
    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
@@ -65,8 +65,8 @@ else()
    endforeach()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z )
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++17)
 endif()
 
 install ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Keyboards" DESTINATION .) 

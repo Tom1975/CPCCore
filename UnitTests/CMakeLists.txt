@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16...3.28)
 
 project(unitTests)
 
@@ -64,13 +64,15 @@ IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
 ENDIF(MSVC)
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z)
-   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      set (LIBZA libz.a )
-   else()
-      set (LIBZA libz.a stdc++fs)
-   endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++17)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(LIBZA libz.a)
+    elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+        set(LIBZA libz.a stdc++fs)
+    else()
+        set(LIBZA libz.a)
+    endif()
 endif()
 
 if (USE_SHARED_CRT)
