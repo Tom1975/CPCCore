@@ -701,7 +701,10 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
 
    if (init != nullptr && init->_hardware_configuration.size() > 0)
    {
-      path_cfg /= init->_hardware_configuration;
+      std::string cfg = init->_hardware_configuration;
+      if (cfg.size() < 4 || cfg.substr(cfg.size() - 4) != ".cfg")
+         cfg += ".cfg";
+      path_cfg /= cfg;
    }
    else
    {
