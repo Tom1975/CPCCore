@@ -86,6 +86,9 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    // Init index of colors
    int i;
    buffered_ink_available_ = false;
+   buffered_ink_reg_ = 0;
+   border_reg_ = 0;
+   memset(ink_regs_, 0, sizeof(ink_regs_));
    for (i = 0; i < 32; i++)
    {
       ListeColorsIndex[ListeColorsIndexConvert[i]] = ListeColors[i];
@@ -778,13 +781,15 @@ void GateArray::TickIO()
             // Border
             //monitor_->SetBorder ( ListeColorsIndex [data & 0x5F] );
             for (int i = 0; i < NB_BYTE_BORDER; i++)video_border_[i] = ListeColorsIndex[data & 0x5F];
+            border_reg_ = data & 0x5F;
             memory_->UpdateAsicPalette(17, data - 0x40);
          }
          else
          {
             if (monitor_->screen_->IsDisplayed())
             {
-               buffered_ink_ = ListeColorsIndex[data & 0x5F];
+               buffered_ink_     = ListeColorsIndex[data & 0x5F];
+               buffered_ink_reg_ = data & 0x5F;
 
                memory_->UpdateAsicPalette(pen_r_, data - 0x40);
                buffered_ink_available_ = true;
@@ -796,6 +801,7 @@ void GateArray::TickIO()
             else
             {
                ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
+               ink_regs_[pen_r_] = data & 0x5F;
             }
 
          }

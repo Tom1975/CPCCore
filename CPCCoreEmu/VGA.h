@@ -114,8 +114,11 @@ public:
    // Penr
    unsigned char pen_r_;
    unsigned int ink_list_ [16];
+   unsigned char ink_regs_ [16];  // raw GA color byte (data & 0x5F) for each pen
+   unsigned char border_reg_;     // raw GA color byte for border
    unsigned int sprite_ink_list_[16];
    unsigned int buffered_ink_ ;
+   unsigned char buffered_ink_reg_;
    bool buffered_ink_available_;
 
    unsigned char screen_mode_;
