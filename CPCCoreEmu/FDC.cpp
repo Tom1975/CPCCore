@@ -770,7 +770,10 @@ int FDC::LoadDisk ( unsigned int drive_number, const char* file_path, bool delay
    }
    else
    {
-      return disk_[drive_number].LoadDisk (file_path);
+      ready_line_changed_ = true;
+      int ret = disk_[drive_number].LoadDisk (file_path);
+      if (notifier_ != NULL) notifier_->ItemLoaded(file_path, ret, drive_number);
+      return ret;
    }
 
    return 0;
