@@ -34,7 +34,7 @@ jobs:
         echo 'Generating makefile'
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DGENERATE_UNITTESTS=TRUE
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DGENERATE_UNITTESTS=TRUE -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         make all
         ls -l
         
