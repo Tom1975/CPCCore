@@ -82,6 +82,12 @@ public:
    void AddBreakpoint(unsigned short addr);
    void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
    void RemoveBreakpoint(unsigned short addr);
+   bool HasBreakpoint(unsigned short addr) const {
+      for (unsigned int i = 0; i < breakpoint_index_; i++) {
+         if (breakpoint_list_[i] == addr) return true;
+      }
+      return false;
+   }
    void SetStepTo(unsigned short addr) { stop_pc_ = addr; step_ = true; remember_step_ = true; }
    void SetStepOver() { step_ = true; remember_step_ = false; }
    

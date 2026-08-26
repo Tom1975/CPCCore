@@ -832,6 +832,11 @@ void EmulatorEngine::RemoveBreakpoint ( unsigned short addr)
    motherboard_.RemoveBreakpoint(addr);
 }
 
+bool EmulatorEngine::HasBreakpoint ( unsigned short addr)
+{
+   return motherboard_.HasBreakpoint(addr);
+}
+
 void EmulatorEngine::SetSpeed(int speed)
 {
    speed_ = speed;
