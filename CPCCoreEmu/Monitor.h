@@ -3,6 +3,7 @@
 #include "Screen.h"
 #include "IComponent.h"
 #include "CRTC.h"
+#include "KeyboardHandler.h"
 #include "IPlayback.h"
 
 /*#ifdef CPCCOREEMU_EXPORTS
@@ -26,6 +27,7 @@ public:
    void SetPlayback (IPlayback* playback) { playback_ = playback;}
    void SetCRTC (CRTC * crtc){crtc_ = crtc;};
    void SetVGA(GateArray * vga);
+   void SetKeyboard(IKeyboardHandler* keyboard){keyboard_ = keyboard;}
 
    void SetScreen ( IDisplay* screen) {screen_ = screen;video_buffer_ = screen_->GetVideoBuffer (0); };
    void Reset ();
@@ -77,6 +79,7 @@ public:
    Memory* memory_;
    IPlayback* playback_;
    CRTC* crtc_;
+   IKeyboardHandler* keyboard_;
 
    ////////////////////
    // Far attributes

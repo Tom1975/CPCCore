@@ -1,16 +1,6 @@
 
 #include "simple_regex.h"
 
-#ifdef MINIMUM_DEPENDENCIES
-#include "simple_string.h"
-
-bool IsExtensionMatch(const char* str, const char* ext)
-{
-
-}
-
-#else
-
 #include <regex>
 
 static size_t ReplaceAll(std::string &str, const std::string &from, const std::string &to)
@@ -58,13 +48,12 @@ static bool MatchTextWithWildcards(const std::string &text, std::string wildcard
 
    return std::regex_match(text, pattern);
 }
-
+/*
 bool IsExtensionMatch(const char* str, const char* ext)
 {
    std::string extension = "*.";
    extension += ext;
    return MatchTextWithWildcards(str, extension);
-}
+}*/
 
-
-#endif
+//#endif

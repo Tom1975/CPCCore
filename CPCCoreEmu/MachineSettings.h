@@ -10,7 +10,6 @@
 //
 //////////////////////////////////////////////////////////
 
-#include <map>
 
 #include "IConfiguration.h"
 #include "CRTC.h"
@@ -73,8 +72,8 @@ public:
 	const char* GetLowerRom() const { return lower_rom_.c_str(); };
 	void SetLowerRom(char* rom) { lower_rom_ = rom; };
 
-	const char* GetUpperRom(unsigned int num) const { auto it = upper_rom_.find(num); return (it == upper_rom_.end()) ? nullptr : it->second.c_str(); };
-	void SetUpperRom(unsigned int num, const char* rom) { upper_rom_[num] = rom; };
+	const char* GetUpperRom(unsigned int num) const { return (num >= 256) ? nullptr : upper_rom_[num].c_str(); };
+	void SetUpperRom(unsigned int num, const char* rom) { if (num < 256)upper_rom_[num] = rom; };
 
 	virtual void SetDefaultCartridge(const char * cartridge_path) { cartridge_path_ = cartridge_path; }
 	virtual const char* GetDefaultCartridge() { return cartridge_path_.c_str(); }
@@ -123,7 +122,7 @@ protected:
 	std::string lower_rom_;
 
 	// ROM configuration
-	std::map<int, std::string> upper_rom_;
+	std::string upper_rom_[256];
 
 	// CARTRIDGE configuration (if any)
 	std::string cartridge_path_;

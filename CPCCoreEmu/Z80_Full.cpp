@@ -10,6 +10,7 @@ Z80::Z80(void) :
    rw_opcode_(false),
    log_(nullptr), 
    new_instruction_(true),
+   break_(false),
    count_(0)
 {
 
@@ -332,6 +333,15 @@ unsigned int Z80::Opcode_DD()
    current_function_ = &fetch_func_dd_;
    machine_cycle_ = M_FETCH; t_ = 1;
    return 1;
+}
+
+unsigned int  Z80::Opcode_Emu_Break()
+{
+   // Break !
+   break_ = true;
+
+   // Default ED/FF
+   return DefaultFetch();  
 }
 
 unsigned int Z80::Opcode_DefaultToSimple()

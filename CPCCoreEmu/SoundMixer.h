@@ -6,7 +6,7 @@
  * 
  *
  */
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #include "ISound.h"
 #include "ILog.h"
@@ -51,6 +51,7 @@ public:
    void AddSound(double  volume_left, double  volume_right);
    unsigned int Tick();
    void PrepareBufferThread();
+   void Loop();
 
    void BeginRecord();
    void EndRecord() {
@@ -58,7 +59,8 @@ public:
    };
    bool IsRecording() { return record_; };
 
-   void SyncOnSound (bool set){sync_on_sound_ = set;};
+   void SyncOnSound(bool set);
+   void SyncWithSound();
 
 protected:
    ILog* log_;
@@ -103,7 +105,7 @@ protected:
    class BufferItem
    {
    public:
-      BufferItem() {}
+      BufferItem():status_(FREE), sample_number_(0){}
       virtual ~BufferItem(){}
       void Init() {
          status_ = FREE; buffer_.InitBuffer();

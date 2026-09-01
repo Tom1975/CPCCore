@@ -1,8 +1,11 @@
 #pragma once
+#include <memory.h>
 
 #include "IConfiguration.h"
 #include "IDirectories.h"
 #include "IKeyboard.h"
+
+#define SCANCODE_MAP_SIZE 0x200
 
 class KeyboardHandler : public IKeyboard, public IKeyboardHandler
 {
@@ -22,6 +25,16 @@ public:
    
    typedef Key Keymap[10][8];
 
+   struct RawToCPC
+   {
+      int line_number;
+      unsigned char bit;
+   };
+
+   RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   unsigned char raw_to_functions_[SCANCODE_MAP_SIZE];
+
    KeyboardHandler();
    virtual ~KeyboardHandler(void);
 
@@ -33,7 +46,11 @@ public:
    virtual const char* GetKeyboardConfig ();
    KeyboardHandler::Keymap& GetKeyboardMap() { return keyboard_map_; }
 
-   unsigned char GetKeyboardMap(int index) { return keyboard_lines_[index]; }
+   // Return current Keyboard map validated
+   virtual void ValidateKeyboardMap();
+   unsigned char GetKeyboardMap(int index);
+
+   static bool LoadScanCodeToMatrix(const char* path, RawToCPC* char_map, unsigned char* keyboard_lines, Keymap* keyboard_map, unsigned char* raw_to_functions);
 
    virtual void LoadKeyboardMap (const char * config);
    Key GetKeyValues ( const char* config, unsigned int line, unsigned int bit );
@@ -51,13 +68,16 @@ public:
    virtual void CharReleased (char c) ;
 
    virtual void SendScanCode ( unsigned int, bool pressed );
-
+   virtual bool IsDeadKey(unsigned int);
 
 
    virtual void JoystickAction (unsigned int joy, unsigned int action);
 
    void ForceKeyboardState ( unsigned char key_states[10]){ memcpy (keyboard_lines_, key_states, 10 );};
-   unsigned char* GetKeyboardState () {return keyboard_lines_;};
+   unsigned char* GetKeyboardState () {return keyboard_lines_cached_;};
+   unsigned char* GetRealKeyboardState() { return keyboard_lines_; };
+
+   void InitKeyboard (const char* path);
 
 protected :
 
@@ -65,10 +85,12 @@ protected :
    // Keyboard   
    Keymap keyboard_map_;
 
-   void InitKeyboard ();
    bool* register_replaced_;
+
    // Keyboard definition
    unsigned char keyboard_lines_ [10];
+   unsigned char keyboard_lines_cached_ [10];
+
 
    void CharAction(char c, bool pressed) ;
 

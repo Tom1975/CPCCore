@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PrinterDefault.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #define SCR_PATH "PRINT"
 
@@ -27,7 +27,8 @@ void PrinterDefault::Out ( unsigned char c)
 #ifndef MINIMUM_DEPENDENCIES
    char buff[8] = { 0 };
    sprintf ( buff, "%c", c&0x7F );
-   if (!busy_ && c & 0x80 )
+   if (false) // TODO : remove this when it will be REALLY ready !
+   //if (!busy_ && c & 0x80 )
    {
       // Strobe : Write char to default
       if ( file_ptr_ == NULL)
@@ -61,7 +62,7 @@ bool PrinterDefault::Busy ()
 
 bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
 {
-#ifndef MINIMUM_DEPENDENCIES
+#if !defined(MINIMUM_DEPENDENCIES) && !defined(TEST_VECTOR)
    if (diretories_ == NULL)
       return false;
 
@@ -97,5 +98,5 @@ bool PrinterDefault::GetNewPrinterFile (char * buffer, unsigned int size)
    return name_ok;
 #else
    return false;
-#endif
+#endif   
 }

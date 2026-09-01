@@ -86,7 +86,8 @@ int DiskBuilder::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadingP
    {
       if ((*it)->CanLoad(file_path))
       {
-         return (*it)->LoadDisk(file_path, created_disk, loading_progress);
+         if ((*it)->LoadDisk(file_path, created_disk, loading_progress) == 0)
+            return 0;
       }
    }
 

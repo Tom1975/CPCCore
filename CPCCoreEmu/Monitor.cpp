@@ -4,7 +4,7 @@
 #include "VGA.h"
 
 
-#include "simple_math.h"
+#include <cmath>
 
 //#define PROF
 #ifdef PROF
@@ -37,7 +37,7 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
-Monitor::Monitor(void) : memory_(0), playback_sync_(false)
+Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr)
 {
    playback_ = nullptr;
    int i, b;
@@ -132,7 +132,8 @@ void Monitor::RecomputeColors()
       // todo : if plus (otherwise : not needed !)
       //memory_->UpdateAsicPalette( p, m_pVGA->m_CachedInk);
 
-      gate_array_->ink_list_[p] = gate_array_->buffered_ink_;
+      gate_array_->ink_list_[p] = gate_array_->buffered_ink_ | 0xFF000000;
+      gate_array_->ink_regs_[p] = gate_array_->buffered_ink_reg_;
 
       // Look up table mode 0, 1, 2
       for (int b = 0; b < 0x100; ++b)
@@ -290,7 +291,7 @@ void Monitor::Tick( )
                      expected_hbl_ += hsync_total_ + (line_sync_);
                   }
 
-                  // HERE §!!!!!
+                  // HERE ï¿½!!!!!
                   //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
                   int tot = (expected_hbl_ - hsync_total_);
 
@@ -443,6 +444,9 @@ void Monitor::Tick( )
 
                      screen_->VSync();
 
+                     // Keyboard validation
+                     if (keyboard_) keyboard_->ValidateKeyboardMap();
+                     
                      playback_sync_ = false;
 
                      vertical_sync_start_ = 0;
@@ -490,12 +494,16 @@ void Monitor::Tick( )
 
    if (!playback_sync_)
    {
+      START_CHRONO
+
       // SNR value !
       if (playback_)playback_->Playback();
       playback_sync_ = true;
+
+      STOP_CHRONO
    }
 
-   STOP_CHRONO
+   
 
 //      return this_tick_time_ = NBPIXELADDED / 4;
 

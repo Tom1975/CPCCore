@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <functional>
-#include "simple_stdio.h"
+#include <stdio.h>
 #include "Machine.h"
 #include "Display.h"
 #include <filesystem>
@@ -11,12 +11,10 @@
 #include <windows.h>
 #endif
 
-// SCR_CREATE  = false : Generate screenshot
 // SCR_COMPARE  = true: Compare screenshot
 #define NO_INIT_SCREENSHOT
 
 #define  SCR_COMPARE true
-#define  SCR_CREATE false
 
 /////////////////////////////////////////////////////////////
 /// Helper functions
@@ -38,9 +36,22 @@ public:
    virtual ~ConfigurationManager();
 
    virtual void OpenFile(const char* config_file);
+   virtual void CloseFile();
+
    virtual void SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file);
+   virtual void SetConfiguration(const char* section, const char* key, const char* value);
+
    virtual unsigned int GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size, const char* file);
+   virtual unsigned int GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size);
+
    virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file);
+   virtual unsigned int GetConfigurationInt(const char* section, const char* cle, unsigned int default_value);
+
+   virtual const char* GetFirstSection();
+   virtual const char* GetNextSection();
+
+   virtual const char* GetFirstKey(const char* section);
+   virtual const char* GetNextKey();
 
 protected:
    void Clear();
@@ -341,16 +352,24 @@ protected:
 class CommandScanCode : public ICommand
 {
 public:
-   CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed) : pKeyHandler_(pKeyHandler), scancode_(scancode), pressed_(pressed)
-   {
-   }
+   CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed);
+   
+   virtual bool Action(EmulatorEngine* machine);
 
-   virtual bool Action(EmulatorEngine* machine)
-   {
-      pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
-      return true;
-   }
 protected:
+
+   static KeyboardHandler::RawToCPC raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   static unsigned char dead_key_[SCANCODE_MAP_SIZE];
+   static unsigned char raw_to_functions_[SCANCODE_MAP_SIZE];
+
+   static KeyboardHandler::RawToCPC raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+   static unsigned char dead_key_linux[SCANCODE_MAP_SIZE];
+   static unsigned char raw_to_functions_linux_[SCANCODE_MAP_SIZE];
+
+   static bool init_convert_map_;
+   static KeyboardHandler::Keymap keyboard_map_;
+   static unsigned char keyboard_lines_[10];
+
    IKeyboard* pKeyHandler_;
    unsigned short scancode_;
    unsigned int pressed_;
@@ -477,6 +496,8 @@ class KeyboardForTest : public IKeyboardHandler
 public:
    KeyboardForTest() {};
    virtual ~KeyboardForTest() {};
+
+   virtual void ValidateKeyboardMap() {};
    virtual unsigned char GetKeyboardMap(int index) { return 0xFF; }
    virtual void Init(bool* register_replaced) {}
    virtual void ForceKeyboardState(unsigned char key_states[10]) {};

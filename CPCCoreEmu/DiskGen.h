@@ -6,7 +6,7 @@
 #include "DskTypeManager.h"
 #include "ILoadingProgress.h"
 
-#include "simple_string.h"
+#include <string.h>
 
 #define NB_ROUND_SPEED_MAX 50
 #define SPEED_MAX_READY 203000

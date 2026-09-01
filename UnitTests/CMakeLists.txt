@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
 
 project(unitTests)
 
@@ -9,10 +9,7 @@ enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} PUBLIC ${CPCCORE} ${PROJECT_SOURCE_DIR}/../SFML/include)
 
 IF(MSVC)
-	SET(CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} /D \"SAFESEH:NO\"")
-	SET(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-	SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+	add_definitions(-DSAFESEH=NO)
 endif()
 
 set(CompilerFlags
@@ -26,7 +23,18 @@ set(CompilerFlags
 		_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING 
         )
 
+set ( TEST_CONF
+   TestConf.ini
+   TestConf_0.ini
+   TestConf_1.ini
+   TestConf_2.ini
+   TestConf_3.ini
+   TestConf_4.ini
+)
+source_group("Test configurations" FILES ${TEST_CONF} )
+
 add_executable( unitTests  
+                  ${TEST_CONF}
 						   ASIC.cpp
                      Display.cpp 
                      Display.h 
@@ -47,6 +55,7 @@ add_executable( unitTests
 
 gtest_discover_tests(  unitTests
                 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/.."
+                PROPERTIES TIMEOUT 600
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -55,13 +64,15 @@ IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
 ENDIF(MSVC)
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z)
-   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      set (LIBZA libz.a )
-   else()
-      set (LIBZA libz.a stdc++fs)
-   endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++17)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(LIBZA libz.a)
+    elseif(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+        set(LIBZA libz.a stdc++fs)
+    else()
+        set(LIBZA libz.a)
+    endif()
 endif()
 
 if (USE_SHARED_CRT)
@@ -96,3 +107,4 @@ install ( DIRECTORY "./ROM" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)
 install ( DIRECTORY "./CART" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
 install ( DIRECTORY "./CONF" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)  
 install ( DIRECTORY "./res" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>) 
+install ( DIRECTORY "../CPCCoreEmu/Keyboards" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>) 

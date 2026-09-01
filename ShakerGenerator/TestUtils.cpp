@@ -14,7 +14,7 @@
 #endif
 #endif
 
-#include "simple_stdio.h"
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <map>

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "FormatTypeDSK.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 
 

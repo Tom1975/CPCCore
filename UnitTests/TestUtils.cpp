@@ -1,4 +1,3 @@
-
 #ifdef _WIN32
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -10,17 +9,81 @@
 #else
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
-#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 #endif
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
 
-#include "simple_stdio.h"
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <string>
 #include "TestUtils.h"
 
+#ifdef _WIN32
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_win"
+#elif __linux__ 
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
+#else
+#define KEYBOARD_SCANCODES_FILE "101_keyboard_linux"
+#pragma error "TODO : Generate a keyboard map for your OS !" 
+#endif
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_[SCANCODE_MAP_SIZE];
+unsigned char CommandScanCode::raw_to_functions_[SCANCODE_MAP_SIZE];
+
+KeyboardHandler::RawToCPC CommandScanCode::raw_to_cpc_map_linux[SCANCODE_MAP_SIZE]; // 0x100 = extended key
+unsigned char CommandScanCode::dead_key_linux[SCANCODE_MAP_SIZE];
+unsigned char CommandScanCode::raw_to_functions_linux_[SCANCODE_MAP_SIZE];
+
+bool CommandScanCode::init_convert_map_ = false;
+KeyboardHandler::Keymap CommandScanCode::keyboard_map_;
+unsigned char CommandScanCode::keyboard_lines_[10];
+
+CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode, unsigned int pressed) : pKeyHandler_(pKeyHandler), scancode_(scancode), pressed_(pressed)
+{
+#ifdef __linux__ 
+   if (!init_convert_map_)
+   {
+      fs::path exe_path( ".");
+      exe_path /= "Keyboards";
+      exe_path /= "101_keyboard_win";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
+         &keyboard_map_, raw_to_functions_);
+
+      fs::path exe_path_linux(".");
+      exe_path_linux /= "Keyboards";
+      exe_path_linux /= "101_keyboard_linux";
+
+      KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
+         &keyboard_map_, raw_to_functions_linux_);
+
+
+      init_convert_map_ = true;
+   }
+
+   // Convert french/windows scancode to target scancode.
+   KeyboardHandler* handler = dynamic_cast<KeyboardHandler*>(pKeyHandler_);
+   for (int sc = 0; sc < SCANCODE_MAP_SIZE; sc++)
+   {
+      if (CommandScanCode::raw_to_cpc_map_[scancode].line_number == CommandScanCode::raw_to_cpc_map_linux[sc].line_number
+         && CommandScanCode::raw_to_cpc_map_[scancode].bit == CommandScanCode::raw_to_cpc_map_linux[sc].bit)
+      {
+         scancode_ = sc;
+         break;
+      }
+   }
+#endif
+}
+
+bool CommandScanCode::Action(EmulatorEngine* machine)
+{
+   pKeyHandler_->SendScanCode(scancode_, (pressed_ == 1));
+   return true;
+}
 
 FileLog::FileLog(const char* file)
 {
@@ -159,9 +222,20 @@ void ConfigurationManager::OpenFile(const char* config_file)
    }
 }
 
+void ConfigurationManager::CloseFile()
+{
+
+}
+
 void ConfigurationManager::SetConfiguration(const char* section, const char* cle, const char* valeur, const char* file)
 {
    OpenFile(file);
+   // Add or update key
+   // rewrite whole file
+}
+
+void ConfigurationManager::SetConfiguration(const char* section, const char* cle, const char* valeur)
+{
    // Add or update key
    // rewrite whole file
 }
@@ -190,6 +264,11 @@ unsigned int ConfigurationManager::GetConfiguration(const char* section, const c
    return 0;
 }
 
+unsigned int ConfigurationManager::GetConfiguration(const char* section, const char* cle, const char* default_value, char* out_buffer, unsigned int buffer_size)
+{
+   return 0;
+}
+
 unsigned int ConfigurationManager::GetConfigurationInt(const char* section, const char* cle, unsigned int default_value, const char* file)
 {
    OpenFile(file);
@@ -204,6 +283,30 @@ unsigned int ConfigurationManager::GetConfigurationInt(const char* section, cons
    return default_value;
 }
 
+unsigned int ConfigurationManager::GetConfigurationInt(const char* section, const char* cle, unsigned int default_value)
+{
+   return 0;
+}
+
+const char* ConfigurationManager::GetFirstSection()
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetNextSection()
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetFirstKey(const char* section)
+{
+   return nullptr;
+}
+
+const char* ConfigurationManager::GetNextKey()
+{
+   return nullptr;
+}
 
 /////////////////////////////////////////////////////////////
 /// Helper functions - Disk
@@ -266,7 +369,6 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    machine_->SetConfigurationManager(&conf_manager);
 
    machine_->Init(&display, &soundFactory);
-   machine_->GetMem()->Initialisation();
    machine_->GetMem()->Initialisation();
 
    machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());

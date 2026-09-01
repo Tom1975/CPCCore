@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.16)
 project(CPCCoreEmu)
 
 file( GLOB SRCS
@@ -17,15 +17,21 @@ set (EXTRA
     ../.github/workflows/test_windows.yml
    )
 
+set (CONFIG
+   Keyboards/101_keyboard
+   Keyboards/101_keyboard_win
+   Keyboards/101_keyboard_linux
+   )
 
 source_group("Github Action" FILES ${EXTRA} )
+source_group("Keyboards" FILES ${CONFIG} )
 
 list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/rand.cpp)
 
 #Fichier ressource
 MESSAGE ("CMAKE_CURRENT_BINARY_DIR =" ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${INSTALL_INC_DIR}  ${CMAKE_CURRENT_BINARY_DIR}/../zlib)
-add_library(CPCCoreEmu ${SRCS} ${HEADERS} ${EXTRA})
+add_library(CPCCoreEmu ${SRCS} ${HEADERS} ${EXTRA} ${CONFIG} )
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib ${CMAKE_CURRENT_BINARY_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(CPCCoreEmu PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -45,7 +51,7 @@ target_compile_features(CPCCoreEmu PRIVATE cxx_std_17)
 
 IF(MSVC)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")  
-   set_property(TARGET CPCCoreEmu APPEND PROPERTY LINK_FLAGS /DEBUG)
+   target_link_options(CPCCoreEmu PRIVATE /DEBUG)
    ADD_DEFINITIONS(/arch:SSE2)
    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
@@ -59,6 +65,8 @@ else()
    endforeach()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set ( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++1z )
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++17)
 endif()
+
+install ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Keyboards" DESTINATION .) 

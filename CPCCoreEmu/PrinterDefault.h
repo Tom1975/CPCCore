@@ -1,4 +1,6 @@
 #pragma once
+#include <stdio.h>
+
 #include "IPrinterPort.h"
 #include "IDirectories.h"
 

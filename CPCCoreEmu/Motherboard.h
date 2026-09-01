@@ -82,6 +82,14 @@ public:
    void AddBreakpoint(unsigned short addr);
    void ChangeBreakpoint(unsigned short  old_bp, unsigned short new_bp);
    void RemoveBreakpoint(unsigned short addr);
+   bool HasBreakpoint(unsigned short addr) const {
+      for (unsigned int i = 0; i < breakpoint_index_; i++) {
+         if (breakpoint_list_[i] == addr) return true;
+      }
+      return false;
+   }
+   void SetStepTo(unsigned short addr) { stop_pc_ = addr; step_ = true; remember_step_ = true; }
+   void SetStepOver() { step_ = true; remember_step_ = false; }
    
    void SetGenericBreakpoint(IBreakpoint* generic_breakpoint) { generic_breakpoint_ = generic_breakpoint;}
    // Configuration
@@ -118,7 +126,6 @@ public:
    void StartOptimizedPlus(unsigned int nb_cycles);
    int DebugNew(unsigned int nb_cycles);
    int DebugOpcodes(unsigned int& nb_opcodes);
-   unsigned int GetSpeed() { return speed_percent_; }
 
    unsigned char* GetCartridge(int index) { return memory_.GetCartridge(index); }
    void EjectCartridge() {memory_.EjectCartridge(); }
@@ -172,7 +179,7 @@ protected:
    Asic asic_;
    DMA dma_[3];
    GateArray vga_;
-   VideoGateArray gate_array;
+   //VideoGateArray gate_array;
    CRTC crtc_;
    PPI8255 ppi_;
    Monitor monitor_;
@@ -230,6 +237,13 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
    while (next_cycle < nb_cycles)
    {
+      if ( z80_.IsBreak())
+      {
+         
+         run_ = false;
+         z80_.AckBreak();
+      }
+
       if (elapsed_time_psg == next_cycle)
       {
          elapsed_time_psg += psg_.Tick();

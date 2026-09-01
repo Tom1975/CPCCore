@@ -28,9 +28,24 @@ public:
    unsigned int Tick ( );
 
    unsigned char GetRegisterAdress() {
-      return register_address_
-         ;
+      return register_address_;
    }
+
+   // Debug accessors
+   const unsigned char* GetRegisters() const { return register_; }
+   unsigned int  GetChanAFreq()  const { return channel_a_freq_; }
+   unsigned int  GetChanBFreq()  const { return channel_b_freq_; }
+   unsigned int  GetChanCFreq()  const { return channel_c_freq_; }
+   unsigned int  GetNoiseFreq()  const { return noise_frequency_; }
+   unsigned char GetMixer()      const { return mixer_control_register_; }
+   unsigned char GetChanAVol()   const { return channel_a_volume_; }
+   unsigned char GetChanBVol()   const { return channel_b_volume_; }
+   unsigned char GetChanCVol()   const { return channel_c_volume_; }
+   unsigned int  GetEnvFreq()    const { return volume_enveloppe_frequency_; }
+   unsigned char GetEnvShape()   const { return volume_enveloppe_shape_; }
+   unsigned char GetPortA()      const { return register_14_; }
+   unsigned char GetPortB()      const { return external_data_register_b_; }
+
 protected :
    ILog* log_;
 

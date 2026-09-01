@@ -66,9 +66,11 @@ class CPCCOREEMU_API EmulatorEngine : public ILoadingProgree
 {
 public:
    typedef enum {
-      E_NONE,
-      E_FULL,
-      E_VBL
+      E_CUSTOM,         //  50 - 400%
+      E_FULL,           // No limit
+      E_VBL,            // Sync on VBL
+      E_SOUND,          // Sync on sound
+      E_SOUND_AND_VBL   // Async on sound (but with VBL !)
    } SpeedLimit;
 
 
@@ -86,6 +88,7 @@ public:
    bool LoadSnr (const char* path_file) {return sna_handler_.LoadSnr (path_file);}
    bool LoadBin(const char* path_file);
    bool LoadSnapshot (const char* path_file);
+   bool LoadSnapshotNow(const char* path_file);
    bool LoadSnapshotDelayed();
    bool SaveSnapshot (const char* path_file);
    bool IsQuickSnapAvailable ();
@@ -124,7 +127,6 @@ public:
    virtual void Paste (const char* command);
    virtual bool PasteBufferIsEmpty() {
       return paste_size_ == 0;}
-   virtual SpeedLimit IsSpeedLimited();
 
    virtual void SetDefaultConfiguration ();
    virtual void SaveConfiguration (const char* config_name, const char* ini_file);
@@ -161,6 +163,8 @@ public:
    bool IsPLUS() { return motherboard_.IsPLUS(); }
 
    void SetStepIn(bool set) { motherboard_.step_in_ = set; }
+   void SetStepTo(unsigned short addr) { motherboard_.SetStepTo(addr); }
+   void SetStepOver() { motherboard_.SetStepOver(); }
    void SetRun(bool set) { motherboard_.run_ = set; }
    bool IsRunning() { return motherboard_.run_; }
    void Stop ();
@@ -168,8 +172,8 @@ public:
    void CleanBreakpoints();
    void AddBreakpoint ( unsigned short addr);
    void ChangeBreakpoint ( unsigned short  old_bp, unsigned short new_bp );
-
    void RemoveBreakpoint ( unsigned short addr);
+   bool HasBreakpoint ( unsigned short addr);
    void SetBreakpointHandler ( IBreakpoint* bp );
 
    // Display
@@ -258,14 +262,14 @@ public:
    void SetPAL ( bool bPAL) { pal_present_ = bPAL; GetVGA()->SetPAL( bPAL);};
    void SetFDCPlugged ( bool bFDCPlugged) { fdc_present_ = bFDCPlugged;GetSig()->fdc_present_ = fdc_present_;GetPPI()->SetExpSignal ( fdc_present_ );};
    void ChangeConfig (MachineSettings* current_settings);
-   void LimitSpeed (SpeedLimit bLimit){speed_limit_ = bLimit;};
 
-   void SetSpeed ( int speed_limit );
-   unsigned int GetSpeedLimit (){return speed_;}
-   unsigned int GetSpeed (){return speed_percent_;}
+   void SetSpeed ( int speed);
+   unsigned int GetSpeed(){return speed_;}
+   void SetSpeedLimit(SpeedLimit speed_limit );
+   SpeedLimit GetSpeedLimit (){return speed_limit_;}
+   unsigned int GetSpeedPercent (){return speed_percent_;}
 
    int speed_;
-
    bool bin_to_load_;
    std::string bin_to_load_path_;
 

@@ -5,8 +5,11 @@
 #include "stdafx.h"
 #include "SoundMixer.h"
 
-#include "simple_stdio.h"
+#include <stdio.h>
 
+#ifndef RASPPI
+#include <regex>
+#endif
 #ifndef NOFILTER
 
 #include <regex>
@@ -22,6 +25,7 @@
 static CSpinLock mutex_sound;
 #endif
 
+#define LOG_MIXER
 #ifdef LOG_MIXER
 #define LOG(str)  if (log_) log_->WriteLog (str);
 #define LOGEOL if (log_) log_->EndOfLine ();
@@ -93,6 +97,7 @@ SoundMixer::SoundMixer() :
 #else
    finished_(true),
 #endif
+   sound_(nullptr),
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
    tape_(nullptr),
@@ -435,7 +440,11 @@ void SoundMixer::PrepareBufferThread()
       current_wav_buffer_ = sound_->GetFreeBuffer();
       current_wav_index_ = 0;
    }
+   Loop();
+}
 
+void SoundMixer::Loop()
+{
 #ifndef NO_MULTITHREAD
    while (!finished_)
 #endif
@@ -443,8 +452,6 @@ void SoundMixer::PrepareBufferThread()
       // New buffer is          ready ?
       int index_to_convert = -1;
       int sample_number = -1;
-
-      // Synchronise (todo)
 
       for (int i = 0; i < NB_BUFFERS; i++)
       {
@@ -458,6 +465,9 @@ void SoundMixer::PrepareBufferThread()
 
       if (index_to_convert != -1)
       {
+         /*char logbuf[32];
+         sprintf(logbuf, "Playing sample number :, %i\n", buffer_list_[index_to_convert].sample_number_);
+         LOG( logbuf);*/
          buffer_list_[index_to_convert].status_ = BufferItem::LOCKED;
 
          // Release mutex (todo)
@@ -477,6 +487,7 @@ void SoundMixer::PrepareBufferThread()
       else
       {
          // Release mutex (todo)
+         // Nothing to play !
          sound_->CheckBuffersStatus();
 #ifndef NO_MULTITHREAD
          std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -489,7 +500,7 @@ void SoundMixer::PrepareBufferThread()
 
 bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 {
-#ifndef RASPPI
+#if !defined(RASPPI) && !defined(TEST_VECTOR)   
    bool name_is_ok = false;
 
    const fs::path exe_path =  "./REC/";
@@ -520,7 +531,7 @@ bool SoundMixer::GetNewSoundFile(char * buffer, unsigned int size)
 #else
 	strcpy(buffer, "/REC/SoundOutput.wav");
 	return true;
-#endif
+#endif   
 }
 
 
@@ -612,6 +623,23 @@ void SoundMixer::EndRecordImp()
    }
 }
 
+void SoundMixer::SyncOnSound(bool set)
+{
+   sync_on_sound_ = set; 
+   if (sound_ != nullptr)
+   {
+      sound_->SyncOnSound(set);
+   }
+   
+};
+
+void SoundMixer::SyncWithSound()
+{
+   if (sound_ != nullptr)
+   {
+      sound_->SyncWithSound();
+   }
+}
 
 // Sound Mixer : The soundmixer tick is 8us (125 khz)
 // This is a pragmatic value, set because it is the tick rate of AY8912 used by both CPC and PlayCITY
@@ -629,7 +657,7 @@ unsigned int SoundMixer::Tick()
       // Synchronize on Sound ?
       // Synchronize
       int free_buffer = 0;
-      while ( sync_on_sound_ && free_buffer < NB_BUFFERS-4)
+      /*while (sync_on_sound_ && free_buffer < NB_BUFFERS / 2)
       {
 #ifdef  __circle__
          mutex_sound.Acquire();
@@ -650,14 +678,14 @@ unsigned int SoundMixer::Tick()
          #elif __circle
                   CTimer::Get()->MsDelay(1);
          #endif
-      } 
+      } */
       int next_to_play = -1;
-      for (int i = 0; i < NB_BUFFERS; i++)
+      for (int i = 0; i < NB_BUFFERS && next_to_play == -1; i++)
       {
          if (buffer_list_[i].status_ == BufferItem::FREE)
          {
             next_to_play = i;
-            break;
+            //break;
          }
 
       }
@@ -676,6 +704,8 @@ unsigned int SoundMixer::Tick()
       }
       else
       {
+         // Buffer missing : We're way too fast ! (shouldn't happen if sync on sound)
+         //LOG("Buffer is missing, we're way too fast !\n");
          buffer_list_[index_current_buffer_].buffer_.InitBuffer();
       }
       buffer_list_[index_current_buffer_].status_ = BufferItem::IN_USE;

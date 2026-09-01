@@ -15,7 +15,7 @@ class IComponent : public IClockable
 {
 public:
 
-   IComponent () :machine_(0),elapsed_time_(0) { };
+   IComponent () :machine_(0), this_tick_time_(0), elapsed_time_(0) { };
    // Tick
    virtual void PreciseTick ( ) {};
 

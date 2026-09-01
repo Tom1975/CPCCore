@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "simple_stdio.h"
+#include <stdio.h>
 
 #ifdef _WIN32
 #if _MSC_VER < 1900
@@ -129,12 +129,18 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
       int nbtracks = ((new_disk->nb_sides_ == 1) ? (endTrack) : (endTrack) / 2) + 1;
       for (int side = 0; side < new_disk->nb_sides_; side++)
       {
+         // take care of last track, if odd number of tracks : Remove the last one
+         if (side == 1 && nbtracks * 2 != (endTrack+1))
+         {
+            nbtracks--;
+         }
+
          new_disk->side_[side].nb_tracks = nbtracks;
          new_disk->side_[side].tracks = new IDisk::MFMTrack[nbtracks];
          memset(new_disk->side_[side].tracks, 0, sizeof(IDisk::MFMTrack) * nbtracks);
          for (int tr = 0; tr < nbtracks; tr++)
          {
-            new_disk->side_[side].tracks[tr].nb_revolutions = 1;
+            new_disk->side_[side].tracks[tr].nb_revolutions = 0;
          }
       }
 
@@ -514,8 +520,8 @@ unsigned int FormatTypeSCP::ComputeTrack(unsigned char* bitfield, const unsigned
          }
 
          /* Clamp the clock's adjustment range. */
-         clock = std::max(CLOCK_MIN(clock_centre),
-                          std::min(CLOCK_MAX(clock_centre), clock));
+         clock = std::max<int>(CLOCK_MIN(clock_centre),
+                          std::min<int>(CLOCK_MAX(clock_centre), clock));
          flux = flux / 2;
       }
    }

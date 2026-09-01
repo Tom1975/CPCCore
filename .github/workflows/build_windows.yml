@@ -6,19 +6,21 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: windows-latest
             
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Checkout submodules
       run: git submodule update --init --recursive
       
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}\build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}\install -AWin32
+      run: |
+        cmake -B ${{github.workspace}}\build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_UNITTESTS=TRUE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}\install "-DCMAKE_POLICY_VERSION_MINIMUM=3.5.0"
 
     - name: Build
       # Build your program with the given configuration
@@ -31,13 +33,19 @@ jobs:
         dir ${{github.workspace}}\build\UnitTests\Release
         
     - name: Archive zip
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: CPCCore_Win
           path: |
             ${{github.workspace}}/build/UnitTests/Release/unitTests.exe
             ${{github.workspace}}/build/UnitTests/Release/TestConf.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_0.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_1.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_2.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_3.ini
+            ${{github.workspace}}/build/UnitTests/Release/TestConf_4.ini
             ${{github.workspace}}/build/UnitTests/Release/res/
             ${{github.workspace}}/build/UnitTests/Release/CONF/
             ${{github.workspace}}/build/UnitTests/Release/CART/
             ${{github.workspace}}/build/UnitTests/Release/ROM/
+            ${{github.workspace}}/build/UnitTests/Release/Keyboards/

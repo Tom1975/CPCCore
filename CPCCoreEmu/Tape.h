@@ -15,6 +15,8 @@
 class PPI8255;
 
 #ifndef NOFILTER
+#include "tcn_tape_to_ppi.h"
+
 class Filter
 {
 public:
@@ -57,6 +59,23 @@ protected:
    Filter lp_filter_;
 
    float gain_;
+};
+
+class TcnFilter : public IGenericFunction
+{
+public:
+   TcnFilter() = default;
+   virtual ~TcnFilter() = default;
+
+   virtual void Filtrer(double* array, unsigned int nb_samples)
+   {
+      std::vector<double> v(array, array + nb_samples);
+      tcn_.Filtrer(v);
+      std::copy(v.begin(), v.end(), array);
+   }
+
+private:
+   TcnTapeToPPI tcn_;
 };
 #endif
 
@@ -134,6 +153,28 @@ public:
    const char* GetTapePath () { return current_tape_.c_str(); };
 
    bool IsSaveAvailable () {return nb_inversions_ > 0;};
+
+   // Debug signal access
+   struct DebugFlux {
+      unsigned long long length;
+      unsigned long long place;
+      unsigned short blockNumber;
+      unsigned char  blockType;
+      bool high;
+   };
+   unsigned int GetTapePosition()  const { return tape_position_; }
+   unsigned int GetNbInversions()  const { return nb_inversions_; }
+   int GetCurrentBlock()           const { return current_block_; }
+   int GetCurrentBlockType()       const { return current_block_type_; }
+   bool GetFlux(unsigned int idx, DebugFlux& out) const {
+      if (!tape_array_ || idx >= nb_inversions_) return false;
+      out.length      = tape_array_[idx].length;
+      out.place       = tape_array_[idx].place;
+      out.blockNumber = tape_array_[idx].block_number;
+      out.blockType   = tape_array_[idx].block_type;
+      out.high        = tape_array_[idx].high;
+      return true;
+   }
    void SaveAsWav (const char* filepath);
    void SaveAsCdtDrb (const char* filepath);
 #ifndef NOZLIB
@@ -159,6 +200,7 @@ public:
    int filter_order_hp_;
    int filter_type_lp_;
    int filter_type_hp_;
+   bool use_tcn_filter_;
    unsigned int tape_length_;
 
 protected:

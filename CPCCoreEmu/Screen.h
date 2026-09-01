@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <vector>
+
 #include "ICfg.h"
 
 #define CPCCOREEMU_API 
@@ -36,7 +39,7 @@ public:
    virtual void SetSize (SizeEnum size) = 0;
    virtual SizeEnum  GetSize () = 0; 
    virtual void VSync (bool dbg=false) = 0;
-
+   virtual void SyncOnFrame( bool set) = 0;
    // Start of sync
    virtual void StartSync() = 0;
    // Wait VBL
@@ -71,6 +74,16 @@ public:
    virtual bool CanVSync () { return false; }
    virtual bool CanInsertBlackFrame() { return false; }
    virtual void Activate ( bool on ) {};
+
+   // Debug tooling: capture the currently displayed frame as a cropped,
+   // de-interlaced RGBA8888 raster (top-left origin, row-major, no padding).
+   // Default implementation: unsupported.
+   virtual bool CaptureFrameRGBA (std::vector<unsigned char>& rgba, int& width, int& height) { return false; }
+
+   // Debug tooling: register a callback invoked once per VSync (i.e. once a
+   // new frame has been produced), from whichever thread drives emulation.
+   // Default implementation: no-op (not every IDisplay implementer supports it).
+   virtual void SetFrameCallback (std::function<void()> callback) {}
 
 };
 

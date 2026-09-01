@@ -2,10 +2,14 @@
 #include "DiskGen.h"
 //#include "rand.h"
 #include <stdlib.h>
-#include "simple_vector.hpp"
+#include <vector>
 #include "MediaManager.h"
 
-#define LOGFDC
+#ifdef  __circle__
+#include <strings.h>
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
+#endif
 
 #define SPEED_COUNTER 1
 #define SPEED_CHANGE 20 /*20000*/
@@ -366,8 +370,10 @@ IDisk* DiskGen::CreateDisk(const char* path, ILoadingProgress* loading_progress,
    FormatType* format;
    if (disk_builder_.CanLoad(path, format))
    {
+      LOG ("DiskGen::CreateDisk - CanLoad ok")
       if (disk_builder_.LoadDisk(path, new_disk, loading_progress) == 0)
       {
+         LOG ("DiskGen::CreateDisk - LoadDisk ok")
          current_disk_format_ = format;
       }
    }
@@ -539,13 +545,13 @@ bool CompareStringFromCat(const char* track, const char* searched_string, const 
       && strnicmp(file_ext, search_ext, strlen(search_ext)) == 0);
 }
 
-int NbIdenticalCar(const char* track, const char* searched_string, int size_max)
+size_t NbIdenticalCar(const char* track, const char* searched_string, size_t size_max)
 {
-   int i = 0;
-   int lg_max = strlen(searched_string);
-   int nb_car_found = 0;
+   size_t i = 0;
+   size_t lg_max = strlen(searched_string);
+   size_t nb_car_found = 0;
 
-   for (int j = 0; j < lg_max; j++)
+   for (size_t j = 0; j < lg_max; j++)
    {
       bool correct = true;
       for (i = 0; i < size_max && i < 8 && i < lg_max - j && correct; i++)
@@ -587,7 +593,7 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
 {
    IDisk::AutorunType ret;
    bool end = false;
-   int nb_correct_char = 0;
+   size_t nb_correct_char = 0;
    bool correct_hidden = 1;
 
    std::vector<std::string> filename_vector = disk_->GetCat(ret);
@@ -667,7 +673,7 @@ IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer
             || strnicmp((char*)&filename[8], "   ", 3) == 0)
          {
             // Priority : If it's call "sav?????.b??", it's less priority thant any other
-            int nbcar = NbIdenticalCar(it->c_str(), disk_filename.c_str(), disk_filename.size());
+            size_t nbcar = NbIdenticalCar(it->c_str(), disk_filename.c_str(), disk_filename.size());
             if (strncmp(&it->c_str()[8], "BIN", 3) == 0
                || strncmp(&it->c_str()[8], "BAS", 3) == 0
             )

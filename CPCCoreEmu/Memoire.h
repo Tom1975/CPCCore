@@ -1,8 +1,8 @@
 #pragma once
 
-#include "simple_vector.hpp"
+#include <vector>
 #include <memory.h>
-#include "simple_string.h"
+#include <string.h>
 #include "IExpansion.h"
 #include "DMAStop.h"
 
@@ -101,6 +101,66 @@ public:
    void SetDbg ( unsigned short addr, unsigned char data , unsigned int ram_bank) {(*ram_write_[ram_bank])[addr & 0x3FFF] = data;};
    void SetWordDbg ( unsigned short addr, unsigned short data , unsigned int ram_bank){   SetDbg( addr, data&0xff, ram_bank);SetDbg( addr+1, data>>8, ram_bank);};
    unsigned char *GetRamRead(unsigned int ram_bank) { return *ram_read_[ram_bank]; }
+
+   // Memory window info for debugger
+   bool IsLowerRomConnected() const { return inf_rom_connected_; }
+   bool IsUpperRomConnected() const { return sup_rom_connected_; }
+   unsigned char GetSelectedRom()    const { return rom_number_; }
+   unsigned char GetRamBankConfig()  const { return connected_bank_; }
+
+   struct WindowInfo {
+      const char* readType;   // "lower_rom", "upper_rom", "ram", "ext_ram", "cart", "unknown"
+      int         readIndex;  // bank/slot index
+      const char* writeType;  // "ram", "ext_ram", "unknown"
+      int         writeIndex;
+   };
+
+   WindowInfo GetWindowInfo(int w) const {
+      WindowInfo info = { "unknown", -1, "unknown", -1 };
+      if (w < 0 || w > 3) return info;
+
+      // ── READ ────────────────────────────────────────────────────────────────
+      const RamBank* rd = ram_read_[w];
+      if (rd == &lower_rom_) {
+         info.readType = "lower_rom"; info.readIndex = -1;
+      } else {
+         // main ROM banks
+         bool found = false;
+         for (int i = 0; i < 256 && !found; i++) {
+            if (rd == &rom_[i]) { info.readType = "upper_rom"; info.readIndex = i; found = true; }
+         }
+         // main RAM
+         for (int i = 0; i < 4 && !found; i++) {
+            if (rd == &ram_buffer_[i]) { info.readType = "ram"; info.readIndex = i; found = true; }
+         }
+         // extended RAM (8 banks x 4 windows)
+         for (int j = 0; j < 8 && !found; j++)
+            for (int k = 0; k < 4 && !found; k++)
+               if (rd == &extended_ram_buffer_[j][k]) {
+                  info.readType = "ext_ram"; info.readIndex = j * 4 + k; found = true;
+               }
+         // cartridge slots
+         if (!found && current_cartridge_bank_)
+            for (int i = 0; i < 32 && !found; i++)
+               if (rd == &current_cartridge_bank_->bank[i]) {
+                  info.readType = "cart"; info.readIndex = i; found = true;
+               }
+      }
+
+      // ── WRITE ───────────────────────────────────────────────────────────────
+      const RamBank* wr = ram_write_[w];
+      bool found = false;
+      for (int i = 0; i < 4 && !found; i++) {
+         if (wr == &ram_buffer_[i]) { info.writeType = "ram"; info.writeIndex = i; found = true; }
+      }
+      for (int j = 0; j < 8 && !found; j++)
+         for (int k = 0; k < 4 && !found; k++)
+            if (wr == &extended_ram_buffer_[j][k]) {
+               info.writeType = "ext_ram"; info.writeIndex = j * 4 + k; found = true;
+            }
+
+      return info;
+   }
    //
    unsigned char* GetRomBuffer() {return rom_[0];};
    unsigned char* GetCartridge(int index) {

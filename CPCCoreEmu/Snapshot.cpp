@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Snapshot.h"
 #include "Motherboard.h"
-#include "simple_stdio.h"
+#include <stdio.h>
 
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
@@ -281,7 +281,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[/*ListeColorsIndexConvert[*/header[0x3F/*]*/]];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[header[0x3F] & 0xFF];
    //m_pMachine->GetVGA()->m_Border = ListeColorsIndex[(header[0x3F] & 0x1F)|0x40];
-   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40];
+   for (int i = 0; i < NB_BYTE_BORDER; i++)machine_->GetVGA()->video_border_[i] = ListeColorsIndex[(header[0x3F] & 0x1F) | 0x40] + 0xFF000000;
    machine_->GetMem()->UpdateAsicPalette(0x10, (header[0x3F] & 0x1F));
 
    //m_pMachine->GetMonitor()->SetBorder ( ListeColorsIndex[(header[0x3F] & 0x1F)|0x40] );
@@ -582,13 +582,51 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
+void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, int size)
+{
+   // Pure ASCII chunk: semicolon-separated tags
+   // brk ADDR BANK       â€” exec breakpoint in RAM at logical address ADDR, bank BANK
+   // rombrk ADDR ROM     â€” exec breakpoint in ROM (not yet supported)
+   // label/romlabel/alias/comz/romcomz â€” symbol info, ignored here (parsed by debug adapter)
+
+   const char* text = reinterpret_cast<const char*>(in_buffer);
+   const char* end  = text + size;
+
+   while (text < end)
+   {
+      // Find end of tag (';' or end of buffer)
+      const char* semi = text;
+      while (semi < end && *semi != ';') ++semi;
+
+      std::string token(text, semi);
+      text = (semi < end) ? semi + 1 : end;
+
+      // Trim leading whitespace
+      size_t first = token.find_first_not_of(" \t\r\n");
+      if (first == std::string::npos) continue;
+      token = token.substr(first);
+      if (token.empty()) continue;
+
+      // "brk " (not "rombrk")
+      if (token.size() >= 4 && token.compare(0, 4, "brk ") == 0)
+      {
+         unsigned int addr = 0, bank = 0;
+         if (sscanf(token.c_str() + 4, "%u %u", &addr, &bank) >= 1)
+         {
+            machine_->AddBreakpoint(static_cast<unsigned short>(addr));
+         }
+      }
+      // rombrk: ROM-aware breakpoints not yet supported by AddBreakpoint
+   }
+}
+
 void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, int size)
 {
    // ACE's Symbols
 
    // 1 octet -> taille du symbole (0 est une valeur invalide)
-   // n octets->le nom du symbole(sans 0 à la fin puisqu'on connait la taille)
-   // 6 octets->réservé(ça sera utilisé plus tard pour des symbols contextuels)
+   // n octets->le nom du symbole(sans 0 ï¿½ la fin puisqu'on connait la taille)
+   // 6 octets->rï¿½servï¿½(ï¿½a sera utilisï¿½ plus tard pour des symbols contextuels)
    // 2 octets->l'adresse du symbole (en big endian)
 }
 
@@ -602,7 +640,8 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
 
    // Read lower rom
    char rom_name [128];
-   strcpy ( rom_name, (char*)&in_buffer[off] );
+   strncpy(rom_name, (char*)&in_buffer[off], sizeof(rom_name) - 1);
+   rom_name[sizeof(rom_name) - 1] = '\0';
    off += strlen (rom_name);
    off ++;
    // Load it
@@ -614,7 +653,8 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
    for (int i = 0; i < 8; i++)
    {
       // Read next ROM
-      strcpy ( rom_name, (char*)&in_buffer[off] );
+      strncpy(rom_name, (char*)&in_buffer[off], sizeof(rom_name) - 1);
+      rom_name[sizeof(rom_name) - 1] = '\0';
       off += strlen (rom_name);
       off ++;
       // todo
@@ -661,7 +701,7 @@ void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* i
       else if (i==16)
       {
          for (int j = 0; j < NB_BYTE_BORDER; j++)
-            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b);
+            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b) + 0xFF000000;
       }
    }
    machine_->GetMonitor()->RecomputeAllColors();
@@ -1197,6 +1237,10 @@ bool CSnapshot::LoadSnapshot (const char* path_file)
          else if (memcmp(chunk, "SYMB", 4) == 0)
          {
             HandleChunkSYMB(chunk, buffer, length);
+         }
+         else if (memcmp(chunk, "REMU", 4) == 0)
+         {
+            HandleChunkREMU(chunk, buffer, length);
          }
          delete []buffer;
       }

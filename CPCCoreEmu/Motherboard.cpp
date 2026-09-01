@@ -19,12 +19,12 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
    breakpoint_index_ = 0;
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));
 
-   auto line_4mhz = gate_array.Get4MhzLine();
+   /*auto line_4mhz = gate_array.Get4MhzLine();
    auto line_1mhz = gate_array.Get1MhzLine();
 
    line_4mhz->AddComponent(&z80_);
 
-   line_1mhz->AddComponent(&crtc_);
+   line_1mhz->AddComponent(&crtc_);*/
 }
 
 Motherboard::~Motherboard()
@@ -57,6 +57,7 @@ void Motherboard::InitMotherbard(ILog *log, IPlayback * sna_handler, IDisplay* d
    // Gate array
    monitor_.SetCRTC(&crtc_);
    monitor_.SetVGA(&vga_);
+   monitor_.SetKeyboard(keyboardhandler_);
    monitor_.SetScreen(display);
    monitor_.SetPlayback(sna_handler);
 
@@ -219,7 +220,7 @@ void Motherboard::InitStartOptimized()
    component_list_[nb_components_] = &fdc_;
    component_list_[nb_components_]->this_tick_time_ = 8;
 
-   // SET sur 6128 ou si DDI ( dependant de la présenc du FDC, donc ?)
+   // SET sur 6128 ou si DDI ( dependant de la prï¿½senc du FDC, donc ?)
    ppi_.SetExpSignal(true);
 
    nb_components_++;
@@ -272,7 +273,7 @@ void Motherboard::InitStartOptimizedPlus()
    component_list_[nb_components_]->this_tick_time_ = 11;
    nb_components_++;
 
-   // SET sur 6128 ou si DDI ( dependant de la présenc du FDC, donc ?)
+   // SET sur 6128 ou si DDI ( dependant de la prï¿½senc du FDC, donc ?)
    ppi_.SetExpSignal(true);
 
    for (int j = 0; j < nb_components_; j++)
@@ -319,7 +320,7 @@ void Motherboard::Resync()
    // z80
    ForceTick(&z80_, 0);
 
-   // CRTC§Asic
+   // CRTCï¿½Asic
    if (plus_)
    {
       ForceTick(&asic_, 11);
@@ -437,6 +438,12 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
          old_counter = component_elapsed_time_[z80_index_];
          {
             nb_opcodes--;
+            if ( z80_.IsBreak())
+            {
+               run_ = false;
+               z80_.AckBreak();
+            }
+
             if (generic_breakpoint_)
             {
                run_ = generic_breakpoint_->IsBreak() ? false : true;
@@ -476,7 +483,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
       if (!run_) supervisor_->EmulationStopped();
       if (counter_ >= 4000000)
       {
-         supervisor_->SetEfficience(GetSpeed());
+         //supervisor_->SetEfficience(GetSpeedPercent());
          supervisor_->RefreshRunningData();
          // Refresh ?
       }
@@ -567,6 +574,11 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
          counter_ += (component_elapsed_time_[z80_index_] - old_counter + 1);
          old_counter = component_elapsed_time_[z80_index_];
          {
+            if ( z80_.IsBreak())
+            {
+               run_ = false;
+               z80_.AckBreak();
+            }
             if (generic_breakpoint_)
             {
                run_ = generic_breakpoint_->IsBreak() ? false : true;
@@ -620,7 +632,7 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       if (!run_) supervisor_->EmulationStopped();
       if (counter_ >= 4000000)
       {
-         supervisor_->SetEfficience(GetSpeed());
+         //supervisor_->SetEfficience(GetSpeedPercent());
          supervisor_->RefreshRunningData();
          // Refresh ?
       }

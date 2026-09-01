@@ -8,7 +8,8 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   call-workflow:
     uses:  ./.github/workflows/build_windows.yml
@@ -18,12 +19,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: CPCCore_Win
           
       - name: Test
         working-directory: ${{github.workspace}}
         run: |
+          dir
+          dir Keyboards
           .\unitTests.exe
 

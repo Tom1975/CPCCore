@@ -1,6 +1,9 @@
 #pragma once
-#include <functional>
-#include <map>
+
+#ifndef NO_CUSTOM_OPCODES
+   #include <functional>
+   #include <map>
+#endif
 
 #include "IComponent.h"
 #include "Memoire.h"
@@ -168,6 +171,9 @@ public:
    unsigned char GetOpcodeSize(unsigned short address);
    bool IsCallInstruction(unsigned short address);
 
+   bool IsBreak(){return break_;}
+   void AckBreak(){break_ = false;}
+
 
    // Don't use : Force an inline usage for more efficiency
    inline unsigned int Tick( ) 
@@ -183,6 +189,16 @@ public:
    void ReinitProc();
    unsigned int GetCurrentOpcode() { return current_opcode_; };
    unsigned short GetPC();
+
+   // Reset the Z80 to a clean "about to fetch from addr" state (for debugger use)
+   void PrepareForFetch(unsigned short addr) {
+      pc_ = addr;
+      current_function_ = &fetch_func;
+      new_instruction_ = true;
+      machine_cycle_ = M_FETCH;
+      t_ = 1;
+      current_opcode_ = 0;
+   }
 
    int OpcodeIOR();
    int OpcodeIOW();
@@ -264,6 +280,7 @@ public:
    MachineCycle machine_cycle_;
 
    bool new_instruction_;
+   bool break_;
 
    // Inner helper attributes
    unsigned int counter_;
@@ -292,10 +309,9 @@ public:
       FD,
    } OpcodeType;
 
-
+#ifndef NO_CUSTOM_OPCODES
    std::function<void(unsigned int)> custom_opcode_decoder_;
    std::map<unsigned int, Func> custom_commands;
-
    unsigned int CustomOpcode()
    {
       custom_opcode_decoder_(current_opcode_);
@@ -375,6 +391,7 @@ public:
       custom_commands[replaced_opcode] = old_f;
       (*fetch)[opcode] = &Z80::CustomOpcode;
    };
+#endif
 
    template<OpcodeType type>
    void FillStructOpcode(unsigned char opcode, unsigned int(Z80::* func)(), unsigned char Size, const char* disassembly)
@@ -490,6 +507,8 @@ public:
    unsigned int Opcode_ED();
    unsigned int Opcode_DD();
    unsigned int Opcode_FD();
+
+   unsigned int Opcode_Emu_Break();
 
    typedef enum
    {

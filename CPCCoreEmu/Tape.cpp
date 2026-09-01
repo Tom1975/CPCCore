@@ -2,10 +2,12 @@
 
 #include "Tape.h"
 
-#include "simple_math.h"
-#include "simple_regex.h"
-#include "simple_filesystem.h"
-#include "simple_stdio.h"
+#include <cmath>
+//#include "simple_regex.h"
+#include <algorithm>
+#include <memory>
+#include <filesystem>
+#include <stdio.h>
 
 #ifndef NOZLIB
 #include "zlib.h"
@@ -17,8 +19,6 @@
 #ifndef NOFILTER
 #include "mkfilter.h"
 #endif
-
-#define LOGFDC
 
 #ifdef LOGFDC
 #define LOG(str) \
@@ -32,29 +32,34 @@
 #define LOGEOL
 #endif
 
+double Round(double d)
+{
+   return floor(d + 0.5);
+}
+
 // Delay : 50 ms ?  - TODO : seems to be 180 ms
 #define MOTOR_DELAY   240000
 /*
-Tout le fonctionnement de la chaine tête de lecture vers le PPI est documenté : c'est le schéma du CPC :P
+Tout le fonctionnement de la chaine tï¿½te de lecture vers le PPI est documentï¿½ : c'est le schï¿½ma du CPC :P
 
-Pour faire simple (à partir des schéma dans l'amendment service manual) :
+Pour faire simple (ï¿½ partir des schï¿½ma dans l'amendment service manual) :
 Le 464 :
-1er étage (transistor): pre-ampli du signal de la tête de lecture (~ x37) + filtre passe haut du 1er ordre (FC=7 hz)
-2eme étage (AO) : 1er étage d'amplification (~ x70) + filtre passe haut du 1er ordre (FC= 500Hz)
+1er ï¿½tage (transistor): pre-ampli du signal de la tï¿½te de lecture (~ x37) + filtre passe haut du 1er ordre (FC=7 hz)
+2eme ï¿½tage (AO) : 1er ï¿½tage d'amplification (~ x70) + filtre passe haut du 1er ordre (FC= 500Hz)
 (d'apres tech manual : 0.330 -> 0.520 mV en sortie...)
-3eme étage (AO) : 2eme étage d'amplification (~ x7)
+3eme ï¿½tage (AO) : 2eme ï¿½tage d'amplification (~ x7)
 Soit, d'apres manual : 2.31 -> 3.64 ??
 
-Le 6128 possède uniquement un filtre passe haut du 1er ordre (FC=250Hz) et le 2eme étage d'amplification (les deux autres sont dans le magnéto)
+Le 6128 possï¿½de uniquement un filtre passe haut du 1er ordre (FC=250Hz) et le 2eme ï¿½tage d'amplification (les deux autres sont dans le magnï¿½to)
 
-Dans les deux cas, la sortie des amplis est centrée sur 1.7V et attaque directement l'entrée du 8255, dont la tension de seuil haut est de 2.2V.
+Dans les deux cas, la sortie des amplis est centrï¿½e sur 1.7V et attaque directement l'entrï¿½e du 8255, dont la tension de seuil haut est de 2.2V.
 
 Les points les plus importants sont :
-Le filtre passe haut a 250/500Hz et la sortie centrée sur 1.7V.
-- Le filtre passe haut permet le retour à 0 de l'entrée du PPI lors des pauses.
-- Le seuil d'entrée du PPI à 2.2v (à comparer au 1.7V) qui permet d'ignorer les signaux trop faible.
+Le filtre passe haut a 250/500Hz et la sortie centrï¿½e sur 1.7V.
+- Le filtre passe haut permet le retour ï¿½ 0 de l'entrï¿½e du PPI lors des pauses.
+- Le seuil d'entrï¿½e du PPI ï¿½ 2.2v (ï¿½ comparer au 1.7V) qui permet d'ignorer les signaux trop faible.
 
-Pour simuler ça, il suffit d'appliquer le filtre passe haut, un offset de 1.7V et un comparateur a 2.2V. Le seul problème est le gain, qui dépend évidement de la source.
+Pour simuler ï¿½a, il suffit d'appliquer le filtre passe haut, un offset de 1.7V et un comparateur a 2.2V. Le seul problï¿½me est le gain, qui dï¿½pend ï¿½videment de la source.
 */
 
 
@@ -129,7 +134,7 @@ CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_bu
 
    // 8 tests / 8 ok !
    // 700/6200 - 0.015 - f 1 ; o 3
-   // Pas ok sur la toute fin de "After the war", mais à investiguer car peu compréhensible.
+   // Pas ok sur la toute fin de "After the war", mais ï¿½ investiguer car peu comprï¿½hensible.
    fc_hp_ = 700;
    fc_lp_ = 6200;
    filter_gain_ = 0.015F;
@@ -137,6 +142,7 @@ CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_bu
    filter_type_hp_ = 2;
    filter_order_lp_ = 3;
    filter_type_lp_ = 2;
+   use_tcn_filter_ = true;
 
    /*m_FilterGain = 0.008;
    m_FcHP = 640;
@@ -262,7 +268,7 @@ void CTape::InsertBlankTape ()
 void CTape::Shift ( double* array, const unsigned int nb_samples, double offset)
 {
 
-   // Gain = 10 log (vs/ve)²
+   // Gain = 10 log (vs/ve)ï¿½
    // vs = sqrt( exp10 ( Gain/10 ) ) * ve
 
    for (unsigned int i = 0; i < nb_samples; i++)
@@ -275,7 +281,7 @@ void CTape::Shift ( double* array, const unsigned int nb_samples, double offset)
 void CTape::Gain ( double* array, const unsigned int nb_samples, double multiplier)
 {
 
-   // Gain = 10 log (vs/ve)²
+   // Gain = 10 log (vs/ve)ï¿½
    // vs = sqrt( exp10 ( Gain/10 ) ) * ve
 
    for (unsigned int i = 0; i < nb_samples; i++)
@@ -286,6 +292,7 @@ void CTape::Gain ( double* array, const unsigned int nb_samples, double multipli
 }
 
 //////////////////////////////////////////////////
+// 
 // Filtres :
 //////////////////////////////////////////////////
 #ifndef NOFILTER
@@ -351,7 +358,7 @@ void Filter::Init()
 }
 
 //////////////////////////////////////////////////
-// High pass filter, Butterworth, fc et ordre paramétrable.
+// High pass filter, Butterworth, fc et ordre paramï¿½trable.
 //////////////////////////////////////////////////
 // 01 : Bessel
 // ...
@@ -755,10 +762,10 @@ int CTape::SampleToPPI ( double val )
    //val *= 6588;
 
    // TO ADD : Specific gain...
-   // Sortie centrée sur 1.7v ->
+   // Sortie centrï¿½e sur 1.7v ->
    //val += 1.7;
 
-   // Entrée du PPI a 2.2v, on coupe donc les signaux trop faibles
+   // Entrï¿½e du PPI a 2.2v, on coupe donc les signaux trop faibles
    // If value < average - threshold, then return is "low"
 
    //if ( val > 2.2 )
@@ -912,7 +919,7 @@ void TriggerSchmitt ( double* value_tab, int nb_samples, double vtp, double vtm,
 {
    bool state_high = false;
 
-   // Comparateur à deux seuils inverseur (de schmitt)
+   // Comparateur ï¿½ deux seuils inverseur (de schmitt)
    for (int i = 0; i < nb_samples; i++)
    {
       // Depending on state
@@ -1184,15 +1191,25 @@ int CTape::InsertTapeDelayed()
       {
          ret = LoadVOC (current_tape_.c_str());
       }
-      else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
-      {
-         ret = LoadTap(current_tape_.c_str());
-      }
+      //else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
+
+
       else
       {
-         // Unknown format
-         current_tape_.clear();
-         ret = -2;
+         std::filesystem::path file_ext(current_tape_);
+         std::string extens = file_ext.extension().string();
+         std::transform(extens.begin(), extens.end(), extens.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+         if (strcmp(extens.c_str(), ".tap") == 0)
+         {
+            ret = LoadTap(current_tape_.c_str());
+         }
+         else
+         {
+            // Unknown format
+            current_tape_.clear();
+            ret = -2;
+         }
       }
    }
    else
@@ -1606,7 +1623,11 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
    // todo : Frequency 
    //Filter = 
 #ifndef NOFILTER
-   StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
+   std::unique_ptr<IGenericFunction> filter;
+   if (use_tcn_filter_)
+      filter = std::make_unique<TcnFilter>();
+   else
+      filter = std::make_unique<StandardFilter>(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
 #endif
    //Filter hp_filter(m_TypeOfFilterHP, false, m_Frequency, m_FcHP, m_FilterOrderHP);
    //Filter lp_filter(m_TypeOfFilterLP, false, m_Frequency, m_FcLP, m_FilterOrderLP);
@@ -1650,7 +1671,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
          // Data
          HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -1659,7 +1680,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
       case 0x02:  // Sound data continuation
          HandleVOCData(first, (&buffer[2]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -1702,7 +1723,7 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
 
          HandleVOCData(first, (&buffer[12]), data_length - 2, codec_id, sample_rate_, nb_channels, bit_per_sample
 #ifndef NOFILTER            
-            , &filter
+            , filter.get()
 #endif
          );
          first = false;
@@ -2729,9 +2750,11 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
             // one sample = 4 Mhz / freq
             unsigned int bit_per_sample = fmt[14] + (fmt[15] << 8);
 #ifndef NOFILTER
-            StandardFilter filter(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
-            Filter hp_filter (filter_type_hp_, false, frequency_, fc_hp_, filter_order_hp_);
-            Filter lp_filter (filter_type_lp_, true, frequency_, fc_lp_, filter_order_lp_);
+            std::unique_ptr<IGenericFunction> filter;
+            if (use_tcn_filter_)
+               filter = std::make_unique<TcnFilter>();
+            else
+               filter = std::make_unique<StandardFilter>(frequency_, filter_type_hp_, fc_hp_, filter_order_hp_, filter_type_lp_, fc_lp_, filter_order_lp_, filter_gain_);
 #endif
             // Other chunks :
             bool not_finished = true;
@@ -2810,7 +2833,7 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
                         // Handle this sample array                        
                         ConvertSampleArray(first, value_array, sample_count, frequency_
 #ifndef NOFILTER
-                           , square_wave?nullptr:&filter
+                           , square_wave?nullptr:filter.get()
 #endif
                         );
                         first = false;

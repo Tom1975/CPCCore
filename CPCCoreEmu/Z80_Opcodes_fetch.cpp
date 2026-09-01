@@ -417,6 +417,8 @@ void Z80::InitOpcodeShortcuts()
    FillStructOpcode<ED>(0xBB, &Z80::Opcode_Delayed_Read_REG< M_MEMORY_R, ADDR_HL>, 1, "OTDR");
    FillStructOpcode<ED>(0xED, &Z80::Opcode_NOP, 1, "%ED");
 
+   FillStructOpcode<ED>(0xFF, &Z80::Opcode_Emu_Break, 1, "EMULATOR BREAK");
+
    //////////////////
    // DD
    // Act like normal opcode, except that HL is replaced by IX.
