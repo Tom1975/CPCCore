@@ -326,10 +326,12 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    // This one depends on the keyboard type : It should be the same for AZERTY,QWERTY and so one.
    // Maybe it can differ depending on the keyboad ? (Pi can be different from PC for example)
    // TODO : Handle these keyboard in a smart way
+#ifndef CPCCORE_NO_HOST_KEYBOARD
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
    LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
+#endif
 }
 
 void KeyboardHandler::InitKeyboard (const char* path)
@@ -337,7 +339,11 @@ void KeyboardHandler::InitKeyboard (const char* path)
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
    memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
 
+#ifndef CPCCORE_NO_HOST_KEYBOARD
    LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
+#else
+   (void)path;
+#endif
 
 }
 
