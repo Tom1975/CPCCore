@@ -1309,6 +1309,32 @@ bool EmulatorEngine::SaveSnapshot (const char* path_file)
    return true;
 }
 
+bool EmulatorEngine::SaveSnapshotNow(const char* path_file)
+{
+   // Immediate synchronous save — does not use the deferred flag mechanism
+   // (which requires HandleSnapshots() to run, and lets a whole time slice
+   // elapse before it does). A snapshot can only describe the machine at an
+   // instruction boundary, so run on to the next one when not already there.
+   if (GetProc()->machine_cycle_ != Z80::M_FETCH || GetProc()->t_ != 1)
+   {
+      bool old_stop_on_fetch = GetProc()->stop_on_fetch_;
+      GetProc()->stop_on_fetch_ = true;
+      GetProc()->new_instruction_ = false;
+
+      unsigned int nb_opcodes = 1;
+      motherboard_.DebugOpcodes(nb_opcodes);
+
+      GetProc()->stop_on_fetch_ = old_stop_on_fetch;
+   }
+
+   if (!sna_handler_.SaveSnapshot(path_file))
+      return false;
+
+   quick_sna_available_ = true;
+   quick_sna_path_ = path_file;
+   return true;
+}
+
 
 bool EmulatorEngine::QuickLoadsnapshot ()
 {

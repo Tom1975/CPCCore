@@ -91,6 +91,7 @@ public:
    bool LoadSnapshotNow(const char* path_file);
    bool LoadSnapshotDelayed();
    bool SaveSnapshot (const char* path_file);
+   bool SaveSnapshotNow(const char* path_file);
    bool IsQuickSnapAvailable ();
    bool QuickLoadsnapshot ();
    bool QuickSavesnapshot ();
