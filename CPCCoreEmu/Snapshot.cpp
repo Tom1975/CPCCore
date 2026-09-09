@@ -198,7 +198,33 @@ void CSnapshot::Playback ()
 }
 
 
-void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
+unsigned int CSnapshot::DecodeChunkLength ( const unsigned char* chunk )
+{
+   return chunk[ 4 ]
+        + (chunk[ 5 ] << 8)
+        + (chunk[ 6 ] << 16)
+        + (chunk[ 7 ] << 24);
+}
+
+static bool ReadWholeFile ( const char* path_file, std::vector<unsigned char>& out )
+{
+   FILE * f;
+   if ( fopen_s ( &f, path_file, "rb") != 0)
+      return false;
+   fseek (f, 0, SEEK_END);
+   long size = ftell (f);
+   rewind (f);
+   bool ok = false;
+   if (size > 0)
+   {
+      out.resize ((size_t)size);
+      ok = fread (&out[0], 1, (size_t)size, f) == (size_t)size;
+   }
+   fclose (f);
+   return ok;
+}
+
+void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer, size_t size, size_t& offset)
 {
    if (machine_ == NULL) return;
 
@@ -507,27 +533,21 @@ void CSnapshot::LoadStdSna ( unsigned char * header, FILE* f)
    // Memory dump
    // Lower RAM
    if (bLowRAM)
-	   {
-	   //if (!feof(f))
-	   {
-		  int count = 0;
-		  for (int i = 0; i < 4; i++)
-		  {
-			 count = fread ( machine_->GetMem()->ram_buffer_[i], 1, 0x4000, f);
-		  }
-	   }
+   {
+      for (int i = 0; i < 4 && offset + 0x4000 <= size; i++)
+      {
+         memcpy ( machine_->GetMem()->ram_buffer_[i], &buffer[offset], 0x4000);
+         offset += 0x4000;
+      }
    }
    // Upper RAM
    if (bUpRAM)
    {
-      //if (!feof(f))
+      for (int i = 0; i < 4 && offset + 0x4000 <= size; i++)
       {
-         for (int i = 0; i < 4; i++)
-         {
-            fread ( machine_->GetMem()->extended_ram_buffer_[0][i], 1, 0x4000, f);
-         }
+         memcpy ( machine_->GetMem()->extended_ram_buffer_[0][i], &buffer[offset], 0x4000);
+         offset += 0x4000;
       }
-         //fread_s( &m_pMachine->GetMem()->ExtendedRamBuffer[0][0] , sizeof(CMemoire::tRamBank) * 4, sizeof(CMemoire::tRamBank) * 4, 1, f);
    }
 }
 
@@ -958,7 +978,10 @@ void CSnapshot::InitRecord ()
    unsigned char header [0x100] = {0};
    memcpy ( header, "RW - SNR", 8);
 
-   WriteSnapshotV3 ( record_file_, header, 8 );
+   std::vector<unsigned char> image;
+   WriteSnapshotV3 ( image, header, 8 );
+   if (!image.empty())
+      fwrite ( &image[0], 1, image.size(), record_file_ );
 
    // Then some SNRV chunk
    unsigned char snrv_chunk[9] = {0};
@@ -1046,7 +1069,15 @@ void CSnapshot::InitReplay ()
       return ;
    }
 
-   LoadStdSna ( header, f );
+   // LoadStdSna reads the memory dump from a buffer now, so resync the stream
+   // to the offset it consumed and leave the chunk loop below unchanged.
+   std::vector<unsigned char> image;
+   size_t offset = 0x100;
+   if (ReadWholeFile (snr_filepath_.c_str(), image) && image.size() >= 0x100)
+   {
+      LoadStdSna ( header, &image[0], image.size(), offset );
+      fseek ( f, (long)offset, SEEK_SET );
+   }
 
    // What's next ?
    unsigned char chunk [8];
@@ -1123,166 +1154,155 @@ void CSnapshot::InitReplay ()
 #endif
 }
 
-bool CSnapshot::LoadSnapshot (const char* path_file)
+bool CSnapshot::LoadSnapshot (const unsigned char* buffer, size_t size)
 {
-   //
-   if (log_)log_->WriteLog("Entering snapshot...");
-   FILE * f;
-   if ( fopen_s ( &f, path_file, "rb") != 0)
-   {
-      if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
-      return false;
-   }
+   if (machine_ == NULL) return false;
+   if (buffer == NULL || size < 0x100) return false;
 
-   if (log_)log_->WriteLog("Snapshot opened successfully.");
-   // Cheack header
-   unsigned char header [0x100] = {0};
-   fread (header, 0x100, 1, f);
-   if (strncmp( (char*)header, "MV - SNA", 8) != 0)
+   if (strncmp( (const char*)buffer, "MV - SNA", 8) != 0)
    {
       if (log_)log_->WriteLog("Error : Not a valid file...");
-      fclose(f);
-      if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
       return false;
    }
 
-   // Header Ok, Read values
-   LoadStdSna ( header, f );
+   unsigned char header [0x100] = {0};
+   memcpy (header, buffer, 0x100);
 
+   size_t offset = 0x100;
+   LoadStdSna ( header, buffer, size, offset );
 
-   /*
-   // Memory dump size
-   bool bUpRAM = (header[0x6B] == 128);
-
-   // Memory dump
-   // Lower RAM
-   if (!feof(f))
+   // Chunks
+   while (offset + 8 <= size)
    {
-      int count = 0;
-      for (int i = 0; i < 4; i++)
+      // Copied out because the HandleChunk* helpers take a non-const pointer.
+      unsigned char chunk[8];
+      memcpy (chunk, &buffer[offset], 8);
+      offset += 8;
+
+      unsigned int length = DecodeChunkLength (chunk);
+
+      // A truncated or hostile image must not read past the end.
+      if (length > size - offset)
+         break;
+
+      unsigned char* in_buffer = new unsigned char[length];
+      memcpy (in_buffer, &buffer[offset], length);
+      offset += length;
+
+      if (memcmp(chunk, "MEM", 3) == 0)
       {
-         count = fread_s ( m_pMachine->GetMem()->ram_buffer_[i], 0x4000, 1, 0x4000, f);
-         int err = ferror(f);
-         if ( err != 0)
-         {
-            int dbg = 1;
-         }
+         // Handle memory
+         HandleChunkMem(chunk, in_buffer, length);
       }
-   }
-   // Upper RAM
-   if (bUpRAM)
-   {
-      if (!feof(f))
+      else if (memcmp (chunk, "CPC+", 4 ) == 0)
       {
-         for (int i = 0; i < 4; i++)
-         {
-            fread_s ( m_pMachine->GetMem()->ExtendedRamBuffer[0][i], 0x4000, 1, 0x4000, f);
-         }
+         // CPC + Chunk
+         HandleChunkCPCPLUS(chunk, in_buffer, length);
       }
-         //fread_s( &m_pMachine->GetMem()->ExtendedRamBuffer[0][0] , sizeof(CMemoire::tRamBank) * 4, sizeof(CMemoire::tRamBank) * 4, 1, f);
-   }
-   */
-   // Chunk
-   unsigned char chunk[8];
-
-   //while (!feof(f))
-   {
-      while (fread (chunk, 8, 1, f ) == 1)
+      else if (memcmp(chunk, "BRKS", 4) == 0)
       {
-         // Handle the chunk
-         unsigned int length = chunk[ 4 ]
-                              +(chunk[ 5 ] <<8)
-                              +(chunk[ 6 ] <<8)
-                              +(chunk[ 7 ] <<8);
-         unsigned char* buffer = new unsigned char[length];
-         fread ( buffer, length, 1, f );
 
-         // What kind of chunk is it ??
-         if (memcmp(chunk, "MEM", 3) == 0)
-         {
-            // Handle memory
-            HandleChunkMem(chunk, buffer, length);
-         }
-         else if (memcmp (chunk, "CPC+", 4 ) == 0)
-         {
-            // CPC + Chunk
-            HandleChunkCPCPLUS(chunk, buffer, length);
-         }
-         else if (memcmp(chunk, "BRKS", 4) == 0)
-         {
-
-            HandleChunkBRKS(chunk, buffer, length);
-         }
-         else if (memcmp(chunk, "BRKC", 4) == 0)
-         {
-
-            HandleChunkBRKC(chunk, buffer, length);
-         }
-         else if (memcmp(chunk, "DSCA", 4) == 0)
-         {
-            // TODO
-         }
-         else if (memcmp(chunk, "DSCB", 4) == 0)
-         {
-            // TODO
-         }
-         else if (memcmp(chunk, "ROMS", 4) == 0)
-         {
-            HandleChunkROMS(chunk, buffer, length);
-         }
-         else if (memcmp(chunk, "SNRV", 4) == 0)
-         {
-            // TODO - ??
-         }
-         else if (memcmp(chunk, "SYMB", 4) == 0)
-         {
-            HandleChunkSYMB(chunk, buffer, length);
-         }
-         else if (memcmp(chunk, "REMU", 4) == 0)
-         {
-            HandleChunkREMU(chunk, buffer, length);
-         }
-         delete []buffer;
+         HandleChunkBRKS(chunk, in_buffer, length);
       }
+      else if (memcmp(chunk, "BRKC", 4) == 0)
+      {
+
+         HandleChunkBRKC(chunk, in_buffer, length);
+      }
+      else if (memcmp(chunk, "DSCA", 4) == 0)
+      {
+         // TODO
+      }
+      else if (memcmp(chunk, "DSCB", 4) == 0)
+      {
+         // TODO
+      }
+      else if (memcmp(chunk, "ROMS", 4) == 0)
+      {
+         HandleChunkROMS(chunk, in_buffer, length);
+      }
+      else if (memcmp(chunk, "SNRV", 4) == 0)
+      {
+         // TODO - ??
+      }
+      else if (memcmp(chunk, "SYMB", 4) == 0)
+      {
+         HandleChunkSYMB(chunk, in_buffer, length);
+      }
+      else if (memcmp(chunk, "REMU", 4) == 0)
+      {
+         HandleChunkREMU(chunk, in_buffer, length);
+      }
+      delete []in_buffer;
    }
 
    machine_->GetMem()->SetMemoryMap();
 
    // Specific adaptation of timing and emulation :
    machine_->GetProc()->ReinitProc ();
-   //machine_->GetProc()->ReinitProc ();
-
-   fclose (f);
-
-   if (notifier_) notifier_->ItemLoaded ( path_file, 0, -1);
 
    machine_->Resync ();
-
 
    return true;
 }
 
+bool CSnapshot::LoadSnapshot (const char* path_file)
+{
+   if (log_)log_->WriteLog("Entering snapshot...");
+
+   std::vector<unsigned char> image;
+   if (!ReadWholeFile (path_file, image))
+   {
+      if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
+      return false;
+   }
+
+   if (!LoadSnapshot (&image[0], image.size()))
+   {
+      if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
+      return false;
+   }
+
+   if (notifier_) notifier_->ItemLoaded ( path_file, 0, -1);
+   return true;
+}
+
+bool CSnapshot::SaveSnapshot (std::vector<unsigned char>& out)
+{
+   if (machine_ == NULL) return false;
+
+   out.clear();
+
+   // Create header
+   unsigned char header [0x100] = {0};
+   memcpy ( header, "MV - SNA", 8);
+
+   WriteSnapshotV3 ( out, header, 8 );
+
+   return !out.empty();
+}
+
 bool CSnapshot::SaveSnapshot (const char* path_file)
 {
-   FILE * f;
    if (log_)log_->WriteLog("Entering snapshot saving...");
+
+   std::vector<unsigned char> image;
+   if (!SaveSnapshot(image))
+      return false;
+
+   FILE * f;
    if ( fopen_s ( &f, path_file, "wb") != 0)
    {
       if (log_)log_->WriteLog("ERROR : File is not valid...");
       return false;
    }
 
-   // Create header
-   unsigned char header [0x100] = {0};
-   memcpy ( header, "MV - SNA", 8);
-
-   WriteSnapshotV3 ( f, header, 8 );
-
+   bool written = fwrite ( &image[0], 1, image.size(), f ) == image.size();
    fclose (f);
-   return true;
+   return written;
 }
 
-void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigned int headerSize )
+void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char * base_header, unsigned int headerSize )
 {
    if (log_)log_->WriteLog("Writing SNA v3...");
    char header [0x100] = {0};
@@ -1493,20 +1513,20 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
    // Memory dump size
    header[0x6B] = machine_->GetMem()->extended_ram_available_[0]?128:64;
 
-   fwrite ( header, 0x100, 1, f );
+   out.insert(out.end(), header, header + 0x100);
 
    // Memory dump
    // Lower RAM
    for (int i = 0; i < 4; i++)
    {
-      fwrite ( machine_->GetMem()->ram_buffer_[i], 1, 0x4000, f);
+      out.insert(out.end(), machine_->GetMem()->ram_buffer_[i], machine_->GetMem()->ram_buffer_[i] + 0x4000);
    }
    // Upper RAM
    if (machine_->GetMem()->extended_ram_available_[0])
    {
       for (int i = 0; i < 4; i++)
       {
-         fwrite ( machine_->GetMem()->extended_ram_buffer_[0][i],  1, 0x4000, f);
+         out.insert(out.end(), machine_->GetMem()->extended_ram_buffer_[0][i], machine_->GetMem()->extended_ram_buffer_[0][i] + 0x4000);
       }
    }
 
@@ -1592,8 +1612,8 @@ void CSnapshot::WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigne
       // 8F7	1	Internal	ASIC unlock sequence state(note 10)
       plus_chunk[0x8F7] = machine_->GetAsic()->GetIndexVerification();
 
-      fwrite(chunk_header, 8, 1, f);
-      fwrite(plus_chunk, 0x8F8, 1, f);
+      out.insert(out.end(), chunk_header, chunk_header + 8);
+      out.insert(out.end(), plus_chunk, plus_chunk + 0x8F8);
    }
    // TODO ROMS
    // TODO MEM0-8

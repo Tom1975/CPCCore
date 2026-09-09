@@ -1300,6 +1300,27 @@ bool EmulatorEngine::LoadSnapshotDelayed()
    }
 }
 
+bool EmulatorEngine::SaveSnapshotNow(std::vector<unsigned char>& out)
+{
+   // Immediate synchronous save — does not use the deferred flag mechanism,
+   // which needs HandleSnapshots() and so a whole time slice. A snapshot only
+   // describes the machine on an instruction boundary; new_instruction_ marks
+   // one, while M_FETCH/t_==1 does not (Opcode_CB/ED/DD/FD set it to fetch a
+   // prefixed opcode's second byte).
+   if (!GetProc()->new_instruction_)
+   {
+      bool old_stop_on_fetch = GetProc()->stop_on_fetch_;
+      GetProc()->stop_on_fetch_ = true;
+
+      unsigned int nb_opcodes = 1;
+      motherboard_.DebugOpcodes(nb_opcodes);
+
+      GetProc()->stop_on_fetch_ = old_stop_on_fetch;
+   }
+
+   return sna_handler_.SaveSnapshot(out);
+}
+
 bool EmulatorEngine::SaveSnapshot (const char* path_file)
 {
    do_snapshot_ = true;

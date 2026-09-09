@@ -87,6 +87,10 @@ public:
 
    bool LoadSnr (const char* path_file) {return sna_handler_.LoadSnr (path_file);}
    bool LoadBin(const char* path_file);
+   // Memory forms, for callers that must not touch the filesystem.
+   bool LoadSnapshotNow(const unsigned char* buffer, size_t size) { return sna_handler_.LoadSnapshot(buffer, size); }
+   bool SaveSnapshotNow(std::vector<unsigned char>& out);
+
    bool LoadSnapshot (const char* path_file);
    bool LoadSnapshotNow(const char* path_file);
    bool LoadSnapshotDelayed();

@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include <vector>
+
 #include "IPlayback.h"
 #include "Inotify.h"
 #include "ILog.h"
@@ -21,9 +23,18 @@ public:
    bool IsReplaying() { return replay_; }
 
    bool LoadSnr (const char* path_file);
+
+   // The memory forms are the implementations; the path forms wrap them.
+   // For callers that cannot touch the filesystem.
+   bool LoadSnapshot (const unsigned char* buffer, size_t size);
+   bool SaveSnapshot (std::vector<unsigned char>& out);
+
    bool LoadSnapshot (const char* path_file);
    bool SaveSnapshot (const char* path_file);
-   void WriteSnapshotV3 ( FILE * f, unsigned char * base_header, unsigned int header_size );
+   void WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char * base_header, unsigned int header_size );
+
+   // Exposed so the decode can be tested: a wrong shift only shows above 0xFFFF.
+   static unsigned int DecodeChunkLength ( const unsigned char* chunk );
 
    bool HandleSnr ( FILE* f );
    void HandleChunkBRKC(unsigned char* chunk, unsigned char* buffer, int size);
@@ -33,7 +44,7 @@ public:
    void HandleChunkMem ( unsigned char* chunk, unsigned char* buffer, int size );
    void HandleChunkROMS(unsigned char* chunk, unsigned char* buffer, int size);
    void HandleChunkSYMB(unsigned char* chunk, unsigned char* buffer, int size);
-   void LoadStdSna ( unsigned char *header, FILE* f);
+   void LoadStdSna ( unsigned char *header, const unsigned char* buffer, size_t size, size_t& offset);
 
    virtual void SetMachine (Motherboard* machine) {machine_ = machine;}
    virtual void Playback ();
