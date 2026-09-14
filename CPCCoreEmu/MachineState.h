@@ -71,6 +71,9 @@ private:
    static bool ReadPlayCity(Motherboard* board, const unsigned char* p, size_t size);
    static void WriteExtendedRam(Motherboard* board, std::vector<unsigned char>& out);
    static bool ReadExtendedRam(Motherboard* board, const unsigned char* p, size_t size);
+   // Identity only: written so a load can refuse a different cartridge, and
+   // never read back. Nothing about a cartridge is machine state.
+   static void WriteCartridge(Motherboard* board, std::vector<unsigned char>& out);
 
    // Everything a chunk checks about the machine it is being loaded into,
    // verified before anything is written. See the comment on the definition.

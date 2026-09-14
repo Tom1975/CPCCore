@@ -7,6 +7,7 @@
 
 #include "PrinterDefault.h"
 #include "MediaManager.h"
+#include "CRC.h"
 #include <stdio.h>
 
 #ifdef PROF
@@ -284,6 +285,14 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
       // Incorrect headers
       return -1;
    }
+
+   // Identity of the inserted cartridge, computed once here from the image
+   // itself. A save state carries it so a state taken with one cartridge is
+   // refused against another, the same way the drive and tape chunks refuse a
+   // different disc or tape. Once, because a cartridge is read-only: hashing
+   // the banks on every save would put half a megabyte of CRC on every rewind
+   // frame for a value that cannot change.
+   motherboard_.GetMem()->SetCartridgeCrc(CRC::ComputeCrc32(0xEDB88320, buffer, (unsigned int)size));
 
    // Insertion ok : Reset to 0
    ResetPlus();

@@ -382,6 +382,40 @@ TEST(MachineStateTest, RefusesAStateTakenWithADifferentDisk)
 
 // An empty drive is a geometry too: a state taken with no disk must not be
 // loaded into a machine that now has one.
+// A cartridge is media too, and until now it was the one kind a state would
+// accept blindly: the ROM stays out of the state, so nothing distinguished a
+// state taken with one cartridge from another. The CART chunk carries the
+// CRC32 Memory computed when the .cpr was read, and a load checks it.
+TEST(MachineStateTest, RefusesAStateTakenWithADifferentCartridge)
+{
+   DirectoriesImp dirImp; CDisplay display; Log log;
+   SoundFactory soundFactory; ConfigurationManager conf_manager;
+   EmulatorEngine* machine =
+      NewBootedMachine(dirImp, display, log, soundFactory, conf_manager, "GX4000");
+
+   ASSERT_EQ(0, machine->LoadCpr("./res/CART/Eerie_Forest_(Logon_System_2017).cpr"));
+   machine->Reinit();
+   for (int i = 0; i < 200; ++i)
+      machine->RunTimeSlice();
+
+   std::vector<unsigned char> state;
+   ASSERT_TRUE(MachineState::Save(machine, state));
+
+   // The state must come back into the machine it was taken from...
+   ASSERT_TRUE(MachineState::Load(machine, &state[0], state.size()))
+      << "the guard refuses the very cartridge the state was taken with";
+
+   // ...and must not come back into a machine holding a different one.
+   ASSERT_EQ(0, machine->LoadCpr("./res/plus/sscrtest.cpr"));
+   machine->Reinit();
+   const bool loaded = MachineState::Load(machine, &state[0], state.size());
+
+   delete machine;
+
+   EXPECT_FALSE(loaded)
+      << "a state recorded against another cartridge was applied instead of refused";
+}
+
 TEST(MachineStateTest, RefusesAStateTakenWithNoDiskWhenOneIsInserted)
 {
    DirectoriesImp dirImp; CDisplay display; Log log;

@@ -110,6 +110,15 @@ const unsigned int kChunkPlayCity = 0x50434954;  // "PCIT"
 // twice would be a second source of truth.
 const unsigned int kChunkExtendedRam = 0x5852414D;  // "XRAM"
 
+// Identity of the inserted cartridge, and nothing else.
+//
+// A cartridge is media, like a disc or a tape: its half-megabyte of ROM stays
+// out of the state. What goes in is enough to refuse a state taken with a
+// different cartridge -- the CRC32 Memory computed once when the .cpr was
+// loaded, and how many banks are plugged. Nothing here is restored; the chunk
+// exists to be checked.
+const unsigned int kChunkCartridge = 0x43415254;  // "CART"
+
 
 void PutU16(std::vector<unsigned char>& out, unsigned short v)
 {
@@ -1269,6 +1278,30 @@ bool MachineState::ReadExtendedRam(Motherboard* board, const unsigned char* p, s
 // chunk, and the load is abandoned before a single byte is written. A size that
 // disagrees means a corrupt buffer, which is a different problem and still
 // fails partway.
+void MachineState::WriteCartridge(Motherboard* board, std::vector<unsigned char>& out)
+{
+   Memory* mem = board->GetMem();
+
+   // Nothing plugged: no chunk. A machine that never had a cartridge should
+   // not carry one in its state, and an older state without the chunk still
+   // loads.
+   if (mem->cartridge_crc_ == 0) return;
+
+   const size_t length_at = out.size() + 4;
+   PutU32(out, kChunkCartridge);
+   PutU32(out, 0);
+   const size_t payload_at = out.size();
+
+   PutU32(out, mem->cartridge_crc_);
+   PutU32(out, (unsigned int)mem->cartridge_list_.size());
+
+   const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
+   out[length_at + 0] = payload_size & 0xFF;
+   out[length_at + 1] = (payload_size >> 8) & 0xFF;
+   out[length_at + 2] = (payload_size >> 16) & 0xFF;
+   out[length_at + 3] = (payload_size >> 24) & 0xFF;
+}
+
 bool MachineState::DescribesThisMachine(Motherboard* board,
                                         const unsigned char* buffer, size_t size,
                                         size_t first_chunk)
@@ -1326,6 +1359,13 @@ bool MachineState::DescribesThisMachine(Motherboard* board,
          if (GetU32(&p[6]) != t->array_size_) return false;
          if (GetU32(&p[10]) != t->nb_blocks_) return false;
       }
+      else if (id == kChunkCartridge)
+      {
+         if (length < 8) return false;
+         Memory* mem = board->GetMem();
+         if (GetU32(&p[0]) != mem->cartridge_crc_) return false;
+         if (GetU32(&p[4]) != (unsigned int)mem->cartridge_list_.size()) return false;
+      }
       else if (id == kChunkExtendedRam)
       {
          if (length < 4) return false;
@@ -1368,6 +1408,7 @@ bool MachineState::Save(EmulatorEngine* machine, std::vector<unsigned char>& out
    WriteDma(machine->GetMotherboard(), out);
    WritePlayCity(machine->GetMotherboard(), out);
    WriteExtendedRam(machine->GetMotherboard(), out);
+   WriteCartridge(machine->GetMotherboard(), out);
 
    return true;
 }
