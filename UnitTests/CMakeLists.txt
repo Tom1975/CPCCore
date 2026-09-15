@@ -42,6 +42,7 @@ add_executable( unitTests
 						   Test.cpp 
                      TestAutorun.cpp 
                      TestContainers.cpp 
+                     TestCprLoader.cpp
                      Test_Dumps.cpp 
 						   Test_Dumps_tape.cpp
 						   TestTapeRecording.cpp

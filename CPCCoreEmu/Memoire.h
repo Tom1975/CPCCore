@@ -168,6 +168,11 @@ public:
    unsigned char* GetCartridge(int index) {
       current_cartridge_bank_->cart_available[index] = true; return current_cartridge_bank_->bank[index];
 };
+   // Number of 16 KB pages a cartridge bank holds.
+   static constexpr int kCartridgePages = 32;
+   // Zeroes every page of the current bank, so a cartridge loaded into it does
+   // not inherit the bytes of the one before.
+   void ClearCartridgeBank() { memset(current_cartridge_bank_, 0, sizeof(BankCartridge)); }
    void EjectCartridge() {
       for (auto it : cartridge_list_)
       {
