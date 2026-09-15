@@ -10,6 +10,8 @@ class GateArray;
 
 class CRTC : public IComponent
 {
+   friend class MachineState;
+
 friend class EmulatorEngine;
 public:
 

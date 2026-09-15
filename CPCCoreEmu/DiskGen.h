@@ -15,6 +15,8 @@
 
 class DiskGen : public ITypeManager
 {
+   friend class MachineState;
+
 public:
 
    using CodageMfm = enum

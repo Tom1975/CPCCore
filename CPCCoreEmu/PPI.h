@@ -21,6 +21,8 @@ class CSnapshot;
 
 class CPCCOREEMU_API PPI8255 : public ITapeOut
 {
+   friend class MachineState;
+
 public:
    PPI8255( );
    virtual ~PPI8255();

@@ -14,6 +14,8 @@ class Memory;
 
 class DMA : public IComponent
 {
+   friend class MachineState;
+
 public:
 
    DMA();

@@ -12,6 +12,8 @@ class Monitor;
 
 class Memory : public IDmaSTOP
 {
+   friend class MachineState;
+
    friend class EmulatorEngine;
    friend class CSnapshot;
 
@@ -177,8 +179,16 @@ public:
       cartridge_list_.clear();
       cartridge_list_.push_back(cart_default_);
       current_cartridge_bank_ = cartridge_list_[0];
-
+      cartridge_crc_ = 0;
    }
+
+   // Identity of the cartridge currently inserted, or 0 for none. Computed
+   // once from the .cpr image when it is loaded rather than from the banks on
+   // demand: a cartridge is read-only, so the value never changes while it is
+   // in, and a save state that hashed half a megabyte of banks every time
+   // would be paying that cost on every rewind frame.
+   void SetCartridgeCrc(unsigned int crc) { cartridge_crc_ = crc; }
+   unsigned int GetCartridgeCrc() const { return cartridge_crc_; }
    void NewXPR()
    {
       for (auto it : cartridge_list_)
@@ -357,6 +367,7 @@ public:
    std::vector<BankCartridge*> cartridge_list_;
    BankCartridge * current_cartridge_bank_;
    BankCartridge* cart_default_;
+   unsigned int cartridge_crc_ = 0;
 
    bool lower_rom_available_;
    unsigned short last_address_read_[4];

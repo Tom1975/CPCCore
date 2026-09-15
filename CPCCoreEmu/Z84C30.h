@@ -12,6 +12,8 @@
 
 class Z84C30 : public IClockable
 {
+   friend class MachineState;
+
 public:
 
    enum ChannelId
@@ -40,6 +42,8 @@ public:
 public:
    class CTCCounter : public IClockable
    {
+      friend class MachineState;
+
    public:
       enum ControlWord
       {

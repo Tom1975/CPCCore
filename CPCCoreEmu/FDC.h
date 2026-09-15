@@ -16,6 +16,8 @@
 
 class CPCCOREEMU_API FDC : public IComponent, public ILoadingProgress
 {
+   friend class MachineState;
+
 friend class EmulatorEngine;
 friend class CSnapshot;
 public:

@@ -12,6 +12,7 @@ class Ay8912 : public IComponent
 {
 friend class EmulatorEngine;
 friend class CSnapshot;
+friend class MachineState;
 public:
    
    Ay8912(SoundMixer *sound_hub, IKeyboardHandler* keyboard_handler);

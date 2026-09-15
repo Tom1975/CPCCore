@@ -55,6 +55,11 @@ add_executable( unitTests
                      TestZ84C30.cpp
                      TestSnapshot.cpp
                      TestSnapshotMachineType.cpp
+                     TestStateDeterminism.cpp
+                     TestMachineState.cpp
+                     TestMachineStateRam.cpp
+                     TestMachineStateSize.cpp
+                     TestMachineStateExpansions.cpp
 
 )
 

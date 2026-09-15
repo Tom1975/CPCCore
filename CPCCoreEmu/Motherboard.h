@@ -58,6 +58,10 @@ public:
 
 class Motherboard : public IMachine
 {
+   // Reads and restores the scheduler state, which is deliberately not part of
+   // the public surface: nothing outside a save state has any business with it.
+   friend class MachineState;
+
 public:
 
    ///////////////////////////////////////

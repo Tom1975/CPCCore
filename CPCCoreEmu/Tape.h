@@ -81,6 +81,8 @@ private:
 
 class CTape : public IComponent, public IExternalSource, public ILoadingProgress
 {
+   friend class MachineState;
+
 public:
    CTape(void);
    virtual ~CTape(void);
