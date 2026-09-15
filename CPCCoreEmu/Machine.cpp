@@ -226,19 +226,25 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
       return -1;
    }
 
+   // A regular cartridge holds 32 pages. rasm's BUILDCPR LEGACY extends the same
+   // layout to 96 pages (cb00-cb95, 1.5 MB), which the PicoGX cartridge runs as
+   // three 512 KB blocks; pages 32-63 and 64-95 go to banks 1 and 2, switched
+   // like an extended cartridge (see Memory::Get).
+   const int kLegacyExtendedPages = 3 * Memory::kCartridgePages;
+
    // The file is walked twice: the first pass only validates, the second copies.
    // Every page number and size is therefore known to fit before anything is
    // written, and a refused file leaves the inserted cartridge as it was instead
    // of ejecting it halfway through.
+   int highest_page = 0;
    for (int pass = 0; pass < 2; pass++)
    {
       const bool copy = (pass == 1);
       if (copy)
       {
-         // Reinit Cartridge. The bank is reused from one load to the next, so
-         // clear it: a short or missing page must not keep the previous bytes.
-         motherboard_.EjectCartridge();
-         GetMem()->ClearCartridgeBank();
+         // Reinit Cartridge. The banks are reused from one load to the next, so
+         // clear them: a short or missing page must not keep the previous bytes.
+         GetMem()->ResetCartridgeBanks(highest_page / Memory::kCartridgePages + 1);
       }
 
       int index = 12;
@@ -268,7 +274,7 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
             | (static_cast<unsigned int>(buffer[index + 3]) << 24);
          index += 4;
 
-         if (block_number >= Memory::kCartridgePages
+         if (block_number >= kLegacyExtendedPages
             || block_size > sizeof(Memory::RamBank)
             || block_size > static_cast<unsigned int>(size - index))
          {
@@ -278,7 +284,13 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
          if (copy)
          {
             // Copy datas to proper ROM
-            memcpy(motherboard_.GetCartridge(block_number), &buffer[index], block_size);
+            memcpy(GetMem()->GetCartridgePage(block_number / Memory::kCartridgePages,
+                                              block_number % Memory::kCartridgePages),
+                   &buffer[index], block_size);
+         }
+         else if (block_number > highest_page)
+         {
+            highest_page = block_number;
          }
          index += block_size;
       }
@@ -334,99 +346,82 @@ int EmulatorEngine::LoadCpr(IContainedElement* container)
 
 int EmulatorEngine::LoadXprFromBuffer(unsigned char* buffer, int size)
 {
-
-   // Check RIFF chunk
-   int index = 0;
-   int nbbanks = 0;
-   if (size >= 12
-      && (memcmp(&buffer[0], "RIFF", 4) == 0)
-      && (memcmp(&buffer[8], "CXME", 4) == 0)
-      )
-   {
-      // Reinit Cartridge
-      motherboard_.EjectCartridge();
-      motherboard_.GetMem()->NewXPR();
-
-      // Ok, it's correct.
-      index += 4;
-      // Check the whole size
-
-      int chunk_size = buffer[index]
-         + (buffer[index + 1] << 8)
-         + (buffer[index + 2] << 16)
-         + (buffer[index + 3] << 24);
-
-      index += 8;
-
-      // 'NBBK ' chunk
-      if (index + 8 < size && (memcmp(&buffer[index], "NBBK", 4) == 0) && buffer[index+4] == 0x02 && buffer[index + 5] == 0 && buffer[index + 6] == 0 && buffer[index + 7] == 0)
-      {
-         index += 8;
-         if (index + 2 < size)
-         {
-            nbbanks = (buffer[index] << 8) + (buffer[index+1]);
-            index += 2;
-         }
-      }
-
-      // Good. Switch to bank 0
-      int index_bank = 0;
-      int index_slot = 0;
-      motherboard_.GetMem()->SwitchBank(index_slot);
-
-      // Now we are at the first cbxx
-      while (index + 8 < size)
-      {
-         if (buffer[index] == 'C' && buffer[index + 1] == 'X')
-         {
-            index += 2;
-            int block_number = (buffer[index]<<8) + buffer[index+1];
-            index += 2;
-
-            // Read size
-            int block_size = buffer[index]
-               + (buffer[index + 1] << 8)
-               + (buffer[index + 2] << 16)
-               + (buffer[index + 3] << 24);
-            index += 4;
-
-            if (index + block_size <= size )
-            {
-               if (index_bank >= nbbanks)
-               {
-                  index_bank = 0;
-                  motherboard_.GetMem()->AddNewBank();
-                  index_slot++;
-                  motherboard_.GetMem()->SwitchBank(index_slot);
-               }
-
-               // Copy datas to proper ROM
-               unsigned char* rom = motherboard_.GetCartridge(index_bank);
-               memset(rom, 0, 0x1000);
-               memcpy(rom, &buffer[index], block_size);
-               index += block_size;
-
-               index_bank++;
-            }
-            else
-            {
-               return -1;
-            }
-         }
-         else
-         {
-            return -1;
-         }
-      }
-   }
-   else
+   // Extended cartridge, as written by rasm's BUILDCPR EXTENDED: RIFF "CXME", an
+   // "NBBK" chunk with the number of pages per bank (16-bit big endian), then
+   // "CX" pages filled bank by bank. Memory::Get switches bank on a read of
+   // cartridge page 0 at &3FFF - n.
+   if (buffer == nullptr
+      || size < 22
+      || (memcmp(&buffer[0], "RIFF", 4) != 0)
+      || (memcmp(&buffer[8], "CXME", 4) != 0)
+      || (memcmp(&buffer[12], "NBBK", 4) != 0)
+      || buffer[16] != 0x02 || buffer[17] != 0 || buffer[18] != 0 || buffer[19] != 0)
    {
       // Incorrect headers
       return -1;
    }
 
-   // Reset default bak
-   motherboard_.GetMem()->SwitchBank(0);
+   const unsigned int pages_per_bank = (buffer[20] << 8) + buffer[21];
+   if (pages_per_bank == 0 || pages_per_bank > Memory::kCartridgePages)
+   {
+      return -1;
+   }
+
+   // Walked twice like a .cpr: validate everything, then copy.
+   unsigned int nb_pages = 0;
+   for (int pass = 0; pass < 2; pass++)
+   {
+      const bool copy = (pass == 1);
+      if (copy)
+      {
+         const unsigned int banks = (nb_pages == 0) ? 1 : (nb_pages + pages_per_bank - 1) / pages_per_bank;
+         if (banks > Memory::kMaxCartridgeBanks)
+         {
+            return -1;
+         }
+         GetMem()->ResetCartridgeBanks(banks);
+      }
+
+      int index = 22;
+      unsigned int page = 0;
+      while (index + 8 < size)
+      {
+         if (buffer[index] != 'C' || buffer[index + 1] != 'X')
+         {
+            return -1;
+         }
+         index += 4;
+
+         // Read size
+         const unsigned int block_size = buffer[index]
+            | (buffer[index + 1] << 8)
+            | (buffer[index + 2] << 16)
+            | (static_cast<unsigned int>(buffer[index + 3]) << 24);
+         index += 4;
+
+         if (block_size > sizeof(Memory::RamBank)
+            || block_size > static_cast<unsigned int>(size - index))
+         {
+            return -1;
+         }
+
+         if (copy)
+         {
+            // Copy datas to proper ROM
+            memcpy(GetMem()->GetCartridgePage(page / pages_per_bank, page % pages_per_bank),
+                   &buffer[index], block_size);
+         }
+         index += block_size;
+         ++page;
+      }
+      nb_pages = page;
+   }
+
+   // Same identity as a .cpr, so a save state refuses another cartridge.
+   GetMem()->SetCartridgeCrc(CRC::ComputeCrc32(0xEDB88320, buffer, (unsigned int)size));
+
+   // Reset default bank
+   GetMem()->SwitchBank(0);
    // Insertion ok : Reset to 0
    ResetPlus();
 

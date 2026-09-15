@@ -173,6 +173,25 @@ public:
    // Zeroes every page of the current bank, so a cartridge loaded into it does
    // not inherit the bytes of the one before.
    void ClearCartridgeBank() { memset(current_cartridge_bank_, 0, sizeof(BankCartridge)); }
+   // Upper bound on banks an extended cartridge may ask for: each one is 512 KB,
+   // and a file of a few hundred bytes must not make us allocate gigabytes.
+   static constexpr unsigned int kMaxCartridgeBanks = 64;
+   // Ejects the cartridge and leaves `count` empty banks, bank 0 current.
+   void ResetCartridgeBanks(unsigned int count)
+   {
+      EjectCartridge();
+      ClearCartridgeBank();
+      for (unsigned int i = 1; i < count; i++)
+      {
+         cartridge_list_.push_back(new BankCartridge());
+      }
+   }
+   // One page of a given bank, for loaders that fill every bank up front.
+   unsigned char* GetCartridgePage(unsigned int bank, unsigned int page)
+   {
+      cartridge_list_[bank]->cart_available[page] = true;
+      return cartridge_list_[bank]->bank[page];
+   }
    void EjectCartridge() {
       for (auto it : cartridge_list_)
       {
@@ -204,13 +223,13 @@ public:
          }
       }
       cartridge_list_.clear();
-      BankCartridge* newbank = new BankCartridge;
+      BankCartridge* newbank = new BankCartridge();
       cartridge_list_.push_back(newbank);
       current_cartridge_bank_ = cartridge_list_[0];
    }
    void AddNewBank()
    {
-      BankCartridge* newbank = new BankCartridge;
+      BankCartridge* newbank = new BankCartridge();
       cartridge_list_.push_back(newbank);
    }
 
