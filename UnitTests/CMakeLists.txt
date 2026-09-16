@@ -48,6 +48,7 @@ add_executable( unitTests
 						   TestTapeFluxExact.cpp
 						   TestTapeOverdubByteExact.cpp
                      TestFDC.cpp
+                     TestGx4000Keyboard.cpp
 						   TestSettings.cpp
                      TestZ80.cpp 
 						   TestUtils.h
