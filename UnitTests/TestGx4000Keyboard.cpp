@@ -70,14 +70,18 @@ TEST(Gx4000Keyboard, AComputerKeepsTheWholeMatrix)
 // unplugs the keyboard, and selecting a computer plugs it back in.
 TEST(Gx4000Keyboard, TheMachineTypeSelectsTheWiring)
 {
-   EmulatorEngine machine;
-   KeyboardHandler* keyboard = machine.GetKeyboardHandler();
+   // Heap-allocated: sizeof(EmulatorEngine) is megabytes, more than a default
+   // thread stack holds (see TestTapeRecording).
+   EmulatorEngine* machine = new EmulatorEngine();
+   KeyboardHandler* keyboard = machine->GetKeyboardHandler();
 
-   machine.SetMachineType(MachineSettings::GX400);
+   machine->SetMachineType(MachineSettings::GX400);
    PressEverything(*keyboard);
    EXPECT_EQ(0xFF, keyboard->GetKeyboardMap(0)) << "a GX4000 has no keyboard line 0";
 
-   machine.SetMachineType(MachineSettings::OLD_6128);
+   machine->SetMachineType(MachineSettings::OLD_6128);
    PressEverything(*keyboard);
    EXPECT_EQ(0x00, keyboard->GetKeyboardMap(0)) << "a 6128 has one";
+
+   delete machine;
 }

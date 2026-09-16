@@ -165,7 +165,9 @@ public:
    // the matrix wiring follows the machine type (see KeyboardHandler).
    void SetMachineType(int type) {
       motherboard_.SetMachineType(type);
-      keyboardhandler_.SetConsoleWiring(type == MachineSettings::GX400);
+      const bool console = (type == MachineSettings::GX400);
+      keyboardhandler_.SetConsoleWiring(console);
+      motherboard_.GetPPI()->SetConsoleWiring(console);
    };
    int GetMachineType() { return motherboard_.GetMachineType(); }
    void SetPlus(bool plus);

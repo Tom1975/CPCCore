@@ -49,6 +49,7 @@ add_executable( unitTests
 						   TestTapeOverdubByteExact.cpp
                      TestFDC.cpp
                      TestGx4000Keyboard.cpp
+                     TestGx4000PortB.cpp
 						   TestSettings.cpp
                      TestZ80.cpp 
 						   TestUtils.h
