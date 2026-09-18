@@ -85,8 +85,21 @@ void KeyboardHandler::ValidateKeyboardMap()
 
 unsigned char KeyboardHandler::GetKeyboardMap(int index)
 {
-   
-    return keyboard_lines_[index]; 
+   if (console_wiring_)
+   {
+      // GX4000: nothing is wired to the matrix but the Pause button and the two
+      // joystick ports, so everything else reads as no key pressed (bit = 1).
+      // Same wiring as MAME's gx4000 input ports.
+      switch (index)
+      {
+      case 3: return keyboard_lines_[index] | 0xF7;  // Pause, bit 3
+      case 6: return keyboard_lines_[index] | 0xC0;  // joystick 2
+      case 9: return keyboard_lines_[index] | 0xC0;  // joystick 1
+      default: return 0xFF;
+      }
+   }
+
+    return keyboard_lines_[index];
 }
 
 

@@ -29,6 +29,36 @@ PPI8255::~PPI8255()
 
 }
 
+// Port B, as the hardware presents it to a read.
+//
+// Bit 7 is the cassette read line, bit 6 the printer "ready" signal ("1" = not
+// ready, "0" = ready, see https://cpctech.cpcwiki.de/docs/8255cpc.html), bits
+// 4-1 the PCB links, bit 0 the CRTC VSYNC. With no printer connected the line
+// is not driven and reads as not ready; the three places that used to build
+// this byte disagreed about that case.
+//
+// A GX4000 has neither a cassette nor a printer port: those two lines are not
+// wired at all (CPCWiki's GX4000 page lists them among the unconnected pins),
+// so the cassette level and the printer state must not show through. MAME
+// reads both as 0 there; bit 6 stays 1 here because that is what the doc calls
+// the undriven state of that signal.
+//
+// Bit 5 (/EXP) is left as it was: the doc says "1" = device connected, while
+// Kevin Thacker's own power-on test expects it set with nothing plugged in.
+unsigned char PPI8255::ComposePortB() const
+{
+   unsigned char port_b = 0x1E | (sig_->v_sync_ ? 1 : 0);
+
+   if (console_wiring_)
+   {
+      return port_b | 0x40;
+   }
+
+   port_b |= tape_level_;
+   port_b |= (sig_->printer_port_ != NULL) ? (sig_->printer_port_->Busy() ? 0x40 : 0) : 0x40;
+   return port_b;
+}
+
 void PPI8255::Reset()
 {
    port_b_ = 0x1E;
@@ -103,7 +133,7 @@ void PPI8255::DataRead(unsigned char* data, unsigned char Adress)
                if ( control_word_.control_word.io_b ||plus_)
                {
                   // Check true values : verything is linked (or almost)
-                  port_b_ = tape_level_| 0x1E|(sig_->v_sync_?1:0)|((sig_->printer_port_!=NULL)?(sig_->printer_port_->Busy()?0x40:0):0x40);
+                  port_b_ = ComposePortB();
                   *data = port_b_ ;
                }
                else
@@ -115,7 +145,7 @@ void PPI8255::DataRead(unsigned char* data, unsigned char Adress)
                // RD :
                if ( control_word_.control_word.io_b || plus_)
                {
-                  port_b_ = tape_level_ | 0x1E|(sig_->v_sync_?1:0)|((sig_->printer_port_!=NULL)?(sig_->printer_port_->Busy()?0x40:0):0);
+                  port_b_ = ComposePortB();
                   *data = port_b_ ;
                   // Reset the IBF
                   inner_control_.inner_control.control_b.input.ibf = 1;
@@ -350,7 +380,7 @@ void PPI8255::DataWrite(unsigned char* data, unsigned char Adress)
 
          if ( control_word_.control_word.io_b || plus_)
          {
-            port_b_ = tape_level_ |0x1E|(sig_->v_sync_?1:0)|((sig_->printer_port_!=NULL)?(sig_->printer_port_->Busy()?0x40:0):0);
+            port_b_ = ComposePortB();
          }
          else
          {

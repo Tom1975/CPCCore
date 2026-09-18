@@ -161,7 +161,14 @@ public:
    void Resync ();
    void StartPrecise(unsigned int nb_cycles);
    void UpdateExternalDevices();
-   void SetMachineType(int type) { motherboard_.SetMachineType(type); };
+   // The GX4000 has no keyboard, only a Pause button and two joystick ports, so
+   // the matrix wiring follows the machine type (see KeyboardHandler).
+   void SetMachineType(int type) {
+      motherboard_.SetMachineType(type);
+      const bool console = (type == MachineSettings::GX400);
+      keyboardhandler_.SetConsoleWiring(console);
+      motherboard_.GetPPI()->SetConsoleWiring(console);
+   };
    int GetMachineType() { return motherboard_.GetMachineType(); }
    void SetPlus(bool plus);
    bool IsPLUS() { return motherboard_.IsPLUS(); }

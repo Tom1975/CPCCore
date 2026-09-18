@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 #include "Asic.h"
+#include "Memoire.h"
 
 #include "TestUtils.h"
 
@@ -144,6 +145,25 @@ TEST(ASIC, Lock)
 
    // Check if unlock is done
    ASSERT_EQ(asic.IsAsicLocked(), true);
+}
+
+// With nothing plugged into the analogue port, a real Plus reads 0x3F on
+// ADC0-4 and ADC6, and 0x00 on ADC5 and ADC7. Measured values from Kevin
+// Thacker's notes, https://cpctech.cpcwiki.de/docs/cpcplus.html, section
+// "Analogue inputs"; MAME and AMSpiriT return the same.
+TEST(ASIC, AnalogueInputsWithNothingPlugged)
+{
+   // sizeof(Memory) is 4.6 MB, more than a default Windows stack holds.
+   Memory* memory = new Memory(nullptr);
+   memory->InitMemory();
+
+   const unsigned char expected[8] = { 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x00, 0x3F, 0x00 };
+   for (unsigned short channel = 0; channel < 8; channel++)
+   {
+      EXPECT_EQ(expected[channel], memory->ReadAsicRegister(0x6808 + channel)) << "ADC" << channel;
+   }
+
+   delete memory;
 }
 
 ////////////////////////////
