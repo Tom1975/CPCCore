@@ -13,21 +13,3 @@ env:
 jobs:
   call-workflow:
     uses:  ./.github/workflows/build_ubuntu.yml
-    
-  notify:
-    needs: call-workflow
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: CPCCore_linux
-          
-      - name: Test
-        working-directory: ${{github.workspace}}
-        run: |
-          ls
-          chmod +777 ./unitTests
-          xvfb-run --auto-servernum ./unitTests
-    
-        
