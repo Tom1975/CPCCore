@@ -14,6 +14,8 @@
 namespace fs = std::filesystem;
 #endif
 
+#include "gtest/gtest.h"
+
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -47,16 +49,13 @@ CommandScanCode::CommandScanCode(IKeyboard* pKeyHandler, unsigned short scancode
 #ifdef __linux__ 
    if (!init_convert_map_)
    {
-      fs::path exe_path( ".");
-      exe_path /= "Keyboards";
-      exe_path /= "101_keyboard_win";
+      // Tests run in their own directory: take the maps from the fixtures.
+      const fs::path exe_path(TestWorkspace::Fixture("Keyboards/101_keyboard_win"));
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path.string().c_str(), CommandScanCode::raw_to_cpc_map_, CommandScanCode::dead_key_,
          &keyboard_map_, raw_to_functions_);
 
-      fs::path exe_path_linux(".");
-      exe_path_linux /= "Keyboards";
-      exe_path_linux /= "101_keyboard_linux";
+      const fs::path exe_path_linux(TestWorkspace::Fixture("Keyboards/101_keyboard_linux"));
 
       KeyboardHandler::LoadScanCodeToMatrix(exe_path_linux.string().c_str(), CommandScanCode::raw_to_cpc_map_linux, CommandScanCode::dead_key_linux,
          &keyboard_map_, raw_to_functions_linux_);
@@ -150,7 +149,7 @@ void ConfigurationManager::OpenFile(const char* config_file)
    }
    Clear();
    std::string s, key, value;
-   std::ifstream f(config_file);
+   std::ifstream f(TestWorkspace::Fixture(config_file));
    std::string current_section = "";
    
    current_config_file_ = config_file;
@@ -315,6 +314,7 @@ const char* ConfigurationManager::GetNextKey()
 /// Helper functions - Tape
 bool CompareTape(std::string p1)
 {
+   p1 = TestWorkspace::Fixture(p1);
    CTape t1, t2;
    FILE* f;
 
@@ -352,6 +352,17 @@ bool CompareTape(std::string p1)
 
 bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, std::filesystem::path dump_to_load, const char* run_command, CommandList* cmd_list, bool bFixedSpeed, int seed)
 {
+   // The test runs in its own directory; the fixtures are elsewhere. "conf" is
+   // a section name inside the .ini, not a path, so it is left alone.
+   initfile = TestWorkspace::Fixture(initfile.string());
+   dump_to_load = TestWorkspace::Fixture(dump_to_load.string());
+
+   // A missing fixture does not fail on its own: the machine boots without its
+   // ROMs, the CPU runs nothing and the test spins to its cycle budget. Say so
+   // instead.
+   if (!std::filesystem::exists(initfile)) { ADD_FAILURE() << "missing " << initfile; return false; }
+   if (!std::filesystem::exists(dump_to_load)) { ADD_FAILURE() << "missing " << dump_to_load; return false; }
+
    // Creation dela machine
    
 #ifdef _DEBUG
@@ -404,6 +415,15 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 
 bool InitBinary(const char* conf, const char* initfile, const char* binary_to_load, unsigned short addr_ok, unsigned short addr_ko, unsigned int tolerated_error )
 {
+   // "conf" is a section name inside the .ini, not a path.
+   const std::string initfile_path = TestWorkspace::Fixture(initfile);
+   const std::string binary_path = TestWorkspace::Fixture(binary_to_load);
+   initfile = initfile_path.c_str();
+   binary_to_load = binary_path.c_str();
+
+   if (!std::filesystem::exists(initfile)) { ADD_FAILURE() << "missing " << initfile; return false; }
+   if (!std::filesystem::exists(binary_to_load)) { ADD_FAILURE() << "missing " << binary_to_load; return false; }
+
    bool result = true;
    // Creation dela machine
    DirectoriesImp dirImp;
@@ -449,8 +469,26 @@ bool InitBinary(const char* conf, const char* initfile, const char* binary_to_lo
 
    bool finished = false;
    unsigned int error = 0;
+
+   // The loop below only ends when the program under test reaches one of its
+   // two breakpoints. A machine that does not boot never reaches either, and
+   // without a bound that is a hung job rather than a failed test: it happened
+   // three times while this file was being changed. The budget is counted in
+   // emulated time slices, not seconds, so it behaves the same on a fast
+   // machine and a slow runner. The heaviest test that legitimately uses this
+   // loop, Plus.asictest, takes 16360 slices; Z80.z80full takes 15490.
+   const unsigned long long kMaxSlices = 100000;
+   unsigned long long slices = 0;
+
    while (!finished)
    {
+      if (++slices > kMaxSlices)
+      {
+         ADD_FAILURE() << "the machine never reached either breakpoint after "
+                       << kMaxSlices << " time slices; it most likely did not boot";
+         result = false;
+         break;
+      }
       machine->RunTimeSlice(false); // Run debug
                                     // Check next break : OK = continue
       if (machine->GetProc()->GetPC() == addr_ko)
@@ -524,6 +562,17 @@ unsigned short TestTape::GetRegister(const char* pRegister)
 bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_load, const char* fic_to_scan,
                      unsigned short addr, unsigned short end_addr, const char* reg, int timeout, bool build)
 {
+   // "conf" is a section name inside the .ini, not a path.
+   const std::string initfile_path = TestWorkspace::Fixture(initfile);
+   const std::string dump_path = TestWorkspace::Fixture(dump_to_load);
+   const std::string scan_path = TestWorkspace::Fixture(fic_to_scan);
+   initfile = initfile_path.c_str();
+   dump_to_load = dump_path.c_str();
+   fic_to_scan = scan_path.c_str();
+
+   if (!std::filesystem::exists(initfile)) { ADD_FAILURE() << "missing " << initfile; return false; }
+   if (!std::filesystem::exists(dump_to_load)) { ADD_FAILURE() << "missing " << dump_to_load; return false; }
+
    // Creation dela machine
    
 #ifdef _DEBUG
@@ -582,11 +631,23 @@ bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_
    if (!build)
    {
       f = fopen(fic_to_scan, "rb");
+      if (f == nullptr)
+      {
+         // Without this the next read is through a null pointer and the whole
+         // test binary dies, taking the other results with it.
+         ADD_FAILURE() << "missing recording " << fic_to_scan;
+         return false;
+      }
       fread(readcar, 3, 1, f);
    }
    else 
    {
       f = fopen(fic_to_scan, "wb");
+      if (f == nullptr)
+      {
+         ADD_FAILURE() << "cannot write recording " << fic_to_scan;
+         return false;
+      }
    }
 
    unsigned int bytecount = 0;
@@ -718,6 +779,10 @@ bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_
 
 bool TestTape::MoreTest(const char* fic_to_scan, unsigned short addr, unsigned short end_addr, const char* reg, int timeout, bool build)
 {
+   // Same as Test(): this is a separate entry point with its own path.
+   const std::string scan_path = TestWorkspace::Fixture(fic_to_scan);
+   fic_to_scan = scan_path.c_str();
+
    machine_->CleanBreakpoints();
    machine_->AddBreakpoint(addr);
    machine_->AddBreakpoint(end_addr);
@@ -731,11 +796,23 @@ bool TestTape::MoreTest(const char* fic_to_scan, unsigned short addr, unsigned s
    if (!build)
    {
       f = fopen(fic_to_scan, "rb");
+      if (f == nullptr)
+      {
+         // Without this the next read is through a null pointer and the whole
+         // test binary dies, taking the other results with it.
+         ADD_FAILURE() << "missing recording " << fic_to_scan;
+         return false;
+      }
       fread(readcar, 3, 1, f);
    }
    else
    {
       f = fopen(fic_to_scan, "wb");
+      if (f == nullptr)
+      {
+         ADD_FAILURE() << "cannot write recording " << fic_to_scan;
+         return false;
+      }
    }
 
    unsigned int bytecount = 0;

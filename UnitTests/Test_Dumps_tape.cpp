@@ -8,6 +8,8 @@
 
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 
 #define BUILD 0
@@ -226,7 +228,7 @@ TEST(Dumps_Tape_Protections, Hexagon_Eswat_cdt)
    cmd_space.Action(test.machine_);
    run_cycles.Action(test.machine_);
    // Insert tape 2
-   test.machine_->LoadTape("./res/Tape/Eswat - Cyber Police (UK) (64K) (Face B) (1990) [Original] [TAPE].cdt");
+   test.machine_->LoadTape(TestWorkspace::Fixture("./res/Tape/Eswat - Cyber Police (UK) (64K) (Face B) (1990) [Original] [TAPE].cdt").c_str());
 
    // Press space
    run_cycles.Action(test.machine_);
@@ -781,7 +783,7 @@ TEST(Dumps_Tape_Protections, SpeedlockV7Type3_Lemmings_cdt)
    cmd_space.Action(test.machine_);
 
    // Insert tape 2
-   test.machine_->LoadTape("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt");
+   test.machine_->LoadTape(TestWorkspace::Fixture("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt").c_str());
 
    // Load Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt
    ASSERT_EQ(true, test.MoreTest("./res/Tape/Record/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt_1.txt",

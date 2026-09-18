@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 #include "MachineState.h"
 
@@ -59,7 +61,7 @@ TEST(MachineStateSize, ReportsWhatAStateCosts)
       // grow by anything like that, because the ROM is media, not state.
       if (strcmp(sections[s], "GX4000") == 0)
       {
-         ASSERT_EQ(0, machine->LoadCpr("./res/CART/Eerie_Forest_(Logon_System_2017).cpr"));
+         ASSERT_EQ(0, machine->LoadCpr(TestWorkspace::Fixture("./res/CART/Eerie_Forest_(Logon_System_2017).cpr").c_str()));
          machine->Reinit();
          for (int i = 0; i < 300; ++i)
             machine->RunTimeSlice();
