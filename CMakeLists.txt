@@ -38,10 +38,17 @@ set (SFML_USE_STATIC_STD_LIBS FALSE BOOL)
    
 set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core Emu"		FORCE)
 
+# The vendored zlib registers its own examples as tests; they are not built
+# here, so they would only show up as failures in "ctest" output.
+set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
 add_subdirectory(AmstradCore)
 #add_subdirectory(ShakerGenerator)
+
+# Without this at the top level, "ctest" from the build root reports "No tests
+# were found" and the tests only run from the UnitTests directory.
+enable_testing()
 
 if (GENERATE_UNITTESTS)
    

@@ -55,6 +55,9 @@ add_executable( unitTests
                      TestZ80.cpp 
 						   TestUtils.h
 						   TestUtils.cpp
+						   TestWorkspace.h
+						   TestWorkspace.cpp
+						   TestWorkspaceIsolation.cpp
                      TestZ84C30.cpp
                      TestSnapshot.cpp
                      TestSnapshotMachineType.cpp
@@ -66,10 +69,6 @@ add_executable( unitTests
 
 )
 
-gtest_discover_tests(  unitTests
-                WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/.."
-                PROPERTIES TIMEOUT 600
-)
 
 set(CMAKE_CXX_STANDARD 17)
  
@@ -101,6 +100,30 @@ target_link_libraries(unitTests PUBLIC zlibstatic gtest gtest_main CPCCoreEmu sf
 set (WORKING_DIR_TEST "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
 MESSAGE ( STATUS "Unit test working dir = ${WORKING_DIR_TEST}")
 MESSAGE ( STATUS "Unit test Current binary dir = ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+
+# Same directory as the single-binary test below: that is where the fixtures
+# are installed. Discovered tests used to start in "${PROJECT_BINARY_DIR}/..",
+# which holds no ROM/ or res/, and a missing ROM leaves the CPU with nothing to
+# run rather than failing, so every test spun to its cycle budget.
+# The engine reads its ROMs, keyboard maps and machine settings from one base
+# directory, and they do not all live in one place in the source tree: the
+# keyboard maps belong to CPCCoreEmu. Assemble the small ones (about 2 MB) next
+# to the binary. res/ is 347 MB and stays where it is, reached through the
+# search path below.
+set(FIXTURE_DIR "${CMAKE_CURRENT_BINARY_DIR}/fixtures")
+add_custom_command(TARGET unitTests POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/ROM"  "${FIXTURE_DIR}/ROM"
+   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/CONF" "${FIXTURE_DIR}/CONF"
+   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/CART" "${FIXTURE_DIR}/CART"
+   COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/../CPCCoreEmu/Keyboards" "${FIXTURE_DIR}/Keyboards"
+   COMMENT "Assembling test fixtures in ${FIXTURE_DIR}"
+)
+
+gtest_discover_tests(  unitTests
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                PROPERTIES TIMEOUT 600
+                          ENVIRONMENT "CPCCORE_TEST_PATHS=FIXTURES=${FIXTURE_DIR}|FIXTURES_EXTRA=${CMAKE_CURRENT_SOURCE_DIR}|WORK=${CMAKE_CURRENT_BINARY_DIR}/test-work"
+)
 
 add_test( NAME unitTests COMMAND unitTests WORKING_DIRECTORY ${WORKING_DIR_TEST})
 
