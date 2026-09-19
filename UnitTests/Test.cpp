@@ -16,6 +16,8 @@
 #include <iostream>
 #include <stdio.h>
 #include "gtest/gtest.h"
+
+#include "TestWorkspace.h"
 #include "DiskContainer.h"
 #include "FormatTypeRAW.h"
 #include "Tape.h"
@@ -40,7 +42,7 @@ TEST(DiskFormat, Kryoflux)
    IDisk * d1;
    IDisk * d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/After Burner/track00.0.raw", d1));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/After Burner/track00.0.raw").c_str(), d1));
 
    char name[256];
    d1->side_[0].nb_tracks = 42; // HACK : Set number of tracks to 42 (not default of 43)
@@ -50,8 +52,9 @@ TEST(DiskFormat, Kryoflux)
    {
       FILE* f;
       sprintf(name, "res/After Burner/track%2.2d.0.raw", i);
+      const std::string track_path = TestWorkspace::Fixture(name);
 
-      if (fopen_s(&f, name, "rb") == 0)
+      if (fopen_s(&f, track_path.c_str(), "rb") == 0)
       {
          FormatType::TrackItem item;
          fseek(f, 0, SEEK_END);
@@ -86,9 +89,9 @@ TEST(DiskConversion, FalseDetection)
    IDisk * d1;
    IDisk * d2;
 
-   ASSERT_EQ (0, disk_builder.LoadDisk("res/DEATHSWORD128K.DSK", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/FalseDetection.IPF", d1, "IPF"));   
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/Discology60PlusA1 [MAXIT][SAMdisk36B19][Original].dsk", d2));
+   ASSERT_EQ (0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/DEATHSWORD128K.DSK").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("FalseDetection.IPF", d1, "IPF"));   
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/Discology60PlusA1 [MAXIT][SAMdisk36B19][Original].dsk").c_str(), d2));
    ASSERT_EQ(false, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -102,11 +105,11 @@ TEST(DiskConversion, DSK2IPF)
    IDisk * d1, *d2;
    FormatType *type;
 
-   ASSERT_EQ(true, disk_builder.CanLoad("res/DEATHSWORD128K.DSK", type));
+   ASSERT_EQ(true, disk_builder.CanLoad(TestWorkspace::Fixture("res/DEATHSWORD128K.DSK").c_str(), type));
    ASSERT_EQ(0, strcmp(type->GetFormatName(), "DSK"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/DEATHSWORD128K.DSK", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/DSK2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/DSK2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/DEATHSWORD128K.DSK").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("DSK2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("DSK2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -117,9 +120,9 @@ TEST(DiskConversion, EDSK2EDSK)
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/Airwolf (1985)(Elite)[cr XOR][t +3 XOR].dsk", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/EDSK2EDSK.DSK", d1, "EDSK"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/EDSK2EDSK.DSK", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/Airwolf (1985)(Elite)[cr XOR][t +3 XOR].dsk").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("EDSK2EDSK.DSK", d1, "EDSK"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("EDSK2EDSK.DSK", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -130,9 +133,9 @@ TEST(DiskConversion, EDSK2IPF)
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/Discology60PlusA1 [MAXIT][SAMdisk36B19][Original].dsk", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/EDSK2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/EDSK2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/Discology60PlusA1 [MAXIT][SAMdisk36B19][Original].dsk").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("EDSK2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("EDSK2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
 
    delete d1;
@@ -144,9 +147,9 @@ TEST(DiskConversion, HFE2IPF)
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/30YMD double sides 1 and 2.hfe", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/HFE2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/HFE2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/30YMD double sides 1 and 2.hfe").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("HFE2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("HFE2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -157,9 +160,9 @@ TEST(DiskConversion, IPF2IPF)
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/IPF2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/IPF2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("IPF2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("IPF2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -170,9 +173,9 @@ TEST(DiskConversion, Kryoflux2IPF)
    DiskBuilder disk_builder;
    IDisk *d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/After Burner/track00.0.raw", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/Kryoflux2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/Kryoflux2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/After Burner/track00.0.raw").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("Kryoflux2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("Kryoflux2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d2;
 }
@@ -182,9 +185,9 @@ TEST(DiskConversion, CTRAW2IPF)
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
 
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/1942.raw", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/CTRAW2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/CTRAW2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/1942.raw").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("CTRAW2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("CTRAW2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;
@@ -194,9 +197,9 @@ TEST(DiskConversion, SCP2IPF)
 {
    DiskBuilder disk_builder;
    IDisk * d1, *d2;
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/The Demo [A].scp", d1));
-   ASSERT_EQ(0, disk_builder.SaveDisk("res/SCP2IPF.IPF", d1, "IPF"));
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/SCP2IPF.IPF", d2));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/The Demo [A].scp").c_str(), d1));
+   ASSERT_EQ(0, disk_builder.SaveDisk("SCP2IPF.IPF", d1, "IPF"));
+   ASSERT_EQ(0, disk_builder.LoadDisk("SCP2IPF.IPF", d2));
    ASSERT_EQ(true, (d1->CompareToDisk(d2, false) == 0));
    delete d1;
    delete d2;

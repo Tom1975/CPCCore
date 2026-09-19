@@ -8,6 +8,8 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
+
+#include "TestWorkspace.h"
 #include "Machine.h"
 #include "Display.h"
 
@@ -18,8 +20,13 @@
 
 bool TestAutorun(const char* dump_to_load, const char* command_to_run)
 {
+   const std::string dump_path = TestWorkspace::Fixture(dump_to_load);
+   dump_to_load = dump_path.c_str();
+
    DiskGen disk_gen;
-   std::string log_file = dump_to_load;
+   // The log is output of the test, so it belongs in the test's own directory
+   // rather than next to the image it reads.
+   std::string log_file = std::filesystem::path(dump_path).filename().string();
    log_file += ".log";
    FileLog log(log_file.c_str());
 

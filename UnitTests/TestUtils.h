@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "Machine.h"
 #include "Display.h"
+#include "TestWorkspace.h"
 #include <filesystem>
 
 #ifdef WIN32
@@ -124,10 +125,17 @@ class SoundFactory : public ISoundFactory
 class DirectoriesImp : public IDirectories
 {
 public:
+   // The engine builds its ROM, keyboard map, tape and printer paths from this
+   // one directory. It must not be ".": a test runs in its own directory, and
+   // a missing ROM does not fail loudly, it leaves the CPU with nothing to run.
    virtual const char* GetBaseDirectory()
    {
-      return ".";
+      base_directory_ = TestWorkspace::FixtureRoot().string();
+      return base_directory_.c_str();
    }
+
+protected:
+   std::string base_directory_;
 };
 
 
@@ -160,7 +168,7 @@ protected:
 class CommandInsertDisk : public ICommand
 {
 public:
-   CommandInsertDisk(const char* pathfile) :pathfile_(pathfile) {};
+   CommandInsertDisk(const char* pathfile) :pathfile_(TestWorkspace::Fixture(pathfile)) {};
    virtual bool Action(EmulatorEngine* machine) { return machine->LoadDisk(pathfile_.string().c_str(), 0, false) == 0; };
 
 protected:
@@ -250,7 +258,7 @@ protected:
 class CommandSaveScreenshot : public ICommand
 {
 public:
-   CommandSaveScreenshot(CDisplay * display, std::filesystem::path filename, bool verify) : display_(display), filename_(filename), verify_(verify)
+   CommandSaveScreenshot(CDisplay * display, std::filesystem::path filename, bool verify) : display_(display), filename_(TestWorkspace::Fixture(filename.string())), verify_(verify)
    {
 
    }

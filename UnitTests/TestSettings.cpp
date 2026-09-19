@@ -7,6 +7,8 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
+
+#include "TestWorkspace.h"
 #include "TestUtils.h"
 
 #include "SettingsList.h"
@@ -19,7 +21,7 @@ TEST(Settings, basic_settinglist_test)
    SettingsList settings_list;
    ConfigurationManager conf_manager;
    
-   settings_list.InitSettingsList (&conf_manager, "./CONF");
+   settings_list.InitSettingsList (&conf_manager, TestWorkspace::Fixture("./CONF").c_str());
    settings_list.BuildList();
 
    // Read and check settings list

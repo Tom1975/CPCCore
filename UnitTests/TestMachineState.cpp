@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 #include "MachineState.h"
 
@@ -147,6 +149,12 @@ void CheckOneMachine(const char* section, int slices_before_save,
                     const char* tape = nullptr, int tolerated = 0,
                     const char* run_command = nullptr)
 {
+   // Fixtures are read through the workspace: the test runs in its own directory.
+   const std::string disk_path = (disk != nullptr) ? TestWorkspace::Fixture(disk) : std::string();
+   const std::string tape_path = (tape != nullptr) ? TestWorkspace::Fixture(tape) : std::string();
+   if (disk != nullptr) disk = disk_path.c_str();
+   if (tape != nullptr) tape = tape_path.c_str();
+
    DirectoriesImp dirImp; CDisplay display; Log log;
    SoundFactory soundFactory; ConfigurationManager conf_manager;
    EmulatorEngine* machine =
@@ -357,7 +365,7 @@ TEST(MachineStateTest, RefusesAStateTakenWithADifferentDisk)
    EmulatorEngine* machine =
       NewBootedMachine(dirImp, display, log, soundFactory, conf_manager, "6128");
 
-   ASSERT_EQ(0, machine->LoadDisk("./res/FDC/fdctest.dsk", 0, false));
+   ASSERT_EQ(0, machine->LoadDisk(TestWorkspace::Fixture("./res/FDC/fdctest.dsk").c_str(), 0, false));
    for (int i = 0; i < 100; ++i)
       machine->RunTimeSlice(false);
 
@@ -366,7 +374,7 @@ TEST(MachineStateTest, RefusesAStateTakenWithADifferentDisk)
 
    // Same drive, different geometry.
    ASSERT_EQ(0, machine->LoadDisk(
-      "./res/After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf", 0, false));
+      TestWorkspace::Fixture("./res/After Burner (UK) (1988) [Activision SEGA] (Pre-release).ipf").c_str(), 0, false));
 
    const bool loaded = MachineState::Load(machine, &state[0], state.size());
 
@@ -393,7 +401,7 @@ TEST(MachineStateTest, RefusesAStateTakenWithADifferentCartridge)
    EmulatorEngine* machine =
       NewBootedMachine(dirImp, display, log, soundFactory, conf_manager, "GX4000");
 
-   ASSERT_EQ(0, machine->LoadCpr("./res/CART/Eerie_Forest_(Logon_System_2017).cpr"));
+   ASSERT_EQ(0, machine->LoadCpr(TestWorkspace::Fixture("./res/CART/Eerie_Forest_(Logon_System_2017).cpr").c_str()));
    machine->Reinit();
    for (int i = 0; i < 200; ++i)
       machine->RunTimeSlice();
@@ -406,7 +414,7 @@ TEST(MachineStateTest, RefusesAStateTakenWithADifferentCartridge)
       << "the guard refuses the very cartridge the state was taken with";
 
    // ...and must not come back into a machine holding a different one.
-   ASSERT_EQ(0, machine->LoadCpr("./res/plus/sscrtest.cpr"));
+   ASSERT_EQ(0, machine->LoadCpr(TestWorkspace::Fixture("./res/plus/sscrtest.cpr").c_str()));
    machine->Reinit();
    const bool loaded = MachineState::Load(machine, &state[0], state.size());
 
@@ -429,7 +437,7 @@ TEST(MachineStateTest, RefusesAStateTakenWithNoDiskWhenOneIsInserted)
    std::vector<unsigned char> state;
    ASSERT_TRUE(MachineState::Save(machine, state));
 
-   ASSERT_EQ(0, machine->LoadDisk("./res/FDC/fdctest.dsk", 0, false));
+   ASSERT_EQ(0, machine->LoadDisk(TestWorkspace::Fixture("./res/FDC/fdctest.dsk").c_str(), 0, false));
 
    const bool loaded = MachineState::Load(machine, &state[0], state.size());
    delete machine;
@@ -649,11 +657,32 @@ TEST(MachineStateTest, LoadsAStateWrittenByAnotherProcess)
    const std::vector<std::string> argv = testing::internal::GetArgvs();
    ASSERT_FALSE(argv.empty());
 
+   // Tests run in their own directory, so a relative argv[0] has to be taken
+   // from the directory the binary was started in.
+   std::filesystem::path executable(argv[0]);
+   if (executable.is_relative())
+   {
+      executable = TestWorkspace::StartDirectory() / executable;
+   }
+
+   // The child inherits this test's working directory, which holds no fixtures.
+   // Tell it where they are, and keep its own output inside this test's
+   // directory so two runs of this test cannot collide.
+   const std::string child_fixtures = TestWorkspace::FixtureRoot().string();
+   const std::string child_work = (TestWorkspace::CurrentTestDir() / "child").string();
+#ifdef _WIN32
+   _putenv_s("CPCCORE_TEST_FIXTURES", child_fixtures.c_str());
+   _putenv_s("CPCCORE_TEST_WORK", child_work.c_str());
+#else
+   setenv("CPCCORE_TEST_FIXTURES", child_fixtures.c_str(), 1);
+   setenv("CPCCORE_TEST_WORK", child_work.c_str(), 1);
+#endif
+
    const std::string state_path = CreateUniqueStatePath();
    ASSERT_FALSE(state_path.empty()) << "could not create a temporary file";
    const std::string fingerprint_path = state_path + ".fingerprint";
 
-   std::string command = "\"" + argv[0] + "\""
+   std::string command = "\"" + executable.string() + "\""
       + " --gtest_also_run_disabled_tests"
       + " --gtest_filter=MachineStateTest.DISABLED_CrossProcessProducer"
       + " " + kStateOutFlag + "\"" + state_path + "\"";
@@ -816,7 +845,8 @@ TEST(MachineStateTest, RestoringAStateReproducesTheSameRunOnAPlusUsingTheAsic)
 TEST(MachineStateTest, RestoringAStateReproducesTheSameRunFromACartridge)
 {
    const int kSlicesAfter = 400;
-   const char* kCart = "./res/CART/Eerie_Forest_(Logon_System_2017).cpr";
+   const std::string cart_path = TestWorkspace::Fixture("./res/CART/Eerie_Forest_(Logon_System_2017).cpr");
+   const char* kCart = cart_path.c_str();
 
    DirectoriesImp dirImp; CDisplay display; Log log;
    SoundFactory soundFactory; ConfigurationManager conf_manager;

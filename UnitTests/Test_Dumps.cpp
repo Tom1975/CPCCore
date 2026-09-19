@@ -7,6 +7,8 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
+
+#include "TestWorkspace.h"
 #include "DiskContainer.h"
 
 #include "TestUtils.h"
@@ -1322,7 +1324,7 @@ TEST(Dumps_Disk, TheFury)
 TEST(Dumps_Disk, UDisk21_SideA)
 {
     DiskGen disk;
-    ASSERT_EQ ( true, disk.CreateDisk("./res/DSK/UDisk21_SideA.scp", nullptr, nullptr) != nullptr );
+    ASSERT_EQ ( true, disk.CreateDisk(TestWorkspace::Fixture("./res/DSK/UDisk21_SideA.scp").c_str(), nullptr, nullptr) != nullptr );
 }
 
 
