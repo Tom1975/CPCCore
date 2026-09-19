@@ -51,6 +51,7 @@ private:
    static bool ReadZ80(Motherboard* board, const unsigned char* p, size_t size);
    static void WriteGateArray(Motherboard* board, std::vector<unsigned char>& out);
    static bool ReadGateArray(Motherboard* board, const unsigned char* p, size_t size);
+   static bool ReadCartridge(Motherboard* board, const unsigned char* p, size_t size);
    static void WritePsg(Motherboard* board, std::vector<unsigned char>& out);
    static bool ReadPsg(Motherboard* board, const unsigned char* p, size_t size);
    static void WriteFdc(Motherboard* board, std::vector<unsigned char>& out);

@@ -115,8 +115,14 @@ const unsigned int kChunkExtendedRam = 0x5852414D;  // "XRAM"
 // A cartridge is media, like a disc or a tape: its half-megabyte of ROM stays
 // out of the state. What goes in is enough to refuse a state taken with a
 // different cartridge -- the CRC32 Memory computed once when the .cpr was
-// loaded, and how many banks are plugged. Nothing here is restored; the chunk
-// exists to be checked.
+// loaded, and how many banks are plugged.
+//
+// One field is restored: which bank is selected. A cartridge larger than 512 KB
+// is several banks and the running program picks one by reading page 0 at
+// &3FFE/&3FFD/&3FFF, so the selection is machine state, not media -- the ROM is
+// identical either way and nothing else in the state says which bank the
+// program was using. A state written before this field existed is 8 bytes long
+// and still loads, keeping the bank it has.
 const unsigned int kChunkCartridge = 0x43415254;  // "CART"
 
 
@@ -1295,11 +1301,34 @@ void MachineState::WriteCartridge(Motherboard* board, std::vector<unsigned char>
    PutU32(out, mem->cartridge_crc_);
    PutU32(out, (unsigned int)mem->cartridge_list_.size());
 
+   unsigned int selected_bank = 0;
+   for (size_t i = 0; i < mem->cartridge_list_.size(); ++i)
+   {
+      if (mem->cartridge_list_[i] == mem->current_cartridge_bank_)
+      {
+         selected_bank = (unsigned int)i;
+         break;
+      }
+   }
+   PutU32(out, selected_bank);
+
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
    out[length_at + 1] = (payload_size >> 8) & 0xFF;
    out[length_at + 2] = (payload_size >> 16) & 0xFF;
    out[length_at + 3] = (payload_size >> 24) & 0xFF;
+}
+
+bool MachineState::ReadCartridge(Motherboard* board, const unsigned char* p, size_t size)
+{
+   // A state written before the selected bank was recorded is 8 bytes long.
+   // Those are still valid: keep whatever bank the machine already has.
+   if (size < 12) return true;
+
+   // SwitchBank does the mapping as well as the bookkeeping, so the selection
+   // has to go back through it rather than be assigned.
+   board->GetMem()->SwitchBank(GetU32(&p[8]));
+   return true;
 }
 
 bool MachineState::DescribesThisMachine(Motherboard* board,
@@ -1500,6 +1529,11 @@ bool MachineState::Load(EmulatorEngine* machine, const unsigned char* buffer, si
       else if (id == kChunkExtendedRam)
       {
          if (!ReadExtendedRam(machine->GetMotherboard(), &buffer[at], length))
+            return false;
+      }
+      else if (id == kChunkCartridge)
+      {
+         if (!ReadCartridge(machine->GetMotherboard(), &buffer[at], length))
             return false;
       }
       // Unknown chunks are skipped, so a state from a newer build still loads.
