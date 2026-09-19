@@ -353,9 +353,18 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
    machine_->GetPPI()->port_c_ = header[0x58];
 
    // PPI Control register
+   // Decode explicitly from the named bits (.SNA / 8255 layout) rather than
+   // assigning control_word_.byte : the bitfield order inside the union is
+   // implementation defined and differs between little- and big-endian hosts.
    unsigned char data = header[0x59];
-
-   machine_->GetPPI()->control_word_.byte = data;
+   auto& ctrl = machine_->GetPPI()->control_word_.control_word;
+   ctrl.io_low_c  = (data      ) & 1;
+   ctrl.io_b      = (data >> 1) & 1;
+   ctrl.mode_b    = (data >> 2) & 1;
+   ctrl.io_high_c = (data >> 3) & 1;
+   ctrl.io_a      = (data >> 4) & 1;
+   ctrl.mode_a    = (data >> 5) & 3;
+   ctrl.b7        = (data >> 7) & 1;
    // Mode : bit 5&6
    /*if (( data & 0x60) == 0x00 )
    {
@@ -1417,9 +1426,22 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
    header[0x58] = machine_->GetPPI()->port_c_;
 
    // PPI Control register
-   unsigned char data = 0x80;
-   data |= machine_->GetPPI()->control_word_.byte;
-   
+   // Built explicitly from the named bits rather than control_word_.byte : the
+   // bitfield order inside the union is implementation defined and differs
+   // between little- and big-endian hosts (GCC fills LSB-first on the former,
+   // MSB-first on the latter).
+   unsigned char data;
+   {
+      const auto& ctrl = machine_->GetPPI()->control_word_.control_word;
+      data = 0x80
+         | (ctrl.mode_a    << 5)
+         | (ctrl.io_a      << 4)
+         | (ctrl.io_high_c << 3)
+         | (ctrl.mode_b    << 2)
+         | (ctrl.io_b      << 1)
+         | (ctrl.io_low_c);
+   }
+
    header[0x59] = data;
 
    // PSG
