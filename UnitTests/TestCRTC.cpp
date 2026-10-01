@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <string>
 
 #include "CRTC.h"
 #include "Sig.h"
@@ -68,23 +69,11 @@ const char* TypeName(CRTC::TypeCRTC type)
 
 // Builds a CRTC wired to its own CSig only (no GateArray, no PPI). sig must
 // outlive crtc; CRTC keeps a raw pointer to it (CRTC::SetSig).
-//
-// CRTC::Reset() never touches ff1_/ff3_/ff4_ (see CRTC_Reset.
-// LeavesFf1Ff3Ff4AtWhateverValueTheyHadBefore_KNOWN_DIVERGENCE below), so on
-// a freshly-constructed CRTC they hold indeterminate memory rather than a
-// defined post-reset value. Real hardware's RESET pin forces DE and VSYNC to
-// their inactive state, so the three lines below emulate that correct
-// behaviour at the harness level -- without them, every tick-driven test in
-// this file would be at the mercy of whatever garbage happened to be on the
-// stack.
 void MakeCrtc(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
 {
    crtc.SetSig(&sig);
    crtc.DefinirTypeCRTC(type);
    crtc.Reset();
-   crtc.ff1_ = false;
-   crtc.ff3_ = false;
-   crtc.ff4_ = false;
 }
 
 void WriteRegister(CRTC& crtc, unsigned char reg, unsigned char value)
@@ -96,12 +85,8 @@ void WriteRegister(CRTC& crtc, unsigned char reg, unsigned char value)
 // Programs the "standard European" table from the CPC low ROM (Compendium
 // chapitre 4.1, table ROM address &5C5): lines of 64 chars (40 displayed),
 // 312 raster lines as 39 character rows of 8 lines, no vertical adjustment.
-// Written through Out(), not by relying on CRTC::Reset()'s raw defaults,
-// because Out()'s R3 handler is what actually computes
-// horizontal_sync_width_/vertical_sync_width_ -- CRTC::Reset() only pokes
-// registers_list_[3] directly and leaves those two derived fields whatever
-// they were before, exactly as real hardware leaves them undefined until the
-// boot ROM's first OUT to R3 (Compendium chapitre 4.1, note 2).
+// Written through Out(), as the boot ROM does (Compendium chapitre 4.1,
+// note 2), rather than relying on CRTC::Reset()'s defaults.
 void ProgramStandardEuropeanScreen(CRTC& crtc)
 {
    WriteRegister(crtc, 0, 0x3F);  // R0 = 63  (64 char/line)
@@ -250,21 +235,10 @@ TEST(CRTC_RegisterDefaults, MatchTheEuropeanRomTableAfterReset)
    }
 }
 
-// A real CRTC's RESET input forces its outputs to their inactive state (the
-// datasheets describe DE and the sync outputs as cleared on reset), and
-// CRTC::Reset() does clear signals_->h_sync_/v_sync_ accordingly (when
-// signals_ is wired). But ff1_ (drives DE together with ff3_, see
-// GateArray.cpp's DISPEN_TEST) and ff3_/ff4_ (DISPEN gate / VSYNC) are never
-// assigned anywhere in CRTC::Reset(): whatever value they held the instant
-// before Reset() was called is exactly what they still hold afterwards. On a
-// freshly-constructed CRTC (as in every other test in this file) that is
-// indeterminate memory rather than a defined value -- MakeCrtc() works
-// around it by clearing the three fields itself post-Reset(), which is a
-// test-harness compensation, not evidence that CRTC::Reset() is correct.
-// KNOWN DIVERGENCE, demonstrated here without relying on actual
-// indeterminate memory (which would be undefined behaviour to read): poison
-// the flags to a known value, Reset(), and show Reset() left them untouched.
-TEST(CRTC_Reset, LeavesFf1Ff3Ff4AtWhateverValueTheyHadBefore_KNOWN_DIVERGENCE)
+// Real hardware's RESET forces DISPEN and VSYNC inactive. CRTC::Reset()
+// must clear the flip-flops behind them (ff1_/ff3_: DE, ff4_: VSYNC), as it
+// already does for signals_->h_sync_/v_sync_. SAFETY NET.
+TEST(CRTC_Reset, ClearsDisplayEnableAndVSyncFlipFlops)
 {
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, CRTC::UM6845R);
@@ -275,14 +249,29 @@ TEST(CRTC_Reset, LeavesFf1Ff3Ff4AtWhateverValueTheyHadBefore_KNOWN_DIVERGENCE)
 
    crtc.Reset();
 
-   // Compendium-documented hardware would clear all three here, exactly as
-   // CRTC::Reset() already does for signals_->h_sync_/v_sync_ a few lines
-   // above. If these now read false, ff1_/ff3_/ff4_ have been added to
-   // CRTC::Reset() -- update this assertion (and drop the workaround in
-   // MakeCrtc() above) accordingly.
-   EXPECT_TRUE(crtc.ff1_) << "ff1_ (DE) survived Reset() unchanged";
-   EXPECT_TRUE(crtc.ff3_) << "ff3_ (DE gate) survived Reset() unchanged";
-   EXPECT_TRUE(crtc.ff4_) << "ff4_ (VSYNC) survived Reset() unchanged";
+   EXPECT_FALSE(crtc.ff1_);
+   EXPECT_FALSE(crtc.ff3_);
+   EXPECT_FALSE(crtc.ff4_);
+}
+
+// The HSYNC/VSYNC widths derived from R3 must match the R3 value Reset()
+// installs, exactly as if R3 had been written through Out(). SAFETY NET.
+TEST(CRTC_Reset, DerivesSyncWidthsFromTheDefaultR3)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC reset_only; CSig sig1;
+      MakeCrtc(reset_only, sig1, type);
+
+      CRTC written; CSig sig2;
+      MakeCrtc(written, sig2, type);
+      WriteRegister(written, 3, reset_only.registers_list_[3]);
+
+      EXPECT_EQ(written.horizontal_sync_width_, reset_only.horizontal_sync_width_);
+      EXPECT_EQ(written.vertical_sync_width_, reset_only.vertical_sync_width_);
+      EXPECT_EQ(14, reset_only.horizontal_sync_width_);
+   }
 }
 
 // Compendium chapitre 14.2: R3's high nibble is a 4-bit VSYNC line count on
@@ -420,74 +409,54 @@ TEST(CRTC_VerticalSync, AssertedWhenC4ReachesR7)
 // ---------------------------------------------------------------------------
 // Group C: HSYNC re-entrancy (Compendium chapitre 15.3).
 //
-// "Sur le CRTC 0, deux HSYNC ne peuvent pas etre collees si la position
-// C0=R2 est rencontree lorsque C3l atteint R3l" (15.3.1) -- CRTC0 is
-// protected. "Sur les CRTC 1, 2, 3 et 4, il y a un bug de gestion si C0=R2
-// sur C0=R2+R3" (15.3.1), demonstrated in 15.3.2 with R0=R2=0: C0 equals R2
-// on every single tick, so the HSYNC start condition re-arms before the
-// previous pulse's width has elapsed, and the CRTC's HSYNC signal never
-// falls again ("HSYNC infinie").
-//
-// CRTC_0.cpp and CRTC_1.cpp raise the HSYNC start flip-flop unconditionally
-// whenever hcc_ == R2 (no guard). CRTC_2.cpp (and CRTC_3_4.cpp) guard that
-// same test with "if (h_no_sync_)". With R0 = R2 = 0, h_no_sync_ is only
-// ever cleared by the "hcc_ != R2" branch, which never runs -- so CRTC2's
-// guard, once armed, blocks all further re-triggers and its HSYNC pulse
-// completes normally. That is the exact inverse of the Compendium: CRTC0
-// unprotected, CRTC2 protected.
+// With R0 = R2 = 0, C0 equals R2 on every tick, so C0 == R2 also holds at the
+// position C0 = R2 + R3l where the HSYNC should end:
+// - CRTC 0 is protected (15.3.1, 15.3.2): the HSYNC ends and cannot restart
+//   on that same position; it restarts on the next one. With R3l = 4 the
+//   HSYNC pin reads 1111 0 1111 0 ...
+// - CRTC 1, 2, 3 and 4 have the bug (15.3.1, 15.3.2): the HSYNC does not end,
+//   C3l overflows (15, 0, ...) and the pin stays high ("HSYNC infinie"). On
+//   CRTC 1 the internal off/on transition is shorter than 1 us (15.3.4),
+//   so at 1 us resolution the pin reads 1 constantly.
+// The emulation currently swaps CRTC 0 and CRTC 1, and CRTC 2 drops HSYNC for
+// good once the first pulse is over. These three tests pin down today's exact
+// sequence so that the fix is a deliberate, visible change.
 // ---------------------------------------------------------------------------
 
-TEST(CRTC_HSyncReentrancy, Crtc0RemainsAssertedForever_KNOWN_DIVERGENCE)
+namespace
+{
+std::string HSyncTrace(CRTC::TypeCRTC type, int ticks)
 {
    CRTC crtc; CSig sig;
-   MakeCrtc(crtc, sig, CRTC::HD6845S);
-   WriteRegister(crtc, 0, 0);  // R0 = 0
-   WriteRegister(crtc, 2, 0);  // R2 = 0
-   WriteRegister(crtc, 3, 0x84);  // HSYNC width 4 chars
+   MakeCrtc(crtc, sig, type);
+   WriteRegister(crtc, 0, 0);     // R0 = 0
+   WriteRegister(crtc, 2, 0);     // R2 = 0
+   WriteRegister(crtc, 3, 0x84);  // R3l = 4
 
-   AdvanceMicroseconds(crtc, 40);  // Far past the 4-character pulse width.
+   std::string trace;
+   for (int i = 0; i < ticks; ++i)
+   {
+      Advance(crtc);
+      trace += sig.h_sync_ ? '1' : '0';
+   }
+   return trace;
+}
+}  // namespace
 
-   // Compendium (15.3.1): CRTC0 should be protected and h_sync_ should have
-   // fallen again after 4 ticks. If this now reads false, the guard has been
-   // added -- update this assertion (and its title) to reflect the fix.
-   EXPECT_TRUE(sig.h_sync_)
-      << "CRTC0's HSYNC never fell -- current (unprotected) behaviour. The "
-         "Compendium documents CRTC0 as the one type NOT affected by this "
-         "bug (15.3.1); expected to become false once ClockTick0() gains "
-         "CRTC2's h_no_sync_-style guard.";
+// Compendium expects "111101111011110111101111" (protected).
+TEST(CRTC_HSyncReentrancy, Crtc0IsNotProtected_KNOWN_DIVERGENCE)
+{
+   EXPECT_EQ("011111111111111111111111", HSyncTrace(CRTC::HD6845S, 24));
 }
 
-TEST(CRTC_HSyncReentrancy, Crtc1RemainsAssertedForever)
+// Compendium expects "111111111111111111111111" (C3l overflow).
+TEST(CRTC_HSyncReentrancy, Crtc1RestartsInsteadOfOverflowing_KNOWN_DIVERGENCE)
 {
-   CRTC crtc; CSig sig;
-   MakeCrtc(crtc, sig, CRTC::UM6845R);
-   WriteRegister(crtc, 0, 0);
-   WriteRegister(crtc, 2, 0);
-   WriteRegister(crtc, 3, 0x84);
-
-   AdvanceMicroseconds(crtc, 40);
-
-   // SAFETY NET: the Compendium documents this exact bug on CRTC1 (15.3.1,
-   // 15.3.2 worked example). This must stay true.
-   EXPECT_TRUE(sig.h_sync_) << "CRTC1's HSYNC infinie bug regressed";
+   EXPECT_EQ("111101111011110111101111", HSyncTrace(CRTC::UM6845R, 24));
 }
 
-TEST(CRTC_HSyncReentrancy, Crtc2RecoversAfterPulseWidth_KNOWN_DIVERGENCE)
+// Compendium expects "111111111111111111111111" (C3l overflow).
+TEST(CRTC_HSyncReentrancy, Crtc2StopsAfterFirstPulse_KNOWN_DIVERGENCE)
 {
-   CRTC crtc; CSig sig;
-   MakeCrtc(crtc, sig, CRTC::MC6845);
-   WriteRegister(crtc, 0, 0);
-   WriteRegister(crtc, 2, 0);
-   WriteRegister(crtc, 3, 0x84);
-
-   AdvanceMicroseconds(crtc, 40);
-
-   // Compendium-documented hardware would also read true here (CRTC2 is
-   // explicitly listed alongside 1/3/4 in 15.3.1). If this now reads true,
-   // the h_no_sync_ guard specific to CRTC2 has been removed -- update this
-   // assertion (and its title) accordingly.
-   EXPECT_FALSE(sig.h_sync_)
-      << "CRTC2 recovered cleanly -- current behaviour, caused by the "
-         "h_no_sync_ guard in ClockTick2() that the Compendium does not "
-         "document for this type.";
+   EXPECT_EQ("111100000000000000000000", HSyncTrace(CRTC::MC6845, 24));
 }

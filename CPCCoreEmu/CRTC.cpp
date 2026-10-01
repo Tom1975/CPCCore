@@ -78,12 +78,10 @@ static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
    }
 }
 
-CRTC::CRTC(void) : cursor_line_(nullptr)
+CRTC::CRTC(void) : signals_(nullptr), gate_array_(nullptr), ppi_(nullptr), play_back_(nullptr), log_(nullptr), cursor_line_(nullptr)
 {
    DefinirTypeCRTC(UM6845R);
 
-   signals_ = NULL;
-   log_ = NULL;
    Reset();
 }
 
@@ -130,11 +128,16 @@ void CRTC::Reset()
 
    lightpen_input_ = true;
 
+   adddress_register_ = 0;
+   ComputeSyncWidths();
+
    hcc_ = 0;
    vcc_ = 0;
    vlc_ = 0;
    ma_ = 0;
+   bu_ = 0;
    scanline_vbl_ = 0;
+   horinzontal_pulse_ = 0;
    r4_reached_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
@@ -156,8 +159,13 @@ void CRTC::Reset()
    even_field_ = true;
    v_no_sync_ = true;
    h_no_sync_ = true;
+   mux_ = false;
    mux_set_ = false;
    mux_reset_ = false;
+   // RESET forces DISPEN and VSYNC inactive
+   ff1_ = false;
+   ff3_ = false;
+   ff4_ = false;
 //   m_bResetVLC = false;
 
 //   m_bTrickR4 = false;
@@ -167,6 +175,31 @@ void CRTC::Reset()
    shifted_ssa_ = false;
    ssa_ready_ = false;
 
+}
+
+void CRTC::ComputeSyncWidths()
+{
+   horizontal_sync_width_ = (registers_list_ [3] & 0x0F);
+   switch (type_crtc_)
+   {
+   case 0: //
+      vertical_sync_width_ = ((registers_list_ [3]&0x80 )== 0x80)?16:8;
+      if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
+      break;
+   case 1:
+   case 2:
+      vertical_sync_width_ = 16;
+      break;
+   case 3:
+   case 4:
+      vertical_sync_width_ = registers_list_ [3] >> 4;
+      if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
+      if (horizontal_sync_width_ == 0) horizontal_sync_width_ = 16;
+      break;
+   case MAX_CRTC:
+   default:
+      break;
+   }
 }
 
 unsigned char CRTC::In ( unsigned short address )
@@ -363,27 +396,7 @@ void CRTC::Out (unsigned short address, unsigned char data)
             case 2:
                break;
             case 3:  // VSync width depends on the CRTC type*
-               horizontal_sync_width_ = (registers_list_ [3] & 0x0F);
-               switch (type_crtc_)
-               {
-               case 0: //
-                  vertical_sync_width_ = ((registers_list_ [3]&0x80 )== 0x80)?16:8;
-                  if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
-                  break;
-               case 1:
-               case 2:
-                  vertical_sync_width_ = 16;
-                  break;
-               case 3:
-               case 4:
-                  vertical_sync_width_ = registers_list_ [3] >> 4;
-                  if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
-                  if (horizontal_sync_width_ == 0) horizontal_sync_width_ = 16;
-                  break;
-               case MAX_CRTC:
-               default:
-                  break;
-               }
+               ComputeSyncWidths();
                if (scanline_vbl_ == vertical_sync_width_)
                {
                   ff4_ = false;

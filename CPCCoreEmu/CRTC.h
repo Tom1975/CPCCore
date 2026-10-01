@@ -115,6 +115,7 @@ public:
    void ClockTick34 ();
 
    void ComputeMux1 ();
+   void ComputeSyncWidths();
 
    bool v_no_sync_;
    bool h_no_sync_;
