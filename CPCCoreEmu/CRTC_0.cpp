@@ -38,10 +38,11 @@ void CRTC::ClockTick0 ()
       // Vertical sync width counter
       if (ff4_)    // CE
       {
+         // C3h is a 4-bit counter : R3h=0 (or a fixed 16) ends the VSYNC after 16 lines
          scanline_vbl_ ++;
-         scanline_vbl_ &= 0x1F;
+         scanline_vbl_ &= 0x0F;
 
-         if (scanline_vbl_ == vertical_sync_width_)
+         if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
          {
             scanline_vbl_ = 0;
             ff4_reset = true;

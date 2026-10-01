@@ -274,35 +274,26 @@ TEST(CRTC_Reset, DerivesSyncWidthsFromTheDefaultR3)
    }
 }
 
-// Compendium chapitre 14.2: R3's high nibble is a 4-bit VSYNC line count on
-// CRTC 0, 3 and 4 (0 meaning 16 lines), exactly like the low nibble is a
-// 4-bit HSYNC width. CRTC 1 and 2 ignore it and always use 16 lines. The R3
-// handler in CRTC::Out() (case 3) implements this correctly for CRTC 3/4
-// (vertical_sync_width_ = registers_list_[3] >> 4) but collapses CRTC 0 to a
-// binary choice driven by bit 7 alone (16 if set, else a fixed 8), ignoring
-// bits 4-6 entirely. KNOWN DIVERGENCE: with the same R3 nibble, CRTC0 and
-// CRTC3/4 compute different (and, for CRTC0, wrong) VSYNC widths.
-TEST(CRTC_VerticalSyncWidth, Crtc0IgnoresBits4To6OfR3_KNOWN_DIVERGENCE)
+// Compendium chapitre 14.1/14.2: R3 = vvvvhhhh on CRTC 0, 3 and 4 (VSYNC
+// lines, 0 meaning 16) and xxxxhhhh on CRTC 1 and 2 (VSYNC always 16 lines).
+// SAFETY NET.
+TEST(CRTC_SyncWidths, VSyncWidthFollowsR3HighNibbleOnCrtc034Only)
 {
-   CRTC crtc0; CSig sig0;
-   MakeCrtc(crtc0, sig0, CRTC::HD6845S);
-   WriteRegister(crtc0, 3, 0x30);  // nibble = 3 -> Compendium says 3 lines.
-
-   CRTC crtc3; CSig sig3;
-   MakeCrtc(crtc3, sig3, CRTC::AMS40489);
-   WriteRegister(crtc3, 3, 0x30);  // Same R3 value, CRTC3 this time.
-
-   EXPECT_EQ(3, crtc3.vertical_sync_width_)
-      << "CRTC3 reads the R3 nibble as a count, matching the Compendium.";
-
-   // Compendium-documented hardware would also give 3 here. The code gives 8
-   // because HD6845S's branch only tests bit 0x80 and picks between 8 or 16.
-   EXPECT_EQ(8, crtc0.vertical_sync_width_)
-      << "CRTC0's VSYNC width computation in CRTC::Out() case 3 only looks "
-         "at bit 7 of R3 (8 or 16 lines); the Compendium (14.2) documents "
-         "the full nibble as a 1-15 count (0 meaning 16), same as CRTC3/4. "
-         "If this now reads 3, that branch has been corrected -- update "
-         "this assertion and the one above accordingly.";
+   struct { unsigned char r3; int crtc034; } const cases[] = {
+      { 0x0E, 16 }, { 0x1E, 1 }, { 0x3E, 3 }, { 0x4E, 4 }, { 0x8E, 8 }, { 0xFE, 15 },
+   };
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool programmable = (type == CRTC::HD6845S || type == CRTC::AMS40489 || type == CRTC::AMS40226);
+      for (const auto& c : cases)
+      {
+         CRTC crtc; CSig sig;
+         MakeCrtc(crtc, sig, type);
+         WriteRegister(crtc, 3, c.r3);
+         EXPECT_EQ(programmable ? c.crtc034 : 16, crtc.vertical_sync_width_) << "R3=" << (int)c.r3;
+      }
+   }
 }
 
 // ---------------------------------------------------------------------------
@@ -459,4 +450,108 @@ TEST(CRTC_HSyncReentrancy, Crtc1RestartsInsteadOfOverflowing_KNOWN_DIVERGENCE)
 TEST(CRTC_HSyncReentrancy, Crtc2StopsAfterFirstPulse_KNOWN_DIVERGENCE)
 {
    EXPECT_EQ("111100000000000000000000", HSyncTrace(CRTC::MC6845, 24));
+}
+
+// ---------------------------------------------------------------------------
+// Group D: sync widths observed on the pins, CRTC 0/1/2 (Compendium 14).
+// ---------------------------------------------------------------------------
+
+namespace
+{
+// Longest HSYNC pulse and number of HSYNC pulses, in microseconds, over one
+// standard frame programmed with the given R3.
+void MeasureHSync(CRTC::TypeCRTC type, unsigned char r3, int& longest, int& count)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, type);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 3, r3);
+   longest = 0; count = 0;
+   int current = 0;
+   for (int i = 0; i < 19968; ++i)
+   {
+      Advance(crtc);
+      if (sig.h_sync_) { if (current++ == 0) ++count; } else current = 0;
+      if (current > longest) longest = current;
+   }
+}
+
+// Length in microseconds of the first full VSYNC pulse. If rewrite_line > 0,
+// R3 is rewritten with rewrite_r3 on that VSYNC line (1-based), at C0 = 10.
+int MeasureVSync(CRTC::TypeCRTC type, unsigned char r3, int rewrite_line = 0, unsigned char rewrite_r3 = 0)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, type);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 3, r3);
+   while (!sig.v_sync_) Advance(crtc);
+   int length = 1;
+   while (length < 3 * 1024)
+   {
+      if (rewrite_line > 0 && length == (rewrite_line - 1) * 64 + 10)
+         WriteRegister(crtc, 3, rewrite_r3);
+      Advance(crtc);
+      if (!sig.v_sync_) break;
+      ++length;
+   }
+   return length;
+}
+}  // namespace
+
+// Compendium 14.2: VSYNC lasts R3h lines on CRTC 0 (0 = 16), 16 lines on
+// CRTC 1 and 2. SAFETY NET.
+TEST(CRTC_SyncWidths, VSyncLinesOnThePin)
+{
+   struct { unsigned char r3; int crtc0_lines; } const cases[] = {
+      { 0x0E, 16 }, { 0x1E, 1 }, { 0x4E, 4 }, { 0x8E, 8 }, { 0xFE, 15 },
+   };
+   for (CRTC::TypeCRTC type : kTickableTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      for (const auto& c : cases)
+      {
+         const int lines = (type == CRTC::HD6845S) ? c.crtc0_lines : 16;
+         EXPECT_EQ(lines * 64, MeasureVSync(type, c.r3)) << "R3=" << (int)c.r3;
+      }
+   }
+}
+
+// Compendium 14.2: with R3h=9, rewriting R3h=8 during the 8th VSYNC line
+// ends the VSYNC after 8 lines; doing it during the 9th line (C3h already
+// past 8) makes the 4-bit counter wrap: 16 lines, then 8 more. SAFETY NET.
+TEST(CRTC_SyncWidths, Crtc0ShorteningR3hDuringVSync)
+{
+   EXPECT_EQ(9 * 64, MeasureVSync(CRTC::HD6845S, 0x9E));
+   EXPECT_EQ(8 * 64, MeasureVSync(CRTC::HD6845S, 0x9E, 8, 0x8E));
+   EXPECT_EQ(24 * 64, MeasureVSync(CRTC::HD6845S, 0x9E, 9, 0x8E));
+}
+
+// Compendium 14.6: R3l=0 means no HSYNC at all on CRTC 0 and 1, but a 16 us
+// HSYNC on CRTC 2 (and 3/4). Other values give R3l us. SAFETY NET.
+TEST(CRTC_SyncWidths, HSyncWidthOnThePin)
+{
+   for (CRTC::TypeCRTC type : kTickableTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      int longest, count;
+
+      MeasureHSync(type, 0x84, longest, count);
+      EXPECT_EQ(4, longest);
+      EXPECT_EQ(312, count);
+
+      MeasureHSync(type, 0x8E, longest, count);
+      EXPECT_EQ(14, longest);
+      EXPECT_EQ(312, count);
+
+      MeasureHSync(type, 0x80, longest, count);
+      if (type == CRTC::MC6845)
+      {
+         EXPECT_EQ(16, longest);
+         EXPECT_EQ(312, count);
+      }
+      else
+      {
+         EXPECT_EQ(0, count) << "R3l=0 must not produce any HSYNC on CRTC 0/1";
+      }
+   }
 }

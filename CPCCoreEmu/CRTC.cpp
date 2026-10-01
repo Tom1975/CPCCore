@@ -182,13 +182,16 @@ void CRTC::ComputeSyncWidths()
    horizontal_sync_width_ = (registers_list_ [3] & 0x0F);
    switch (type_crtc_)
    {
-   case 0: //
-      vertical_sync_width_ = ((registers_list_ [3]&0x80 )== 0x80)?16:8;
+   case 0:  // R3 = vvvvhhhh, VSYNC 0 = 16 lines, HSYNC 0 = no HSYNC
+      vertical_sync_width_ = registers_list_ [3] >> 4;
       if (vertical_sync_width_ == 0)vertical_sync_width_ = 16;
       break;
-   case 1:
-   case 2:
+   case 1:  // R3 = xxxxhhhh, VSYNC always 16 lines, HSYNC 0 = no HSYNC
       vertical_sync_width_ = 16;
+      break;
+   case 2:  // R3 = xxxxhhhh, VSYNC always 16 lines, HSYNC 0 = 16 us
+      vertical_sync_width_ = 16;
+      if (horizontal_sync_width_ == 0) horizontal_sync_width_ = 16;
       break;
    case 3:
    case 4:
@@ -396,11 +399,8 @@ void CRTC::Out (unsigned short address, unsigned char data)
             case 2:
                break;
             case 3:  // VSync width depends on the CRTC type*
+               // A new VSYNC width is only compared when C3h is incremented (Compendium 14.2)
                ComputeSyncWidths();
-               if (scanline_vbl_ == vertical_sync_width_)
-               {
-                  ff4_ = false;
-               }
                //ComputeMux_1 ();
 
                break;
