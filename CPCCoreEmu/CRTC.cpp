@@ -62,6 +62,22 @@ CRTCRegistersAcces CRTCAccess[32] = {
 };
 
 
+// R8 bits kept on write, per CRTC type (Compendium 19.1/19.2) : bits 0-1 = interlace on all types,
+// bits 4-5 = SKEW-DISPTMG (BORDER delay / force) on CRTC 0/3/4, bits 6-7 = cursor skew on CRTC 0 only.
+static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
+{
+   switch (type_crtc)
+   {
+   case CRTC::HD6845S:
+      return 0xF3;
+   case CRTC::AMS40489:
+   case CRTC::AMS40226:
+      return 0x33;
+   default:
+      return 0x03;
+   }
+}
+
 CRTC::CRTC(void) : cursor_line_(nullptr)
 {
    DefinirTypeCRTC(UM6845R);
@@ -98,8 +114,8 @@ void CRTC::Reset()
    registers_list_[5] = 0x00;   registers_mask_[5] = 0x1F;
    registers_list_[6] = 0x19;   registers_mask_[6] = 0x7F;
    registers_list_[7] = 0x1E;   registers_mask_[7] = 0x7F;
-   registers_list_[8] = 0x00;   registers_mask_[8] = 0x03;
-   registers_list_[9] = 0x07;   registers_mask_[9] = 0xFF;
+   registers_list_[8] = 0x00;   registers_mask_[8] = R8Mask(type_crtc_);
+   registers_list_[9] = 0x07;   registers_mask_[9] = 0x1F;
 
    registers_list_[10] = 0x0;   registers_mask_[10] =0x7F;
    registers_list_[11] = 0x0;   registers_mask_[11] =0x1F;
@@ -471,7 +487,7 @@ void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
    default:
       TickFunction = &CRTC::ClockTick34;
    }
-   
+   registers_mask_[8] = R8Mask(type_crtc_);
 }
 
 unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
