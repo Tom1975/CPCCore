@@ -7,8 +7,6 @@ void CRTC::ClockTick2 ()
    bool ff1_set = false;
    bool ff1_reset = false;
 
-   bool ff2_set = false;
-   bool ff2_reset = false;
 
    bool ff3_set = false;
    bool ff3_reset = false;
@@ -32,10 +30,6 @@ void CRTC::ClockTick2 ()
    }
 
 
-   if (signals_->h_sync_)
-   {
-      horinzontal_pulse_++;
-   }
 
    // Counter actions
    if (hcc_ == 0 )
@@ -188,30 +182,8 @@ void CRTC::ClockTick2 ()
       //FF1 = true;
    }
 
-   if( hcc_ == registers_list_[2])
-   {
-      if (h_no_sync_)
-      {
-         h_no_sync_ = false;
-         signals_->hsync_raise_ = true;
-         ff2_set = true;
-      }
-   }
-   else
-   {
-      h_no_sync_ = true;
-   }
-
-   if ((horinzontal_pulse_ >= horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
-   {
-      //m_Sig->HsyncFallWr = true;
-      signals_->hsync_fall_ = true;
-      ff2_reset = true;
-      horinzontal_pulse_ = 0;
-      //FF2 = false;
-      // Something to do ?
-
-   }
+   bool hsync_started, hsync_ended;
+   ClockHSync(hsync_started, hsync_ended);
 
    if (hcc_ == registers_list_[1])
    {
@@ -234,20 +206,6 @@ void CRTC::ClockTick2 ()
    {
       // Nothing .
       ff1_ = !ff1_reset;
-      int dbg=1;
-   }
-   // Flip flop computation
-   if ( ff2_reset && !ff2_set)
-   {
-      signals_->h_sync_ = false;
-   }
-   else if ( !ff2_reset && ff2_set)
-   {
-      signals_->h_sync_ = true;
-   }
-   else if ( ff2_reset && ff2_set)
-   {
-      // Nothing .
       int dbg=1;
    }
    if ( ff3_reset && !ff3_set)

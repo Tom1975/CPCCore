@@ -24,9 +24,6 @@ void CRTC::ClockTick1 ()
    bool ff1_set = false;
    bool ff1_reset = false;
 
-   bool ff2_set = false;
-   bool ff2_reset = false;
-
    bool ff3_set = false;
    bool ff3_reset = false;
 
@@ -44,10 +41,6 @@ void CRTC::ClockTick1 ()
       ma_++;
    }
 
-   if (signals_->h_sync_ && (horinzontal_pulse_ != horizontal_sync_width_))
-   {
-      horinzontal_pulse_ = (horinzontal_pulse_+1)&0xF;
-   }
 
    if (hcc_ == 0 )
    {
@@ -191,36 +184,8 @@ void CRTC::ClockTick1 ()
        ff1_set = true;
    }
 
-   if( hcc_ == registers_list_[2])
-   {
-      h_no_sync_ = false;
-      signals_->hsync_raise_ = true;
-      ff2_set = true;
-   }
-   else
-   {
-      h_no_sync_ = true;
-   }
-
-   // Todo : This is NOT correct. This can be fixed with a OUT_N_A_ with a m_CurrentOpcodeTick of 9... Which breaks lots of other things
-   if ((horinzontal_pulse_ == horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
-   {
-      if (!signals_->hsync_raise_)
-      {
-         // NOTE 2 : FROM SCRATCH OK SI "ComputeMux_1" absent
-         // Note 1 : Cam4 ok si "ComputeMux_1 ();" Present
-         //bMuxReset = (m_VLC == m_Register [9]);
-         //ComputeMux_1 ();
-      }
-
-      //m_Sig->HsyncFallWr = true;
-      signals_->hsync_fall_ = true;
-
-      //m_Sig->HsyncFall = true;
-      ff2_reset = true;
-      horinzontal_pulse_ = 0;
-      // Something to do ?
-   }
+   bool hsync_started, hsync_ended;
+   ClockHSync(hsync_started, hsync_ended);
 
    if (hcc_ == registers_list_[1])
    {
@@ -240,20 +205,6 @@ void CRTC::ClockTick1 ()
    {
       // Nothing .
       ff1_ = !ff1_reset;
-   }
-   // Flip flop computation
-   if ( ff2_reset && !ff2_set)
-   {
-      signals_->h_sync_ = false;
-   }
-   else if ( !ff2_reset && ff2_set)
-   {
-      signals_->h_sync_ = true;
-   }
-   else if ( ff2_reset && ff2_set)
-   {
-      // Nothing .
-      signals_->h_sync_ = false; // s&ko ?
    }
    if ( ff3_reset && !ff3_set)
    {

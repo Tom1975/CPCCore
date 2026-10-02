@@ -14,7 +14,6 @@
 void CRTC::ClockTick34 ()
 {
    bool ff1_set = false;
-   bool ff2_set = false;
 
    bool ff3_set = false;
    bool ff3_reset = false;
@@ -57,10 +56,6 @@ void CRTC::ClockTick34 ()
    }
 
 
-   if (signals_->h_sync_)
-   {
-      horinzontal_pulse_ = (++horinzontal_pulse_) & 0xF;
-   }
 
    // Counter actions
    if (hcc_ == 0 )
@@ -208,51 +203,26 @@ void CRTC::ClockTick34 ()
       sscr_bit_8_ = 1;
    }
 
-   if( hcc_ == registers_list_[2])
+   const bool hsync_was_active = signals_->h_sync_;
+   bool hsync_started, hsync_ended;
+   ClockHSync(hsync_started, hsync_ended);
+   if (hsync_started)
    {
-      if (h_no_sync_)
-      {
-         h_no_sync_ = false;
-         signals_->hsync_raise_ = true;
-         ff2_set = true;
-         // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
-         status1_ &= ~0x08;
-      }
-   }
-   else
-   {
-      h_no_sync_ = true;
+      // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
+      status1_ &= ~0x08;
    }
 
-   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (signals_->h_sync_ || signals_->hsync_raise_));
+   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (hsync_was_active || hsync_started));
 
-   if ((horinzontal_pulse_ == horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
+   if (hsync_ended)
    {
-      signals_->hsync_fall_ = true;
-      //ff2_reset = true;
       // Bit 4	0 : CRTC is on last char of HSYNC
       status1_ &= ~0x10;
-      horinzontal_pulse_ = 0;
       // Something to do ?
       if (inc_vcc_)
       {
          inc_vcc_ = false;
       }
-
-      if (!ff2_set)
-      {
-         signals_->h_sync_ = false;
-      }
-      else 
-      {
-         // Nothing .
-         int dbg = 1;
-      }
-
-   }
-   else if (ff2_set)
-   {
-      signals_->h_sync_ = true;
    }
 
    if (hcc_ == registers_list_[1])

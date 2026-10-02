@@ -2,7 +2,9 @@
 #include <string>
 
 #include "CRTC.h"
+#include "Memoire.h"
 #include "Sig.h"
+#include "VGA.h"
 
 // Non-regression / characterisation tests for CPCCore/CPCCoreEmu/CRTC.* ,
 // checked against "The Amstrad CPC CRTC Compendium" v1.11 (Serge Querne /
@@ -25,12 +27,10 @@
 // not safe to call on an unwired GateArray*. These tests never call Tick();
 // instead they invoke the per-type ClockTickN() function directly through
 // the public TickFunction member-pointer (Advance() below), which only
-// touches CRTC::signals_ and the CRTC's own registers/counters. That works
-// cleanly for CRTC 0/1/2. CRTC 3/4's ClockTick34() also dereferences
-// gate_array_->memory_ for the CPC+ split-screen/soft-scroll registers, so
-// ticking those two types needs the full Motherboard/EmulatorEngine wiring
-// and is out of scope for this isolated harness -- register-write tests
-// (which never tick) still cover all 5 types.
+// touches CRTC::signals_ and the CRTC's own registers/counters. CRTC 3/4's
+// ClockTick34() also reads the CPC+ split-screen/soft-scroll registers
+// through gate_array_, so every CRTC is wired to a neutral, never-ticked
+// GateArray (see NeutralGateArray() below): all 5 types can be ticked.
 
 namespace
 {
@@ -52,6 +52,8 @@ const CRTC::TypeCRTC kTickableTypes[] = {
    CRTC::HD6845S,   // CRTC 0
    CRTC::UM6845R,   // CRTC 1
    CRTC::MC6845,    // CRTC 2
+   CRTC::AMS40489,  // CRTC 3
+   CRTC::AMS40226,  // CRTC 4
 };
 
 const char* TypeName(CRTC::TypeCRTC type)
@@ -69,9 +71,28 @@ const char* TypeName(CRTC::TypeCRTC type)
 
 // Builds a CRTC wired to its own CSig only (no GateArray, no PPI). sig must
 // outlive crtc; CRTC keeps a raw pointer to it (CRTC::SetSig).
+// ClockTick34() (CRTC 3/4) reads the CPC+ split/soft-scroll registers through
+// gate_array_->memory_ (GetSPLT, GetSSCR) and gate_array_->GetSSA(). A bare
+// GateArray wired to a Memory whose ASIC registers are all zero (no split, no
+// soft scroll) is enough for that; neither is ever ticked here.
+GateArray* NeutralGateArray()
+{
+   static Memory* memory = nullptr;
+   static GateArray* gate_array = nullptr;
+   if (gate_array == nullptr)
+   {
+      memory = new Memory(nullptr);
+      memset(memory->GetAsicRegisters(), 0, 0x4000);
+      gate_array = new GateArray();
+      gate_array->memory_ = memory;
+   }
+   return gate_array;
+}
+
 void MakeCrtc(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
 {
    crtc.SetSig(&sig);
+   crtc.SetGateArray(NeutralGateArray());
    crtc.DefinirTypeCRTC(type);
    crtc.Reset();
 }
@@ -400,56 +421,114 @@ TEST(CRTC_VerticalSync, AssertedWhenC4ReachesR7)
 // ---------------------------------------------------------------------------
 // Group C: HSYNC re-entrancy (Compendium chapitre 15.3).
 //
-// With R0 = R2 = 0, C0 equals R2 on every tick, so C0 == R2 also holds at the
-// position C0 = R2 + R3l where the HSYNC should end:
+// With R0 = 1 and R2 = 0, C0 alternates 0/1 and equals R2 every other tick;
+// with R3l = 2, C0 == R2 also holds at the position C0 = R2 + R3l where the
+// HSYNC should end. (R0 = 0, the Compendium's own 15.3.2 example, is not used
+// here: CRTC::Out() currently turns R0=0 into R0=1 on CRTC 0.)
 // - CRTC 0 is protected (15.3.1, 15.3.2): the HSYNC ends and cannot restart
-//   on that same position; it restarts on the next one. With R3l = 4 the
-//   HSYNC pin reads 1111 0 1111 0 ...
+//   on that same position; it restarts on the next C0 == R2. The HSYNC pin
+//   reads 11 00 11 00 ...
 // - CRTC 1, 2, 3 and 4 have the bug (15.3.1, 15.3.2): the HSYNC does not end,
 //   C3l overflows (15, 0, ...) and the pin stays high ("HSYNC infinie"). On
 //   CRTC 1 the internal off/on transition is shorter than 1 us (15.3.4),
 //   so at 1 us resolution the pin reads 1 constantly.
-// The emulation currently swaps CRTC 0 and CRTC 1, and CRTC 2 drops HSYNC for
-// good once the first pulse is over. These three tests pin down today's exact
-// sequence so that the fix is a deliberate, visible change.
 // ---------------------------------------------------------------------------
 
 namespace
 {
-std::string HSyncTrace(CRTC::TypeCRTC type, int ticks)
+std::string HSyncTrace(CRTC::TypeCRTC type, int ticks, int* falls = nullptr)
 {
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, type);
-   WriteRegister(crtc, 0, 0);     // R0 = 0
+   WriteRegister(crtc, 0, 1);     // R0 = 1
    WriteRegister(crtc, 2, 0);     // R2 = 0
-   WriteRegister(crtc, 3, 0x84);  // R3l = 4
+   WriteRegister(crtc, 3, 0x82);  // R3l = 2
 
    std::string trace;
+   if (falls) *falls = 0;
    for (int i = 0; i < ticks; ++i)
    {
       Advance(crtc);
       trace += sig.h_sync_ ? '1' : '0';
+      if (falls && sig.hsync_fall_) ++*falls;
+      sig.hsync_fall_ = sig.hsync_raise_ = false;  // consumed by the GATE ARRAY
    }
    return trace;
 }
 }  // namespace
 
-// Compendium expects "111101111011110111101111" (protected).
-TEST(CRTC_HSyncReentrancy, Crtc0IsNotProtected_KNOWN_DIVERGENCE)
+// SAFETY NET.
+TEST(CRTC_HSyncReentrancy, Crtc0IsProtected)
 {
-   EXPECT_EQ("011111111111111111111111", HSyncTrace(CRTC::HD6845S, 24));
+   // The first tick takes C0 from 0 to 1: no HSYNC yet.
+   EXPECT_EQ("011001100110011001100110", HSyncTrace(CRTC::HD6845S, 24));
 }
 
-// Compendium expects "111111111111111111111111" (C3l overflow).
-TEST(CRTC_HSyncReentrancy, Crtc1RestartsInsteadOfOverflowing_KNOWN_DIVERGENCE)
+// SAFETY NET. CRTC 1 also signals its invisible restart to the GATE ARRAY.
+TEST(CRTC_HSyncReentrancy, Crtc1OverflowsWithAnInvisibleRestart)
 {
-   EXPECT_EQ("111101111011110111101111", HSyncTrace(CRTC::UM6845R, 24));
+   int falls = 0;
+   EXPECT_EQ("011111111111111111111111", HSyncTrace(CRTC::UM6845R, 24, &falls));
+   EXPECT_GT(falls, 0);
 }
 
-// Compendium expects "111111111111111111111111" (C3l overflow).
-TEST(CRTC_HSyncReentrancy, Crtc2StopsAfterFirstPulse_KNOWN_DIVERGENCE)
+// SAFETY NET. No HSYNC end at all is signalled on CRTC 2, 3 and 4.
+TEST(CRTC_HSyncReentrancy, Crtc234Overflow)
 {
-   EXPECT_EQ("111100000000000000000000", HSyncTrace(CRTC::MC6845, 24));
+   for (CRTC::TypeCRTC type : { CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      int falls = 0;
+      EXPECT_EQ("011111111111111111111111", HSyncTrace(type, 24, &falls));
+      EXPECT_EQ(0, falls);
+   }
+}
+
+// Compendium 14.6 / 27.6.3: with R3l=0, CRTC 0 and 1 produce no HSYNC, so the
+// GATE ARRAY must not see any HSYNC end either (no interrupt). SAFETY NET.
+TEST(CRTC_HSyncReentrancy, NoHSyncEndWithR3lZeroOnCrtc01)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 3, 0x80);
+      int events = 0;
+      for (int i = 0; i < 19968; ++i)
+      {
+         Advance(crtc);
+         if (sig.hsync_fall_ || sig.hsync_raise_ || sig.h_sync_) ++events;
+         sig.hsync_fall_ = sig.hsync_raise_ = false;
+      }
+      EXPECT_EQ(0, events);
+   }
+}
+
+// Compendium 14.5.2: CRTC 1 keeps handling R3l=0 during the HSYNC, which
+// cancels it; CRTC 0 and 2 treat 0 as a value to reach (C3l overflows to 16).
+// SAFETY NET.
+TEST(CRTC_HSyncReentrancy, WritingR3lZeroDuringHSync)
+{
+   struct { CRTC::TypeCRTC type; int length; } const cases[] = {
+      { CRTC::HD6845S, 16 }, { CRTC::UM6845R, 3 }, { CRTC::MC6845, 16 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, c.type);
+      ProgramStandardEuropeanScreen(crtc);   // R2 = 46, R3l = 14
+      while (!sig.h_sync_) Advance(crtc);
+      int length = 1;
+      Advance(crtc); ++length;
+      Advance(crtc); ++length;                // 3rd us of the HSYNC
+      WriteRegister(crtc, 3, 0x80);           // R3l = 0
+      --length;
+      while (sig.h_sync_ && length < 64) { Advance(crtc); ++length; }
+      EXPECT_EQ(c.length, length);
+   }
 }
 
 // ---------------------------------------------------------------------------
@@ -498,11 +577,11 @@ int MeasureVSync(CRTC::TypeCRTC type, unsigned char r3, int rewrite_line = 0, un
 }
 }  // namespace
 
-// Compendium 14.2: VSYNC lasts R3h lines on CRTC 0 (0 = 16), 16 lines on
-// CRTC 1 and 2. SAFETY NET.
+// Compendium 14.2: VSYNC lasts R3h lines on CRTC 0, 3 and 4 (0 = 16), 16
+// lines on CRTC 1 and 2. SAFETY NET.
 TEST(CRTC_SyncWidths, VSyncLinesOnThePin)
 {
-   struct { unsigned char r3; int crtc0_lines; } const cases[] = {
+   struct { unsigned char r3; int crtc034_lines; } const cases[] = {
       { 0x0E, 16 }, { 0x1E, 1 }, { 0x4E, 4 }, { 0x8E, 8 }, { 0xFE, 15 },
    };
    for (CRTC::TypeCRTC type : kTickableTypes)
@@ -510,7 +589,8 @@ TEST(CRTC_SyncWidths, VSyncLinesOnThePin)
       SCOPED_TRACE(TypeName(type));
       for (const auto& c : cases)
       {
-         const int lines = (type == CRTC::HD6845S) ? c.crtc0_lines : 16;
+         const bool programmable = (type == CRTC::HD6845S || type == CRTC::AMS40489 || type == CRTC::AMS40226);
+         const int lines = programmable ? c.crtc034_lines : 16;
          EXPECT_EQ(lines * 64, MeasureVSync(type, c.r3)) << "R3=" << (int)c.r3;
       }
    }
@@ -527,7 +607,7 @@ TEST(CRTC_SyncWidths, Crtc0ShorteningR3hDuringVSync)
 }
 
 // Compendium 14.6: R3l=0 means no HSYNC at all on CRTC 0 and 1, but a 16 us
-// HSYNC on CRTC 2 (and 3/4). Other values give R3l us. SAFETY NET.
+// HSYNC on CRTC 2, 3 and 4. Other values give R3l us. SAFETY NET.
 TEST(CRTC_SyncWidths, HSyncWidthOnThePin)
 {
    for (CRTC::TypeCRTC type : kTickableTypes)
@@ -544,7 +624,7 @@ TEST(CRTC_SyncWidths, HSyncWidthOnThePin)
       EXPECT_EQ(312, count);
 
       MeasureHSync(type, 0x80, longest, count);
-      if (type == CRTC::MC6845)
+      if (type == CRTC::MC6845 || type == CRTC::AMS40489 || type == CRTC::AMS40226)
       {
          EXPECT_EQ(16, longest);
          EXPECT_EQ(312, count);

@@ -116,6 +116,7 @@ public:
 
    void ComputeMux1 ();
    void ComputeSyncWidths();
+   void ClockHSync(bool& started, bool& ended);
 
    bool v_no_sync_;
    bool h_no_sync_;

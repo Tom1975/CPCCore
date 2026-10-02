@@ -205,6 +205,60 @@ void CRTC::ComputeSyncWidths()
    }
 }
 
+// HSYNC generation, once per CRTC character, after C0 has been updated (Compendium 14 & 15).
+// C3l (horinzontal_pulse_) is a 4-bit counter, reset when the HSYNC starts on C0=R2 : the
+// HSYNC ends when C3l reaches R3l (R3l=0 : 16 us on CRTC 2, 3, 4 - no HSYNC at all on CRTC 0, 1).
+// C0=R2 is ignored while the HSYNC is active.
+void CRTC::ClockHSync(bool& started, bool& ended)
+{
+   started = ended = false;
+   const bool c0_is_r2 = (hcc_ == registers_list_[2]);
+
+   if (signals_->h_sync_)
+   {
+      horinzontal_pulse_ = (horinzontal_pulse_ + 1) & 0x0F;
+
+      if (type_crtc_ == UM6845R && horizontal_sync_width_ == 0)
+      {
+         // CRTC 1 keeps handling R3l=0 (no HSYNC) during the HSYNC : it is cancelled (14.5.2)
+         ended = true;
+      }
+      else if (horinzontal_pulse_ == (horizontal_sync_width_ & 0x0F))
+      {
+         if (c0_is_r2 && type_crtc_ != HD6845S)
+         {
+            // CRTC 1, 2, 3, 4 : C0=R2 on the last HSYNC position prevents the HSYNC from ending,
+            // and C3l, which is not reset, overflows (15.3). CRTC 1 drops and raises the signal
+            // again fast enough to be invisible, but the GATE ARRAY sees a new HSYNC (15.3.4).
+            if (type_crtc_ == UM6845R)
+            {
+               signals_->hsync_fall_ = true;
+               signals_->hsync_raise_ = true;
+            }
+         }
+         else
+         {
+            // CRTC 0 is protected : the HSYNC ends, and cannot restart on this position (15.3)
+            ended = true;
+         }
+      }
+
+      if (ended)
+      {
+         signals_->h_sync_ = false;
+         signals_->hsync_fall_ = true;
+         horinzontal_pulse_ = 0;
+      }
+   }
+   else if (c0_is_r2 && horizontal_sync_width_ != 0)
+   {
+      signals_->h_sync_ = true;
+      signals_->hsync_raise_ = true;
+      horinzontal_pulse_ = 0;
+      started = true;
+   }
+}
+
 unsigned char CRTC::In ( unsigned short address )
 {
    if (( address & 0x4300) == 0x0000)
