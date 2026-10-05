@@ -833,6 +833,18 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->r9_triggered_ ? 1 : 0);
    out.push_back(c->r4_triggered_ ? 1 : 0);
    out.push_back(c->even_field_ ? 1 : 0);
+   // Appended later : CRTC 0 vertical latches and the SKEW-DISPTMG history
+   out.push_back(c->c9_managed_ ? 1 : 0);
+   out.push_back(c->line_end_ ? 1 : 0);
+   out.push_back(c->c4_increment_ ? 1 : 0);
+   out.push_back(c->last_line_ ? 1 : 0);
+   out.push_back(c->adjust_ ? 1 : 0);
+   out.push_back(c->adjust_confirmed_ ? 1 : 0);
+   out.push_back(c->adjust_end_ ? 1 : 0);
+   out.push_back(c->vsync_allowed_ ? 1 : 0);
+   out.push_back(c->c3h_load_ ? 1 : 0);
+   out.push_back(c->v_no_sync_ ? 1 : 0);
+   out.push_back(c->dispen_history_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -876,6 +888,21 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->r9_triggered_ = p[at++] != 0;
    c->r4_triggered_ = p[at++] != 0;
    c->even_field_ = p[at++] != 0;
+
+   // Older states stop here : the latches keep their Reset() values
+   if (at == size) return true;
+   if (size - at < 11) return false;
+   c->c9_managed_ = p[at++] != 0;
+   c->line_end_ = p[at++] != 0;
+   c->c4_increment_ = p[at++] != 0;
+   c->last_line_ = p[at++] != 0;
+   c->adjust_ = p[at++] != 0;
+   c->adjust_confirmed_ = p[at++] != 0;
+   c->adjust_end_ = p[at++] != 0;
+   c->vsync_allowed_ = p[at++] != 0;
+   c->c3h_load_ = p[at++] != 0;
+   c->v_no_sync_ = p[at++] != 0;
+   c->dispen_history_ = p[at++];
 
    return (at == size);
 }

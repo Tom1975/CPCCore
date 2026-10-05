@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <string>
+#include <utility>
 
 #include "Bus.h"
 #include "CRTC.h"
@@ -809,7 +810,9 @@ TEST(CRTC_RegisterRead, StatusPort)
 // C0 never reaches 1, so C9 is no longer handled: it stays frozen, and R4,
 // R5 and R9 are ignored while R0 = 0. A C4 increment armed on the first
 // C0 = 0 (C9 == R9) still happens once, on the second C0 = 0.
-// R0 is written while C0 = 0, so C0 does not overflow (13.6).
+// R0 is written while C0 = 0, so C0 does not overflow (13.6). The character it
+// is written on was started with the old R0 : the line end registered at its
+// start is not seen, and the first C0 = 0 "for which R0 = 0" is the next one.
 // ---------------------------------------------------------------------------
 
 namespace
@@ -849,7 +852,9 @@ TEST(CRTC_R0Zero, Crtc0AdditionalManagementOnTheLastLine)
    ASSERT_EQ(0, crtc.vcc_);
    ASSERT_EQ(0, crtc.vlc_);
 
-   WriteRegister(crtc, 0, 0);   // first C0 = 0 with R0 = 0
+   WriteRegister(crtc, 0, 0);
+   Advance(crtc);               // first C0 = 0 for which R0 = 0 : last line, additional management
+   EXPECT_EQ(0, crtc.vcc_);
    Advance(crtc);               // second C0 = 0 : C4 is incremented once
    EXPECT_EQ(1, crtc.vcc_);
    EXPECT_EQ(0, crtc.vlc_);
@@ -872,18 +877,18 @@ TEST(CRTC_R0Zero, Crtc0LastC4Hiccup)
    do { AdvanceUntilHccEquals(crtc, 0); } while (crtc.vcc_ != 5);
 
    WriteRegister(crtc, 0, 0);
-   Advance(crtc);
+   AdvanceMicroseconds(crtc, 2);
    EXPECT_EQ(6, crtc.vcc_);
    EXPECT_EQ(0, crtc.vlc_);
    AdvanceMicroseconds(crtc, 200);
    EXPECT_EQ(6, crtc.vcc_);
    EXPECT_EQ(0, crtc.vlc_);
 
-   // C9 was not reset : it now counts from its frozen value
+   // C9 was not reset and still equals R9 : the next line end is a plain C9 == R9 match
    WriteRegister(crtc, 0, 3);
    AdvanceUntilHccEquals(crtc, 0);
-   EXPECT_EQ(6, crtc.vcc_);
-   EXPECT_EQ(1, crtc.vlc_);
+   EXPECT_EQ(7, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
 }
 
 // 13.2.3, 13.2.4: C9 != R9, every counter is frozen and R9 is ignored. SAFETY NET.
@@ -1035,4 +1040,258 @@ TEST(CRTC_SkewDispTmg, Crtc0BorderDisintegration)
       trace += crtc.DispEn() ? '1' : '0';
    }
    EXPECT_EQ("1111", trace);
+}
+
+// ---------------------------------------------------------------------------
+// Group H: CRTC 0 vertical logic (Compendium 10.3.1, 11.2.2, 11.3.1, 12.2,
+// 13.2, 13.7.2, 16.4.1). A register written after AdvanceUntilHccEquals(k)
+// lands during the character C0 = k.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+// Standard screen on CRTC 0, then the given R4 / R5 / R9, settled for 2 frames.
+void Crtc0Screen(CRTC& crtc, CSig& sig, unsigned char r4, unsigned char r5, unsigned char r9)
+{
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 4, r4);
+   WriteRegister(crtc, 5, r5);
+   WriteRegister(crtc, 9, r9);
+   AdvanceMicroseconds(crtc, 2 * 128 * 64);
+}
+
+// Puts the CRTC on C0 = 0 of the line C4 = c4, C9 = c9.
+bool ReachLine(CRTC& crtc, int c4, int c9)
+{
+   for (int i = 0; i < 4 * 128 * 32; ++i)
+   {
+      AdvanceUntilHccEquals(crtc, 0);
+      if (crtc.vcc_ == c4 && crtc.vlc_ == c9) return true;
+   }
+   return false;
+}
+
+// C4/C9 of the next line.
+std::pair<int, int> NextLine(CRTC& crtc)
+{
+   AdvanceUntilHccEquals(crtc, 0);
+   return { crtc.vcc_, crtc.vlc_ };
+}
+
+typedef std::pair<int, int> Line;
+}  // namespace
+
+// 11.2.2, example p82 : R4 = 10, R5 = 16, R9 = 3. C4 is incremented once
+// (R4 + 1) and kept, C9 counts 0..15 instead of R9, then a new frame. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, AdjustmentCountsC9UpToR5)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 10, 16, 3);
+   ASSERT_TRUE(ReachLine(crtc, 10, 3));
+   for (int c9 = 0; c9 < 16; ++c9)
+      EXPECT_EQ(Line(11, c9), NextLine(crtc));
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+}
+
+// 11.2.2, 11.4.2 : R5 > 0 written on the last line is taken into account up to
+// C0 = 2, not after. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R5IsSampledUntilC0Equals2)
+{
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 10, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 2);
+      WriteRegister(crtc, 5, 2);
+      EXPECT_EQ(Line(11, 0), NextLine(crtc));
+      EXPECT_EQ(Line(11, 1), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 10, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 3);
+      WriteRegister(crtc, 5, 2);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// 12.2 : on the last line, R4 written on C0 = 0 cancels the last line ; written
+// on C0 = 1 it starts the additional management (the line becomes the first
+// additional line : C4 kept, C9 compared with R5). SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R4WrittenOnC0Equals0Or1OfTheLastLine)
+{
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 10, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      WriteRegister(crtc, 4, 20);
+      EXPECT_EQ(Line(11, 0), NextLine(crtc));
+   }
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 10, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 4, 20);
+      EXPECT_EQ(Line(10, 4), NextLine(crtc));
+   }
+   {
+      // Written after C0 = 1 : the last line stays true
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 10, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 2);
+      WriteRegister(crtc, 4, 20);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// 10.3.1 : R9 written with C9 during the line resets C9 on the next line ; R9
+// moved away from C9 == R9 lets C9 count on with C4 unchanged ; R9 written on
+// C0 == R0 while C9 == R9 increments both C4 and C9. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R9WrittenDuringTheLine)
+{
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 5, 3));
+      AdvanceUntilHccEquals(crtc, 30);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(6, 0), NextLine(crtc));
+   }
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 0);
+      ASSERT_TRUE(ReachLine(crtc, 5, 0));
+      AdvanceUntilHccEquals(crtc, 30);
+      WriteRegister(crtc, 9, 7);
+      EXPECT_EQ(Line(5, 1), NextLine(crtc));
+   }
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 5, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(6, 8), NextLine(crtc));
+   }
+}
+
+// 12.2.1 R.L.A.L. : R4 = R9 = 0 written on the last line after C0 = 1 makes
+// every following line a last line (C4 = C9 = 0). SAFETY NET.
+TEST(CRTC_Crtc0Vertical, LineToLineRupture)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 38, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   AdvanceUntilHccEquals(crtc, 10);
+   WriteRegister(crtc, 9, 0);
+   WriteRegister(crtc, 4, 0);
+   for (int i = 0; i < 5; ++i)
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+}
+
+// 13.2.5 : R0 = 1, R4 = R9 = R5 = 0. C0 never reaches 2, the additional
+// management is never cancelled : each 2 us line (C4 = 0) is followed by an
+// additional 2 us line (C4 = 1), the frame (and R12/R13) restarts every 4 us. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R0EqualsOneAlternatesC4)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 0, 0, 0);
+   AdvanceUntilHccEquals(crtc, 0);
+   WriteRegister(crtc, 0, 1);
+   AdvanceMicroseconds(crtc, 8);
+   std::string c4;
+   for (int i = 0; i < 8; ++i)
+   {
+      const Line line = NextLine(crtc);
+      EXPECT_EQ(0, line.second);
+      c4 += char('0' + line.first);
+   }
+   EXPECT_TRUE(c4 == "01010101" || c4 == "10101010") << c4;
+}
+
+// 13.7.2.2 : R0 = 1 on a last line (C4 = R4, C9 = R9), then R0 enlarged on
+// C0 = 1 : the line end was registered with R0 = 1, C4 is incremented at C0 = 2
+// without C0 and C9 returning to 0, and the additional management stays active :
+// C9 counts 1..31 with C4 = R4 + 1, then C4 = C9 = 0. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R0EnlargedOnC0Equals1OfALastLine)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 0, 0, 0);
+   AdvanceUntilHccEquals(crtc, 0);
+   WriteRegister(crtc, 0, 1);
+   do { AdvanceUntilHccEquals(crtc, 0); } while (crtc.vcc_ != 0);
+   AdvanceUntilHccEquals(crtc, 1);
+   WriteRegister(crtc, 0, 63);
+   Advance(crtc);
+   EXPECT_EQ(2, crtc.hcc_);
+   EXPECT_EQ(1, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
+   for (int c9 = 1; c9 < 32; ++c9)
+      EXPECT_EQ(Line(1, c9), NextLine(crtc));
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+}
+
+// 13.2.2, 16.4.1.2 : C0 must reach 2 on the line before C4 = R7. With R0 = 1 on
+// that line the VSYNC does not happen and stays blocked for this frame. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, VSyncFrozenByAShortLine)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 38, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 29, 7));
+   WriteRegister(crtc, 0, 1);
+   AdvanceUntilHccEquals(crtc, 0);
+   ASSERT_EQ(30, crtc.vcc_);
+   WriteRegister(crtc, 0, 63);
+   bool vsync = false;
+   for (int i = 0; i < 64 * 40 && crtc.vcc_ != 0; ++i) { Advance(crtc); vsync |= sig.v_sync_; }
+   EXPECT_FALSE(vsync);
+   EXPECT_NE(-1, TicksUntilVSyncRisingEdge(crtc, sig, 19968));
+}
+
+// 16.4.1.1 : R7 written with C4 on C0 < 2 blocks the VSYNC ; written later it
+// starts it at once, and the VSYNC lasts R3h lines + (R0 - C0) us. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, R7WrittenDuringALine)
+{
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 0));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 7, 10);
+      bool vsync = false;
+      for (int i = 0; i < 64 * 8; ++i) { Advance(crtc); vsync |= sig.v_sync_; }
+      EXPECT_FALSE(vsync);
+   }
+   {
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);   // R3h = 8
+      ASSERT_TRUE(ReachLine(crtc, 10, 0));
+      AdvanceUntilHccEquals(crtc, 5);
+      WriteRegister(crtc, 7, 10);
+      Advance(crtc);
+      EXPECT_TRUE(sig.v_sync_);
+      int length = 1;
+      while (length < 2000) { Advance(crtc); if (!sig.v_sync_) break; ++length; }
+      EXPECT_EQ(8 * 64 + (63 - 5), length);
+   }
+}
+
+// 16.4.1.2 : R0 set to 0 on C0 = 0 of the first VSYNC line : the VSYNC starts
+// but C3h is frozen, it does not end with R3h = 1. SAFETY NET.
+TEST(CRTC_Crtc0Vertical, VSyncCounterFrozenWithR0Zero)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 38, 0, 7);
+   WriteRegister(crtc, 3, 0x1E);   // R3h = 1
+   AdvanceMicroseconds(crtc, 19968);
+   while (!sig.v_sync_) Advance(crtc);
+   ASSERT_EQ(0, crtc.hcc_);
+   WriteRegister(crtc, 0, 0);
+   AdvanceMicroseconds(crtc, 1000);
+   EXPECT_TRUE(sig.v_sync_);
 }

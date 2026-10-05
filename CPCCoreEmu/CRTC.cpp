@@ -140,6 +140,14 @@ void CRTC::Reset()
    horinzontal_pulse_ = 0;
    r4_reached_ = false;
    c9_managed_ = true;
+   line_end_ = false;
+   c4_increment_ = false;
+   last_line_ = false;
+   adjust_ = false;
+   adjust_confirmed_ = false;
+   adjust_end_ = false;
+   vsync_allowed_ = false;
+   c3h_load_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
 //   m_LineCounter = 0;
@@ -275,6 +283,14 @@ bool CRTC::DispEn() const
    default:
       return ((dispen_history_ >> (((registers_list_[8] >> 4) & 0x03) - 1)) & 1) != 0;
    }
+}
+
+// C9==R9 comparator. In Interlace Sync & Video mode C9 counts by 2 (approximation, see chapter 19).
+bool CRTC::C9EqualsR9() const
+{
+   if ((registers_list_[8] & 0x3) == 0x3)
+      return vlc_ == registers_list_[9] || ((vlc_ + 1) & 0x1F) == registers_list_[9];
+   return vlc_ == registers_list_[9];
 }
 
 // Register read on &BF00 (and &BE00 on CRTC 3/4) - Compendium 21.2
@@ -444,9 +460,7 @@ void CRTC::Out (unsigned short address, unsigned char data)
                }
             case 9:
                {
-                  // CRTC 0 : while R0=0, C9 is no longer handled and R9 is ignored (Compendium 13.2.3)
-                  if (type_crtc_ != HD6845S || registers_list_[0] != 0)
-                     r9_triggered_ = vlc_ == registers_list_[9];
+                  r9_triggered_ = vlc_ == registers_list_[9];
                   if (type_crtc_ == 1)
                   {
                      // AJOUT TO TEST

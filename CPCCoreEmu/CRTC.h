@@ -76,7 +76,16 @@ public:
    unsigned char vcc_;          // Line counter
    unsigned char scanline_vbl_;  // Vertical sync width counter
    bool r4_reached_;
-   bool c9_managed_;            // CRTC 0 : C9 handling, re-enabled when C0=1 (Compendium 13.2.1)
+   // CRTC 0 vertical logic : latches sampling comparators at fixed C0 positions (see CRTC_0.cpp)
+   bool c9_managed_;            // C9 handling : enabled when C0 reaches 1, disabled when C0 restarts at 0
+   bool line_end_;              // registered C0==R0, sampled at the start of a character
+   bool c4_increment_;          // registered C9==R9 : C4 is incremented at the line end
+   bool last_line_;             // C4==R4 && C9==R9, sampled at the end of characters 0 and 1
+   bool adjust_;                // additional management armed
+   bool adjust_confirmed_;      // additional management confirmed at the end of character 2 : C9 compared to R5
+   bool adjust_end_;            // next C9 == R5, sampled at the end of characters 0 to 2
+   bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
+   bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
 
    bool ff1_; 
    //bool ff2_;
@@ -122,6 +131,7 @@ public:
    void ClockDispTmg() { dispen_history_ = (dispen_history_ << 1) | ((ff1_ && ff3_) ? 1 : 0); }
    bool DispEn() const;
    unsigned char ReadRegister();
+   bool C9EqualsR9() const;
 
    bool v_no_sync_;
    bool h_no_sync_;
