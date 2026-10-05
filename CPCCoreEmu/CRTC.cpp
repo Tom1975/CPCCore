@@ -259,6 +259,58 @@ void CRTC::ClockHSync(bool& started, bool& ended)
    }
 }
 
+// Register read on &BF00 (and &BE00 on CRTC 3/4) - Compendium 21.2
+unsigned char CRTC::ReadRegister()
+{
+   if (type_crtc_ == AMS40489 || type_crtc_ == AMS40226)
+   {
+      // Only the 3 low bits of the selected register are used (21.2.3)
+      switch (adddress_register_ & 0x07)
+      {
+      case 0:
+         lightpen_input_ = false;
+         return registers_list_[16];
+      case 1:
+         lightpen_input_ = false;
+         return registers_list_[17];
+      case 2: // Status 1 (R10)
+         if (hcc_ == registers_list_[1]) status1_ &= ~0x04;
+         if (hcc_ == registers_list_[0] / 2) status1_ &= ~0x02;
+         if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
+         return status1_;
+      case 3: // Status 2 (R11)
+         status2_ = (vlc_ == 0) ? (~0x80) : 0xFF;
+         if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
+         return status2_;
+      case 4:
+         return registers_list_[12];
+      case 5:
+         return registers_list_[13];
+      case 6:
+         return registers_list_[14];
+      default:
+         return registers_list_[15];
+      }
+   }
+
+   if (adddress_register_ == 16 || adddress_register_ == 17)
+   {
+      lightpen_input_ = false;
+   }
+
+   if (adddress_register_ == 31 && type_crtc_ == UM6845R)
+   {
+      // Unused register on UM6845R, reads non-zero (21.2.2)
+      status_register_ &= 0x7F;
+      return 0xFF;
+   }
+
+   // Readable registers depend on the CRTC (21.2.1, 21.2.2) : any other one reads 0
+   if ((CRTCAccess[adddress_register_][type_crtc_] & R) == R)
+      return registers_list_[adddress_register_];
+   return 0;
+}
+
 unsigned char CRTC::In ( unsigned short address )
 {
    if (( address & 0x4300) == 0x0000)
@@ -269,138 +321,25 @@ unsigned char CRTC::In ( unsigned short address )
 
    else if (( address & 0x4300) == 0x0200)
    {
-      // Adress = 0xBExx
-      // Return the Status register (CRTC type 1, 3, 4)
+      // Adress = 0xBExx (Compendium 21.3)
       switch (type_crtc_ )
       {
-      case 0:
-         return 0xFF;
-      case 1:
+      case UM6845R:
+         // Status register : bit 6 = light pen, bit 5 = BORDER R6
          return status_register_|((ff3_)?0x00:0x20)| (lightpen_input_?0x40:0);
-      case 2:
-         return 0xFF;
-      case 3:
-      case 4:
-         if ( (CRTCAccess[adddress_register_][type_crtc_] & R) == R )
-            return registers_list_[adddress_register_];
-         break;
+      case AMS40489:
+      case AMS40226:
+         // Mirror of the read port
+         return ReadRegister();
       default:
-         break;
+         // No status register on CRTC 0 and 2
+         return 0xFF;
       }
    }
    else if (( address & 0x4300) == 0x0300)
    {
       // Adress = 0xBFxx
-      // Return the selected register, if possible (TODO : Implement differences)
-      //m_Sig->IORW = false;
-
-      // Status update
-      if ( (adddress_register_ == 12  || adddress_register_ == 13)
-         && type_crtc_ == 2)
-      {
-         return 0;
-      }
-
-
-      if (adddress_register_ == 31)
-      {
-         status_register_ &=  0x7F;
-         switch (type_crtc_ )
-         {
-         case 0:
-            return 0;
-         case 1:
-            return 0xFF;
-         case 2:
-            return 0;
-         case 3:
-         case 4:
-            return 0;
-         default:
-            break;
-         }
-      }
-      //if (m_AdressRegister == 16 || m_AdressRegister == 17 ) m_StatusRegister &=  0xBF;
-      if (adddress_register_ == 16 || adddress_register_ == 17)
-      {
-         lightpen_input_ = false;
-      }
-
-      if (type_crtc_ == 3 || type_crtc_ == 4)
-      {
-         switch (adddress_register_)
-         {
-         case 6: // Unclear : Return 0 ?
-         case 7:
-         case 14:
-         case 15:
-         case 22:
-         case 23:
-         case 30:
-         case 31:
-            return 0;
-
-         case 2:  //Status 1
-         case 10:
-         case 18:
-         case 26:
-         {
-            // Compute status
-            if (type_crtc_ == 3 || type_crtc_ == 4)
-            {
-               if (hcc_ == registers_list_[1]) status1_ &= ~0x04;
-               if (hcc_ == registers_list_[0] / 2) status1_ &= ~0x02;
-               if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
-            }
-            return status1_;
-         }
-
-         case 3: // Status 2
-         case 11:
-         case 19:
-         case 27:
-            if (type_crtc_ == 3 || type_crtc_ == 4)
-            {
-               status2_ = (vlc_ == 0) ? (~0x80) : 0xFF;
-               if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
-
-            }
-            return status2_;
-
-         case 0:// REG 16
-         case 8:
-         case 16:
-         case 24:
-            return (registers_list_[16]);
-         case 1:// REG 17
-         case 9:
-         case 17:
-         case 25:
-            return (registers_list_[17]);
-
-         case 4:// REG 12
-         case 12:
-         case 20:
-         case 28:
-            return (registers_list_[12]);
-         case 5:// REG 13
-         case 13:
-         case 21:
-         case 29:
-            return (registers_list_[13]);
-         }
-      }
-
-      if ( (CRTCAccess[adddress_register_][type_crtc_] & R) == R )
-         return registers_list_[adddress_register_] ;
-      else
-      {
-         if (type_crtc_ == 0 || type_crtc_ == 1)
-         {
-            return 0;
-         }
-      }
-
+      return ReadRegister();
    }
    return signals_->data_bus_->GetByteBus();
 }
