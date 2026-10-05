@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <string>
 
+#include "Bus.h"
 #include "CRTC.h"
 #include "Memoire.h"
 #include "Sig.h"
@@ -89,8 +90,23 @@ GateArray* NeutralGateArray()
    return gate_array;
 }
 
+// What an IN reads when nothing drives the data bus.
+const unsigned char kFloatingBus = 0xA5;
+
+Bus* FloatingDataBus()
+{
+   static Bus* bus = nullptr;
+   if (bus == nullptr)
+   {
+      bus = new Bus(8);
+      bus->SetBus(kFloatingBus);
+   }
+   return bus;
+}
+
 void MakeCrtc(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
 {
+   sig.data_bus_ = FloatingDataBus();
    crtc.SetSig(&sig);
    crtc.SetGateArray(NeutralGateArray());
    crtc.DefinirTypeCRTC(type);
@@ -632,6 +648,157 @@ TEST(CRTC_SyncWidths, HSyncWidthOnThePin)
       else
       {
          EXPECT_EQ(0, count) << "R3l=0 must not produce any HSYNC on CRTC 0/1";
+      }
+   }
+}
+
+// ---------------------------------------------------------------------------
+// Group E: register reads (Compendium chapitre 21).
+// ---------------------------------------------------------------------------
+
+namespace
+{
+const unsigned short kStatusPort = 0xBE00;
+const unsigned short kReadPort = 0xBF00;
+
+// R12..R15 written through Out(), light pen R16/R17 set directly (read-only).
+void FillReadableRegisters(CRTC& crtc)
+{
+   WriteRegister(crtc, 12, 0x2A);
+   WriteRegister(crtc, 13, 0x5B);
+   WriteRegister(crtc, 14, 0x13);
+   WriteRegister(crtc, 15, 0x9C);
+   crtc.registers_list_[16] = 0x15;
+   crtc.registers_list_[17] = 0x67;
+}
+
+unsigned char ReadRegister(CRTC& crtc, unsigned short port, unsigned char reg)
+{
+   crtc.Out(kSelectRegister, reg);
+   return crtc.In(port);
+}
+}  // namespace
+
+// 21.2.1: CRTC 0 reads R12..R17 on &BF00 (register number on 5 bits), every
+// other register reads 0. SAFETY NET.
+TEST(CRTC_RegisterRead, Crtc0)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   FillReadableRegisters(crtc);
+   for (int reg = 0; reg < 32; ++reg)
+   {
+      SCOPED_TRACE(reg);
+      unsigned char expected = 0;
+      switch (reg)
+      {
+      case 12: expected = 0x2A; break;
+      case 13: expected = 0x5B; break;
+      case 14: expected = 0x13; break;
+      case 15: expected = 0x9C; break;
+      case 16: expected = 0x15; break;
+      case 17: expected = 0x67; break;
+      }
+      EXPECT_EQ(expected, ReadRegister(crtc, kReadPort, reg));
+   }
+   EXPECT_EQ(0x2A, ReadRegister(crtc, kReadPort, 12 + 0x60)) << "register number is truncated to 5 bits";
+}
+
+// 21.2.2: CRTC 1 reads R14..R17 on &BF00; R31 reads a non-zero value; every
+// other register reads 0. SAFETY NET.
+TEST(CRTC_RegisterRead, Crtc1)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   FillReadableRegisters(crtc);
+   for (int reg = 0; reg < 31; ++reg)
+   {
+      SCOPED_TRACE(reg);
+      unsigned char expected = 0;
+      switch (reg)
+      {
+      case 14: expected = 0x13; break;
+      case 15: expected = 0x9C; break;
+      case 16: expected = 0x15; break;
+      case 17: expected = 0x67; break;
+      }
+      EXPECT_EQ(expected, ReadRegister(crtc, kReadPort, reg));
+   }
+   EXPECT_NE(0, ReadRegister(crtc, kReadPort, 31));
+}
+
+// 21.2.2: CRTC 2 reads R14..R17 on &BF00, every other register reads 0.
+// (28.1.9 only lists R16/R17 for CRTC 2; 21.2.2, the detailed chapter, is
+// followed here.) SAFETY NET.
+TEST(CRTC_RegisterRead, Crtc2)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   FillReadableRegisters(crtc);
+   for (int reg = 0; reg < 32; ++reg)
+   {
+      SCOPED_TRACE(reg);
+      unsigned char expected = 0;
+      switch (reg)
+      {
+      case 14: expected = 0x13; break;
+      case 15: expected = 0x9C; break;
+      case 16: expected = 0x15; break;
+      case 17: expected = 0x67; break;
+      }
+      EXPECT_EQ(expected, ReadRegister(crtc, kReadPort, reg));
+   }
+}
+
+// 21.2.3: CRTC 3/4 only use the 3 low bits of the register number for reads:
+// R16, R17, STATUS1 (R10), STATUS2 (R11), R12, R13, R14, R15. SAFETY NET
+// (status values are covered elsewhere).
+TEST(CRTC_RegisterRead, Crtc34UseAThreeBitTable)
+{
+   const unsigned char table[8] = { 0x15, 0x67, 0, 0, 0x2A, 0x5B, 0x13, 0x9C };
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      FillReadableRegisters(crtc);
+      for (int reg = 0; reg < 32; ++reg)
+      {
+         if ((reg & 7) == 2 || (reg & 7) == 3) continue;
+         SCOPED_TRACE(reg);
+         EXPECT_EQ(table[reg & 7], ReadRegister(crtc, kReadPort, reg));
+      }
+   }
+}
+
+// 21.3: &BE00 is a status register on CRTC 1 only (bits 0-4 and 7 read 0),
+// a mirror of &BF00 on CRTC 3/4, and nothing on CRTC 0/2 (open bus, 0xFF
+// observed on a CRTC 2). SAFETY NET.
+TEST(CRTC_RegisterRead, StatusPort)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      FillReadableRegisters(crtc);
+      for (int reg = 0; reg < 32; ++reg)
+      {
+         SCOPED_TRACE(reg);
+         const unsigned char status = ReadRegister(crtc, kStatusPort, reg);
+         switch (type)
+         {
+         case CRTC::HD6845S:
+         case CRTC::MC6845:
+            EXPECT_EQ(0xFF, status);
+            break;
+         case CRTC::UM6845R:
+            EXPECT_EQ(0, status & 0x9F);
+            break;
+         default:
+            EXPECT_EQ(ReadRegister(crtc, kReadPort, reg), status);
+            break;
+         }
       }
    }
 }
