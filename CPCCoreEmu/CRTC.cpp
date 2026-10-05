@@ -139,6 +139,7 @@ void CRTC::Reset()
    scanline_vbl_ = 0;
    horinzontal_pulse_ = 0;
    r4_reached_ = false;
+   c9_managed_ = true;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
 //   m_LineCounter = 0;
@@ -171,6 +172,7 @@ void CRTC::Reset()
 //   m_bTrickR4 = false;
    inc_vcc_ = false;
    de_bug_ = false;
+   dispen_history_ = 0;
 
    shifted_ssa_ = false;
    ssa_ready_ = false;
@@ -256,6 +258,22 @@ void CRTC::ClockHSync(bool& started, bool& ended)
       signals_->hsync_raise_ = true;
       horinzontal_pulse_ = 0;
       started = true;
+   }
+}
+
+// DISPTMG output, after the SKEW-DISPTMG function of R8 (bits 5-4, CRTC 0/3/4 only - Compendium 19.2) :
+// 00 : no delay, 01/10 : the border is handled 1/2 characters later, 11 : BORDER ON (no display).
+// A change of R8 is taken into account immediately within the line.
+bool CRTC::DispEn() const
+{
+   switch ((registers_list_[8] >> 4) & 0x03)
+   {
+   case 0:
+      return ff1_ && ff3_;
+   case 3:
+      return false;
+   default:
+      return ((dispen_history_ >> (((registers_list_[8] >> 4) & 0x03) - 1)) & 1) != 0;
    }
 }
 
@@ -383,11 +401,7 @@ void CRTC::Out (unsigned short address, unsigned char data)
             {
             case 0:
 
-               if ( type_crtc_ == 0)
-               {
-                  if ( registers_list_[adddress_register_] == 0)
-                     registers_list_[adddress_register_] = 1;
-               }
+               // R0=0 is a valid value on every CRTC (Compendium 13.2.6 for CRTC 0)
                break;
             case 2:
                break;
@@ -430,7 +444,9 @@ void CRTC::Out (unsigned short address, unsigned char data)
                }
             case 9:
                {
-                  r9_triggered_ = vlc_ == registers_list_[9];
+                  // CRTC 0 : while R0=0, C9 is no longer handled and R9 is ignored (Compendium 13.2.3)
+                  if (type_crtc_ != HD6845S || registers_list_[0] != 0)
+                     r9_triggered_ = vlc_ == registers_list_[9];
                   if (type_crtc_ == 1)
                   {
                      // AJOUT TO TEST

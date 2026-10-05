@@ -439,8 +439,8 @@ TEST(CRTC_VerticalSync, AssertedWhenC4ReachesR7)
 //
 // With R0 = 1 and R2 = 0, C0 alternates 0/1 and equals R2 every other tick;
 // with R3l = 2, C0 == R2 also holds at the position C0 = R2 + R3l where the
-// HSYNC should end. (R0 = 0, the Compendium's own 15.3.2 example, is not used
-// here: CRTC::Out() currently turns R0=0 into R0=1 on CRTC 0.)
+// HSYNC should end. (R0 = 0, the Compendium's own 15.3.2 example, is covered
+// for CRTC 0 in group F.)
 // - CRTC 0 is protected (15.3.1, 15.3.2): the HSYNC ends and cannot restart
 //   on that same position; it restarts on the next C0 == R2. The HSYNC pin
 //   reads 11 00 11 00 ...
@@ -801,4 +801,238 @@ TEST(CRTC_RegisterRead, StatusPort)
          }
       }
    }
+}
+
+// ---------------------------------------------------------------------------
+// Group F: R0 = 0 on CRTC 0 (Compendium 13.2.3, 13.2.4, 13.2.6).
+//
+// C0 never reaches 1, so C9 is no longer handled: it stays frozen, and R4,
+// R5 and R9 are ignored while R0 = 0. A C4 increment armed on the first
+// C0 = 0 (C9 == R9) still happens once, on the second C0 = 0.
+// R0 is written while C0 = 0, so C0 does not overflow (13.6).
+// ---------------------------------------------------------------------------
+
+namespace
+{
+void Crtc0WithShortLines(CRTC& crtc, CSig& sig, unsigned char r4, unsigned char r9)
+{
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   WriteRegister(crtc, 0, 3);
+   WriteRegister(crtc, 4, r4);
+   WriteRegister(crtc, 5, 0);
+   WriteRegister(crtc, 9, r9);
+}
+}  // namespace
+
+// SAFETY NET.
+TEST(CRTC_R0Zero, Crtc0KeepsR0ZeroAndC0StaysAtZero)
+{
+   CRTC crtc; CSig sig;
+   Crtc0WithShortLines(crtc, sig, 38, 7);
+   AdvanceUntilHccEquals(crtc, 0);
+   WriteRegister(crtc, 0, 0);
+   EXPECT_EQ(0, crtc.registers_list_[0]);
+   for (int i = 0; i < 100; ++i)
+   {
+      Advance(crtc);
+      ASSERT_EQ(0, crtc.hcc_) << "after " << i + 1 << " us";
+   }
+}
+
+// 13.2.6, example 1: C0 = R0 = C4 = R4 = C9 = R9 = R5 = 0. SAFETY NET.
+TEST(CRTC_R0Zero, Crtc0AdditionalManagementOnTheLastLine)
+{
+   CRTC crtc; CSig sig;
+   Crtc0WithShortLines(crtc, sig, 0, 0);
+   AdvanceMicroseconds(crtc, 128 * 4);   // let C4 wrap past its reset value
+   AdvanceUntilHccEquals(crtc, 0);
+   ASSERT_EQ(0, crtc.vcc_);
+   ASSERT_EQ(0, crtc.vlc_);
+
+   WriteRegister(crtc, 0, 0);   // first C0 = 0 with R0 = 0
+   Advance(crtc);               // second C0 = 0 : C4 is incremented once
+   EXPECT_EQ(1, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
+   AdvanceMicroseconds(crtc, 200);
+   EXPECT_EQ(1, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
+
+   // R0 > 2 again : the additional management goes on, C9 + 1 != R5 so C9 counts
+   WriteRegister(crtc, 0, 3);
+   AdvanceUntilHccEquals(crtc, 0);
+   EXPECT_EQ(1, crtc.vcc_);
+   EXPECT_EQ(1, crtc.vlc_);
+}
+
+// 13.2.6, "dernier hoquet": C9 == R9 but C4 != R4. SAFETY NET.
+TEST(CRTC_R0Zero, Crtc0LastC4Hiccup)
+{
+   CRTC crtc; CSig sig;
+   Crtc0WithShortLines(crtc, sig, 20, 0);   // one line per character row
+   do { AdvanceUntilHccEquals(crtc, 0); } while (crtc.vcc_ != 5);
+
+   WriteRegister(crtc, 0, 0);
+   Advance(crtc);
+   EXPECT_EQ(6, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
+   AdvanceMicroseconds(crtc, 200);
+   EXPECT_EQ(6, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
+
+   // C9 was not reset : it now counts from its frozen value
+   WriteRegister(crtc, 0, 3);
+   AdvanceUntilHccEquals(crtc, 0);
+   EXPECT_EQ(6, crtc.vcc_);
+   EXPECT_EQ(1, crtc.vlc_);
+}
+
+// 13.2.3, 13.2.4: C9 != R9, every counter is frozen and R9 is ignored. SAFETY NET.
+TEST(CRTC_R0Zero, Crtc0FreezesC9AndIgnoresR9)
+{
+   CRTC crtc; CSig sig;
+   Crtc0WithShortLines(crtc, sig, 38, 7);
+   do { AdvanceUntilHccEquals(crtc, 0); } while (crtc.vlc_ != 3);
+   const unsigned char c4 = crtc.vcc_;
+
+   WriteRegister(crtc, 0, 0);
+   AdvanceMicroseconds(crtc, 100);
+   WriteRegister(crtc, 9, 3);   // C9 == R9 now, but C9 is not handled
+   AdvanceMicroseconds(crtc, 100);
+   EXPECT_EQ(c4, crtc.vcc_);
+   EXPECT_EQ(3, crtc.vlc_);
+
+   WriteRegister(crtc, 9, 7);
+   WriteRegister(crtc, 0, 3);
+   AdvanceUntilHccEquals(crtc, 0);
+   EXPECT_EQ(c4, crtc.vcc_);
+   EXPECT_EQ(4, crtc.vlc_);
+}
+
+// 15.3.2: R0 = 0, R2 = 0, R3l = 1 : CRTC 0 is protected, the HSYNC appears on
+// the 1st C0 = 0, not on the 2nd, again on the 3rd. SAFETY NET.
+TEST(CRTC_R0Zero, Crtc0HSyncIsProtected)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   WriteRegister(crtc, 3, 0x81);   // R3l = 1
+   WriteRegister(crtc, 2, 0);
+   WriteRegister(crtc, 0, 1);
+   AdvanceUntilHccEquals(crtc, 0);
+   WriteRegister(crtc, 0, 0);
+   std::string trace;
+   for (int i = 0; i < 12; ++i)
+   {
+      Advance(crtc);
+      trace += sig.h_sync_ ? '1' : '0';
+   }
+   // The 1st C0 = 0 (HSYNC) is the one R0 is written on : the trace starts on the 2nd.
+   EXPECT_EQ("010101010101", trace);
+}
+
+// ---------------------------------------------------------------------------
+// Group G: SKEW-DISPTMG, R8 bits 5-4 (Compendium 19.2). CRTC 0, 3 and 4 only;
+// CRTC 1 and 2 mask these bits (group A), so their DISPEN is never delayed.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+// Puts the CRTC on C0 = 0 of a displayed line (C4 < R6) of a full frame
+// (ff3_ is only set when a new frame starts after Reset()).
+void ReachDisplayedLine(CRTC& crtc)
+{
+   AdvanceMicroseconds(crtc, 19968);
+   do { AdvanceUntilHccEquals(crtc, 0); } while (crtc.vcc_ != 2);
+}
+
+// DISPEN for C0 = 0 .. 63 of one line ('1' = character, '0' = border).
+std::string DispEnLine(CRTC& crtc)
+{
+   std::string line;
+   for (int c0 = 0; c0 < 64; ++c0)
+   {
+      if (c0 > 0) Advance(crtc);
+      line += crtc.DispEn() ? '1' : '0';
+   }
+   return line;
+}
+
+std::string Expected(int first, int last)
+{
+   std::string line;
+   for (int c0 = 0; c0 < 64; ++c0) line += (c0 >= first && c0 <= last) ? '1' : '0';
+   return line;
+}
+}  // namespace
+
+// 19.2.1 / 19.2.3: DELAI +1 / +2 shift both border edges, 11 = BORDER ON. SAFETY NET.
+TEST(CRTC_SkewDispTmg, DelaysTheBorderOnCrtc034)
+{
+   struct { unsigned char r8; int first; int last; } const cases[] = {
+      { 0x00, 0, 39 }, { 0x10, 1, 40 }, { 0x20, 2, 41 }, { 0x30, -1, -1 },
+   };
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      for (const auto& c : cases)
+      {
+         SCOPED_TRACE(TypeName(type));
+         SCOPED_TRACE(c.r8);
+         CRTC crtc; CSig sig;
+         MakeCrtc(crtc, sig, type);
+         ProgramStandardEuropeanScreen(crtc);
+         WriteRegister(crtc, 8, c.r8);
+         ReachDisplayedLine(crtc);
+         EXPECT_EQ(Expected(c.first, c.last), DispEnLine(crtc));
+      }
+   }
+}
+
+// SAFETY NET.
+TEST(CRTC_SkewDispTmg, NoSkewOnCrtc12)
+{
+   for (CRTC::TypeCRTC type : { CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 8, 0x30);
+      ReachDisplayedLine(crtc);
+      EXPECT_EQ(Expected(0, 39), DispEnLine(crtc));
+   }
+}
+
+// 19.2.3: with R1 = R0, DELAI +1 moves the border byte to C0 = 0. SAFETY NET.
+TEST(CRTC_SkewDispTmg, R1EqualsR0)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 1, 63);
+   ReachDisplayedLine(crtc);
+   EXPECT_EQ(Expected(0, 62), DispEnLine(crtc));
+   WriteRegister(crtc, 8, 0x10);
+   Advance(crtc);
+   EXPECT_EQ(Expected(1, 63), DispEnLine(crtc));
+}
+
+// 19.2.5.2: R0 = R1 = 63, R8 = #10 before C0 = 63 then R8 = #00 on C0 = 0 :
+// the change is immediate, both conditions are cancelled and the border byte
+// between the two lines disappears. SAFETY NET.
+TEST(CRTC_SkewDispTmg, Crtc0BorderDisintegration)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 1, 63);
+   ReachDisplayedLine(crtc);
+   AdvanceUntilHccEquals(crtc, 61);
+   WriteRegister(crtc, 8, 0x10);
+   std::string trace;
+   for (int i = 0; i < 4; ++i)   // C0 = 62, 63, 0, 1
+   {
+      Advance(crtc);
+      if (crtc.hcc_ == 0) WriteRegister(crtc, 8, 0x00);
+      trace += crtc.DispEn() ? '1' : '0';
+   }
+   EXPECT_EQ("1111", trace);
 }

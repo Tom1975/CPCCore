@@ -13,6 +13,8 @@
 
 void CRTC::ClockTick34 ()
 {
+   ClockDispTmg();
+
    bool ff1_set = false;
 
    bool ff3_set = false;

@@ -76,6 +76,7 @@ public:
    unsigned char vcc_;          // Line counter
    unsigned char scanline_vbl_;  // Vertical sync width counter
    bool r4_reached_;
+   bool c9_managed_;            // CRTC 0 : C9 handling, re-enabled when C0=1 (Compendium 13.2.1)
 
    bool ff1_; 
    //bool ff2_;
@@ -87,6 +88,7 @@ public:
 
    bool lightpen_input_;
    bool de_bug_;
+   unsigned char dispen_history_;   // bit n : DISPEN (ff1_ & ff3_) n+1 microseconds ago, for the R8 SKEW
 
    unsigned char vertical_sync_width_;
    unsigned char horizontal_sync_width_;   
@@ -117,6 +119,8 @@ public:
    void ComputeMux1 ();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 1) | ((ff1_ && ff3_) ? 1 : 0); }
+   bool DispEn() const;
    unsigned char ReadRegister();
 
    bool v_no_sync_;

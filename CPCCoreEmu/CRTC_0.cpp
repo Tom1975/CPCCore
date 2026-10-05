@@ -5,6 +5,8 @@
 
 void CRTC::ClockTick0 ()
 {
+   ClockDispTmg();
+
    bool ff1_set = false;
    bool ff1_reset = false;
 
@@ -23,6 +25,12 @@ void CRTC::ClockTick0 ()
    {
       hcc_++;
       ma_++;
+   }
+
+   // C0=1 allows C9 to be handled again on the next C0=0 (Compendium 13.2.1)
+   if (hcc_ == 1)
+   {
+      c9_managed_ = true;
    }
 
    if (hcc_ == 0 )
@@ -48,83 +56,105 @@ void CRTC::ClockTick0 ()
       }
 
 
-      if ( r4_reached_ )
-         vertical_adjust_counter_ = (++vertical_adjust_counter_)&0x1F;
-
-      // Adress is : CLK - MA0 -> MA9- R0->R2 - MA12 MA13
-      if (  r9_triggered_ )
+      if (!c9_managed_)
       {
-         if (/*( m_VLC == m_Register[9] ) &&*/ ( r4_triggered_))
+         // C0 did not reach 1 since the last C0=0 (R0=0) : C9 is frozen, and R4/R5/R9 are ignored.
+         // Only a C4 increment armed on the previous C0=0 (C9==R9) still happens, once ; if this was
+         // the last line, the additional management it starts cannot be cancelled (Compendium 13.2.4, 13.2.6)
+         if (r9_triggered_)
          {
-            r4_triggered_ = false;
-            if ( !r4_reached_)
+            r9_triggered_ = false;
+            if (r4_triggered_)
             {
+               r4_triggered_ = false;
                r4_reached_ = true;
             }
+            vcc_ = (vcc_ + 1) & 0x7F;
          }
-      }
-
-      mux_set_ = (r4_reached_ && (vertical_adjust_counter_ == registers_list_[5]) );
-      if (vertical_adjust_counter_ == registers_list_[5])vertical_adjust_counter_ = 0;
-
-      // CRTC 0 : m_BA is refreshed
-      if (!mux_set_)
-      {
          ma_ = bu_;
-      }
-
-      if ( r9_triggered_ )
-      {
-         inc_vcc_ = true;
-         vlc_ = 0;
-         r9_triggered_ = vlc_ == registers_list_[9];
-         vcc_ = (++vcc_)&0x7F;
-         if (/*m_bMR_R9 &&*/ vcc_ == registers_list_ [4]) r4_triggered_ = true;
       }
       else
       {
-         if (( registers_list_[8]&0x3) == 0x3)
+         c9_managed_ = false;
+
+         if ( r4_reached_ )
+            vertical_adjust_counter_ = (++vertical_adjust_counter_)&0x1F;
+
+         // Adress is : CLK - MA0 -> MA9- R0->R2 - MA12 MA13
+         if (  r9_triggered_ )
          {
-            vlc_ = (++(++vlc_))&0x1F;
-            r9_triggered_ = ((vlc_ == registers_list_[9])||(vlc_+1 == registers_list_[9]));
+            if (/*( m_VLC == m_Register[9] ) &&*/ ( r4_triggered_))
+            {
+               r4_triggered_ = false;
+               if ( !r4_reached_)
+               {
+                  r4_reached_ = true;
+               }
+            }
+         }
+
+         mux_set_ = (r4_reached_ && (vertical_adjust_counter_ == registers_list_[5]) );
+         if (vertical_adjust_counter_ == registers_list_[5])vertical_adjust_counter_ = 0;
+
+         // CRTC 0 : m_BA is refreshed
+         if (!mux_set_)
+         {
+            ma_ = bu_;
+         }
+
+         if ( r9_triggered_ )
+         {
+            inc_vcc_ = true;
+            vlc_ = 0;
+            r9_triggered_ = vlc_ == registers_list_[9];
+            vcc_ = (++vcc_)&0x7F;
+            if (/*m_bMR_R9 &&*/ vcc_ == registers_list_ [4]) r4_triggered_ = true;
          }
          else
          {
-            vlc_ = (++vlc_)&0x1F;
+            if (( registers_list_[8]&0x3) == 0x3)
+            {
+               vlc_ = (++(++vlc_))&0x1F;
+               r9_triggered_ = ((vlc_ == registers_list_[9])||(vlc_+1 == registers_list_[9]));
+            }
+            else
+            {
+               vlc_ = (++vlc_)&0x1F;
+               r9_triggered_ = vlc_ == registers_list_[9];
+            }
+            if (r9_triggered_ && vcc_ == registers_list_ [4]) r4_triggered_ = true;
+         }
+
+         if (mux_set_)
+         {
+            vlc_ = 0;
             r9_triggered_ = vlc_ == registers_list_[9];
+
+            vcc_ = 0;
+
+            // R0 in the process of changing ?
+            /*if ( ( m_Sig->IORW == true) && (( m_AdressBus->GetShortBus () & 0x4300) == 0x0100) && m_AdressRegister == 0 )
+            {
+               m_MA = m_BU;
+            }
+            else*/
+            {
+               ma_ = registers_list_[13] + ((registers_list_[12]&0x3F)<<8);
+               bu_ = ma_;
+            }
+
+            if ( r9_triggered_ && vcc_ == registers_list_ [4]) r4_triggered_ = true;
+
+            ff3_set = true;
+            r4_reached_ = false;
+
+            // Next frame
+            even_field_ = !even_field_;
          }
-         if (r9_triggered_ && vcc_ == registers_list_ [4]) r4_triggered_ = true;
+
+         // Recompute the mux
+         mux_set_ = false;
       }
-
-      if (mux_set_)
-      {
-         vlc_ = 0;
-         r9_triggered_ = vlc_ == registers_list_[9];
-
-         vcc_ = 0;
-
-         // R0 in the process of changing ?
-         /*if ( ( m_Sig->IORW == true) && (( m_AdressBus->GetShortBus () & 0x4300) == 0x0100) && m_AdressRegister == 0 )
-         {
-            m_MA = m_BU;
-         }
-         else*/
-         {
-            ma_ = registers_list_[13] + ((registers_list_[12]&0x3F)<<8);
-            bu_ = ma_;
-         }
-
-         if ( r9_triggered_ && vcc_ == registers_list_ [4]) r4_triggered_ = true;
-
-         ff3_set = true;
-         r4_reached_ = false;
-
-         // Next frame
-         even_field_ = !even_field_;
-      }
-
-      // Recompute the mux
-      mux_set_ = false;
    }
 
    if ( hcc_ == registers_list_[1] && vlc_ == registers_list_ [9] )
