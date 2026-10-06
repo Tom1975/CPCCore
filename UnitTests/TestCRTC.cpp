@@ -140,7 +140,7 @@ void ProgramStandardEuropeanScreen(CRTC& crtc)
 
 // Calls the CRTC's own per-type tick function directly (bypasses
 // CRTC::Tick(), see file header), then replicates the one line of
-// CRTC::Tick() that is safe to run standalone: signals_->v_sync_ = ff4_.
+// CRTC::Tick() that is safe to run standalone: signals_->v_sync_ = VSyncPin().
 // (The rest of Tick() after the ClockTickN() call is gate_array_->Tick()
 // [unsafe, see file header], cursor-line handling [no-op: cursor_line_ is
 // nullptr by default], and lightpen bookkeeping [no-op: gun_button_ is 0 by
@@ -149,7 +149,7 @@ void ProgramStandardEuropeanScreen(CRTC& crtc)
 void Advance(CRTC& crtc)
 {
    (crtc.*(crtc.TickFunction))();
-   crtc.signals_->v_sync_ = crtc.ff4_;
+   crtc.signals_->v_sync_ = crtc.VSyncPin();
 }
 
 void AdvanceMicroseconds(CRTC& crtc, int n)
@@ -1644,11 +1644,10 @@ TEST(CRTC_VerticalSync, RewritingR7DoesNotRestartTheVSync)
 
 namespace
 {
-// The C9 the GATE ARRAY uses to build the address (C9.VMA in Interlace Video
-// Mode). Today it is vlc_ ; adapt this helper if C9 and C9.VMA get separated.
+// The C9 the GATE ARRAY uses to build the address (C9.VMA in Interlace Video Mode).
 int AddressC9(const CRTC& crtc)
 {
-   return crtc.vlc_ & 0x07;
+   return crtc.AddressC9() & 0x07;
 }
 
 void Screen(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
@@ -1661,7 +1660,9 @@ void Screen(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
 // Number of lines of the next complete frame (C4 = C9 = 0 to C4 = C9 = 0).
 int NextFrameLines(CRTC& crtc)
 {
-   if (!ReachLine(crtc, 0, 0)) return -1;
+   // Consecutive calls measure consecutive frames : do not skip a frame start we are already on
+   const bool on_frame_start = (crtc.hcc_ == 0 && crtc.vcc_ == 0 && crtc.vlc_ == 0);
+   if (!on_frame_start && !ReachLine(crtc, 0, 0)) return -1;
    int lines = 0;
    do { NextLine(crtc); ++lines; } while (!(crtc.vcc_ == 0 && crtc.vlc_ == 0) && lines < 1000);
    return lines;
@@ -1713,7 +1714,7 @@ TEST(CRTC_Compendium, Crtc2AdjustmentUsesC5)
 // character after R3l + 1) starts a GHOST VSYNC : the pin is not raised. With
 // R0 = 63, R2 = 50 : R3l = 14 reaches C0 = 0 of the C4 = R7 line, no VSYNC ;
 // R3l = 13 does not, the VSYNC happens. CRTC 0 and 1 are not concerned.
-TEST(CRTC_Compendium, DISABLED_Crtc2GhostVSync)
+TEST(CRTC_Compendium, Crtc2GhostVSync)
 {
    struct { CRTC::TypeCRTC type; unsigned char r3; bool vsync; } const cases[] = {
       { CRTC::MC6845, 0x8E, false }, { CRTC::MC6845, 0x8D, true },
@@ -1733,20 +1734,28 @@ TEST(CRTC_Compendium, DISABLED_Crtc2GhostVSync)
    }
 }
 
-// 15.4.4 : with R2 = 0 the VSYNC is evaluated before the HSYNC starts : normal VSYNC.
+// 15.4.4 : with R2 = 0 the HSYNC starts on C0 = 0, but a VSYNC condition met
+// on C0 = 0 is processed first : normal VSYNC. (With R2 = 0 the last line is
+// never reached on CRTC 2, 15.6 : C4 = R7 is met here by the counting.)
 TEST(CRTC_Compendium, Crtc2NoGhostVSyncWithR2Zero)
 {
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, CRTC::MC6845);
    ProgramStandardEuropeanScreen(crtc);
    WriteRegister(crtc, 2, 0);
-   AdvanceMicroseconds(crtc, 19968);
-   EXPECT_TRUE(VSyncSeen(crtc, sig, 2 * 19968));
+   WriteRegister(crtc, 7, 100);
+   AdvanceMicroseconds(crtc, 2 * 19968);
+   ASSERT_TRUE(ReachLine(crtc, 10, 7));
+   AdvanceUntilHccEquals(crtc, 30);
+   WriteRegister(crtc, 7, 11);
+   AdvanceUntilHccEquals(crtc, 0);
+   ASSERT_EQ(11, crtc.vcc_);
+   EXPECT_TRUE(sig.v_sync_);
 }
 
 // 15.5 : CRTC 2 does not lift the border on C0 = 0 during a HSYNC : with a
 // HSYNC spanning C0 = 0 (R2 = 62, R3l = 6) the displayed lines stay border.
-TEST(CRTC_Compendium, DISABLED_Crtc2BorderNotLiftedDuringHSync)
+TEST(CRTC_Compendium, Crtc2BorderNotLiftedDuringHSync)
 {
    struct { CRTC::TypeCRTC type; bool displayed; } const cases[] = {
       { CRTC::MC6845, false }, { CRTC::HD6845S, true }, { CRTC::UM6845R, true },
@@ -1768,7 +1777,7 @@ TEST(CRTC_Compendium, DISABLED_Crtc2BorderNotLiftedDuringHSync)
 // 17.4.3, 20 : CRTC 2 loads VMA' with R12/R13 when C0 reaches R1 on the last
 // line of the frame : R12/R13 written after that are too late for the next
 // frame. CRTC 0 loads R12/R13 when the frame starts.
-TEST(CRTC_Compendium, DISABLED_Crtc2OffsetTakenAtR1OfTheLastLine)
+TEST(CRTC_Compendium, Crtc2OffsetTakenAtR1OfTheLastLine)
 {
    struct { CRTC::TypeCRTC type; unsigned short expected; } const cases[] = {
       { CRTC::MC6845, 0x0100 }, { CRTC::HD6845S, 0x0200 },
@@ -1789,7 +1798,7 @@ TEST(CRTC_Compendium, DISABLED_Crtc2OffsetTakenAtR1OfTheLastLine)
 
 // 12.4.1, 15.6 : on CRTC 2 a HSYNC starting on C0 = 0 prevents the last line
 // state : C4 is incremented instead of returning to 0.
-TEST(CRTC_Compendium, DISABLED_Crtc2HSyncOnC0ZeroCancelsTheLastLine)
+TEST(CRTC_Compendium, Crtc2HSyncOnC0ZeroCancelsTheLastLine)
 {
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, CRTC::MC6845);
@@ -1803,7 +1812,7 @@ TEST(CRTC_Compendium, DISABLED_Crtc2HSyncOnC0ZeroCancelsTheLastLine)
 // 12.4.1 : a line that follows a last line (same C4/C9 equality on the last
 // HSYNC character) cannot be a last line : with R4 = R9 = 0 written on the last
 // line, C4 = C9 = 0 twice, then C4 is incremented. CRTC 0 keeps C4 = C9 = 0.
-TEST(CRTC_Compendium, DISABLED_Crtc2PreviousLastLine)
+TEST(CRTC_Compendium, Crtc2PreviousLastLine)
 {
    struct { CRTC::TypeCRTC type; Line third; } const cases[] = {
       { CRTC::MC6845, Line(1, 0) }, { CRTC::HD6845S, Line(0, 0) },
@@ -1825,7 +1834,7 @@ TEST(CRTC_Compendium, DISABLED_Crtc2PreviousLastLine)
 
 // 12.4.2 R.L.A.L. on CRTC 2 : R2 = 1, R3 = 6, R4 = R9 = 0 ; on each line R9 = 1
 // during the HSYNC then R9 = 0 after it keeps every line at C4 = C9 = 0.
-TEST(CRTC_Compendium, DISABLED_Crtc2LineToLineRupture)
+TEST(CRTC_Compendium, Crtc2LineToLineRupture)
 {
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, CRTC::MC6845);
@@ -1871,7 +1880,7 @@ TEST(CRTC_Compendium, Crtc02R6BorderIsDefinitive)
 // 11.6.1 : after a R.F.D. the C9 == R9 test on C0 == R1 takes the frame parity
 // into account : on one frame out of two VMA' is not updated and VMA keeps
 // being loaded from R12/R13 (the next character row starts from R12/R13).
-TEST(CRTC_Compendium, DISABLED_Crtc1RfdParity)
+TEST(CRTC_Compendium, Crtc1RfdParity)
 {
    CRTC crtc; CSig sig;
    Screen(crtc, sig, CRTC::UM6845R);
@@ -1890,19 +1899,21 @@ TEST(CRTC_Compendium, DISABLED_Crtc1RfdParity)
 }
 
 // 11.6.2 : IVM ON/OFF (R8 = 3 then 0 on an even C9, R9 odd) before the R.F.D.
-// fixes the parity : every frame keeps loading VMA from R12/R13.
-TEST(CRTC_Compendium, DISABLED_Crtc1IvmOnOffFixesTheParity)
+// fixes the (even) parity of the frame : done on each frame, every frame keeps
+// loading VMA from R12/R13.
+TEST(CRTC_Compendium, Crtc1IvmOnOffFixesTheParity)
 {
    CRTC crtc; CSig sig;
    Screen(crtc, sig, CRTC::UM6845R);
    WriteRegister(crtc, 12, 0x12); WriteRegister(crtc, 13, 0x34);
-   ASSERT_TRUE(ReachLine(crtc, 2, 2));
-   AdvanceUntilHccEquals(crtc, 10);
-   WriteRegister(crtc, 8, 3);
-   WriteRegister(crtc, 8, 0);
    int repeated = 0;
    for (int frame = 0; frame < 2; ++frame)
    {
+      // The parity toggles on each frame : as in the 11.6.3 recipe, IVM ON/OFF is done on each frame
+      ASSERT_TRUE(ReachLine(crtc, 2, 2));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 8, 3);
+      WriteRegister(crtc, 8, 0);
       ASSERT_TRUE(ReachLine(crtc, 5, 3));
       AdvanceUntilHccEquals(crtc, 63);
       WriteRegister(crtc, 5, 1);
@@ -1933,7 +1944,7 @@ TEST(CRTC_Compendium, Crtc1VSyncStartedDuringALine)
 
 // STATUS 1 : bit 0 = 1 on C0 = R0 ; bit 1 = 0 on C0 = R0/2 ; bit 2 = 0 on
 // C0 = R1 - 1 ; bit 3 = 0 on C0 = R2 ; bit 6 always 1.
-TEST(CRTC_Compendium, DISABLED_AsicStatus1)
+TEST(CRTC_Compendium, AsicStatus1)
 {
    for (CRTC::TypeCRTC type : kAsicTypes)
    {
@@ -1957,7 +1968,7 @@ TEST(CRTC_Compendium, DISABLED_AsicStatus1)
 
 // STATUS 2 : bit 0 = 0 on C4 = R4, C9 = R9, C0 = R0 ; bit 4 always 1 ; bit 5 =
 // 0 while C9 = R9 ; bit 6 always 0.
-TEST(CRTC_Compendium, DISABLED_AsicStatus2)
+TEST(CRTC_Compendium, AsicStatus2)
 {
    for (CRTC::TypeCRTC type : kAsicTypes)
    {
@@ -2020,7 +2031,7 @@ TEST(CRTC_Compendium, R1GreaterThanR0RepeatsTheRows)
 
 // 19.3.1, 19.6 : Interlace Sync (R8 = 1) adds one line at the end of every even
 // frame : frames of 312 and 313 lines alternate (R6 < R4, the parity runs).
-TEST(CRTC_Compendium, DISABLED_InterlaceAddsALineEveryOtherFrame)
+TEST(CRTC_Compendium, InterlaceAddsALineEveryOtherFrame)
 {
    for (CRTC::TypeCRTC type : kAllTypes)
    {
@@ -2037,7 +2048,7 @@ TEST(CRTC_Compendium, DISABLED_InterlaceAddsALineEveryOtherFrame)
 // 19.6.1, 19.6.3 : on CRTC 0 and 2 the additional line depends on ParitéR6,
 // toggled when C4 reaches R6 : with R6 > R4 the parity is frozen and every
 // frame has the same length. CRTC 1, 3, 4 use ParitéFrame and keep alternating.
-TEST(CRTC_Compendium, DISABLED_InterlaceParityFrozenByR6)
+TEST(CRTC_Compendium, InterlaceParityFrozenByR6)
 {
    for (CRTC::TypeCRTC type : kAllTypes)
    {
@@ -2058,7 +2069,7 @@ TEST(CRTC_Compendium, DISABLED_InterlaceParityFrozenByR6)
 
 // 19.6.4 : on CRTC 3 and 4 the additional interlace line keeps C4 = R4 and
 // C9 = 0 ; CRTC 0, 1, 2 increment C4 (R4 + 1).
-TEST(CRTC_Compendium, DISABLED_InterlaceAdditionalLineCounters)
+TEST(CRTC_Compendium, InterlaceAdditionalLineCounters)
 {
    for (CRTC::TypeCRTC type : kAllTypes)
    {
@@ -2082,7 +2093,7 @@ TEST(CRTC_Compendium, DISABLED_InterlaceAdditionalLineCounters)
 
 // 19.7 : MID-VSYNC : on the even frames of an interlace mode, the VSYNC starts
 // when C0 reaches R0/2 ; on the odd frames on C0 = 0.
-TEST(CRTC_Compendium, DISABLED_InterlaceMidVSync)
+TEST(CRTC_Compendium, InterlaceMidVSync)
 {
    for (CRTC::TypeCRTC type : kAllTypes)
    {
@@ -2103,7 +2114,7 @@ TEST(CRTC_Compendium, DISABLED_InterlaceMidVSync)
 // 19.4, 19.8 : Interlace Video Mode (R8 = 3), 8-line characters (R9 = 6 on
 // CRTC 0, 3, 4 ; R9 = 7 on CRTC 1) : one frame displays the even lines of the
 // characters, the other one the odd lines.
-TEST(CRTC_Compendium, DISABLED_InterlaceVideoModeAlternatesTheLines)
+TEST(CRTC_Compendium, InterlaceVideoModeAlternatesTheLines)
 {
    struct { CRTC::TypeCRTC type; unsigned char r9; } const cases[] = {
       { CRTC::HD6845S, 6 }, { CRTC::UM6845R, 7 }, { CRTC::AMS40489, 6 }, { CRTC::AMS40226, 6 },
@@ -2118,8 +2129,7 @@ TEST(CRTC_Compendium, DISABLED_InterlaceVideoModeAlternatesTheLines)
       WriteRegister(crtc, 9, c.r9);
       AdvanceMicroseconds(crtc, 3 * 19968);
       const std::string a = RowAddressC9s(crtc, 5);
-      ASSERT_TRUE(ReachLine(crtc, 0, 0) || true);
-      const std::string b = RowAddressC9s(crtc, 5);
+      const std::string b = RowAddressC9s(crtc, 5);   // row 5 of the next frame
       EXPECT_TRUE((a == "0246" && b == "1357") || (a == "1357" && b == "0246")) << a << " / " << b;
    }
 }

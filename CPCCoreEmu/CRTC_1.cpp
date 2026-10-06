@@ -66,16 +66,19 @@ void CRTC::ClockTick1 ()
       const bool c9_eq_r9 = C9EqualsR9();
       const bool c4_eq_r4 = (vcc_ == registers_list_[4]);
 
+      // Additional interlace line on the even frames, counted as one more R5 line (11.2.3, 19.6.2)
+      const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && even_field_) ? 1 : 0);
+
       bool new_frame = false;
       if (adjust_)
       {
          // C5 counts the additional lines ; R5=0 does not end them (11.3.2)
          vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
-         new_frame = (registers_list_[5] != 0 && vertical_adjust_counter_ == registers_list_[5]);
+         new_frame = (adjust_lines != 0 && vertical_adjust_counter_ == adjust_lines);
       }
       else if (last_line_)
       {
-         if (registers_list_[5] != 0)
+         if (adjust_lines != 0)
          {
             adjust_ = true;
             vertical_adjust_counter_ = 0;
@@ -88,11 +91,15 @@ void CRTC::ClockTick1 ()
 
       if (!new_frame)
       {
-         // C9 returns to 0 on R9 and increments C4, whatever R4 (C4 may overflow, 12.3)
+         // C9 returns to 0 on R9 and increments C4, whatever R4 (C4 may overflow, 12.3).
+         // ParitéC9 toggles on each C4 when R9 is even ; in Interlace Video Mode C9 restarts from it
+         // and counts by 2 (19.5.3, 19.8.2)
          if (c9_eq_r9)
          {
-            vlc_ = 0;
             vcc_ = (vcc_ + 1) & 0x7F;
+            if ((registers_list_[9] & 1) == 0)
+               parity_c9_ = !parity_c9_;
+            vlc_ = interlace_video ? (parity_c9_ ? 1 : 0) : 0;
          }
          else
          {
@@ -104,6 +111,7 @@ void CRTC::ClockTick1 ()
       if (rfd_)
       {
          vma_reload_ = true;
+         rfd_parity_ = true;
          rfd_ = false;
       }
       if ((vma_reload_clear_ || (registers_list_[1] > registers_list_[0] && c9_eq_r9)) && !c4_eq_r4)
@@ -114,14 +122,16 @@ void CRTC::ClockTick1 ()
 
       if (new_frame)
       {
-         vlc_ = 0;
          vcc_ = 0;
          adjust_ = false;
          vma_reload_ = true;
+         rfd_parity_ = false;
          ff3_set = true;
 
-         // Next frame
+         // Next frame : ParitéFrame toggles, ParitéC9 starts from it (19.5.3)
          even_field_ = !even_field_;
+         parity_c9_ = !even_field_;
+         vlc_ = interlace_video ? (parity_c9_ ? 1 : 0) : 0;
       }
 
       ma_ = vma_reload_ ? (registers_list_[13] + ((registers_list_[12] & 0x3F) << 8)) : bu_;
@@ -143,8 +153,11 @@ void CRTC::ClockTick1 ()
       last_line_ = (vcc_ == registers_list_[4]) && C9EqualsR9();
    }
 
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17)
-   if ( hcc_ == registers_list_[1] && vlc_ == registers_list_ [9] )
+   // VMA' is updated when C0 reaches R1 on the last line of a character (17). After a R.F.D. the test
+   // takes ParitéC9 in place of the bit 0 of C9 until the frame end : with the wrong parity it fails, VMA'
+   // is not updated and VMA keeps being loaded from R12/R13 (11.6.1)
+   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
+   if ( hcc_ == registers_list_[1] && r1_c9_test )
    {
       bu_ = ma_;
       vma_reload_clear_ = true;
@@ -155,7 +168,10 @@ void CRTC::ClockTick1 ()
    {
       if ( v_no_sync_ && (!ff4_ || ff4_reset))
       {
-         ff4_set = true;
+         if (InterlaceOn() && even_field_)
+            vsync_mid_pending_ = true;
+         else
+            ff4_set = true;
 
          v_no_sync_ = false;
       }
@@ -163,6 +179,10 @@ void CRTC::ClockTick1 ()
    else
    {
       v_no_sync_ = true;
+   }
+   if (ClockMidVSync())
+   {
+      ff4_set = true;
    }
 
 

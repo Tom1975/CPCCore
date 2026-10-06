@@ -387,7 +387,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    dispen_buffered_ = sig_handler_->DISPEN;
 #endif
 
-#define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->vlc_+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
+#define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->AddressC9()+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
 #define DISPEN_TEST dispen_buffered_ = crtc_->DispEn()
 #define END_OF_DISPLAY   {monitor_->IncVideoBuffer();display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
@@ -495,7 +495,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                      //END_OF_DISPLAY
                      monitor_->IncVideoBuffer();
-                     unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->vlc_) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
+                     unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
                      display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
                      if (horizontal_shift > 0)
                      {

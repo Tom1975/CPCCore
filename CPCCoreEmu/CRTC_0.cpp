@@ -47,7 +47,6 @@ void CRTC::ClockTick0 ()
    bool ff4_reset = false;
 
    const unsigned char prev = hcc_;
-   const bool interlace_video = ((registers_list_[8] & 0x3) == 0x3);
 
    // Comparators on the character that ends
    const bool c9_eq_r9 = C9EqualsR9();
@@ -118,7 +117,7 @@ void CRTC::ClockTick0 ()
          if (c9_eq_r9 && !(r5_mode && adjust_confirmed_))
             vlc_ = 0;
          else
-            vlc_ = (vlc_ + (interlace_video ? 2 : 1)) & 0x1F;
+            vlc_ = (vlc_ + 1) & 0x1F;
       }
 
       // VMA is reloaded from VMA'
@@ -137,8 +136,8 @@ void CRTC::ClockTick0 ()
 
       ff3_set = true;
 
-      // Next frame
-      even_field_ = !even_field_;
+      // Next frame : ParitéFrame = ParitéR6 (19.5.2)
+      even_field_ = !parity_r6_;
    }
 
    ///////////////////////////////
@@ -154,11 +153,14 @@ void CRTC::ClockTick0 ()
       }
    }
 
+   // Additional interlace line at the end of the frame : interlace on and ParitéR6 odd (19.6.1)
+   const bool interlace_line = InterlaceOn() && parity_r6_;
+
    if (prev == 2)
    {
       if (adjust_)
       {
-         if (last_line_ && registers_list_[5] == 0)
+         if (last_line_ && registers_list_[5] == 0 && !interlace_line)
             adjust_ = false;
          else
             adjust_confirmed_ = true;
@@ -169,7 +171,7 @@ void CRTC::ClockTick0 ()
    if (prev <= 2)
    {
       const unsigned char next_c9 = (c9_eq_r9_now && !adjust_confirmed_) ? 0 : ((vlc_ + 1) & 0x1F);
-      adjust_end_ = (next_c9 == registers_list_[5]);
+      adjust_end_ = (next_c9 == ((registers_list_[5] + (interlace_line ? 1 : 0)) & 0x1F));
    }
 
    if (c9_managed_)
@@ -188,8 +190,10 @@ void CRTC::ClockTick0 ()
 
    line_end_ = (hcc_ == registers_list_[0]);
 
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17)
-   if ( hcc_ == registers_list_[1] && vlc_ == registers_list_ [9] )
+   ClockParityR6();
+
+   // VMA' is updated when C0 reaches R1 on the last line of a character (17, 19.8.1)
+   if ( hcc_ == registers_list_[1] && C9EqualsR9() )
    {
       bu_ = ma_;
    }
@@ -203,10 +207,17 @@ void CRTC::ClockTick0 ()
       {
          if (vsync_allowed_)
          {
-            ff4_set = true;
-            if (!c0_reset)
+            if (InterlaceOn() && even_field_)
             {
-               c3h_load_ = true;
+               vsync_mid_pending_ = true;
+            }
+            else
+            {
+               ff4_set = true;
+               if (!c0_reset)
+               {
+                  c3h_load_ = true;
+               }
             }
          }
          // Without the C0=2 authorisation, the VSYNC is blocked as if it had happened (13.2.2)
@@ -220,6 +231,11 @@ void CRTC::ClockTick0 ()
    if (c0_reset)
    {
       vsync_allowed_ = false;
+   }
+   if (ClockMidVSync())
+   {
+      ff4_set = true;
+      c3h_load_ = !c0_reset;
    }
 
    if (vcc_ == registers_list_[6])

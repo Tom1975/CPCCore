@@ -91,6 +91,22 @@ public:
    bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
+   // CRTC 2 (see CRTC_2.cpp)
+   bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
+   bool hsync_on_line_start_;   // a HSYNC started on C0=0
+   bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
+   bool dlp_;                   // "Dernière Ligne Précédente"
+   bool gdl_reenabled_;         // "Gestion Dernière Ligne" re-enabled on the last HSYNC character
+   bool vsync_ghost_;           // GHOST VSYNC : counted, but the pin is not raised
+   // CRTC 3/4
+   unsigned char frame_counter_; // frames counter : STATUS 2 bit 3 toggles every 16 frames (21.3.4.2)
+   // Interlace (19.5 to 19.7) : even_field_ is ParitéFrame (true = even frame)
+   bool parity_r6_;             // CRTC 0/2 ParitéR6 (true = odd) : loaded with !ParitéFrame when C4 reaches R6
+   bool r6_eq_prev_;            // previous C4==R6, for the rising edge loading ParitéR6
+   bool vsync_mid_pending_;     // MID-VSYNC : the VSYNC starts when C0 reaches R0/2
+   bool interlace_line_;        // CRTC 3/4 : additional interlace line in progress (C9 forced to 0)
+   bool parity_c9_;             // CRTC 1/3/4 ParitéC9 (true = odd) : bit 0 of C9 in Interlace Video Mode
+   bool rfd_parity_;            // CRTC 1 : R.F.D. armed the parity in the C9==R9 test on C0==R1 until the frame end
 
    bool ff1_; 
    //bool ff2_;
@@ -134,8 +150,15 @@ public:
    void ClockHSync(bool& started, bool& ended);
    void ClockDispTmg() { dispen_history_ = (dispen_history_ << 1) | ((ff1_ && ff3_) ? 1 : 0); }
    bool DispEn() const;
+   bool VSyncPin() const { return ff4_ && !vsync_ghost_; }
    unsigned char ReadRegister();
    bool C9EqualsR9() const;
+   bool InterlaceOn() const { return (registers_list_[8] & 0x01) != 0; }
+   bool InterlaceVideo() const { return (registers_list_[8] & 0x03) == 0x03; }
+   unsigned int ParityC9Crtc0() const;
+   unsigned char AddressC9() const;
+   void ClockParityR6();
+   bool ClockMidVSync();
 
    bool v_no_sync_;
    bool h_no_sync_;

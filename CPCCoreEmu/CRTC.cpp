@@ -148,10 +148,23 @@ void CRTC::Reset()
    adjust_end_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
+   frame_counter_ = 0;
+   parity_r6_ = false;
+   r6_eq_prev_ = false;
+   vsync_mid_pending_ = false;
+   interlace_line_ = false;
+   parity_c9_ = false;
+   rfd_parity_ = false;
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
    status_border_r6_ = false;
+   c9_eq_r9_at_start_ = false;
+   hsync_on_line_start_ = false;
+   last_line_eq_ = false;
+   dlp_ = false;
+   gdl_reenabled_ = false;
+   vsync_ghost_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
 //   m_LineCounter = 0;
@@ -290,12 +303,63 @@ bool CRTC::DispEn() const
    }
 }
 
-// C9==R9 comparator. In Interlace Sync & Video mode C9 counts by 2 (approximation, see chapter 19).
+// CRTC 0 ParitéC9 in Interlace Video Mode : ParitéFrame, alternated on each C4 when R9 is odd (19.5.2)
+unsigned int CRTC::ParityC9Crtc0() const
+{
+   return (even_field_ ? 0 : 1) ^ (registers_list_[9] & vcc_ & 1);
+}
+
+// End of character comparator (C9==R9), Interlace Video Mode included (19.8)
 bool CRTC::C9EqualsR9() const
 {
-   if ((registers_list_[8] & 0x3) == 0x3)
-      return vlc_ == registers_list_[9] || ((vlc_ + 1) & 0x1F) == registers_list_[9];
-   return vlc_ == registers_list_[9];
+   const unsigned char r9 = registers_list_[9];
+   if (!InterlaceVideo())
+      return vlc_ == r9;
+
+   switch (type_crtc_)
+   {
+   case HD6845S:
+      // C9 counts the lines of one field and the address uses C9.VMA = 2 x C9 | ParitéC9 : the character
+      // ends when C9.VMA reaches R9 rounded to the parity, i.e. C9 == (R9 + 1 - ParitéC9) / 2 (19.8.1)
+      return vlc_ == ((r9 + 1 - ParityC9Crtc0()) >> 1);
+   case UM6845R:
+      // C9 carries the parity and counts by 2 : compared without its bit 0, after adding !R9.0 (19.8.2)
+      return ((vlc_ + ((r9 & 1) ? 0 : 1)) & 0x1E) == (r9 & 0x1E);
+   default:
+      // CRTC 2 : approximation, the C9.IVM counter is not modelled yet (19.8.3)
+      return vlc_ == r9 || ((vlc_ + 1) & 0x1F) == r9;
+   }
+}
+
+// C9 used by the GATE ARRAY to build the address : C9.VMA = 2 x C9 | ParitéC9 on CRTC 0 in Interlace Video Mode
+unsigned char CRTC::AddressC9() const
+{
+   if (type_crtc_ == HD6845S && InterlaceVideo())
+      return ((vlc_ << 1) | ParityC9Crtc0()) & 0x1F;
+   return vlc_;
+}
+
+// CRTC 0/2 : ParitéR6 is loaded with the opposite of ParitéFrame on the rising edge of the C4==R6
+// comparator (the one that sets the R6 border). With R6 > R4 it is never loaded : the parity freezes (19.5.2)
+void CRTC::ClockParityR6()
+{
+   const bool eq = (vcc_ == registers_list_[6]);
+   if (eq && !r6_eq_prev_)
+   {
+      parity_r6_ = even_field_;
+   }
+   r6_eq_prev_ = eq;
+}
+
+// MID-VSYNC : a VSYNC condition met on an even frame in interlace starts the VSYNC when C0 reaches R0/2 (19.7)
+bool CRTC::ClockMidVSync()
+{
+   if (vsync_mid_pending_ && hcc_ == registers_list_[0] / 2)
+   {
+      vsync_mid_pending_ = false;
+      return true;
+   }
+   return false;
 }
 
 // Register read on &BF00 (and &BE00 on CRTC 3/4) - Compendium 21.2
@@ -312,15 +376,33 @@ unsigned char CRTC::ReadRegister()
       case 1:
          lightpen_input_ = false;
          return registers_list_[17];
-      case 2: // Status 1 (R10)
-         if (hcc_ == registers_list_[1]) status1_ &= ~0x04;
-         if (hcc_ == registers_list_[0] / 2) status1_ &= ~0x02;
-         if (hcc_ != registers_list_[0]) status1_ &= ~0x01;
-         return status1_;
-      case 3: // Status 2 (R11)
-         status2_ = (vlc_ == 0) ? (~0x80) : 0xFF;
-         if (vlc_ == registers_list_[9]) status2_ &= ~0x20;
-         return status2_;
+      case 2: // Status 1 (R10) - 21.3.4.1
+      {
+         // Bits 3, 4, 5 (HSYNC start / end, VSYNC line) are latched by the tick ; the others decode
+         // the counters and registers
+         const unsigned char r0 = registers_list_[0];
+         unsigned char status = (status1_ & 0x38) | 0x40;
+         if (hcc_ == r0) status |= 0x01;
+         if (hcc_ != r0 / 2) status |= 0x02;
+         if (!(r0 >= registers_list_[1] && hcc_ == ((registers_list_[1] - 1) & 0xFF))) status |= 0x04;
+         const bool vma_lsb_wraps = (hcc_ != r0) ? ((ma_ & 0xFF) == 0xFF) : ((bu_ & 0xFF) == 0x00);
+         if (!vma_lsb_wraps) status |= 0x80;
+         return status;
+      }
+      case 3: // Status 2 (R11) - 21.3.4.2
+      {
+         const bool c9_eq_r9 = (vlc_ == registers_list_[9]);
+         const bool last_char_of_line = c9_eq_r9 && hcc_ == registers_list_[0];
+         unsigned char status = 0x10;
+         if (!(last_char_of_line && vcc_ == registers_list_[4])) status |= 0x01;
+         if (!(last_char_of_line && vcc_ == ((registers_list_[6] - 1) & 0x7F))) status |= 0x02;
+         if (!(last_char_of_line && vcc_ == ((registers_list_[7] - 1) & 0x7F))) status |= 0x04;
+         if (frame_counter_ & 0x10) status |= 0x08;
+         if (!c9_eq_r9) status |= 0x20;
+         if (last_char_of_line || (vlc_ == 0 && hcc_ != registers_list_[0])) status |= 0x80;
+         status2_ = status;
+         return status;
+      }
       case 4:
          return registers_list_[12];
       case 5:
@@ -444,6 +526,35 @@ void CRTC::Out (unsigned short address, unsigned char data)
                   }
                   break;
                }
+            case 8:
+               {
+                  // The interlace parity flip-flops are clocked by the R8 write (19.5.3, 19.5.5)
+                  const bool ivm_before = ((previous_value & 0x03) == 0x03);
+                  const bool ivm_after = InterlaceVideo();
+                  if (type_crtc_ == UM6845R && ivm_before != ivm_after)
+                  {
+                     const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
+                     unsigned int parity_frame = even_field_ ? 0 : 1;
+                     unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
+                     if (ivm_after)
+                     {
+                        if (parity_frame == 0)
+                           parity_c9 = c4_odd_r9_even;
+                        parity_frame = parity_frame & (parity_c9 ^ c4_odd_r9_even);
+                     }
+                     else
+                     {
+                        parity_frame = parity_c9;
+                     }
+                     parity_c9_ = (parity_c9 != 0);
+                     even_field_ = (parity_frame == 0);
+                  }
+                  else if ((type_crtc_ == AMS40489 || type_crtc_ == AMS40226) && (previous_value & 0x01) == 0 && InterlaceOn())
+                  {
+                     parity_c9_ = (vlc_ & 1) != 0;
+                  }
+                  break;
+               }
             case 9:
                {
                   r9_triggered_ = vlc_ == registers_list_[9];
@@ -455,10 +566,6 @@ void CRTC::Out (unsigned short address, unsigned char data)
                {
                break;
                }
-            case 8:
-               {
-               }
-               break;
             }
 
 #ifdef _LogCRC
@@ -509,7 +616,7 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
    //signals_->h_sync_ = ff2_;
    /////////////////////////
    // VSYNC
-   signals_->v_sync_ = ff4_;
+   signals_->v_sync_ = VSyncPin();
 
    // Lightgun :
    // If X/Y is in the current zone => do something

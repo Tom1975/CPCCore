@@ -849,6 +849,19 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->vma_reload_clear_ ? 1 : 0);
    out.push_back(c->rfd_ ? 1 : 0);
    out.push_back(c->status_border_r6_ ? 1 : 0);
+   out.push_back(c->c9_eq_r9_at_start_ ? 1 : 0);
+   out.push_back(c->hsync_on_line_start_ ? 1 : 0);
+   out.push_back(c->last_line_eq_ ? 1 : 0);
+   out.push_back(c->dlp_ ? 1 : 0);
+   out.push_back(c->gdl_reenabled_ ? 1 : 0);
+   out.push_back(c->vsync_ghost_ ? 1 : 0);
+   out.push_back(c->frame_counter_);
+   out.push_back(c->parity_r6_ ? 1 : 0);
+   out.push_back(c->r6_eq_prev_ ? 1 : 0);
+   out.push_back(c->vsync_mid_pending_ ? 1 : 0);
+   out.push_back(c->interlace_line_ ? 1 : 0);
+   out.push_back(c->parity_c9_ ? 1 : 0);
+   out.push_back(c->rfd_parity_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -895,7 +908,7 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
 
    // Older states stop here : the latches keep their Reset() values
    if (at == size) return true;
-   if (size - at < 15) return false;
+   if (size - at < 28) return false;
    c->c9_managed_ = p[at++] != 0;
    c->line_end_ = p[at++] != 0;
    c->c4_increment_ = p[at++] != 0;
@@ -911,6 +924,19 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->vma_reload_clear_ = p[at++] != 0;
    c->rfd_ = p[at++] != 0;
    c->status_border_r6_ = p[at++] != 0;
+   c->c9_eq_r9_at_start_ = p[at++] != 0;
+   c->hsync_on_line_start_ = p[at++] != 0;
+   c->last_line_eq_ = p[at++] != 0;
+   c->dlp_ = p[at++] != 0;
+   c->gdl_reenabled_ = p[at++] != 0;
+   c->vsync_ghost_ = p[at++] != 0;
+   c->frame_counter_ = p[at++];
+   c->parity_r6_ = p[at++] != 0;
+   c->r6_eq_prev_ = p[at++] != 0;
+   c->vsync_mid_pending_ = p[at++] != 0;
+   c->interlace_line_ = p[at++] != 0;
+   c->parity_c9_ = p[at++] != 0;
+   c->rfd_parity_ = p[at++] != 0;
 
    return (at == size);
 }
