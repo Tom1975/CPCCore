@@ -86,6 +86,11 @@ public:
    bool adjust_end_;            // next C9 == R5, sampled at the end of characters 0 to 2
    bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
    bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
+   // CRTC 1 (see CRTC_1.cpp)
+   bool vma_reload_;            // VMA is loaded from R12/R13 at the line start instead of VMA'
+   bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
+   bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
+   bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
 
    bool ff1_; 
    //bool ff2_;
@@ -125,7 +130,6 @@ public:
    void ClockTick2 ();
    void ClockTick34 ();
 
-   void ComputeMux1 ();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
    void ClockDispTmg() { dispen_history_ = (dispen_history_ << 1) | ((ff1_ && ff3_) ? 1 : 0); }

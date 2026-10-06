@@ -148,6 +148,10 @@ void CRTC::Reset()
    adjust_end_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
+   vma_reload_ = true;
+   vma_reload_clear_ = false;
+   rfd_ = false;
+   status_border_r6_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
 //   m_LineCounter = 0;
@@ -277,7 +281,8 @@ bool CRTC::DispEn() const
    switch ((registers_list_[8] >> 4) & 0x03)
    {
    case 0:
-      return ff1_ && ff3_;
+      // CRTC 1 : R6=0 forces the border as long as it stays 0 (18.3.3)
+      return ff1_ && ff3_ && !(type_crtc_ == UM6845R && registers_list_[6] == 0);
    case 3:
       return false;
    default:
@@ -360,7 +365,8 @@ unsigned char CRTC::In ( unsigned short address )
       {
       case UM6845R:
          // Status register : bit 6 = light pen, bit 5 = BORDER R6
-         return status_register_|((ff3_)?0x00:0x20)| (lightpen_input_?0x40:0);
+         // Status register : bit 6 = light pen, bit 5 = BORDER R6 state, updated at the line end (21.3.3)
+         return status_register_|(status_border_r6_?0x20:0x00)| (lightpen_input_?0x40:0);
       case AMS40489:
       case AMS40226:
          // Mirror of the read port
@@ -410,6 +416,7 @@ void CRTC::Out (unsigned short address, unsigned char data)
                LOGEOL
             }
 #endif
+            const unsigned char previous_value = registers_list_[adddress_register_];
             registers_list_[adddress_register_] = (data & (registers_mask_[adddress_register_]));
 
             // Case of some type of CRTC - TODO
@@ -427,48 +434,19 @@ void CRTC::Out (unsigned short address, unsigned char data)
                //ComputeMux_1 ();
 
                break;
-            case 4:
-               {
-                  // This test is a bit wtf....
-                  // TODO : Sort out why it works HERE for camembert 4 without messing all other demos
-                  /*
-                     Notice a first timing trick at the frontier between the 2 blocks: it seems that on some CRTCs it is not a good idea
-                     to program R4 when VC is zero. Although I cannot be affirmative on this, I think it is because there is a small
-                     period of time when the register file of the CRTC gets written, where the register written will seem to be zero.
-                     This would cause another match with VC, and the sequence of VC values would be 18,0,0,1 thus
-                     repeating the top character line of block 2 !
-                  */
-                  switch (type_crtc_)
-                  {
-                  case 1:
-                     if ( registers_list_[4] == 0 && vcc_ == 0 )
-                     {
-                        // -> NOT CORRECT : This would prevent Chany dream 2 from working
-                        mux_reset_ = (vlc_ == registers_list_ [9]);
-                        mux_set_ = false;
-                        ComputeMux1 ();
-                     }
-                     break;
-                  default:
-                     break;
-                  }
-                  break;
-               }
             case 5:
                {
+                  // CRTC 1 : R5 going from 0 to another value while C0==R0 changes the R5 comparator while the
+                  // line end is being processed : R.F.D., VMA is reloaded from R12/R13 whatever C4 (11.6)
+                  if (type_crtc_ == UM6845R && previous_value == 0 && registers_list_[5] != 0 && hcc_ == registers_list_[0])
+                  {
+                     rfd_ = true;
+                  }
                   break;
                }
             case 9:
                {
                   r9_triggered_ = vlc_ == registers_list_[9];
-                  if (type_crtc_ == 1)
-                  {
-                     // AJOUT TO TEST
-                     if ( registers_list_[4] == 0 && registers_list_[9] == 0)
-                     {
-                        r9_triggered_ = true;
-                     }
-                  }
                   break;
                }
 
@@ -476,14 +454,6 @@ void CRTC::Out (unsigned short address, unsigned char data)
             case 13:
                {
                break;
-               }
-            case 7:
-               {
-                  if (vcc_ == registers_list_[7])
-                  {
-                     v_no_sync_ = true;
-                  }
-                  break;
                }
             case 8:
                {

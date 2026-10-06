@@ -845,6 +845,10 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->c3h_load_ ? 1 : 0);
    out.push_back(c->v_no_sync_ ? 1 : 0);
    out.push_back(c->dispen_history_);
+   out.push_back(c->vma_reload_ ? 1 : 0);
+   out.push_back(c->vma_reload_clear_ ? 1 : 0);
+   out.push_back(c->rfd_ ? 1 : 0);
+   out.push_back(c->status_border_r6_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -891,7 +895,7 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
 
    // Older states stop here : the latches keep their Reset() values
    if (at == size) return true;
-   if (size - at < 11) return false;
+   if (size - at < 15) return false;
    c->c9_managed_ = p[at++] != 0;
    c->line_end_ = p[at++] != 0;
    c->c4_increment_ = p[at++] != 0;
@@ -903,6 +907,10 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->c3h_load_ = p[at++] != 0;
    c->v_no_sync_ = p[at++] != 0;
    c->dispen_history_ = p[at++];
+   c->vma_reload_ = p[at++] != 0;
+   c->vma_reload_clear_ = p[at++] != 0;
+   c->rfd_ = p[at++] != 0;
+   c->status_border_r6_ = p[at++] != 0;
 
    return (at == size);
 }
