@@ -91,7 +91,10 @@ public:
 
    bool pal_present_;
    // Cached !
-   bool dispen_buffered_;
+   bool dispen_buffered_;     // DISPEN for the first byte of the character
+   bool dispen_buffered_h_;   // DISPEN for the second byte (half microsecond) of the character
+   bool half_border_;         // only one of the two bytes is displayed
+   void ApplyHalfBorder(int* buffer);
 
    // 
    int scanline_type_;       // 1 : scanlines / 0 : copylines

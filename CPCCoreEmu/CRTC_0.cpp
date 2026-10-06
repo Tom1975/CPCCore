@@ -40,9 +40,6 @@ void CRTC::ClockTick0 ()
    bool ff1_set = false;
    bool ff1_reset = false;
 
-   bool ff3_set = false;
-   bool ff3_reset = false;
-
    bool ff4_set = false;
    bool ff4_reset = false;
 
@@ -122,6 +119,16 @@ void CRTC::ClockTick0 ()
 
       // VMA is reloaded from VMA'
       ma_ = bu_;
+
+      // The IVM state of the address is taken when C0 restarts at 0 (19.8.1)
+      ivm_latched_ = InterlaceVideo();
+
+      // IVM VSYNC delayed by one line (19.5.2)
+      if (vsync_line_delay_)
+      {
+         vsync_line_delay_ = false;
+         ff4_set = true;
+      }
    }
 
    if (new_frame)
@@ -133,8 +140,6 @@ void CRTC::ClockTick0 ()
 
       ma_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
       bu_ = ma_;
-
-      ff3_set = true;
 
       // Next frame : ParitéFrame = ParitéR6 (19.5.2)
       even_field_ = !parity_r6_;
@@ -207,7 +212,13 @@ void CRTC::ClockTick0 ()
       {
          if (vsync_allowed_)
          {
-            if (InterlaceOn() && even_field_)
+            // IVM, odd number of lines per character (R9 odd) : on an odd C4 of an odd frame the VSYNC is
+            // delayed by one line to balance the two frames (19.5.2)
+            if (InterlaceVideo() && (registers_list_[9] & 1) && (vcc_ & 1) && !even_field_ && c0_reset)
+            {
+               vsync_line_delay_ = true;
+            }
+            else if (InterlaceOn() && even_field_)
             {
                vsync_mid_pending_ = true;
             }
@@ -238,10 +249,6 @@ void CRTC::ClockTick0 ()
       c3h_load_ = !c0_reset;
    }
 
-   if (vcc_ == registers_list_[6])
-   {
-      ff3_reset = true;
-   }
 
    // DISPEN is enabled by the C0 reset, not by C0 overflowing to 0 (17.1)
    if (c0_reset)
@@ -264,9 +271,6 @@ void CRTC::ClockTick0 ()
    }
    else if ( !ff1_reset && ff1_set)
    {
-      // Detector of rising edge : If FF1 is already true, add the "DE" bug for 4 pixels
-      de_bug_ = ff1_;
-
       ff1_ = true;
    }
    else if ( ff1_reset && ff1_set)
@@ -274,14 +278,7 @@ void CRTC::ClockTick0 ()
       ff1_ = false;
    }
 
-   if ( ff3_reset && !ff3_set)
-   {
-      ff3_ = false;
-   }
-   else if ( !ff3_reset && ff3_set)
-   {
-      ff3_ = true;
-   }
+   ClockDispEnHalvesCrtc02();
 
    if ( ff4_reset && !ff4_set)
    {

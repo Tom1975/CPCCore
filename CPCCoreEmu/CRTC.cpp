@@ -155,6 +155,9 @@ void CRTC::Reset()
    interlace_line_ = false;
    parity_c9_ = false;
    rfd_parity_ = false;
+   ivm_latched_ = false;
+   vsync_line_delay_ = false;
+   c9_ivm_ = 0;
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
@@ -196,8 +199,9 @@ void CRTC::Reset()
 
 //   m_bTrickR4 = false;
    inc_vcc_ = false;
-   de_bug_ = false;
    dispen_history_ = 0;
+   dispen_half0_ = false;
+   dispen_half1_ = false;
 
    shifted_ssa_ = false;
    ssa_ready_ = false;
@@ -289,18 +293,40 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 // DISPTMG output, after the SKEW-DISPTMG function of R8 (bits 5-4, CRTC 0/3/4 only - Compendium 19.2) :
 // 00 : no delay, 01/10 : the border is handled 1/2 characters later, 11 : BORDER ON (no display).
 // A change of R8 is taken into account immediately within the line.
-bool CRTC::DispEn() const
+bool CRTC::DispEn(int half) const
 {
-   switch ((registers_list_[8] >> 4) & 0x03)
+   const int skew = (registers_list_[8] >> 4) & 0x03;
+   switch (skew)
    {
    case 0:
       // CRTC 1 : R6=0 forces the border as long as it stays 0 (18.3.3)
-      return ff1_ && ff3_ && !(type_crtc_ == UM6845R && registers_list_[6] == 0);
+      return (half ? dispen_half1_ : dispen_half0_) && !(type_crtc_ == UM6845R && registers_list_[6] == 0);
    case 3:
       return false;
    default:
-      return ((dispen_history_ >> (((registers_list_[8] >> 4) & 0x03) - 1)) & 1) != 0;
+      // The SKEW delay line keeps both halves of each character
+      return ((dispen_history_ >> (2 * (skew - 1) + (half ? 1 : 0))) & 1) != 0;
    }
+}
+
+// CRTC 0/2 : DISPEN over the two halves of a character. The outputs are latched on both edges of the
+// character clock (17.6, 18.2.2, 18.3.2) :
+// - phase A (character start) : the R6 border is cleared on the first line of a frame (C4=C9=0) while the
+//   R1 border is not active, else set by C4==R6 ;
+// - phase B (half character) : C4==R6 sets the R6 border ; C0==R0 sets the border for the second half only
+//   (cleared by the next character) : when R1>R0 it replaces C0==R1.
+// On the first line with R6=0 both happen on every character : one displayed byte, one border byte.
+void CRTC::ClockDispEnHalvesCrtc02()
+{
+   if (vcc_ == 0 && vlc_ == 0 && ff1_)
+      ff3_ = true;
+   else if (vcc_ == registers_list_[6])
+      ff3_ = false;
+   dispen_half0_ = ff1_ && ff3_;
+
+   if (vcc_ == registers_list_[6])
+      ff3_ = false;
+   dispen_half1_ = ff1_ && ff3_ && hcc_ != registers_list_[0];
 }
 
 // CRTC 0 ParitéC9 in Interlace Video Mode : ParitéFrame, alternated on each C4 when R9 is odd (19.5.2)
@@ -313,8 +339,21 @@ unsigned int CRTC::ParityC9Crtc0() const
 bool CRTC::C9EqualsR9() const
 {
    const unsigned char r9 = registers_list_[9];
-   if (!InterlaceVideo())
+   if (type_crtc_ == HD6845S)
+   {
+      // CRTC 0 : the IVM state of the address is taken at the line start, the parity in the R9 test at once :
+      // IVM entered during the line, C9 is compared with R9 | ParitéFrame ; IVM left during the line,
+      // C9.VMA is compared with R9 without the parity (19.8.1)
+      const bool ivm_now = InterlaceVideo();
+      if (!ivm_latched_)
+         return vlc_ == (ivm_now ? (r9 | (even_field_ ? 0 : 1)) : r9);
+      if (!ivm_now)
+         return AddressC9() == r9;
+   }
+   else if (!InterlaceVideo())
+   {
       return vlc_ == r9;
+   }
 
    switch (type_crtc_)
    {
@@ -326,16 +365,19 @@ bool CRTC::C9EqualsR9() const
       // C9 carries the parity and counts by 2 : compared without its bit 0, after adding !R9.0 (19.8.2)
       return ((vlc_ + ((r9 & 1) ? 0 : 1)) & 0x1E) == (r9 & 0x1E);
    default:
-      // CRTC 2 : approximation, the C9.IVM counter is not modelled yet (19.8.3)
-      return vlc_ == r9 || ((vlc_ + 1) & 0x1F) == r9;
+      // CRTC 2 : C9 is compared with R9 normally, the address uses the C9.IVM counter (19.8.3)
+      return vlc_ == r9;
    }
 }
 
 // C9 used by the GATE ARRAY to build the address : C9.VMA = 2 x C9 | ParitéC9 on CRTC 0 in Interlace Video Mode
 unsigned char CRTC::AddressC9() const
 {
-   if (type_crtc_ == HD6845S && InterlaceVideo())
+   if (type_crtc_ == HD6845S && ivm_latched_)
       return ((vlc_ << 1) | ParityC9Crtc0()) & 0x1F;
+   // CRTC 2 : C9.VMA = 2 x C9.IVM | ParitéFrame, taken at once when R8 changes (19.8.3)
+   if (type_crtc_ == MC6845 && InterlaceVideo())
+      return ((c9_ivm_ << 1) | (even_field_ ? 0 : 1)) & 0x1F;
    return vlc_;
 }
 

@@ -236,4 +236,6 @@ void CRTC::ClockTick1 ()
    {
       ff4_ = true;
    }
+
+   ClockDispEnHalves();
 }

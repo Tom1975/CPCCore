@@ -84,6 +84,7 @@ void CRTC::ClockTick34 ()
       const bool interlace_line = InterlaceOn() && frame_even;
 
       bool new_frame = false;
+      bool row_start = false;   // C9 reloaded with its start value on this line
       if (interlace_line_)
       {
          // End of the additional interlace line
@@ -103,6 +104,7 @@ void CRTC::ClockTick34 ()
                adjust_ = false;
                interlace_line_ = true;
                vlc_ = 0;
+               row_start = true;
             }
             else
             {
@@ -122,6 +124,7 @@ void CRTC::ClockTick34 ()
          if (vlc_ >= registers_list_[9])
          {
             vlc_ = 0;
+            row_start = true;
             if (vcc_ == registers_list_[4])
             {
                // Last character : C4 is not incremented by the additional management (12.5)
@@ -165,6 +168,8 @@ void CRTC::ClockTick34 ()
          ff3_set = true;
          frame_counter_ = (frame_counter_ + 1) & 0x1F;
 
+         row_start = true;
+
          // Next frame : ParitéFrame toggles, ParitéC9 starts from it (19.5.5)
          even_field_ = !even_field_;
          parity_c9_ = !even_field_;
@@ -180,10 +185,19 @@ void CRTC::ClockTick34 ()
 
       // VSYNC only when C4==R7 on C9=C0=0, with no re-entrance protection : it starts again if
       // the condition is still true when it ends (16.3, 16.4.4)
-      if (vcc_ == registers_list_[7] && vlc_ == 0 && (!ff4_ || ff4_reset))
+      // ("C9=0" is the first line of a character : in IVM it starts with C9 = ParitéC9)
+      if (vsync_line_delay_)
       {
+         vsync_line_delay_ = false;
+         ff4_set = true;
+      }
+      else if (vcc_ == registers_list_[7] && row_start && (!ff4_ || ff4_reset))
+      {
+         // IVM with R9 odd : on an odd C4 of an odd frame the VSYNC is delayed by one line (19.5.5)
+         if (InterlaceVideo() && (registers_list_[9] & 1) && (vcc_ & 1) && !frame_even)
+            vsync_line_delay_ = true;
          // MID-VSYNC on an even frame in interlace (19.7.3)
-         if (InterlaceOn() && frame_even)
+         else if (InterlaceOn() && frame_even)
             vsync_mid_pending_ = true;
          else
             ff4_set = true;
@@ -300,4 +314,6 @@ void CRTC::ClockTick34 ()
       
    }
 
+
+   ClockDispEnHalves();
 }

@@ -80,6 +80,9 @@ unsigned int ListeColors[] =
 
 GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
 {
+   dispen_buffered_ = false;
+   dispen_buffered_h_ = false;
+   half_border_ = false;
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
 
@@ -185,6 +188,16 @@ void GateArray::PreciseTick()
 
    // Down
 
+}
+
+// Border on the byte of the character whose DISPEN half is off
+void GateArray::ApplyHalfBorder(int* buffer)
+{
+   if (!half_border_ || buffer == nullptr) return;
+   half_border_ = false;
+   const int first = dispen_buffered_ ? 8 : 0;
+   for (int i = first; i < first + 8; ++i)
+      buffer[i] = video_border_[0];
 }
 
 unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
@@ -389,8 +402,8 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
 #define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->AddressC9()+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
-#define DISPEN_TEST dispen_buffered_ = crtc_->DispEn()
-#define END_OF_DISPLAY   {monitor_->IncVideoBuffer();display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
+#define DISPEN_TEST {dispen_buffered_ = crtc_->DispEn(0); dispen_buffered_h_ = crtc_->DispEn(1);}
+#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);monitor_->IncVideoBuffer();display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
 
 
    // PLUS : Handle the SSCR register
@@ -407,6 +420,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    // Fill the byte for the memory buffer
    // 16 pixels should be defined
    int* buffer_to_display = monitor_->GetVideoBufferForInc();
+   int* const line_buffer = buffer_to_display;
    if (buffer_to_display == 0)
    {
       END_OF_DISPLAY
@@ -425,8 +439,10 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       }
       else
       {
-         if (dispen_buffered_/*m_Sig->DISPEN*/)
+         if (dispen_buffered_ || dispen_buffered_h_)
          {
+            // The GATE ARRAY takes DISPEN for each of the 2 bytes of the character (17.6, 18.3.2)
+            half_border_ = (dispen_buffered_ != dispen_buffered_h_);
             switch (buffered_screen_mode_)
             {
             case 0:
@@ -487,36 +503,23 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                }
                else
                {
-                  if (!crtc_->de_bug_)
+                  memcpy(buffer_to_display, Mode0ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
+                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+                  memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
+
+                  //END_OF_DISPLAY
+                  ApplyHalfBorder(line_buffer);
+                  monitor_->IncVideoBuffer();
+                  unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
+                  display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
+                  if (horizontal_shift > 0)
                   {
-                     memcpy(buffer_to_display, Mode0ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                     //END_OF_DISPLAY
-                     monitor_->IncVideoBuffer();
-                     unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
-                     display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
-                     if (horizontal_shift > 0)
-                     {
-                        display_short_.word <<= horizontal_shift;
-                        unsigned short prev = *(short*)(memory_->ram_buffer_[0] + addr - 2);
-                        display_short_.word |= ((prev >> (16 - horizontal_shift)) & 0xFFFF);
-                     }
-                     DISPEN_TEST; monitor_->Tick();
-                     return 4;
-
+                     display_short_.word <<= horizontal_shift;
+                     unsigned short prev = *(short*)(memory_->ram_buffer_[0] + addr - 2);
+                     display_short_.word |= ((prev >> (16 - horizontal_shift)) & 0xFFFF);
                   }
-                  else
-                  {
-                     *buffer_to_display = video_border_[0];
-                     crtc_->de_bug_ = false;
-                     memcpy(&buffer_to_display[1], &Mode0ExtendedLut[display_short_.byte.l][1], 7 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                     END_OF_DISPLAY
-                  }
+                  DISPEN_TEST; monitor_->Tick();
+                  return 4;
                }
             }
             case 1:
@@ -589,23 +592,12 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                }
                else
                {
-                  if (!crtc_->de_bug_)
-                  {
-                     memcpy(&buffer_to_display[0], &Mode1ExtendedLut[(display_short_.byte.l)], 8 * sizeof(int));
+                  memcpy(&buffer_to_display[0], &Mode1ExtendedLut[(display_short_.byte.l)], 8 * sizeof(int));
 
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
-                     END_OF_DISPLAY
-                  }
-                  else
-                  {
-                     buffer_to_display[0] = video_border_[0];
-                     crtc_->de_bug_ = false;
-                     memcpy(&buffer_to_display[1], &Mode1ExtendedLut[(display_short_.byte.l)][1], 7 * sizeof(int));
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
-                     END_OF_DISPLAY
-                  }
+                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+                  memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
+                  END_OF_DISPLAY
+               
                }
 
 
@@ -673,26 +665,13 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                }
                else
                {
-                  if (!crtc_->de_bug_)
-                  {
-                     memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
+                  memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
 
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
+                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+                  memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
 
-                     END_OF_DISPLAY
-                  }
-                  else
-                  {
-                     *buffer_to_display++ = video_border_[0];
-                     crtc_->de_bug_ = false;
-                     memcpy(&buffer_to_display[1], &Mode2ExtendedLut[display_short_.byte.l][1], 7 * sizeof(int));
-
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                     END_OF_DISPLAY
-                  }
+                  END_OF_DISPLAY
+               
                }
 
             }
@@ -709,13 +688,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                else
                {
                   //unsigned int * pBufferToDisplay = monitor_->m_BufferToDisplay;
-                  if (crtc_->de_bug_)
-                  {
-                     *buffer_to_display++ = video_border_[0];
-                     crtc_->de_bug_ = false;
-                  }
-                  else
-                     *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
+                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
 
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];

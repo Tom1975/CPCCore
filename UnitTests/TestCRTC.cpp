@@ -2133,3 +2133,259 @@ TEST(CRTC_Compendium, InterlaceVideoModeAlternatesTheLines)
       EXPECT_TRUE((a == "0246" && b == "1357") || (a == "1357" && b == "0246")) << a << " / " << b;
    }
 }
+
+// --- Interlace Video Mode, details (second batch) ------------------------------
+
+// 19.8.1 (table p222) : on CRTC 0 the IVM state set by R8 is taken when C0
+// restarts at 0 : the line on which R8 = 3 is written keeps its non doubled
+// address (C9.VMA = C9 = 1), the doubled C9.VMA starts on the next line.
+// R9 = 6 : even frame 4, 6, then 0, 2 ; odd frame 5, 7, then 1, 3.
+TEST(CRTC_Compendium, Crtc0IvmTakenAtTheNextLine)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 9, 6);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   std::string frames[2];
+   for (int frame = 0; frame < 2; ++frame)
+   {
+      ASSERT_TRUE(ReachLine(crtc, 0, 1));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 8, 3);
+      EXPECT_EQ(1, AddressC9(crtc));
+      for (int line = 0; line < 4; ++line)
+      {
+         NextLine(crtc);
+         frames[frame] += char('0' + AddressC9(crtc));
+      }
+      ASSERT_TRUE(ReachLine(crtc, 3, 0));
+      WriteRegister(crtc, 8, 0);
+   }
+   EXPECT_TRUE((frames[0] == "4602" && frames[1] == "5713") || (frames[0] == "5713" && frames[1] == "4602"))
+      << frames[0] << " / " << frames[1];
+}
+
+// 19.8.1 (remark p221) : when R8 returns to 0, C9.VMA (with the parity) is
+// compared with R9 without the parity : C9 = 3, R9 = 6 on an odd frame gives
+// C9.VMA = 7 <> 6, C9 goes on to 4 ; on an even frame C9.VMA = 6 = R9, C9 = 0.
+TEST(CRTC_Compendium, Crtc0IvmOffComparesC9VmaWithR9)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 9, 6);
+   WriteRegister(crtc, 8, 3);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   bool seen[2] = { false, false };
+   for (int frame = 0; frame < 2; ++frame)
+   {
+      ASSERT_TRUE(ReachLine(crtc, 5, 3));
+      const int c9_vma = AddressC9(crtc);
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 8, 0);
+      const Line next = NextLine(crtc);
+      if (c9_vma == 7) { seen[1] = true; EXPECT_EQ(Line(5, 4), next); }
+      else             { seen[0] = true; EXPECT_EQ(6, c9_vma); EXPECT_EQ(Line(6, 0), next); }
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      WriteRegister(crtc, 8, 3);
+   }
+   EXPECT_TRUE(seen[0] && seen[1]);
+}
+
+// 19.5.2, 19.5.5 : in IVM with R9 odd (an odd number of lines per character),
+// CRTC 0, 3 and 4 delay the VSYNC by one line on an odd C4 of an odd frame. On
+// the even frame it is a MID-VSYNC on the first line of C4 = R7. CRTC 1 has no
+// such delay (19.5.3) : the VSYNC is on the first line on both frames.
+TEST(CRTC_Compendium, IvmVSyncDelayedOnOddC4)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::AMS40489, CRTC::AMS40226, CRTC::UM6845R })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 8, 3);
+      WriteRegister(crtc, 9, 7);
+      WriteRegister(crtc, 7, 11);
+      AdvanceMicroseconds(crtc, 3 * 19968);
+      std::string starts;   // line of the character row C4 = R7 the VSYNC starts on
+      for (int frame = 0; frame < 2; ++frame)
+      {
+         int line_in_row = -1;
+         bool was = sig.v_sync_;
+         for (int i = 0; i < 2 * 19968; ++i)
+         {
+            Advance(crtc);
+            if (crtc.hcc_ == 0) line_in_row = (crtc.vcc_ == 11) ? line_in_row + 1 : -1;
+            if (sig.v_sync_ && !was) break;
+            was = sig.v_sync_;
+         }
+         starts += char('0' + line_in_row);
+      }
+      if (type == CRTC::UM6845R)
+         EXPECT_EQ("00", starts);
+      else
+         EXPECT_TRUE(starts == "01" || starts == "10") << starts;
+   }
+}
+
+// 19.8.3 : CRTC 2 counts C9 normally (0..R9) and uses another counter, C9.IVM,
+// reset when C9 returns to 0 and when C9 reaches R9/2 : with R9 = 7 the address
+// is 0, 2, 4, 6 twice per C4 on an even frame (1, 3, 5, 7 on an odd frame), and
+// VMA' is loaded with VMA on C0 = R1 of the line C9 = R9/2 : the second half of
+// the character starts R1 characters further.
+TEST(CRTC_Compendium, Crtc2IvmCounter)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 8, 3);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   const std::string a = RowAddressC9s(crtc, 5);
+   const std::string b = RowAddressC9s(crtc, 5);
+   EXPECT_TRUE((a == "02460246" && b == "13571357") || (a == "13571357" && b == "02460246")) << a << " / " << b;
+   ASSERT_TRUE(ReachLine(crtc, 5, 0));
+   const unsigned short first_half = crtc.ma_;
+   ASSERT_TRUE(ReachLine(crtc, 5, 4));
+   EXPECT_EQ(first_half + 40, crtc.ma_);
+}
+
+// 11.2.3 : with interlace, the additional interlace line is counted as one more
+// R5 line on CRTC 1 : R4 = 37, R9 = 7, R5 = 8 : C4 = 38 on the R5 lines and 39
+// on the interlace line (even frames).
+TEST(CRTC_Compendium, Crtc1InterlaceLineAfterR5)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 4, 37);
+   WriteRegister(crtc, 5, 8);
+   WriteRegister(crtc, 8, 1);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   bool interlace_line = false;
+   for (int frame = 0; frame < 2; ++frame)
+   {
+      ASSERT_TRUE(ReachLine(crtc, 37, 7));
+      for (int c9 = 0; c9 < 8; ++c9)
+         EXPECT_EQ(Line(38, c9), NextLine(crtc));
+      const Line next = NextLine(crtc);
+      if (next != Line(0, 0)) { interlace_line = true; EXPECT_EQ(Line(39, 0), next); }
+   }
+   EXPECT_TRUE(interlace_line);
+}
+
+// --- Half microsecond DISPEN (17.6, 18.3.2) -----------------------------------
+// The GATE ARRAY fetches 2 bytes per CRTC character : DispEn(0) / DispEn(1) is
+// DISPEN for the first / second byte (half microsecond) of the character.
+
+namespace
+{
+// DISPEN of the C0 = 0 .. 63 characters of one line, 2 characters per C0
+// ('1' = displayed byte, '0' = border byte).
+std::string DispEnHalves(CRTC& crtc, int first_c0, int last_c0)
+{
+   std::string s;
+   for (int c0 = 0; c0 <= last_c0; ++c0)
+   {
+      if (c0 > 0) Advance(crtc);
+      if (c0 < first_c0) continue;
+      s += crtc.DispEn(0) ? '1' : '0';
+      s += crtc.DispEn(1) ? '1' : '0';
+   }
+   return s;
+}
+}  // namespace
+
+// 17.6 : R1 > R0, C0 never reaches R1. On CRTC 0 and 2 the border is set 0.5 us
+// after C0 = R0 and cleared on the next character : the second byte of the
+// character C0 = R0 is border. CRTC 1, 3, 4 send no border.
+TEST(CRTC_Compendium, BorderByteWhenR1GreaterThanR0)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 1, 70);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      const bool border_byte = (type == CRTC::HD6845S || type == CRTC::MC6845);
+      EXPECT_EQ(border_byte ? "111110" : "111111", DispEnHalves(crtc, 61, 63));
+      Advance(crtc);   // C0 = 0 : displayed again
+      EXPECT_TRUE(crtc.DispEn(0));
+      EXPECT_TRUE(crtc.DispEn(1));
+   }
+}
+
+// 17.6 : R0 = 0 with R1 > R0 on CRTC 0 : every character is C0 = R0, the bytes
+// alternate between displayed and border.
+TEST(CRTC_Compendium, Crtc0R0ZeroAlternatesBytes)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::HD6845S);
+   ASSERT_TRUE(ReachLine(crtc, 5, 2));
+   WriteRegister(crtc, 0, 0);
+   std::string s;
+   for (int i = 0; i < 4; ++i)
+   {
+      Advance(crtc);
+      s += crtc.DispEn(0) ? '1' : '0';
+      s += crtc.DispEn(1) ? '1' : '0';
+   }
+   EXPECT_EQ("10101010", s);
+}
+
+// 18.3.2 : R6 = 0 on the first line of a frame (C4 = C9 = 0), CRTC 0 and 2 : the
+// R6 border is set (C4 = R6) and cleared (new frame) on each character : the
+// first byte is displayed, the second one is border, as long as the R1 border is
+// not active. From the second line the R6 border stays. CRTC 1 : R6 = 0 is a
+// border (18.3.3). CRTC 3, 4 : no special case, border.
+TEST(CRTC_Compendium, R6ZeroOnTheFirstLine)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 6, 0);
+      AdvanceMicroseconds(crtc, 19968);
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      const bool conflict = (type == CRTC::HD6845S || type == CRTC::MC6845);
+      EXPECT_EQ(conflict ? "101010" : "000000", DispEnHalves(crtc, 0, 2));
+      ASSERT_TRUE(ReachLine(crtc, 0, 1));
+      EXPECT_EQ("000000", DispEnHalves(crtc, 0, 2));
+   }
+}
+
+// 18.3.2 : on the first line, R6 set back to a value > 0 before C0 = R1 cancels
+// the conflict : no R6 border on the next line. If R6 is still 0 when C0 = R1,
+// the border is definitive, even if R6 changes afterwards.
+TEST(CRTC_Compendium, R6ZeroConflictResolvedOnC0EqualsR1)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      {
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 6, 0);
+         AdvanceMicroseconds(crtc, 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         AdvanceUntilHccEquals(crtc, 20);
+         WriteRegister(crtc, 6, 25);
+         ASSERT_TRUE(ReachLine(crtc, 0, 1));
+         EXPECT_EQ("111111", DispEnHalves(crtc, 0, 2));
+      }
+      {
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 6, 0);
+         AdvanceMicroseconds(crtc, 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         AdvanceUntilHccEquals(crtc, 50);   // after C0 = R1 = 40
+         WriteRegister(crtc, 6, 25);
+         ASSERT_TRUE(ReachLine(crtc, 0, 1));
+         EXPECT_EQ("000000", DispEnHalves(crtc, 0, 2));
+      }
+   }
+}

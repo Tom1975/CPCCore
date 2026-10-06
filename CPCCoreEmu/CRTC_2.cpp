@@ -30,14 +30,11 @@ void CRTC::ClockTick2 ()
    bool ff1_set = false;
    bool ff1_reset = false;
 
-   bool ff3_set = false;
-   bool ff3_reset = false;
 
    bool ff4_set = false;
    bool ff4_reset = false;
 
    const unsigned char prev = hcc_;
-   const bool interlace_video = ((registers_list_[8] & 0x3) == 0x3);
    const bool hsync_in_previous_char = signals_->h_sync_;
 
    // Clock tick
@@ -96,22 +93,25 @@ void CRTC::ClockTick2 ()
       if (!new_frame)
       {
          // C9 returns to 0 on R9 and increments C4, whatever R4 : only DL returns C4 to 0
+         // C9.IVM counts all the time : reset with C9, and when C9 reaches R9/2 (19.8.3)
          if (c9_eq_r9)
          {
             vlc_ = 0;
             vcc_ = (vcc_ + 1) & 0x7F;
+            c9_ivm_ = 0;
          }
          else
          {
-            vlc_ = (vlc_ + (interlace_video ? 2 : 1)) & 0x1F;
+            c9_ivm_ = (vlc_ == (registers_list_[9] >> 1)) ? 0 : ((c9_ivm_ + 1) & 0x1F);
+            vlc_ = (vlc_ + 1) & 0x1F;
          }
       }
       else
       {
          vlc_ = 0;
+         c9_ivm_ = 0;
          vcc_ = 0;
          adjust_ = false;
-         ff3_set = true;
 
          // Next frame : ParitéFrame = ParitéR6 (19.5.4)
          even_field_ = !parity_r6_;
@@ -200,19 +200,15 @@ void CRTC::ClockTick2 ()
       gdl_reenabled_ = false;
    }
 
-   // VMA' (17.4.3)
+   // VMA' (17.4.3) ; in IVM also in the middle of the character, on C9 = R9/2 (19.8.3)
    if (hcc_ == registers_list_[1] && !c0_reset)
    {
       if (last_line_)
          bu_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
-      else if (vlc_ == registers_list_[9])
+      else if (vlc_ == registers_list_[9] || (InterlaceVideo() && vlc_ == (registers_list_[9] >> 1)))
          bu_ = ma_;
    }
 
-   if (vcc_ == registers_list_[6])
-   {
-      ff3_reset = true;
-   }
    ClockParityR6();
 
    // The border is not lifted on C0=0 during a HSYNC (15.5)
@@ -240,14 +236,7 @@ void CRTC::ClockTick2 ()
       ff1_ = false;
    }
 
-   if ( ff3_reset && !ff3_set)
-   {
-      ff3_ = false;
-   }
-   else if ( !ff3_reset && ff3_set)
-   {
-      ff3_ = true;
-   }
+   ClockDispEnHalvesCrtc02();
 
    if ( ff4_reset && !ff4_set)
    {

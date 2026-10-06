@@ -107,6 +107,9 @@ public:
    bool interlace_line_;        // CRTC 3/4 : additional interlace line in progress (C9 forced to 0)
    bool parity_c9_;             // CRTC 1/3/4 ParitéC9 (true = odd) : bit 0 of C9 in Interlace Video Mode
    bool rfd_parity_;            // CRTC 1 : R.F.D. armed the parity in the C9==R9 test on C0==R1 until the frame end
+   bool ivm_latched_;           // CRTC 0 : Interlace Video Mode state taken when C0 restarts at 0 (19.8.1)
+   bool vsync_line_delay_;      // CRTC 0/3/4 : IVM VSYNC delayed to the next line start (19.5.2, 19.5.5)
+   unsigned char c9_ivm_;       // CRTC 2 : C9.IVM counter, used for the address in IVM (19.8.3)
 
    bool ff1_; 
    //bool ff2_;
@@ -117,8 +120,9 @@ public:
    bool mux_reset_ ;
 
    bool lightpen_input_;
-   bool de_bug_;
-   unsigned char dispen_history_;   // bit n : DISPEN (ff1_ & ff3_) n+1 microseconds ago, for the R8 SKEW
+   unsigned char dispen_history_;   // DISPEN of the previous characters, 2 bits (halves) per character, for the R8 SKEW
+   bool dispen_half0_;          // DISPEN for the first half (byte) of the current character
+   bool dispen_half1_;          // DISPEN for the second half (byte) of the current character
 
    unsigned char vertical_sync_width_;
    unsigned char horizontal_sync_width_;   
@@ -148,8 +152,11 @@ public:
 
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
-   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 1) | ((ff1_ && ff3_) ? 1 : 0); }
-   bool DispEn() const;
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }
+   void ClockDispEnHalvesCrtc02();
+   void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
+   // DISPEN for the first (half = 0) or the second (half = 1) half of the current character
+   bool DispEn(int half = 0) const;
    bool VSyncPin() const { return ff4_ && !vsync_ghost_; }
    unsigned char ReadRegister();
    bool C9EqualsR9() const;
