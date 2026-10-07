@@ -83,6 +83,15 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    dispen_buffered_ = false;
    dispen_buffered_h_ = false;
    half_border_ = false;
+   last_block_ = nullptr;
+   monitor_pending_ = false;
+   cblack_hsync_ = false;
+   hsync_pin_last_ = false;
+   nb_black_edges_ = 0;
+   chsync_countdown_ = -1;
+   chsync_ = false;
+   chsync_length_ = 0;
+   chsync_mask_ = 0;
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
 
@@ -155,6 +164,16 @@ void GateArray::Reset()
    h_old_sync_ = false;
    hsync_ = false;
    vsync_ = false;
+
+   last_block_ = nullptr;
+   monitor_pending_ = false;
+   cblack_hsync_ = false;
+   hsync_pin_last_ = false;
+   nb_black_edges_ = 0;
+   chsync_countdown_ = -1;
+   chsync_ = false;
+   chsync_length_ = 0;
+   chsync_mask_ = 0;
 }
 
 void GateArray::SetBus(Bus* address, Bus* data)
@@ -200,8 +219,91 @@ void GateArray::ApplyHalfBorder(int* buffer)
       buffer[i] = video_border_[0];
 }
 
+// The HSYNC pin of the character drawn on the previous tick is final. The GATE ARRAY samples it on each
+// Mode 2 pixel (16 MHz) : CBLACK_HSYNC follows the pin, whatever the CRTC (the instant of each edge is
+// given by the CRTC, CRTC::HSyncPinEdge()). Edges beyond the 16 pixels of the block are kept for the next one.
+void GateArray::FinalizeBlock()
+{
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   bool pin = hsync_pin_last_;
+   for (unsigned int q = 0; q < 4; ++q)
+   {
+      const bool level = ((quarters >> q) & 1) != 0;
+      if (level != pin && nb_black_edges_ < 8)
+      {
+         // Sorted on the pixel : the edges of a character come after the ones kept from the previous one
+         BlackEdge edge = { (unsigned char)crtc_->HSyncPinEdge(level, q), level };
+         int i = nb_black_edges_++;
+         while (i > 0 && black_edges_[i - 1].pixel > edge.pixel)
+         {
+            black_edges_[i] = black_edges_[i - 1];
+            --i;
+         }
+         black_edges_[i] = edge;
+      }
+      pin = level;
+   }
+   hsync_pin_last_ = pin;
+
+   // C-HSYNC (16.2.2, 16.2.3) : H06 counts the characters of the GATE ARRAY while the HSYNC pin is high ;
+   // SIG_GA_HSYNC goes high when H06 reaches 2, 1 pixel before the end of the 2nd microsecond (pixel 3 of
+   // the 2nd block after the one of the rising edge), and low 1 pixel after the end of the HSYNC, or when
+   // H06 reaches 6 (64 pixels). An HSYNC started late in its block (R2.JIT) does not move the C-HSYNC.
+   const int kChsyncStart = 2 * 16 + 3;
+   const int kChsyncMaxLength = 4 * 16;
+   chsync_mask_ = 0;
+   unsigned char next = 0;
+   for (int p = 0; p < 16; ++p)
+   {
+      bool fall = false;
+      while (next < nb_black_edges_ && black_edges_[next].pixel == p)
+      {
+         cblack_hsync_ = black_edges_[next++].level;
+         if (cblack_hsync_)
+            chsync_countdown_ = kChsyncStart - p;
+         else
+         {
+            chsync_countdown_ = -1;
+            fall = true;
+         }
+      }
+      if (cblack_hsync_ && last_block_ != nullptr)
+         last_block_[p] = 0xFF000000;
+
+      if (chsync_countdown_ == 0 && cblack_hsync_)
+      {
+         chsync_ = true;
+         chsync_length_ = 0;
+      }
+      if (chsync_countdown_ >= 0)
+         --chsync_countdown_;
+      if (chsync_)
+      {
+         chsync_mask_ |= (1 << p);
+         if (++chsync_length_ == kChsyncMaxLength || fall)
+            chsync_ = false;
+      }
+   }
+   unsigned char kept = 0;
+   for (unsigned char i = next; i < nb_black_edges_; ++i)
+   {
+      black_edges_[kept] = black_edges_[i];
+      black_edges_[kept++].pixel -= 16;
+   }
+   nb_black_edges_ = kept;
+}
+
 unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 {
+   // The previous block is complete : HSYNC black, then to the monitor
+   if (monitor_pending_)
+   {
+      FinalizeBlock();
+      monitor_->IncVideoBuffer();
+      monitor_->Tick();
+   }
+   monitor_pending_ = true;
+
    // MAJ SPLT ?
    if (ssa_new_counter_ > 0)
    {
@@ -339,7 +441,9 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    if ((h_old_sync_ == false && sig_handler_->h_sync_ == true))
    {
       hsync_ = true;
-      hsync_counter_ = 0;
+      // HSYNC started during the previous character (R2 written on C0=R2, 14.7.1) : H06 counts it,
+      // the monitor synchronisation is unchanged
+      hsync_counter_ = (crtc_->hsync_quarters_previous_ != 0) ? 1 : 0;
    }
    else
    {
@@ -403,7 +507,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 #define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->AddressC9()+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
 #define DISPEN_TEST {dispen_buffered_ = crtc_->DispEn(0); dispen_buffered_h_ = crtc_->DispEn(1);}
-#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);monitor_->IncVideoBuffer();display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;monitor_->Tick();return 4;}
+#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);last_block_ = line_buffer;display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;return 4;}
 
 
    // PLUS : Handle the SSCR register
@@ -427,9 +531,8 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    }
    else
    {
-      if (hsync_
-         //|| vsync_)
-         || sig_handler_->v_sync_)
+      // The HSYNC black is applied by FinalizeBlock()
+      if (sig_handler_->v_sync_)
       {
          for (int i = 0; i < 16; i++)
             buffer_to_display[i] = 0xFF000000;
@@ -509,7 +612,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                   //END_OF_DISPLAY
                   ApplyHalfBorder(line_buffer);
-                  monitor_->IncVideoBuffer();
+                  last_block_ = line_buffer;
                   unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
                   display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
                   if (horizontal_shift > 0)
@@ -518,7 +621,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      unsigned short prev = *(short*)(memory_->ram_buffer_[0] + addr - 2);
                      display_short_.word |= ((prev >> (16 - horizontal_shift)) & 0xFFFF);
                   }
-                  DISPEN_TEST; monitor_->Tick();
+                  DISPEN_TEST;
                   return 4;
                }
             }

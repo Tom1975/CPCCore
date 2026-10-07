@@ -322,6 +322,19 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    // A palette write can be pending when the state is taken.
    out.push_back(ga->buffered_ink_available_ ? 1 : 0);
    PutU32(out, ga->buffered_ink_);
+   // Appended later : HSYNC black of the block not finalized yet (the block itself is not kept)
+   out.push_back(ga->monitor_pending_ ? 1 : 0);
+   out.push_back(ga->cblack_hsync_ ? 1 : 0);
+   out.push_back(ga->hsync_pin_last_ ? 1 : 0);
+   out.push_back(ga->nb_black_edges_);
+   for (unsigned char i = 0; i < ga->nb_black_edges_; ++i)
+   {
+      out.push_back(ga->black_edges_[i].pixel);
+      out.push_back(ga->black_edges_[i].level ? 1 : 0);
+   }
+   PutU32(out, (unsigned int)ga->chsync_countdown_);
+   out.push_back(ga->chsync_ ? 1 : 0);
+   PutU32(out, (unsigned int)ga->chsync_length_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -347,6 +360,26 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->v_old_sync_ = p[at++] != 0;
    ga->buffered_ink_available_ = p[at++] != 0;
    ga->buffered_ink_ = GetU32(&p[at]); at += 4;
+
+   ga->last_block_ = nullptr;
+   // Older states stop here
+   if (at == size) return true;
+   if (size - at < 4) return false;
+   ga->monitor_pending_ = p[at++] != 0;
+   ga->cblack_hsync_ = p[at++] != 0;
+   ga->hsync_pin_last_ = p[at++] != 0;
+   const unsigned char nb_edges = p[at++];
+   if (nb_edges > 8 || size - at < 2u * nb_edges) return false;
+   ga->nb_black_edges_ = nb_edges;
+   for (unsigned char i = 0; i < nb_edges; ++i)
+   {
+      ga->black_edges_[i].pixel = p[at++];
+      ga->black_edges_[i].level = p[at++] != 0;
+   }
+   if (size - at < 9) return false;
+   ga->chsync_countdown_ = (int)GetU32(&p[at]); at += 4;
+   ga->chsync_ = p[at++] != 0;
+   ga->chsync_length_ = (int)GetU32(&p[at]); at += 4;
 
    return true;
 }

@@ -312,6 +312,33 @@ bool CRTC::HSyncPinFollowsComparators() const
    return type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845;
 }
 
+// Instant of an HSYNC pin edge, in 1/16 us (Mode 2 pixels of the GATE ARRAY) from the start of the
+// microsecond of the character where it happens : clock edge (t_state 0, or I/O on T-state 0) or I/O on
+// T-state q, plus the propagation delay of the circuit, which depends on the CRTC (16.2.2 : 1 or 2 pixels
+// around the clock, type and tolerance of the circuit). Measured through the black of the GATE ARRAY,
+// which follows the pin (9.3.4.2, 14.5.4, 14.7 ; R3l = 2 : 32 / 32 / 33 pixels, 28 / 29 / 29 in R2.JIT) :
+// - CRTC 0 : 4 pixels after the clock or the I/O ;
+// - CRTC 1 : 5 pixels after the clock, 4 after an I/O ;
+// - CRTC 2 : rising edge 3 pixels after the clock or the I/O, falling edge 4 ;
+// - CRTC 3, 4 : the ASIC synchronises the HSYNC with the display, one microsecond later : 17th pixel
+//   (CRTC 3, supposed) or 19th pixel (CRTC 4) after the start of the microsecond.
+unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
+{
+   switch (type_crtc_)
+   {
+   case HD6845S:
+      return 4 * t_state + 4;
+   case UM6845R:
+      return (t_state == 0) ? 5 : 4 * t_state + 4;
+   case MC6845:
+      return 4 * t_state + (rise ? 3 : 4);
+   case AMS40489:
+      return 16;
+   default:
+      return 18;
+   }
+}
+
 // R2 written : C0==R2 starts the HSYNC
 void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 {

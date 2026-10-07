@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "Bus.h"
 #include "CRTC.h"
@@ -2626,4 +2627,218 @@ TEST(CRTC_Jit, R3ZeroDuringTheHSync)
          EXPECT_EQ(11, HSyncLengthFromNow(crtc, sig));
       }
    }
+}
+
+/////////////////////////////////////////////////////////////
+// M. HSYNC black of the GATE ARRAY (CBLACK_HSYNC, 9.3.4.2, 14.5.4, 14.7, 16.2.3), Mode 2 pixel
+// precision. The block drawn during the CRTC character C0 displays C0-1 ; its HSYNC black is
+// applied by GateArray::FinalizeBlock() at the next tick, once the HSYNC pin of the character is
+// final. Positions are counted from the start of the block drawn during C0 = R2 (= 46).
+
+namespace
+{
+struct BlackRun { int start; int length; };
+
+// Ticks from C0 = 40 for 40 characters ; on_char(c0) runs the Z80 I/O of each character.
+// chsync : if not null, receives the C-HSYNC sent to the monitor (SIG_GA_HSYNC).
+template <typename OnChar>
+BlackRun MeasureHSyncBlack(CRTC& crtc, OnChar on_char, BlackRun* chsync = nullptr)
+{
+   GateArray ga;
+   ga.SetCRTC(&crtc);
+   ga.Reset();
+   const int kChars = 40;
+   std::vector<int> pixels(16 * kChars, 0x00FFFFFF);
+   std::vector<bool> chsync_pixels(16 * kChars, false);
+   int block_r2 = -1;
+   AdvanceUntilHccEquals(crtc, 40);
+   for (int i = 0; i < kChars; ++i)
+   {
+      if (i > 0) Advance(crtc);
+      ga.last_block_ = (i > 0) ? &pixels[16 * (i - 1)] : nullptr;
+      ga.FinalizeBlock();
+      for (int p = 0; p < 16 && i > 0; ++p)
+         chsync_pixels[16 * (i - 1) + p] = ((ga.chsync_mask_ >> p) & 1) != 0;
+      if (crtc.hcc_ == 46 && block_r2 < 0) block_r2 = i;
+      on_char(crtc.hcc_);
+   }
+   BlackRun run = { -1000, 0 };
+   for (int p = 0; p < 16 * (kChars - 1); ++p)
+   {
+      if (pixels[p] != (int)0xFF000000) continue;
+      if (run.length == 0) run.start = p - 16 * block_r2;
+      ++run.length;
+   }
+   if (chsync != nullptr)
+   {
+      *chsync = { -1000, 0 };
+      for (int p = 0; p < 16 * (kChars - 1); ++p)
+      {
+         if (!chsync_pixels[p]) continue;
+         if (chsync->length == 0) chsync->start = p - 16 * block_r2;
+         ++chsync->length;
+      }
+   }
+   return run;
+}
+
+void HSyncLineSetup(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type, unsigned char r2, unsigned char r3)
+{
+   Screen(crtc, sig, type);
+   WriteRegister(crtc, 2, r2);
+   WriteRegister(crtc, 3, r3);
+   ASSERT_TRUE(ReachLine(crtc, 5, 2));
+}
+}
+
+// R3l = 2, R2 programmed before : black from the 5th / 6th / 4th pixel (CRTC 0 / 1 / 2) for
+// 32 / 32 / 33 pixels. CRTC 3 (supposed), 4 : one block later, from the 17th / 19th pixel.
+TEST(GateArray_HSyncBlack, R2ProgrammedBefore)
+{
+   struct { CRTC::TypeCRTC type; int start; int length; } const cases[] = {
+      { CRTC::HD6845S, 4, 32 }, { CRTC::UM6845R, 5, 32 }, { CRTC::MC6845, 3, 33 },
+      { CRTC::AMS40489, 16, 32 }, { CRTC::AMS40226, 18, 32 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      HSyncLineSetup(crtc, sig, c.type, 46, 0x82);
+      const BlackRun run = MeasureHSyncBlack(crtc, [](int) {});
+      EXPECT_EQ(c.start, run.start);
+      EXPECT_EQ(c.length, run.length);
+   }
+}
+
+// R2.JIT (OUT(C),r8 on C0 = R2) : the black starts 4 / 3 / 4 pixels later (9th / 9th / 8th pixel),
+// it ends at the same place : 28 / 29 / 29 pixels. With OUTI : as if R2 had been programmed before.
+TEST(GateArray_HSyncBlack, R2Jit)
+{
+   struct { CRTC::TypeCRTC type; int start; int length; } const cases[] = {
+      { CRTC::HD6845S, 8, 28 }, { CRTC::UM6845R, 8, 29 }, { CRTC::MC6845, 7, 29 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      {
+         CRTC crtc; CSig sig;
+         HSyncLineSetup(crtc, sig, c.type, 50, 0x82);
+         const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+            if (c0 == 46) WriteRegisterAt(crtc, 2, 46, kOutCR8);
+         });
+         EXPECT_EQ(c.start, run.start);
+         EXPECT_EQ(c.length, run.length);
+      }
+      {
+         CRTC crtc; CSig sig;
+         HSyncLineSetup(crtc, sig, c.type, 50, 0x82);
+         const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+            if (c0 == 46) WriteRegisterAt(crtc, 2, 46, kOuti);
+         });
+         EXPECT_EQ(c.length == 28 ? 4 : (c.type == CRTC::UM6845R ? 5 : 3), run.start);
+      }
+   }
+}
+
+// R3.JIT (OUT(C),r8, R3l = C3l = 1) : the black ends 4 pixels after the end it would have had with
+// R3l = 1 programmed before (16 pixels from the start on CRTC 0) : on the 9th pixel of the block of
+// C0 = R2 + 1 on every CRTC.
+TEST(GateArray_HSyncBlack, R3Jit)
+{
+   struct { CRTC::TypeCRTC type; int start; } const cases[] = {
+      { CRTC::HD6845S, 4 }, { CRTC::UM6845R, 5 }, { CRTC::MC6845, 3 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      HSyncLineSetup(crtc, sig, c.type, 46, 0x8E);
+      const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+         if (c0 == 47) WriteRegisterAt(crtc, 3, 0x81, kOutCR8);
+      });
+      EXPECT_EQ(c.start, run.start);
+      EXPECT_EQ(16 + 8 - c.start, run.length);
+   }
+}
+
+// R3l > 6 : the black lasts the whole CRTC HSYNC (14.3), not only the 6 us of the monitor signal.
+TEST(GateArray_HSyncBlack, BlackForTheWholeHSync)
+{
+   CRTC crtc; CSig sig;
+   HSyncLineSetup(crtc, sig, CRTC::HD6845S, 46, 0x8E);
+   const BlackRun run = MeasureHSyncBlack(crtc, [](int) {});
+   EXPECT_EQ(4, run.start);
+   EXPECT_EQ(14 * 16, run.length);
+}
+
+// R3 = 0 written by OUTI on the first microsecond, CRTC 0 : no HSYNC, no black.
+TEST(GateArray_HSyncBlack, NoBlackWhenTheHSyncNeverStarts)
+{
+   CRTC crtc; CSig sig;
+   HSyncLineSetup(crtc, sig, CRTC::HD6845S, 46, 0x82);
+   const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+      if (c0 == 46) WriteRegisterAt(crtc, 3, 0x80, kOuti);
+      if (c0 == 47) WriteRegister(crtc, 3, 0x82);
+   });
+   EXPECT_EQ(0, run.length);
+}
+
+/////////////////////////////////////////////////////////////
+// N. C-HSYNC of the GATE ARRAY (SIG_GA_HSYNC, 14.4, 16.2.2) : high when H06 reaches 2, 1 pixel
+// before the end of the 2nd microsecond (pixel 35 from the block of C0 = R2), low 1 pixel after
+// the end of the HSYNC or after 4 us. Durations of the table of 14.4 (CRTC 0, R3l = 2..6 :
+// 0.125, 1.125, 2.125, 3.125, 4 us ; 0.375 us with R3.JIT on R3l = 2).
+
+TEST(GateArray_CHSync, LengthFollowsR3l)
+{
+   struct { unsigned char r3; int length; } const cases[] = {
+      { 0x82, 2 }, { 0x83, 18 }, { 0x84, 34 }, { 0x85, 50 }, { 0x86, 64 }, { 0x8E, 64 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(c.r3);
+      CRTC crtc; CSig sig;
+      HSyncLineSetup(crtc, sig, CRTC::HD6845S, 46, c.r3);
+      BlackRun chsync;
+      MeasureHSyncBlack(crtc, [](int) {}, &chsync);
+      EXPECT_EQ(35, chsync.start);
+      EXPECT_EQ(c.length, chsync.length);
+   }
+}
+
+// CRTC 1 ends its HSYNC 1 pixel later (14.5.4) : C-HSYNC 1 pixel longer.
+TEST(GateArray_CHSync, Crtc1EndsOnePixelLater)
+{
+   CRTC crtc; CSig sig;
+   HSyncLineSetup(crtc, sig, CRTC::UM6845R, 46, 0x85);
+   BlackRun chsync;
+   MeasureHSyncBlack(crtc, [](int) {}, &chsync);
+   EXPECT_EQ(35, chsync.start);
+   EXPECT_EQ(51, chsync.length);
+}
+
+// R2.JIT does not change the monitor synchronisation (14.7.1).
+TEST(GateArray_CHSync, R2JitKeepsTheCHSync)
+{
+   CRTC crtc; CSig sig;
+   HSyncLineSetup(crtc, sig, CRTC::HD6845S, 50, 0x85);
+   BlackRun chsync;
+   MeasureHSyncBlack(crtc, [&](int c0) {
+      if (c0 == 46) WriteRegisterAt(crtc, 2, 46, kOutCR8);
+   }, &chsync);
+   EXPECT_EQ(35, chsync.start);
+   EXPECT_EQ(50, chsync.length);
+}
+
+// R3.JIT moves the end of the C-HSYNC by 0.25 us (14.4) : R3l = 2 -> 0.375 us.
+TEST(GateArray_CHSync, R3JitMovesTheEndByATState)
+{
+   CRTC crtc; CSig sig;
+   HSyncLineSetup(crtc, sig, CRTC::HD6845S, 46, 0x8E);
+   BlackRun chsync;
+   MeasureHSyncBlack(crtc, [&](int c0) {
+      if (c0 == 48) WriteRegisterAt(crtc, 3, 0x82, kOutCR8);
+   }, &chsync);
+   EXPECT_EQ(35, chsync.start);
+   EXPECT_EQ(6, chsync.length);
 }
