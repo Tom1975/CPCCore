@@ -21,7 +21,8 @@ public:
    ~CSig(void);
 
    void SetLog ( ILog* log ) {log_ = log;};
-   void Out (unsigned short address, unsigned char data);
+   // t_state : quarter of microsecond of the I/O (see CRTC::Out)
+   void Out (unsigned short address, unsigned char data, unsigned int t_state = 0);
    void In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode_0 = false);
    
    void InterruptRaster();

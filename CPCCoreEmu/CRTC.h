@@ -36,8 +36,12 @@ public:
    void SetSig ( CSig* sig ) {signals_ = sig;signals_->h_sync_ = false;signals_->v_sync_ = false;};
    void SetGateArray ( GateArray* vga ) {gate_array_ = vga;};
    void SetPPI ( PPI8255* ppi) {ppi_ = ppi;};
-   void Out (unsigned short address, unsigned char data);
+   // I/O write from the Z80 : t_state is the quarter of microsecond (0..3) of the Gate Array
+   // microsecond where the I/O cycle asserts IORQ (T2 of the I/O cycle, 4.4.4)
+   void Out (unsigned short address, unsigned char data, unsigned int t_state = 0);
    unsigned int Tick ( );
+   // One CRTC clock : character logic, bus interface, VSYNC pin (everything but the Gate Array)
+   void ClockCharacter();
    void SetCursorLine(IClockable * cursor_line) {cursor_line_ = cursor_line;};
 
    void GunSet(int x, int y, int button) { gun_x_ = x; gun_y_ = y; gun_button_ = button; };
@@ -110,6 +114,14 @@ public:
    bool ivm_latched_;           // CRTC 0 : Interlace Video Mode state taken when C0 restarts at 0 (19.8.1)
    bool vsync_line_delay_;      // CRTC 0/3/4 : IVM VSYNC delayed to the next line start (19.5.2, 19.5.5)
    unsigned char c9_ivm_;       // CRTC 2 : C9.IVM counter, used for the address in IVM (19.8.3)
+   // Bus interface (4.4.4) : I/O seen too late in the current window, taken by the next one
+   bool io_pending_;
+   unsigned short io_pending_address_;
+   unsigned char io_pending_data_;
+   // HSYNC pin level on each quarter of microsecond (bit q = T-state q) of the current / previous
+   // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
+   unsigned char hsync_quarters_;
+   unsigned char hsync_quarters_previous_;
 
    bool ff1_; 
    //bool ff2_;
@@ -150,6 +162,12 @@ public:
    void ClockTick2 ();
    void ClockTick34 ();
 
+   void WriteBus(unsigned short address, unsigned char data, unsigned int t_state);
+   bool HSyncPinFollowsComparators() const;
+   void HSyncStartComparatorChanged(unsigned int t_state);
+   void HSyncEndComparatorChanged(unsigned int t_state);
+   unsigned int LastTStateInWindow() const;
+   void ClockBusInterface();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
    void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }

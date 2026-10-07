@@ -865,6 +865,12 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->ivm_latched_ ? 1 : 0);
    out.push_back(c->vsync_line_delay_ ? 1 : 0);
    out.push_back(c->c9_ivm_);
+   // Appended later : I/O pending in the bus interface
+   out.push_back(c->io_pending_ ? 1 : 0);
+   PutU16(out, c->io_pending_address_);
+   out.push_back(c->io_pending_data_);
+   out.push_back(c->hsync_quarters_);
+   out.push_back(c->hsync_quarters_previous_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -943,6 +949,14 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->ivm_latched_ = p[at++] != 0;
    c->vsync_line_delay_ = p[at++] != 0;
    c->c9_ivm_ = p[at++];
+
+   if (at == size) return true;
+   if (size - at < 6) return false;
+   c->io_pending_ = p[at++] != 0;
+   c->io_pending_address_ = GetU16(&p[at]); at += 2;
+   c->io_pending_data_ = p[at++];
+   c->hsync_quarters_ = p[at++];
+   c->hsync_quarters_previous_ = p[at++];
 
    return (at == size);
 }

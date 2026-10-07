@@ -158,6 +158,11 @@ void CRTC::Reset()
    ivm_latched_ = false;
    vsync_line_delay_ = false;
    c9_ivm_ = 0;
+   io_pending_ = false;
+   io_pending_address_ = 0;
+   io_pending_data_ = 0;
+   hsync_quarters_ = 0;
+   hsync_quarters_previous_ = 0;
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
@@ -287,6 +292,59 @@ void CRTC::ClockHSync(bool& started, bool& ended)
       signals_->hsync_raise_ = true;
       horinzontal_pulse_ = 0;
       started = true;
+   }
+}
+
+// CRTC 0, 1, 2 : the HSYNC pin follows the C0==R2 and C3l==R3l comparators as soon as their inputs
+// change, not only on the clock edge. A register written during the character (the latch follows the
+// bus from the T-state where IORQ is seen, see CRTC::Out) moves the edge inside the character :
+// - R2.JIT (14.7.1) : R2 written with the current C0 starts the HSYNC on that T-state (OUT(C),r8 :
+//   0.25 us late ; OUTI : on the character start, as if R2 had been written before). C3l starts at 0 on
+//   this character, the length is unchanged.
+// - R3.JIT (14.5.4) : R3l written with the current C3l ends the HSYNC on that T-state (OUT(C),r8 :
+//   0.25 us after the end it would have had ; OUTI : on the character start). On CRTC 0, 1 the first
+//   microsecond (C3l=0) with R3l=0 cuts the HSYNC (OUTI : it never starts) ; CRTC 2 R3l=0 is 16 us.
+//   CRTC 1 handles R3l=0 (no HSYNC) during the whole HSYNC : it is cut (14.5.2).
+// CRTC 3, 4 synchronise the HSYNC with the display : no JIT (14.5.4.4, 14.7.2).
+// A restart on the position where the HSYNC has just ended is not described : not handled.
+bool CRTC::HSyncPinFollowsComparators() const
+{
+   return type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845;
+}
+
+// R2 written : C0==R2 starts the HSYNC
+void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
+{
+   if (!HSyncPinFollowsComparators() || signals_->h_sync_) return;
+   if (hcc_ == registers_list_[2] && horizontal_sync_width_ != 0 && (hsync_quarters_previous_ & 0x08) == 0)
+   {
+      hsync_quarters_ |= (0x0F << t_state) & 0x0F;
+      signals_->h_sync_ = true;
+      signals_->hsync_raise_ = true;
+      horinzontal_pulse_ = 0;
+   }
+}
+
+// R3 written : C3l==R3l ends the HSYNC
+void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
+{
+   if (!HSyncPinFollowsComparators() || !signals_->h_sync_) return;
+   const unsigned char r3l = registers_list_[3] & 0x0F;
+   bool end;
+   if (type_crtc_ == UM6845R && r3l == 0)
+      end = true;
+   else if (type_crtc_ == MC6845)
+      end = (horinzontal_pulse_ != 0 && horinzontal_pulse_ == r3l);
+   else
+      end = (horinzontal_pulse_ == r3l);
+   if (end)
+   {
+      hsync_quarters_ &= ~((0x0F << t_state) & 0x0F);
+      signals_->h_sync_ = false;
+      horinzontal_pulse_ = 0;
+      // Cut on the T-state where it started : there was no HSYNC at all
+      if (hsync_quarters_ != 0)
+         signals_->hsync_fall_ = true;
    }
 }
 
@@ -508,7 +566,45 @@ unsigned char CRTC::In ( unsigned short address )
    return signals_->data_bus_->GetByteBus();
 }
 
-void CRTC::Out (unsigned short address, unsigned char data)
+// Bus interface (Compendium 4.4.3, 4.4.4, diagrams B and C).
+// The CRTC is not wired to RD/WR : it samples its chip select (IORQ + address) while its clock
+// window is open, and the register latch follows the data bus from that moment.
+// The Z80 asserts IORQ on T2 of the I/O cycle, whose position in the microsecond depends on
+// the instruction (wait states of the Gate Array) : T-state 0 for OUTI/OUTD/OUT(n),A,
+// T-state 1 for OUT(C),r8 and OUT(C),0.
+// - Gate Array (CRTC 0, 1, 2) : CLK is high during pixels 0..4 of the microsecond (16.2.2),
+//   so an I/O asserted on T-state 0 or 1 is taken during the current character.
+// - ASIC (CRTC 3, 4) : the window spans the end of the previous microsecond and the start
+//   of the current one : only T-state 0 is taken now. OUT(C),r8 is missed and taken by the
+//   next window, while IORQ is still asserted (wait states) : 4th microsecond instead of 3rd.
+unsigned int CRTC::LastTStateInWindow() const
+{
+   return (type_crtc_ == AMS40489 || type_crtc_ == AMS40226) ? 0 : 1;
+}
+
+void CRTC::Out (unsigned short address, unsigned char data, unsigned int t_state)
+{
+   if (t_state > LastTStateInWindow())
+   {
+      io_pending_ = true;
+      io_pending_address_ = address;
+      io_pending_data_ = data;
+      return;
+   }
+   WriteBus(address, data, t_state);
+}
+
+// Next window : a pending I/O is taken at the start of the next character
+void CRTC::ClockBusInterface()
+{
+   if (io_pending_)
+   {
+      io_pending_ = false;
+      WriteBus(io_pending_address_, io_pending_data_, 0);
+   }
+}
+
+void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_state)
 {
    // Something to decode from Adress ?
    // Conditions are :
@@ -551,12 +647,12 @@ void CRTC::Out (unsigned short address, unsigned char data)
                // R0=0 is a valid value on every CRTC (Compendium 13.2.6 for CRTC 0)
                break;
             case 2:
+               HSyncStartComparatorChanged(t_state);
                break;
             case 3:  // VSync width depends on the CRTC type*
                // A new VSYNC width is only compared when C3h is incremented (Compendium 14.2)
                ComputeSyncWidths();
-               //ComputeMux_1 ();
-
+               HSyncEndComparatorChanged(t_state);
                break;
             case 5:
                {
@@ -645,20 +741,21 @@ void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
    registers_mask_[8] = R8Mask(type_crtc_);
 }
 
-unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+void CRTC::ClockCharacter()
 {
+   hsync_quarters_previous_ = hsync_quarters_;
    (this->*(TickFunction))();
+   hsync_quarters_ = signals_->h_sync_ ? 0x0F : 0x00;
+   ClockBusInterface();
 
-   /////////////////////////
-   // DISPMSG
-   //m_Sig->DISPEN = ( FF3 & FF1 );
-
-   /////////////////////////
-   // HSYNC
-   //signals_->h_sync_ = ff2_;
    /////////////////////////
    // VSYNC
    signals_->v_sync_ = VSyncPin();
+}
+
+unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
+{
+   ClockCharacter();
 
    // Lightgun :
    // If X/Y is in the current zone => do something

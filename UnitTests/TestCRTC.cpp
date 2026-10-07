@@ -27,8 +27,7 @@
 //
 // Isolation: CRTC::Tick() unconditionally calls gate_array_->Tick(), which is
 // not safe to call on an unwired GateArray*. These tests never call Tick();
-// instead they invoke the per-type ClockTickN() function directly through
-// the public TickFunction member-pointer (Advance() below), which only
+// instead they call CRTC::ClockCharacter() (Advance() below), which only
 // touches CRTC::signals_ and the CRTC's own registers/counters. CRTC 3/4's
 // ClockTick34() also reads the CPC+ split-screen/soft-scroll registers
 // through gate_array_, so every CRTC is wired to a neutral, never-ticked
@@ -138,18 +137,15 @@ void ProgramStandardEuropeanScreen(CRTC& crtc)
    WriteRegister(crtc, 9, 0x07);  // R9 = 7   (8 lines/character row)
 }
 
-// Calls the CRTC's own per-type tick function directly (bypasses
-// CRTC::Tick(), see file header), then replicates the one line of
-// CRTC::Tick() that is safe to run standalone: signals_->v_sync_ = VSyncPin().
-// (The rest of Tick() after the ClockTickN() call is gate_array_->Tick()
-// [unsafe, see file header], cursor-line handling [no-op: cursor_line_ is
-// nullptr by default], and lightpen bookkeeping [no-op: gun_button_ is 0 by
-// default] -- ff4_ propagation is the only part that matters and is safe.)
+// Runs CRTC::ClockCharacter() : the CRTC's own per-type tick function, the
+// bus interface (pending I/O) and the VSYNC pin -- everything CRTC::Tick()
+// does except gate_array_->Tick() [unsafe, see file header], cursor-line
+// handling [no-op: cursor_line_ is nullptr by default] and lightpen
+// bookkeeping [no-op: gun_button_ is 0 by default].
 // One call = one microsecond of CRTC time.
 void Advance(CRTC& crtc)
 {
-   (crtc.*(crtc.TickFunction))();
-   crtc.signals_->v_sync_ = crtc.VSyncPin();
+   crtc.ClockCharacter();
 }
 
 void AdvanceMicroseconds(CRTC& crtc, int n)
@@ -458,8 +454,11 @@ std::string HSyncTrace(CRTC::TypeCRTC type, int ticks, int* falls = nullptr)
    CRTC crtc; CSig sig;
    MakeCrtc(crtc, sig, type);
    WriteRegister(crtc, 0, 1);     // R0 = 1
-   WriteRegister(crtc, 2, 0);     // R2 = 0
    WriteRegister(crtc, 3, 0x82);  // R3l = 2
+   // R2 = 0, written at the end of the character C0 = 0 (T-state 2) : taken by the next
+   // window, on C0 = 1, so that it does not start an HSYNC on the current C0 = 0 (R2.JIT)
+   crtc.Out(kSelectRegister, 2);
+   crtc.Out(kWriteRegister, 0, 2);
 
    std::string trace;
    if (falls) *falls = 0;
@@ -524,12 +523,12 @@ TEST(CRTC_HSyncReentrancy, NoHSyncEndWithR3lZeroOnCrtc01)
 }
 
 // Compendium 14.5.2: CRTC 1 keeps handling R3l=0 during the HSYNC, which
-// cancels it; CRTC 0 and 2 treat 0 as a value to reach (C3l overflows to 16).
-// SAFETY NET.
+// cancels it on the T-state of the write (here T-state 0 of the 3rd us : 2 us);
+// CRTC 0 and 2 treat 0 as a value to reach (C3l overflows to 16). SAFETY NET.
 TEST(CRTC_HSyncReentrancy, WritingR3lZeroDuringHSync)
 {
    struct { CRTC::TypeCRTC type; int length; } const cases[] = {
-      { CRTC::HD6845S, 16 }, { CRTC::UM6845R, 3 }, { CRTC::MC6845, 16 },
+      { CRTC::HD6845S, 16 }, { CRTC::UM6845R, 2 }, { CRTC::MC6845, 16 },
    };
    for (const auto& c : cases)
    {
@@ -2386,6 +2385,245 @@ TEST(CRTC_Compendium, R6ZeroConflictResolvedOnC0EqualsR1)
          WriteRegister(crtc, 6, 25);
          ASSERT_TRUE(ReachLine(crtc, 0, 1));
          EXPECT_EQ("000000", DispEnHalves(crtc, 0, 2));
+      }
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// K. Bus interface (4.4.3, 4.4.4) : the CRTC takes an I/O while its clock window
+// is open. t_state = quarter of microsecond where the Z80 asserts IORQ.
+// Gate Array (CRTC 0, 1, 2) : window on T-states 0 and 1. ASIC (CRTC 3, 4) : only
+// T-state 0, a later I/O is taken by the next window (next character).
+
+namespace
+{
+bool IsAsicCrtc(CRTC::TypeCRTC type)
+{
+   return type == CRTC::AMS40489 || type == CRTC::AMS40226;
+}
+}
+
+// OUTI / OUT(n),A (T-state 0) : taken in the current character on every CRTC.
+TEST(CRTC_BusInterface, TState0IsTakenNow)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      crtc.Out(kSelectRegister, 12, 0);
+      crtc.Out(kWriteRegister, 0x15, 0);
+      EXPECT_EQ(0x15, crtc.registers_list_[12]);
+   }
+}
+
+// OUT(C),r8 (T-state 1) : 3rd microsecond on CRTC 0/1/2, 4th on CRTC 3/4 (4.4.3).
+TEST(CRTC_BusInterface, TState1IsOneMicrosecondLaterOnAsic)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      const unsigned char before = crtc.registers_list_[12];
+      crtc.Out(kSelectRegister, 12, 1);
+      if (IsAsicCrtc(type)) Advance(crtc);
+      crtc.Out(kWriteRegister, 0x15, 1);
+      EXPECT_EQ(IsAsicCrtc(type) ? before : 0x15, crtc.registers_list_[12]);
+      Advance(crtc);
+      EXPECT_EQ(0x15, crtc.registers_list_[12]);
+   }
+}
+
+// An I/O asserted after the window (T-state 2 or 3) waits for the next one.
+TEST(CRTC_BusInterface, LateTStateWaitsForTheNextWindow)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, type);
+      const unsigned char before = crtc.registers_list_[12];
+      crtc.Out(kSelectRegister, 12, 0);
+      crtc.Out(kWriteRegister, 0x15, 2);
+      EXPECT_EQ(before, crtc.registers_list_[12]);
+      Advance(crtc);
+      EXPECT_EQ(0x15, crtc.registers_list_[12]);
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// L. R2.JIT / R3.JIT (14.5.4, 14.7.1) : on CRTC 0, 1, 2 the HSYNC pin follows the
+// C0==R2 and C3l==R3l comparators inside the character. hsync_quarters_ : pin level on
+// each T-state of the current character (bit 0 = T-state 0).
+// Standard screen : R2 = 46, R3l = 14.
+
+namespace
+{
+const unsigned int kOutCR8 = 1;   // OUT(C),r8 : IORQ on T-state 1
+const unsigned int kOuti = 0;     // OUTI : IORQ on T-state 0
+
+void WriteRegisterAt(CRTC& crtc, unsigned char reg, unsigned char value, unsigned int t_state)
+{
+   crtc.Out(kSelectRegister, reg, 0);
+   crtc.Out(kWriteRegister, value, t_state);
+}
+
+// Screen with R2 = 50, on a visible line, C0 = 46 (the HSYNC has not started).
+void OnC0Equals46WithoutHSync(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type)
+{
+   Screen(crtc, sig, type);
+   WriteRegister(crtc, 2, 50);
+   ASSERT_TRUE(ReachLine(crtc, 5, 2));
+   AdvanceUntilHccEquals(crtc, 46);
+   ASSERT_FALSE(sig.h_sync_);
+}
+
+// HSYNC length in microseconds from now (the current character counts if the pin is high).
+int HSyncLengthFromNow(CRTC& crtc, CSig& sig)
+{
+   int length = 0;
+   while (sig.h_sync_ && length < 40)
+   {
+      ++length;
+      Advance(crtc);
+   }
+   return length;
+}
+
+// Screen on a visible line, C0 = R2 + c3l : C3l = c3l.
+void InsideHSync(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type, int c3l)
+{
+   Screen(crtc, sig, type);
+   ASSERT_TRUE(ReachLine(crtc, 5, 2));
+   AdvanceUntilHccEquals(crtc, (unsigned char)(46 + c3l));
+   ASSERT_TRUE(sig.h_sync_);
+   ASSERT_EQ(c3l, crtc.horinzontal_pulse_);
+}
+}
+
+// R2.JIT with OUT(C),r8 : the HSYNC starts on T-state 1 of C0 = R2, with its full length.
+// CRTC 3, 4 take the I/O on the next character : C0 = R2 is missed.
+TEST(CRTC_Jit, R2JitStartsTheHSyncOneTStateLate)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      OnC0Equals46WithoutHSync(crtc, sig, type);
+      WriteRegisterAt(crtc, 2, 46, kOutCR8);
+      if (IsAsicCrtc(type))
+      {
+         Advance(crtc);
+         EXPECT_FALSE(sig.h_sync_);
+         continue;
+      }
+      EXPECT_TRUE(sig.h_sync_);
+      EXPECT_EQ(0x0E, crtc.hsync_quarters_);
+      EXPECT_EQ(14, HSyncLengthFromNow(crtc, sig));
+   }
+}
+
+// R2 written with the current C0 by OUTI : as if R2 had been written before (14.7.1).
+TEST(CRTC_Jit, R2WrittenByOutiOnC0EqualsR2IsANormalHSync)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      OnC0Equals46WithoutHSync(crtc, sig, type);
+      WriteRegisterAt(crtc, 2, 46, kOuti);
+      EXPECT_EQ(0x0F, crtc.hsync_quarters_);
+      EXPECT_EQ(14, HSyncLengthFromNow(crtc, sig));
+   }
+}
+
+// R3.JIT with OUT(C),r8 : R3l = C3l ends the HSYNC on T-state 1 (0.25 us after the end it
+// would have had). Without JIT the CRTC 3, 4 C3l overflows : 16 + 5 us.
+TEST(CRTC_Jit, R3JitEndsTheHSyncOneTStateLate)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      InsideHSync(crtc, sig, type, 5);
+      sig.hsync_fall_ = false;
+      WriteRegisterAt(crtc, 3, 0x85, kOutCR8);
+      if (IsAsicCrtc(type))
+      {
+         Advance(crtc);
+         EXPECT_EQ(16 - 1, HSyncLengthFromNow(crtc, sig));   // C3l = 6 .. 15, 0 .. 4
+         continue;
+      }
+      EXPECT_FALSE(sig.h_sync_);
+      EXPECT_TRUE(sig.hsync_fall_);
+      EXPECT_EQ(0x01, crtc.hsync_quarters_);
+   }
+}
+
+// R3l = C3l written by OUTI : the HSYNC ends on the character start, as if R3l had been
+// programmed before (no R3.JIT with OUTI, 14.5.4).
+TEST(CRTC_Jit, R3WrittenByOutiEndsOnTheCharacterStart)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      InsideHSync(crtc, sig, type, 5);
+      WriteRegisterAt(crtc, 3, 0x85, kOuti);
+      EXPECT_FALSE(sig.h_sync_);
+      EXPECT_EQ(0x00, crtc.hsync_quarters_);
+   }
+}
+
+// First microsecond of the HSYNC, R3 = 0 (14.5.4) : CRTC 0, 1 cut the HSYNC (OUT(C),r8), or
+// prevent it from starting (OUTI : no HSYNC, no falling edge for the interrupts). CRTC 2 :
+// R3l = 0 is 16 us, the HSYNC goes on.
+TEST(CRTC_Jit, R3ZeroOnTheFirstMicrosecond)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool cut = (type != CRTC::MC6845);
+      {
+         CRTC crtc; CSig sig;
+         InsideHSync(crtc, sig, type, 0);
+         sig.hsync_fall_ = false;
+         WriteRegisterAt(crtc, 3, 0x80, kOutCR8);
+         EXPECT_EQ(!cut, sig.h_sync_);
+         EXPECT_EQ(cut ? 0x01 : 0x0F, crtc.hsync_quarters_);
+         EXPECT_EQ(cut, sig.hsync_fall_);
+      }
+      {
+         CRTC crtc; CSig sig;
+         InsideHSync(crtc, sig, type, 0);
+         sig.hsync_fall_ = false;
+         WriteRegisterAt(crtc, 3, 0x80, kOuti);
+         EXPECT_EQ(!cut, sig.h_sync_);
+         EXPECT_EQ(cut ? 0x00 : 0x0F, crtc.hsync_quarters_);
+         EXPECT_FALSE(sig.hsync_fall_);
+      }
+   }
+}
+
+// R3 = 0 during the HSYNC (C3l = 5) : CRTC 1 cuts it (14.5.2) ; CRTC 0, 2 count up to 0
+// (16 us : C3l = 6 .. 15, 0).
+TEST(CRTC_Jit, R3ZeroDuringTheHSync)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      InsideHSync(crtc, sig, type, 5);
+      WriteRegisterAt(crtc, 3, 0x80, kOutCR8);
+      if (type == CRTC::UM6845R)
+      {
+         EXPECT_FALSE(sig.h_sync_);
+         EXPECT_EQ(0x01, crtc.hsync_quarters_);
+      }
+      else
+      {
+         EXPECT_EQ(11, HSyncLengthFromNow(crtc, sig));
       }
    }
 }
