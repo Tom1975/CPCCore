@@ -5,16 +5,16 @@
 ///////////////////////////////////////////////////////////////
 //
 //
-// Informations on CRTC3/4
-//
-// Specific behaviours :
-//
+// CRTC 3/4 (ASIC 40489 / 40226) : the vertical counters, R6 and the VSYNC condition are all
+// evaluated once per line, when C0 restarts at 0 ; register writes during the line are taken into
+// account at the line end. C9 uses a magnitude comparator (C9 >= R9) and cannot overflow.
 //
 
 void CRTC::ClockTick34 ()
 {
+   ClockDispTmg();
+
    bool ff1_set = false;
-   bool ff2_set = false;
 
    bool ff3_set = false;
    bool ff3_reset = false;
@@ -57,96 +57,155 @@ void CRTC::ClockTick34 ()
    }
 
 
-   if (signals_->h_sync_)
-   {
-      horinzontal_pulse_ = (++horinzontal_pulse_) & 0xF;
-   }
 
-   // Counter actions
+   // Counter actions, all evaluated when C0 restarts at 0 (Compendium 10.3.4, 11.2.6, 12.5)
    if (hcc_ == 0 )
    {
       // Vertical sync width counter
       if (ff4_)    // CE
       {
+         // C3h is a 4-bit counter : R3h=0 (or a fixed 16) ends the VSYNC after 16 lines
          scanline_vbl_ ++;
-         scanline_vbl_ &= 0x1F;
+         scanline_vbl_ &= 0x0F;
 
-         if (scanline_vbl_ == vertical_sync_width_)
+         if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
          {
             scanline_vbl_ = 0;
             ff4_reset = true;
          }
       }
 
-      if ( r4_reached_)
-         vertical_adjust_counter_ = (++vertical_adjust_counter_)&0x1F;
+      // VMA is reloaded from VMA'
+      ma_ = bu_;
 
-      // Adress is : CLK - MA0 -> MA9- R0->R2 - MA12 MA13
-      if (r9_triggered_)
+      // ParitéFrame of the frame that ends : an even frame gets the additional interlace line, and the
+      // VSYNC condition on the frame start (R7=0) is processed before the parity toggles (19.6.4, 19.7.3)
+      const bool frame_even = even_field_;
+      const bool interlace_line = InterlaceOn() && frame_even;
+
+      bool new_frame = false;
+      bool row_start = false;   // C9 reloaded with its start value on this line
+      if (interlace_line_)
       {
-         if ( r4_triggered_)
+         // End of the additional interlace line
+         interlace_line_ = false;
+         new_frame = true;
+      }
+      else if (adjust_)
+      {
+         // Additional lines : C4 stays at R4, C9 counts from 0 and is compared with R5 ; a R5 lower
+         // than the next C9 ends the adjustment at once (11.2.6, 11.3.3)
+         const unsigned char next_c9 = vlc_ + 1;
+         if (next_c9 >= registers_list_[5])
          {
-            r4_triggered_ = false;
-            if (!r4_reached_)
+            if (interlace_line)
             {
-               r4_reached_ = true;
+               // The additional interlace line always has C9=0, C4 stays at R4 (19.6.4)
+               adjust_ = false;
+               interlace_line_ = true;
+               vlc_ = 0;
+               row_start = true;
             }
-         }
-      }
-
-      mux_set_ = (r4_reached_ && (vertical_adjust_counter_ == registers_list_[5]));
-      if (vertical_adjust_counter_ == registers_list_[5])vertical_adjust_counter_ = 0;
-
-      // CRTC 0 : m_BA is refreshed
-      if (!mux_set_)
-      {
-         ma_ = bu_;
-      }
-
-      if (r9_triggered_)
-      {
-         inc_vcc_ = true;
-         vlc_ = 0;
-         r9_triggered_ = vlc_ == registers_list_[9];
-         vcc_ = (++vcc_) & 0x7F;
-         if ( vcc_ == registers_list_[4]) r4_triggered_ = true;
-      }
-      else
-      {
-         if ((registers_list_[8] & 0x3) == 0x3)
-         {
-            vlc_ = (++(++vlc_)) & 0x1F;
-            r9_triggered_ = ((vlc_ == registers_list_[9]) || (vlc_ + 1 == registers_list_[9]));
+            else
+            {
+               new_frame = true;
+            }
          }
          else
          {
-            vlc_ = (++vlc_) & 0x1F;
-            r9_triggered_ = vlc_ == registers_list_[9];
+            vlc_ = next_c9;
          }
-         if (r9_triggered_ && vcc_ == registers_list_[4]) r4_triggered_ = true;
+      }
+      else
+      {
+         // End of a character : magnitude comparator C9 >= R9, C9 cannot overflow (10.3.4).
+         // In Interlace Video Mode C9 carries ParitéC9 and counts by 2 (19.8.4)
+         const bool interlace_video = InterlaceVideo();
+         if (vlc_ >= registers_list_[9])
+         {
+            vlc_ = 0;
+            row_start = true;
+            if (vcc_ == registers_list_[4])
+            {
+               // Last character : C4 is not incremented by the additional management (12.5)
+               if (registers_list_[5] != 0)
+                  adjust_ = true;
+               else if (interlace_line)
+                  interlace_line_ = true;
+               else
+                  new_frame = true;
+            }
+            else
+            {
+               // C4 == R4 is an equality : a R4 lower than C4 makes C4 overflow (12.5)
+               vcc_ = (vcc_ + 1) & 0x7F;
+               // ParitéC9 toggles on each C4 when R9 is odd (19.5.5)
+               if (registers_list_[9] & 1)
+                  parity_c9_ = !parity_c9_;
+               if (interlace_video)
+                  vlc_ = parity_c9_ ? 1 : 0;
+            }
+         }
+         else if (interlace_video)
+         {
+            vlc_ = ((vlc_ + 2) | (parity_c9_ ? 1 : 0)) & 0x1F;
+         }
+         else
+         {
+            vlc_ = (vlc_ + 1) & 0x1F;
+         }
       }
 
-      if (mux_set_)
+      if (new_frame)
       {
          vlc_ = 0;
-         r9_triggered_ = vlc_ == registers_list_[9];
-
          vcc_ = 0;
+         adjust_ = false;
 
          ma_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
          bu_ = ma_;
 
-         if (r9_triggered_ && vcc_ == registers_list_[4]) r4_triggered_ = true;
-
          ff3_set = true;
-         r4_reached_ = false;
+         frame_counter_ = (frame_counter_ + 1) & 0x1F;
 
-         // Next frame
+         row_start = true;
+
+         // Next frame : ParitéFrame toggles, ParitéC9 starts from it (19.5.5)
          even_field_ = !even_field_;
+         parity_c9_ = !even_field_;
+         if (InterlaceVideo())
+            vlc_ = parity_c9_ ? 1 : 0;
       }
 
-      // Recompute the mux
-      mux_set_ = false;
+      // R6 is only tested when C0 restarts at 0 (18.2.4)
+      if (vcc_ == registers_list_[6])
+      {
+         ff3_reset = true;
+      }
+
+      // VSYNC only when C4==R7 on C9=C0=0, with no re-entrance protection : it starts again if
+      // the condition is still true when it ends (16.3, 16.4.4)
+      // ("C9=0" is the first line of a character : in IVM it starts with C9 = ParitéC9)
+      if (vsync_line_delay_)
+      {
+         vsync_line_delay_ = false;
+         ff4_set = true;
+      }
+      else if (vcc_ == registers_list_[7] && row_start && (!ff4_ || ff4_reset))
+      {
+         // IVM with R9 odd : on an odd C4 of an odd frame the VSYNC is delayed by one line (19.5.5)
+         if (InterlaceVideo() && (registers_list_[9] & 1) && (vcc_ & 1) && !frame_even)
+            vsync_line_delay_ = true;
+         // MID-VSYNC on an even frame in interlace (19.7.3)
+         else if (InterlaceOn() && frame_even)
+            vsync_mid_pending_ = true;
+         else
+            ff4_set = true;
+      }
+   }
+   if (ClockMidVSync())
+   {
+      ff4_set = true;
    }
 
 
@@ -161,32 +220,13 @@ void CRTC::ClockTick34 ()
       }
       else
       {
+         // VMA' is not updated during the additional lines (11.2.6)
          int vertical_shift = (gate_array_->memory_->GetSSCR()&0x7F) >> 4;
-         if ( ((vlc_ + vertical_shift) &0x7)== ((registers_list_[9] ) & 0x7))
+         if ( !adjust_ && !interlace_line_ && ((vlc_ + vertical_shift) &0x7)== ((registers_list_[9] ) & 0x7))
          {
             bu_ = ma_;
          }
       }
-   }
-
-   if ((vcc_ == registers_list_[7]) )
-   {
-      if ( v_no_sync_ )
-      {
-         ff4_set = true;
-
-         v_no_sync_ = false;
-      }
-   }
-   else
-   {
-      v_no_sync_ = true;
-   }
-
-
-   if (vcc_ == registers_list_[6])
-   {
-      ff3_reset = true;
    }
 
    // Flip flop computations
@@ -207,51 +247,19 @@ void CRTC::ClockTick34 ()
       sscr_bit_8_ = 1;
    }
 
-   if( hcc_ == registers_list_[2])
+   bool hsync_started, hsync_ended;
+   ClockHSync(hsync_started, hsync_ended);
+   if (hsync_started)
    {
-      if (h_no_sync_)
-      {
-         h_no_sync_ = false;
-         signals_->hsync_raise_ = true;
-         ff2_set = true;
-         // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
-         status1_ &= ~0x08;
-      }
-   }
-   else
-   {
-      h_no_sync_ = true;
+      // Bit 3	0 : CRTC Horizontal Count == Horizontal Sync Position(Reg 2)
+      status1_ &= ~0x08;
    }
 
-   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (signals_->h_sync_ || signals_->hsync_raise_));
 
-   if ((horinzontal_pulse_ == horizontal_sync_width_) && (signals_->h_sync_ ||signals_->hsync_raise_))
+   if (hsync_ended)
    {
-      signals_->hsync_fall_ = true;
-      //ff2_reset = true;
       // Bit 4	0 : CRTC is on last char of HSYNC
       status1_ &= ~0x10;
-      horinzontal_pulse_ = 0;
-      // Something to do ?
-      if (inc_vcc_)
-      {
-         inc_vcc_ = false;
-      }
-
-      if (!ff2_set)
-      {
-         signals_->h_sync_ = false;
-      }
-      else 
-      {
-         // Nothing .
-         int dbg = 1;
-      }
-
-   }
-   else if (ff2_set)
-   {
-      signals_->h_sync_ = true;
    }
 
    if (hcc_ == registers_list_[1])
@@ -274,18 +282,14 @@ void CRTC::ClockTick34 ()
       ff1_ = true;
    }
 
-   if ( ff3_reset && !ff3_set)
+   // The R6 border wins over the new frame (18.2.4)
+   if (ff3_reset)
    {
       ff3_ = false;
    }
-   else if ( !ff3_reset && ff3_set)
+   else if (ff3_set)
    {
       ff3_ = true;
-   }
-   else if ( ff3_reset && ff3_set)
-   {
-      // Nothing .
-      int dbg=1;
    }
    // Flip flop computation
    if ( ff4_reset && !ff4_set)
@@ -308,4 +312,6 @@ void CRTC::ClockTick34 ()
       
    }
 
+
+   ClockDispEnHalves();
 }

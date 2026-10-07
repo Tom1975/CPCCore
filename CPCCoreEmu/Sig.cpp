@@ -138,7 +138,7 @@ void CSig::AcqInt ()
 
 }
 
-void CSig::Out (unsigned short Addr_P, unsigned char Data_P/*, int delay*/ )
+void CSig::Out (unsigned short Addr_P, unsigned char Data_P, unsigned int t_state)
 {
 
    address_ = Addr_P;
@@ -169,7 +169,7 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P/*, int delay*/ )
 
    if (plus_)
    {
-      asic_->Out(Addr_P, Data_P);
+      asic_->Out(Addr_P, Data_P, t_state);
    }
    else
    {
@@ -177,7 +177,7 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P/*, int delay*/ )
          || ((address_ & 0x4300) == 0x0100)
          )
       {
-         crtc_->Out(address_, data_);
+         crtc_->Out(address_, data_, t_state);
       }
 
       if (((address_ & 0xC000) == 0x4000)

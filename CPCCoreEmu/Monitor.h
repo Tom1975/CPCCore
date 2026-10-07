@@ -26,6 +26,8 @@ public:
 
    void SetPlayback (IPlayback* playback) { playback_ = playback;}
    void SetCRTC (CRTC * crtc){crtc_ = crtc;};
+   // Horizontal position setting of the monitor, in Mode 2 pixels (positive : image to the right)
+   void SetHorizontalPosition(int pixels) { horizontal_position_ = pixels; }
    void SetVGA(GateArray * vga);
    void SetKeyboard(IKeyboardHandler* keyboard){keyboard_ = keyboard;}
 
@@ -61,6 +63,7 @@ public:
    int hsync_count_;
    MonitorState horizontal_state_;
    int horizontal_synchronisation_;
+   int horizontal_position_;
    int horizontal_hold_count_;
    bool syncv_;
 
