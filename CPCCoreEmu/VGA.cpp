@@ -92,6 +92,9 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    chsync_ = false;
    chsync_length_ = 0;
    chsync_mask_ = 0;
+   vsync_rise_in_block_ = false;
+   cblack_vsync_ = false;
+   v26_ = 0;
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
 
@@ -174,6 +177,9 @@ void GateArray::Reset()
    chsync_ = false;
    chsync_length_ = 0;
    chsync_mask_ = 0;
+   vsync_rise_in_block_ = false;
+   cblack_vsync_ = false;
+   v26_ = 0;
 }
 
 void GateArray::SetBus(Bus* address, Bus* data)
@@ -252,6 +258,14 @@ void GateArray::FinalizeBlock()
    const int kChsyncStart = 2 * 16 + 3;
    const int kChsyncMaxLength = 4 * 16;
    chsync_mask_ = 0;
+   // CBLACK_VSYNC : set by the rising edge of the CRTC VSYNC (on the start of the block), cleared on the
+   // end of the 26th HSYNC counted by V26, whatever the length of the CRTC VSYNC
+   if (vsync_rise_in_block_)
+   {
+      vsync_rise_in_block_ = false;
+      cblack_vsync_ = true;
+      v26_ = 0;
+   }
    unsigned char next = 0;
    for (int p = 0; p < 16; ++p)
    {
@@ -265,9 +279,11 @@ void GateArray::FinalizeBlock()
          {
             chsync_countdown_ = -1;
             fall = true;
+            if (cblack_vsync_ && ++v26_ == 26)
+               cblack_vsync_ = false;
          }
       }
-      if (cblack_hsync_ && last_block_ != nullptr)
+      if ((cblack_hsync_ || cblack_vsync_) && last_block_ != nullptr)
          last_block_[p] = 0xFF000000;
 
       if (chsync_countdown_ == 0 && cblack_hsync_)
@@ -484,6 +500,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       wait_for_hsync_ = 2;
       vsync_ = true;
       vsync_counter_ = 0;
+      vsync_rise_in_block_ = true;
 
    }
 
@@ -531,16 +548,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    }
    else
    {
-      // The HSYNC black is applied by FinalizeBlock()
-      if (sig_handler_->v_sync_)
-      {
-         for (int i = 0; i < 16; i++)
-            buffer_to_display[i] = 0xFF000000;
-         //memset(buffer_to_display, 0, 64);
-         if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-         END_OF_DISPLAY
-      }
-      else
+      // The HSYNC and VSYNC black is applied by FinalizeBlock()
       {
          if (dispen_buffered_ || dispen_buffered_h_)
          {

@@ -489,14 +489,16 @@ TEST(CRTC_HSyncReentrancy, Crtc1OverflowsWithAnInvisibleRestart)
    EXPECT_GT(falls, 0);
 }
 
-// SAFETY NET. No HSYNC end at all is signalled on CRTC 2, 3 and 4.
+// SAFETY NET. No HSYNC end at all is signalled on CRTC 2, 3 and 4. The pin of
+// CRTC 3, 4 is one microsecond late (14.7.2).
 TEST(CRTC_HSyncReentrancy, Crtc234Overflow)
 {
    for (CRTC::TypeCRTC type : { CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
    {
       SCOPED_TRACE(TypeName(type));
       int falls = 0;
-      EXPECT_EQ("011111111111111111111111", HSyncTrace(type, 24, &falls));
+      EXPECT_EQ(type == CRTC::MC6845 ? "011111111111111111111111" : "001111111111111111111111",
+                HSyncTrace(type, 24, &falls));
       EXPECT_EQ(0, falls);
    }
 }
@@ -2553,7 +2555,8 @@ TEST(CRTC_Jit, R3JitEndsTheHSyncOneTStateLate)
       if (IsAsicCrtc(type))
       {
          Advance(crtc);
-         EXPECT_EQ(16 - 1, HSyncLengthFromNow(crtc, sig));   // C3l = 6 .. 15, 0 .. 4
+         // C3l = 6 .. 15, 0 .. 4, plus the microsecond of delay of the pin (14.7.2)
+         EXPECT_EQ(16, HSyncLengthFromNow(crtc, sig));
          continue;
       }
       EXPECT_FALSE(sig.h_sync_);
@@ -2841,4 +2844,72 @@ TEST(GateArray_CHSync, R3JitMovesTheEndByATState)
    }, &chsync);
    EXPECT_EQ(35, chsync.start);
    EXPECT_EQ(6, chsync.length);
+}
+
+/////////////////////////////////////////////////////////////
+// O. CRTC 3, 4 : the ASIC tests C0 = R2 like the other CRTC, but its HSYNC pin is aligned with
+// the display, one microsecond later (14.7.2) : the interrupts of the GATE ARRAY, taken on the
+// end of the HSYNC, come 1 us later (27 : R3l = 14 -> 15 us after C0 = R2 on CRTC 0, 1, 2,
+// 16 us on CRTC 3, 4).
+TEST(CRTC_HSyncPin, AsicHSyncIsOneMicrosecondLate)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);                   // R2 = 46, R3l = 14
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      AdvanceUntilHccEquals(crtc, 40);
+      int rise = -1, fall = -1;
+      for (int i = 0; i < 30; ++i)
+      {
+         sig.hsync_raise_ = sig.hsync_fall_ = false;
+         Advance(crtc);
+         if (sig.hsync_raise_ && rise < 0) rise = crtc.hcc_;
+         if (sig.hsync_fall_ && fall < 0) fall = crtc.hcc_;
+      }
+      const int delay = IsAsicCrtc(type) ? 1 : 0;
+      EXPECT_EQ(46 + delay, rise);
+      EXPECT_EQ(46 + 14 + delay, fall);
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// P. VSYNC black of the GATE ARRAY (CBLACK_VSYNC, 16.2.1, 16.2.3) : from the rising edge of the
+// CRTC VSYNC to the end of the 26th HSYNC, whatever the length of the CRTC VSYNC.
+namespace
+{
+// Number of lines whose character C0 = 10 is black, over one frame from C4 = 0.
+int VSyncBlackLines(CRTC::TypeCRTC type, unsigned char r3)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, type);
+   WriteRegister(crtc, 3, r3);
+   EXPECT_TRUE(ReachLine(crtc, 0, 0));
+   GateArray ga;
+   ga.SetCRTC(&crtc);
+   ga.Reset();
+   int block[16];
+   int lines = 0;
+   bool previous_vsync = sig.v_sync_;
+   for (int i = 0; i < 19968; ++i)
+   {
+      Advance(crtc);
+      ga.last_block_ = block;
+      ga.FinalizeBlock();             // block of the previous character
+      if (crtc.hcc_ == 11 && block[8] == (int)0xFF000000) ++lines;
+      for (int& p : block) p = 0x00FFFFFF;
+      // GATE ARRAY : rising edge of the CRTC VSYNC on this character
+      if (!previous_vsync && sig.v_sync_) ga.vsync_rise_in_block_ = true;
+      previous_vsync = sig.v_sync_;
+   }
+   return lines;
+}
+}
+
+TEST(GateArray_VSyncBlack, TwentySixHSyncWhateverTheCrtcVSync)
+{
+   EXPECT_EQ(26, VSyncBlackLines(CRTC::HD6845S, 0x1E));   // CRTC VSYNC : 1 line
+   EXPECT_EQ(26, VSyncBlackLines(CRTC::HD6845S, 0x8E));   // 8 lines
+   EXPECT_EQ(26, VSyncBlackLines(CRTC::UM6845R, 0x8E));   // 16 lines
 }

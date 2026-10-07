@@ -163,6 +163,10 @@ void CRTC::Reset()
    io_pending_data_ = 0;
    hsync_quarters_ = 0;
    hsync_quarters_previous_ = 0;
+   hsync_ = false;
+   hsync_rise_ = false;
+   hsync_fall_ = false;
+   hsync_pin_stage_ = false;
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
@@ -250,7 +254,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
    started = ended = false;
    const bool c0_is_r2 = (hcc_ == registers_list_[2]);
 
-   if (signals_->h_sync_)
+   if (hsync_)
    {
       horinzontal_pulse_ = (horinzontal_pulse_ + 1) & 0x0F;
 
@@ -268,8 +272,8 @@ void CRTC::ClockHSync(bool& started, bool& ended)
             // again fast enough to be invisible, but the GATE ARRAY sees a new HSYNC (15.3.4).
             if (type_crtc_ == UM6845R)
             {
-               signals_->hsync_fall_ = true;
-               signals_->hsync_raise_ = true;
+               hsync_fall_ = true;
+               hsync_rise_ = true;
             }
          }
          else
@@ -281,15 +285,15 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 
       if (ended)
       {
-         signals_->h_sync_ = false;
-         signals_->hsync_fall_ = true;
+         hsync_ = false;
+         hsync_fall_ = true;
          horinzontal_pulse_ = 0;
       }
    }
    else if (c0_is_r2 && horizontal_sync_width_ != 0)
    {
-      signals_->h_sync_ = true;
-      signals_->hsync_raise_ = true;
+      hsync_ = true;
+      hsync_rise_ = true;
       horinzontal_pulse_ = 0;
       started = true;
    }
@@ -320,8 +324,8 @@ bool CRTC::HSyncPinFollowsComparators() const
 // - CRTC 0 : 4 pixels after the clock or the I/O ;
 // - CRTC 1 : 5 pixels after the clock, 4 after an I/O ;
 // - CRTC 2 : rising edge 3 pixels after the clock or the I/O, falling edge 4 ;
-// - CRTC 3, 4 : the ASIC synchronises the HSYNC with the display, one microsecond later : 17th pixel
-//   (CRTC 3, supposed) or 19th pixel (CRTC 4) after the start of the microsecond.
+// - CRTC 3, 4 : the pin is one microsecond late (ClockHSyncPin), then 0 (CRTC 3, supposed : 17th pixel
+//   after the start of the character R2-1 displayed) or 2 pixels (CRTC 4 : 19th pixel).
 unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
 {
    switch (type_crtc_)
@@ -333,19 +337,20 @@ unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
    case MC6845:
       return 4 * t_state + (rise ? 3 : 4);
    case AMS40489:
-      return 16;
+      return 0;
    default:
-      return 18;
+      return 2;
    }
 }
 
 // R2 written : C0==R2 starts the HSYNC
 void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators() || signals_->h_sync_) return;
+   if (!HSyncPinFollowsComparators() || hsync_) return;
    if (hcc_ == registers_list_[2] && horizontal_sync_width_ != 0 && (hsync_quarters_previous_ & 0x08) == 0)
    {
       hsync_quarters_ |= (0x0F << t_state) & 0x0F;
+      hsync_ = true;
       signals_->h_sync_ = true;
       signals_->hsync_raise_ = true;
       horinzontal_pulse_ = 0;
@@ -355,7 +360,7 @@ void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 // R3 written : C3l==R3l ends the HSYNC
 void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators() || !signals_->h_sync_) return;
+   if (!HSyncPinFollowsComparators() || !hsync_) return;
    const unsigned char r3l = registers_list_[3] & 0x0F;
    bool end;
    if (type_crtc_ == UM6845R && r3l == 0)
@@ -367,6 +372,7 @@ void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
    if (end)
    {
       hsync_quarters_ &= ~((0x0F << t_state) & 0x0F);
+      hsync_ = false;
       signals_->h_sync_ = false;
       horinzontal_pulse_ = 0;
       // Cut on the T-state where it started : there was no HSYNC at all
@@ -768,10 +774,37 @@ void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
    registers_mask_[8] = R8Mask(type_crtc_);
 }
 
+// HSYNC pin. CRTC 0, 1, 2 : the internal HSYNC. CRTC 3, 4 : the ASIC tests C0==R2 like the others, but
+// sends the HSYNC aligned with the display of the character, one microsecond later (14.7.2) : a stage
+// clocked by the character. The interrupts of the GATE ARRAY come 1 us later (27 : R3l=14 -> 16 us
+// after C0=R2 instead of 15 us).
+void CRTC::ClockHSyncPin()
+{
+   const bool pin_before = signals_->h_sync_;
+   bool pin = hsync_;
+   bool rise = hsync_rise_;
+   bool fall = hsync_fall_;
+   const bool asic = (type_crtc_ == AMS40489 || type_crtc_ == AMS40226);
+   if (asic)
+   {
+      pin = hsync_pin_stage_;
+      hsync_pin_stage_ = hsync_;
+      rise = !pin_before && pin;
+      fall = pin_before && !pin;
+   }
+   signals_->h_sync_ = pin;
+   if (rise) signals_->hsync_raise_ = true;
+   if (fall) signals_->hsync_fall_ = true;
+   hsync_rise_ = hsync_fall_ = false;
+   if (asic)
+      signals_->h_sync_on_begining_of_line_ = (hcc_ == 0) && (pin_before || pin);
+}
+
 void CRTC::ClockCharacter()
 {
    hsync_quarters_previous_ = hsync_quarters_;
    (this->*(TickFunction))();
+   ClockHSyncPin();
    hsync_quarters_ = signals_->h_sync_ ? 0x0F : 0x00;
    ClockBusInterface();
 

@@ -122,6 +122,12 @@ public:
    // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
    unsigned char hsync_quarters_;
    unsigned char hsync_quarters_previous_;
+   // Internal HSYNC (C0==R2 / C3l==R3l logic) and its events on the current character ; the pin
+   // follows it directly on CRTC 0, 1, 2, through a one character delay on CRTC 3, 4 (14.7.2)
+   bool hsync_;
+   bool hsync_rise_;
+   bool hsync_fall_;
+   bool hsync_pin_stage_;
 
    bool ff1_; 
    //bool ff2_;
@@ -169,6 +175,7 @@ public:
    void HSyncEndComparatorChanged(unsigned int t_state);
    unsigned int LastTStateInWindow() const;
    void ClockBusInterface();
+   void ClockHSyncPin();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
    void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }

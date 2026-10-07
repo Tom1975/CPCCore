@@ -112,6 +112,10 @@ public:
    bool chsync_;                   // SIG_GA_HSYNC
    int chsync_length_;             // pixels since SIG_GA_HSYNC is high
    unsigned short chsync_mask_;    // SIG_GA_HSYNC on each pixel of the finalized block (bit 0 = 1st pixel)
+   // VSYNC black (CBLACK_VSYNC, 16.2.3) : from the rising edge of the CRTC VSYNC to the end of the 26th HSYNC
+   bool vsync_rise_in_block_;      // the CRTC VSYNC rose on the block not finalized yet
+   bool cblack_vsync_;
+   unsigned char v26_;
 
    // 
    int scanline_type_;       // 1 : scanlines / 0 : copylines

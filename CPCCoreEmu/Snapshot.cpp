@@ -491,6 +491,9 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
       machine_->GetCRTC()->ff4_ = ((header[0xB0]&0x01)==0x01);
       //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
       machine_->GetSig()->h_sync_ = ((header[0xB0]&0x02)==0x02);
+      // The .SNA has no separate internal HSYNC / pin : both take the saved state
+      machine_->GetCRTC()->hsync_ = machine_->GetSig()->h_sync_;
+      machine_->GetCRTC()->hsync_pin_stage_ = machine_->GetSig()->h_sync_;
       //   2-7	 reserved
       //   7	 if "1" Vertical Total Adjust is active, if "0" Vertical Total Adjust is inactive (note 10)
       machine_->GetCRTC()->r4_reached_ = ((header[0xB0]&0x80)==0x80);

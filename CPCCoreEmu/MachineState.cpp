@@ -335,6 +335,9 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    PutU32(out, (unsigned int)ga->chsync_countdown_);
    out.push_back(ga->chsync_ ? 1 : 0);
    PutU32(out, (unsigned int)ga->chsync_length_);
+   out.push_back(ga->vsync_rise_in_block_ ? 1 : 0);
+   out.push_back(ga->cblack_vsync_ ? 1 : 0);
+   out.push_back(ga->v26_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -380,6 +383,10 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->chsync_countdown_ = (int)GetU32(&p[at]); at += 4;
    ga->chsync_ = p[at++] != 0;
    ga->chsync_length_ = (int)GetU32(&p[at]); at += 4;
+   if (size - at < 3) return false;
+   ga->vsync_rise_in_block_ = p[at++] != 0;
+   ga->cblack_vsync_ = p[at++] != 0;
+   ga->v26_ = p[at++];
 
    return true;
 }
@@ -904,6 +911,8 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->io_pending_data_);
    out.push_back(c->hsync_quarters_);
    out.push_back(c->hsync_quarters_previous_);
+   out.push_back(c->hsync_ ? 1 : 0);
+   out.push_back(c->hsync_pin_stage_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -990,6 +999,9 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->io_pending_data_ = p[at++];
    c->hsync_quarters_ = p[at++];
    c->hsync_quarters_previous_ = p[at++];
+   if (size - at < 2) return false;
+   c->hsync_ = p[at++] != 0;
+   c->hsync_pin_stage_ = p[at++] != 0;
 
    return (at == size);
 }

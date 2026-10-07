@@ -247,7 +247,6 @@ void CRTC::ClockTick34 ()
       sscr_bit_8_ = 1;
    }
 
-   const bool hsync_was_active = signals_->h_sync_;
    bool hsync_started, hsync_ended;
    ClockHSync(hsync_started, hsync_ended);
    if (hsync_started)
@@ -256,7 +255,6 @@ void CRTC::ClockTick34 ()
       status1_ &= ~0x08;
    }
 
-   signals_->h_sync_on_begining_of_line_ = ((hcc_ == 0) && (hsync_was_active || hsync_started));
 
    if (hsync_ended)
    {

@@ -35,7 +35,7 @@ void CRTC::ClockTick2 ()
    bool ff4_reset = false;
 
    const unsigned char prev = hcc_;
-   const bool hsync_in_previous_char = signals_->h_sync_;
+   const bool hsync_in_previous_char = hsync_;
 
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
@@ -175,7 +175,7 @@ void CRTC::ClockTick2 ()
    {
       last_line_ = (vcc_ == registers_list_[4]) && c9_eq_r9_at_start_ && !dlp_ && !hsync_on_line_start_;
    }
-   else if (!c0_reset && !last_line_ && line_eq && !last_line_eq_ && !signals_->h_sync_ && (!first_line || gdl_reenabled_))
+   else if (!c0_reset && !last_line_ && line_eq && !last_line_eq_ && !hsync_ && (!first_line || gdl_reenabled_))
    {
       // R4 / R9 written outside the HSYNC (15.6)
       last_line_ = true;
@@ -212,7 +212,7 @@ void CRTC::ClockTick2 ()
    ClockParityR6();
 
    // The border is not lifted on C0=0 during a HSYNC (15.5)
-   if (hcc_ == 0 && !signals_->h_sync_)
+   if (hcc_ == 0 && !hsync_)
    {
        ff1_set = true;
    }

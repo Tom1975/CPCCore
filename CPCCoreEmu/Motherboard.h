@@ -263,9 +263,8 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
       if (elapsed_time_asic <= next_cycle)
       {
-         (crtc_.*(crtc_.TickFunction))();
-
-         signals_.v_sync_ = crtc_.ff4_;
+         // Same CRTC clock as CRTC::Tick() : character logic, bus interface, HSYNC / VSYNC pins
+         crtc_.ClockCharacter();
 
          // Lightgun :
          // If X/Y is in the current zone => do something
