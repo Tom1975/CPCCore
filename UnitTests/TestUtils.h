@@ -142,6 +142,8 @@ protected:
 class ICommand
 {
 public:
+   // CommandList deletes its commands through this interface.
+   virtual ~ICommand() = default;
    virtual bool Action(EmulatorEngine* machine) = 0;
 };
 
