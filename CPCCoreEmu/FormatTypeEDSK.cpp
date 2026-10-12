@@ -299,16 +299,18 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
             extended_offset_ = true;
             // OFFSET EXT.
             // For each track
+            // Some dumps declare more tracks than the block describes, and the block
+            // ends with the file : stop there rather than read past the buffer.
             for (int side = 0; side < new_disk->nb_sides_; side++)
             {
-               for (i = 0; i < m_NbTracks; i++)
+               for (i = 0; i < m_NbTracks && index_header + 2 <= size; i++)
                {
                   // Read track length
                   //fread(sector_index_buffer, 1, 2, file);
                   memcpy(sector_index_buffer, &buffer[index_header], 2);
                   index_header += 2;
                   // For each sector
-                  for (k = 0; k < side_[side].tracks[i].nb_sector; k++)
+                  for (k = 0; k < side_[side].tracks[i].nb_sector && index_header + 2 <= size; k++)
                   {
                      // Read offset
                      //fread(sector_index_buffer, 1, 2, file);
@@ -560,7 +562,9 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
 
       if ((s == side_[side].tracks[track].nb_sector - 1 || (side_[side].tracks[track].sectors[s].mfm_data_size >= 100000
       )) && (begining_found == false))
-         for (int j = 0; (begining_found == false) && j < side_[side].tracks[track].sectors[s].mfm_data_size; j++)
+         // The pattern has to fit in what is left of the data, or the comparison reads past it.
+         for (int j = 0; (begining_found == false)
+              && j + static_cast<int>(sizeof(MFMStartOfTrackPattern)) <= side_[side].tracks[track].sectors[s].mfm_data_size; j++)
          {
             int off = IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[j], MFMStartOfTrackPattern,
                                             sizeof(MFMStartOfTrackPattern));
@@ -590,13 +594,18 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
                // Now, search for the rupture
                search_index -= 16;
 
-               int off2 = IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[search_index], pattern,
-                                                sizeof(pattern));
+               // Only compare while the index is still inside the data : once it goes
+               // negative the loop stops anyway, and the comparison would read before it.
+               int off2 = (search_index >= 0)
+                  ? IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[search_index], pattern,
+                                          sizeof(pattern))
+                  : -1;
                while (search_index >= 0 && off2 == 0)
                {
                   search_index -= 16;
-                  off2 = IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[search_index], pattern,
-                                               sizeof(pattern));
+                  if (search_index >= 0)
+                     off2 = IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[search_index], pattern,
+                                                  sizeof(pattern));
                }
 
                if (search_index >= 0)
@@ -623,8 +632,8 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
                   // Set the index for the first IAM
 
                   // Now, try to find another MFMStartOfTrackPattern, at about 100000 bits from the first one.
-                  for (int k = indexIAMFound + 90000; k < indexIAMFound + 110000 && k < side_[side].tracks[track].
-                       sectors[s].mfm_data_size; k++)
+                  for (int k = indexIAMFound + 90000; k < indexIAMFound + 110000
+                       && k + static_cast<int>(sizeof(MFMStartOfTrackPattern)) <= side_[side].tracks[track].sectors[s].mfm_data_size; k++)
                   {
                      int fnd = IDisk::CompareForSync(&side_[side].tracks[track].sectors[s].mfm_data[k],
                                                      MFMStartOfTrackPattern, sizeof(MFMStartOfTrackPattern));
@@ -853,8 +862,12 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
                         else
                         {
                            // The 'offset' bits should be the begining of the track
-                           if (memcmp(side_[side].tracks[track].sectors[s].mfm_chrn,
-                                      (unsigned char*)&track_byte[index_bit - offset], offset) == 0)
+                           // They are compared with the CHRN, so more bits than the CHRN holds
+                           // cannot match : comparing them would read past mfm_chrn (and past the
+                           // sector array when this is the last sector).
+                           if (offset <= MFMCHRNSIZE && offset <= static_cast<int>(index_bit)
+                              && memcmp(side_[side].tracks[track].sectors[s].mfm_chrn,
+                                        (unsigned char*)&track_byte[index_bit - offset], offset) == 0)
                            {
                               index_bit -= offset;
                            }
