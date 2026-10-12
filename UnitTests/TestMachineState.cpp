@@ -678,6 +678,27 @@ TEST(MachineStateTest, LoadsAStateWrittenByAnotherProcess)
    setenv("CPCCORE_TEST_WORK", child_work.c_str(), 1);
 #endif
 
+   // The child also inherits the gtest settings this process was started with,
+   // and gtest reads several of them from the environment. Sharding is the one
+   // that bites: it is applied after the filter, so the single test the filter
+   // selects always lands in shard 0, and a parent running in any other shard
+   // starts a child that runs nothing and exits 0. The others change what the
+   // child runs or make it overwrite this process's report. This process parsed
+   // them at start-up, so clearing them here only affects the child.
+   const char* const kGtestVariables[] = {
+      "GTEST_TOTAL_SHARDS", "GTEST_SHARD_INDEX", "GTEST_SHARD_STATUS_FILE",
+      "GTEST_OUTPUT", "XML_OUTPUT_FILE", "GTEST_REPEAT", "GTEST_SHUFFLE",
+      "GTEST_RANDOM_SEED", "GTEST_FAIL_FAST", "GTEST_BREAK_ON_FAILURE",
+   };
+   for (const char* name : kGtestVariables)
+   {
+#ifdef _WIN32
+      _putenv_s(name, "");
+#else
+      unsetenv(name);
+#endif
+   }
+
    const std::string state_path = CreateUniqueStatePath();
    ASSERT_FALSE(state_path.empty()) << "could not create a temporary file";
    const std::string fingerprint_path = state_path + ".fingerprint";
