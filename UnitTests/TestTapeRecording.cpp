@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 
 // Real crash found while wiring experimental tape-record support in
@@ -131,7 +133,7 @@ TEST(TapeRecording, OverdubOntoLoadedTapeDoesNotUnderflowNextEntryLength)
    // Real commercial tape dump already used by Test_Dumps_tape.cpp -- real
    // pulse-length data, not synthetic, so the entries ahead of position 0
    // have genuine, varied lengths to overdub onto.
-   machine->LoadTape("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt");
+   machine->LoadTape(TestWorkspace::Fixture("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt").c_str());
    for (int i = 0; i < 100; ++i)
       machine->RunTimeSlice();
 

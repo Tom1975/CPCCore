@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "TestUtils.h"
+#include "MachineState.h"
 
 #include <cstring>
 #include <string>
@@ -211,6 +212,31 @@ TEST_F(CprLoader, DoesNotSwitchBlocksOnA512KBCartridge)
    EXPECT_EQ(0xA5, mem->Get(0x0100));
    mem->Get(0x3FFE);
    EXPECT_EQ(0xA5, mem->Get(0x0100));
+}
+
+// A cartridge larger than 512 KB is several blocks and the running program
+// chooses one, so which block is selected is machine state, not media. A state
+// taken while the second block was mapped has to come back on that block: the
+// cartridge content is the same either way, so nothing else in the state says
+// which one the program was using.
+TEST_F(CprLoader, CarriesTheSelectedCartridgeBlock)
+{
+   ASSERT_EQ(0, Load(machine_, BuildCpr({ { "cb00", 0x4000, 0x4000, 0x11 },
+                                          { "cb32", 0x4000, 0x4000, 0x22 },
+                                          { "cb64", 0x4000, 0x4000, 0x33 } })));
+   Memory* mem = machine_->GetMem();
+
+   mem->Get(0x3FFE);
+   ASSERT_EQ(0x22, mem->Get(0x0100)) << "the test needs the second block selected";
+
+   std::vector<unsigned char> state;
+   ASSERT_TRUE(MachineState::Save(machine_, state));
+
+   mem->Get(0x3FFF);
+   ASSERT_EQ(0x11, mem->Get(0x0100)) << "back to the base block";
+
+   ASSERT_TRUE(MachineState::Load(machine_, &state[0], state.size()));
+   EXPECT_EQ(0x22, mem->Get(0x0100)) << "the state was taken on the second block";
 }
 
 TEST_F(CprLoader, RefusesAChunkThatIsNotAPage)

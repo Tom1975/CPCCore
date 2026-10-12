@@ -1584,12 +1584,20 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
    unsigned int hardware_type = current_settings_->GetHardwareType();
    SetMachineType(hardware_type);
    if (hardware_type == MachineSettings::PLUS_6128
-      || hardware_type == MachineSettings::PLUS_464)
+      || hardware_type == MachineSettings::PLUS_464
+      || hardware_type == MachineSettings::GX400)
    {
       SetPlus(true);
       if (no_cart_reload == false)
       {
-         LoadCpr(current_settings_->GetDefaultCartridge());
+         // The cartridge named by a machine settings file is relative to the
+         // base directory, like the ROMs above, not to the current directory.
+         fs::path cartridge(current_settings_->GetDefaultCartridge());
+         if (cartridge.is_relative() && directories_ != nullptr)
+         {
+            cartridge = fs::path(directories_->GetBaseDirectory()) / cartridge;
+         }
+         LoadCpr(cartridge.string().c_str());
       }
    }
    else
