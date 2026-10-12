@@ -46,7 +46,7 @@ void Asic::M1()
 }
 
 
-void Asic::Out(const unsigned short address, const unsigned char data)
+void Asic::Out(const unsigned short address, const unsigned char data, unsigned int t_state)
 {
    if ((address & 0x4300) == 0x0000
       || (address & 0x4300) == 0x0100
@@ -104,7 +104,7 @@ void Asic::Out(const unsigned short address, const unsigned char data)
       // Others features
       if (crtc_ != nullptr)
       {
-         crtc_->Out(address, data);
+         crtc_->Out(address, data, t_state);
       }
    }
 

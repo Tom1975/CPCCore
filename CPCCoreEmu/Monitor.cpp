@@ -37,7 +37,7 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
-Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr)
+Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), horizontal_position_(0)
 {
    playback_ = nullptr;
    int i, b;
@@ -235,6 +235,11 @@ Monitor::~Monitor(void)
 {
 }
 
+// C-HSYNC handled pixel by pixel : shortest pulse taken by the monitor, and shift of the pulse centre so that
+// a standard screen (R3l >= 6) stays where it was with the former block-based synchronisation.
+static const int kMinChsync = 16;
+static const int kChsyncCentreShift = -3;
+
 void Monitor::Tick( )
 {
 
@@ -252,120 +257,127 @@ void Monitor::Tick( )
    (ie. 0.5 MODE 1 characters earlier, resulting in the screen being shifted right by 1 MODE 2 character.
    */
 
-   // Total count
-   hsync_count_ += NBPIXELADDED;
-
-   if (!gate_array_->hsync_)
+   // Horizontal synchronisation on the C-HSYNC of the GATE ARRAY, pixel by pixel (16.2.2) : the PLL locks
+   // the line on the centre of the pulse. Pulses shorter than 1 us are too short for the monitor (14.4).
+   const unsigned short chsync_mask = gate_array_->chsync_mask_;
+   for (int pixel = 0; pixel < NBPIXELADDED; ++pixel)
    {
-      // End ?
-      if (hsync_found_)
+      const bool sync = ((chsync_mask >> pixel) & 1) != 0;
+      // Position of this pixel on the line
+      const int x = x_ - NBPIXELADDED + pixel + kChsyncCentreShift - horizontal_position_;
+      ++hsync_count_;
+      if (!sync)
       {
-         if (horizontal_synchronisation_ >= 48)
+         // End ?
+         if (hsync_found_)
          {
-            if (hsync_total_ > 896 && hsync_total_ < 1024)
+            if (horizontal_synchronisation_ >= kMinChsync)
             {
-               // Total length computation
-               if (x_total_ != hsync_total_)
+               if (hsync_total_ > 896 && hsync_total_ < 1024)
                {
-                  //m_XTotal = m_HsyncTotal;
-
-                  if (x_total_ < hsync_total_)
+                  // Total length computation
+                  if (x_total_ != hsync_total_)
                   {
-                     ++x_total_;
-                  }
-                  else if (x_total_ > hsync_total_)
-                  {
-                     --x_total_;
-                  }
-               }
+                     //m_XTotal = m_HsyncTotal;
 
-               {
-                  // Adjust : Where is exactly X ?
-                  //
-
-                  // Offset to synchronize Gate Array sync and real monitor sync
-                  expected_hbl_ = x_ - (horizontal_synchronisation_ + line_sync_) / 2;
-
-                  if (expected_hbl_ < 0)
-                  {
-                     expected_hbl_ += hsync_total_ + (line_sync_);
-                  }
-
-                  // HERE �!!!!!
-                  //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
-                  int tot = (expected_hbl_ - hsync_total_);
-
-                  if ((expected_hbl_ - hsync_total_ < 2)
-                     && (expected_hbl_ - hsync_total_ > -2)
-                     )
-                  {
-                     offset_ = 0;
-                  }
-                  else
-                  {
-                     if (tot < 0)
+                     if (x_total_ < hsync_total_)
                      {
-                        if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
-                        {
-                           offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_)) * -1;
-                        }
-                        else
-                        {
-                           offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_));
-                        }
+                        ++x_total_;
+                     }
+                     else if (x_total_ > hsync_total_)
+                     {
+                        --x_total_;
+                     }
+                  }
+
+                  {
+                     // Adjust : Where is exactly X ?
+                     //
+
+                     // Offset to synchronize Gate Array sync and real monitor sync
+                     expected_hbl_ = x - (horizontal_synchronisation_ + line_sync_) / 2;
+
+                     if (expected_hbl_ < 0)
+                     {
+                        expected_hbl_ += hsync_total_ + (line_sync_);
+                     }
+
+                     // HERE �!!!!!
+                     //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
+                     int tot = (expected_hbl_ - hsync_total_);
+
+                     if ((expected_hbl_ - hsync_total_ < 2)
+                        && (expected_hbl_ - hsync_total_ > -2)
+                        )
+                     {
+                        offset_ = 0;
                      }
                      else
                      {
-                        if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
+                        if (tot < 0)
                         {
-                           offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_));
+                           if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
+                           {
+                              offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_)) * -1;
+                           }
+                           else
+                           {
+                              offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_));
+                           }
                         }
                         else
                         {
-                           offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_)) * -1;
+                           if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
+                           {
+                              offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_));
+                           }
+                           else
+                           {
+                              offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_)) * -1;
+                           }
                         }
                      }
                   }
                }
+               else
+               {
+                  offset_ = 0;
+               }
+               hsync_found_ = false;
+               horizontal_synchronisation_ = 0;
             }
             else
             {
-               offset_ = 0;
+               hsync_found_ = false;
+               // Forget about it....
+               hsync_count_ = tmp_sync_count_ + horizontal_synchronisation_ - 1;
+               horizontal_synchronisation_ = 0;
             }
-            hsync_found_ = false;
-            horizontal_synchronisation_ = 0;
-         }
-         else
-         {
-            hsync_found_ = false;
-            // Forget about it....
-            hsync_count_ = tmp_sync_count_ + horizontal_synchronisation_ - 1;
-            horizontal_synchronisation_ = 0;
          }
       }
-   }
-   else
-   {
-      if (hsync_found_ == false)
+      else
       {
-         tmp_sync_count_ = hsync_count_;
-         // New total adjust
-
-         int tmp = hsync_count_ - (line_sync_);
-         if (tmp > 1088)
-            tmp = tmp & 0x3ff;
-         hsync_total_ = tmp;
-
-
-         if (hsync_total_ < 0)
+         if (hsync_found_ == false)
          {
-            hsync_total_ += hsync_total_ + (line_sync_);
-         }
+            tmp_sync_count_ = hsync_count_;
+            // New total adjust
 
-         hsync_count_ = 0;
-         hsync_found_ = true;
+            int tmp = hsync_count_ - (line_sync_);
+            if (tmp > 1088)
+               tmp = tmp & 0x3ff;
+            hsync_total_ = tmp;
+
+
+            if (hsync_total_ < 0)
+            {
+               hsync_total_ += hsync_total_ + (line_sync_);
+            }
+
+            hsync_count_ = 0;
+            hsync_found_ = true;
+         }
+         ++horizontal_synchronisation_;
       }
-      horizontal_synchronisation_ += NBPIXELADDED;
    }
 
    if (horizontal_state_ == DISPLAY)

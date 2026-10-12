@@ -164,6 +164,9 @@ void Motherboard::SetPlus(bool plus)
    ppi_.SetPlus(plus_);
    vga_.SetPlus(plus_);
    memory_.SetPlus(plus_);
+   // The monitor of the CPC+ is set for its image : the ASIC sends the HSYNC 1 us later than a
+   // CRTC 0, 1, 2 with its GATE ARRAY (14.7.2), which would move the image 16 pixels to the left
+   monitor_.SetHorizontalPosition(plus_ ? 16 : 0);
 }
 
 

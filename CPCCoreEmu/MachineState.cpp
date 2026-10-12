@@ -328,6 +328,22 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    // A palette write can be pending when the state is taken.
    out.push_back(ga->buffered_ink_available_ ? 1 : 0);
    PutU32(out, ga->buffered_ink_);
+   // Appended later : HSYNC black of the block not finalized yet (the block itself is not kept)
+   out.push_back(ga->monitor_pending_ ? 1 : 0);
+   out.push_back(ga->cblack_hsync_ ? 1 : 0);
+   out.push_back(ga->hsync_pin_last_ ? 1 : 0);
+   out.push_back(ga->nb_black_edges_);
+   for (unsigned char i = 0; i < ga->nb_black_edges_; ++i)
+   {
+      out.push_back(ga->black_edges_[i].pixel);
+      out.push_back(ga->black_edges_[i].level ? 1 : 0);
+   }
+   PutU32(out, (unsigned int)ga->chsync_countdown_);
+   out.push_back(ga->chsync_ ? 1 : 0);
+   PutU32(out, (unsigned int)ga->chsync_length_);
+   out.push_back(ga->vsync_rise_in_block_ ? 1 : 0);
+   out.push_back(ga->cblack_vsync_ ? 1 : 0);
+   out.push_back(ga->v26_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -353,6 +369,30 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->v_old_sync_ = p[at++] != 0;
    ga->buffered_ink_available_ = p[at++] != 0;
    ga->buffered_ink_ = GetU32(&p[at]); at += 4;
+
+   ga->last_block_ = nullptr;
+   // Older states stop here
+   if (at == size) return true;
+   if (size - at < 4) return false;
+   ga->monitor_pending_ = p[at++] != 0;
+   ga->cblack_hsync_ = p[at++] != 0;
+   ga->hsync_pin_last_ = p[at++] != 0;
+   const unsigned char nb_edges = p[at++];
+   if (nb_edges > 8 || size - at < 2u * nb_edges) return false;
+   ga->nb_black_edges_ = nb_edges;
+   for (unsigned char i = 0; i < nb_edges; ++i)
+   {
+      ga->black_edges_[i].pixel = p[at++];
+      ga->black_edges_[i].level = p[at++] != 0;
+   }
+   if (size - at < 9) return false;
+   ga->chsync_countdown_ = (int)GetU32(&p[at]); at += 4;
+   ga->chsync_ = p[at++] != 0;
+   ga->chsync_length_ = (int)GetU32(&p[at]); at += 4;
+   if (size - at < 3) return false;
+   ga->vsync_rise_in_block_ = p[at++] != 0;
+   ga->cblack_vsync_ = p[at++] != 0;
+   ga->v26_ = p[at++];
 
    return true;
 }
@@ -839,6 +879,46 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->r9_triggered_ ? 1 : 0);
    out.push_back(c->r4_triggered_ ? 1 : 0);
    out.push_back(c->even_field_ ? 1 : 0);
+   // Appended later : CRTC 0 vertical latches and the SKEW-DISPTMG history
+   out.push_back(c->c9_managed_ ? 1 : 0);
+   out.push_back(c->line_end_ ? 1 : 0);
+   out.push_back(c->c4_increment_ ? 1 : 0);
+   out.push_back(c->last_line_ ? 1 : 0);
+   out.push_back(c->adjust_ ? 1 : 0);
+   out.push_back(c->adjust_confirmed_ ? 1 : 0);
+   out.push_back(c->adjust_end_ ? 1 : 0);
+   out.push_back(c->vsync_allowed_ ? 1 : 0);
+   out.push_back(c->c3h_load_ ? 1 : 0);
+   out.push_back(c->v_no_sync_ ? 1 : 0);
+   out.push_back(c->dispen_history_);
+   out.push_back(c->vma_reload_ ? 1 : 0);
+   out.push_back(c->vma_reload_clear_ ? 1 : 0);
+   out.push_back(c->rfd_ ? 1 : 0);
+   out.push_back(c->status_border_r6_ ? 1 : 0);
+   out.push_back(c->c9_eq_r9_at_start_ ? 1 : 0);
+   out.push_back(c->hsync_on_line_start_ ? 1 : 0);
+   out.push_back(c->last_line_eq_ ? 1 : 0);
+   out.push_back(c->dlp_ ? 1 : 0);
+   out.push_back(c->gdl_reenabled_ ? 1 : 0);
+   out.push_back(c->vsync_ghost_ ? 1 : 0);
+   out.push_back(c->frame_counter_);
+   out.push_back(c->parity_r6_ ? 1 : 0);
+   out.push_back(c->r6_eq_prev_ ? 1 : 0);
+   out.push_back(c->vsync_mid_pending_ ? 1 : 0);
+   out.push_back(c->interlace_line_ ? 1 : 0);
+   out.push_back(c->parity_c9_ ? 1 : 0);
+   out.push_back(c->rfd_parity_ ? 1 : 0);
+   out.push_back(c->ivm_latched_ ? 1 : 0);
+   out.push_back(c->vsync_line_delay_ ? 1 : 0);
+   out.push_back(c->c9_ivm_);
+   // Appended later : I/O pending in the bus interface
+   out.push_back(c->io_pending_ ? 1 : 0);
+   PutU16(out, c->io_pending_address_);
+   out.push_back(c->io_pending_data_);
+   out.push_back(c->hsync_quarters_);
+   out.push_back(c->hsync_quarters_previous_);
+   out.push_back(c->hsync_ ? 1 : 0);
+   out.push_back(c->hsync_pin_stage_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -882,6 +962,52 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->r9_triggered_ = p[at++] != 0;
    c->r4_triggered_ = p[at++] != 0;
    c->even_field_ = p[at++] != 0;
+
+   // Older states stop here : the latches keep their Reset() values
+   if (at == size) return true;
+   if (size - at < 31) return false;
+   c->c9_managed_ = p[at++] != 0;
+   c->line_end_ = p[at++] != 0;
+   c->c4_increment_ = p[at++] != 0;
+   c->last_line_ = p[at++] != 0;
+   c->adjust_ = p[at++] != 0;
+   c->adjust_confirmed_ = p[at++] != 0;
+   c->adjust_end_ = p[at++] != 0;
+   c->vsync_allowed_ = p[at++] != 0;
+   c->c3h_load_ = p[at++] != 0;
+   c->v_no_sync_ = p[at++] != 0;
+   c->dispen_history_ = p[at++];
+   c->vma_reload_ = p[at++] != 0;
+   c->vma_reload_clear_ = p[at++] != 0;
+   c->rfd_ = p[at++] != 0;
+   c->status_border_r6_ = p[at++] != 0;
+   c->c9_eq_r9_at_start_ = p[at++] != 0;
+   c->hsync_on_line_start_ = p[at++] != 0;
+   c->last_line_eq_ = p[at++] != 0;
+   c->dlp_ = p[at++] != 0;
+   c->gdl_reenabled_ = p[at++] != 0;
+   c->vsync_ghost_ = p[at++] != 0;
+   c->frame_counter_ = p[at++];
+   c->parity_r6_ = p[at++] != 0;
+   c->r6_eq_prev_ = p[at++] != 0;
+   c->vsync_mid_pending_ = p[at++] != 0;
+   c->interlace_line_ = p[at++] != 0;
+   c->parity_c9_ = p[at++] != 0;
+   c->rfd_parity_ = p[at++] != 0;
+   c->ivm_latched_ = p[at++] != 0;
+   c->vsync_line_delay_ = p[at++] != 0;
+   c->c9_ivm_ = p[at++];
+
+   if (at == size) return true;
+   if (size - at < 6) return false;
+   c->io_pending_ = p[at++] != 0;
+   c->io_pending_address_ = GetU16(&p[at]); at += 2;
+   c->io_pending_data_ = p[at++];
+   c->hsync_quarters_ = p[at++];
+   c->hsync_quarters_previous_ = p[at++];
+   if (size - at < 2) return false;
+   c->hsync_ = p[at++] != 0;
+   c->hsync_pin_stage_ = p[at++] != 0;
 
    return (at == size);
 }
