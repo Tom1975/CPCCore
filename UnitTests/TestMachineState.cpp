@@ -11,8 +11,6 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#include <process.h>
-#define getpid _getpid
 #endif
 #include <string>
 #include <vector>
@@ -597,13 +595,17 @@ bool ReadWholeFile(const std::string& path, std::vector<unsigned char>& data)
    return ok;
 }
 
-void WriteFingerprint(const std::string& path, const Fingerprint& f)
+const char kWriterTag[] = "writer ";
+
+// The first line names the state the fingerprint goes with. The parent knows
+// that path and nothing else about its child -- system() does not report the
+// child's process id -- so it is the one thing it can check the file against.
+void WriteFingerprint(const std::string& path, const std::string& state_path,
+                      const Fingerprint& f)
 {
    FILE* out = fopen(path.c_str(), "wb");
    ASSERT_NE(nullptr, out);
-   // First line identifies the writer, so the parent can tell its own child's
-   // output from a file left by some other test process.
-   fprintf(out, "pid %ld\n", (long)getpid());
+   fprintf(out, "%s%s\n", kWriterTag, state_path.c_str());
    for (size_t i = 0; i < f.fields.size(); ++i)
       fprintf(out, "%s %llu\n", f.fields[i].first.c_str(),
               (unsigned long long)f.fields[i].second);
@@ -647,7 +649,7 @@ TEST(MachineStateTest, DISABLED_CrossProcessProducer)
 
    for (int i = 0; i < kCrossProcessSlicesAfterSave; ++i)
       machine->RunTimeSlice();
-   WriteFingerprint(state_path + ".fingerprint", Capture(machine));
+   WriteFingerprint(state_path + ".fingerprint", state_path, Capture(machine));
 
    delete machine;
 }
@@ -678,9 +680,40 @@ TEST(MachineStateTest, LoadsAStateWrittenByAnotherProcess)
    setenv("CPCCORE_TEST_WORK", child_work.c_str(), 1);
 #endif
 
+   // The child also inherits the gtest settings this process was started with,
+   // and gtest reads several of them from the environment. Sharding is the one
+   // that bites: it is applied after the filter, so the single test the filter
+   // selects always lands in shard 0, and a parent running in any other shard
+   // starts a child that runs nothing and exits 0. The others change what the
+   // child runs or make it overwrite this process's report. This process parsed
+   // them at start-up, so clearing them here only affects the child.
+   const char* const kGtestVariables[] = {
+      "GTEST_TOTAL_SHARDS", "GTEST_SHARD_INDEX", "GTEST_SHARD_STATUS_FILE",
+      "GTEST_OUTPUT", "XML_OUTPUT_FILE", "GTEST_REPEAT", "GTEST_SHUFFLE",
+      "GTEST_RANDOM_SEED", "GTEST_FAIL_FAST", "GTEST_BREAK_ON_FAILURE",
+   };
+   for (const char* name : kGtestVariables)
+   {
+#ifdef _WIN32
+      _putenv_s(name, "");
+#else
+      unsetenv(name);
+#endif
+   }
+
    const std::string state_path = CreateUniqueStatePath();
    ASSERT_FALSE(state_path.empty()) << "could not create a temporary file";
    const std::string fingerprint_path = state_path + ".fingerprint";
+
+   // Every ASSERT below leaves the test early, and a failing run is exactly the
+   // one that would otherwise leave both files behind in the temp directory.
+   struct RemoveOnExit
+   {
+      std::vector<std::string> paths;
+      ~RemoveOnExit() { for (size_t i = 0; i < paths.size(); ++i) remove(paths[i].c_str()); }
+   } cleanup;
+   cleanup.paths.push_back(state_path);
+   cleanup.paths.push_back(fingerprint_path);
 
    std::string command = "\"" + executable.string() + "\""
       + " --gtest_also_run_disabled_tests"
@@ -700,24 +733,33 @@ TEST(MachineStateTest, LoadsAStateWrittenByAnotherProcess)
       << "the child process failed; command was: " << command;
 
    std::vector<unsigned char> state;
+   // A child that exits 0 without writing the state ran no test at all: the
+   // filter or some inherited setting selected nothing. (On POSIX the file
+   // exists anyway, empty, from the moment mkstemp picked its name.)
    ASSERT_TRUE(ReadWholeFile(state_path, state))
-      << "the child wrote no state at " << state_path;
+      << "the child exited 0 but wrote no state at " << state_path
+      << "; it most likely ran no test (inherited gtest filter or sharding?)";
 
    FILE* fp = fopen(fingerprint_path.c_str(), "rb");
-   ASSERT_NE(nullptr, fp);
+   ASSERT_NE(nullptr, fp) << "the child wrote no fingerprint at " << fingerprint_path;
+   std::string writer;
+   char line[4096];
+   if (fgets(line, sizeof(line), fp) != nullptr)
+   {
+      writer = line;
+      while (!writer.empty() && (writer.back() == '\n' || writer.back() == '\r'))
+         writer.pop_back();
+   }
    std::vector<std::pair<std::string, unsigned long long> > expected;
    char name[128];
    unsigned long long value;
-   long writer_pid = 0;
-   if (fscanf(fp, "pid %ld\n", &writer_pid) != 1)
-      writer_pid = 0;
    while (fscanf(fp, "%127s %llu", name, &value) == 2)
       expected.push_back(std::make_pair(std::string(name), value));
    fclose(fp);
+   ASSERT_EQ(std::string(kWriterTag) + state_path, writer)
+      << "the fingerprint does not name this test's state, so it was not written "
+         "by this test's own child";
    ASSERT_FALSE(expected.empty());
-   ASSERT_NE(0, writer_pid)
-      << "the fingerprint carries no writer id, so it cannot be attributed to "
-         "this test's own child";
 
    // Cold load, in this process, into a machine that has never seen that state.
    DirectoriesImp dirImp; CDisplay display; Log log;
@@ -773,8 +815,6 @@ TEST(MachineStateTest, LoadsAStateWrittenByAnotherProcess)
    const Fingerprint actual = Capture(machine);
 
    delete machine;
-   remove(state_path.c_str());
-   remove(fingerprint_path.c_str());
 
    ASSERT_EQ(expected.size(), actual.fields.size());
 
