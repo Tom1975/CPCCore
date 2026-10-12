@@ -302,7 +302,11 @@ unsigned char Memory::ReadAsicRegister(const unsigned short i)
          // Analog
          if (i >= 0x6808 && i <= 0x680F)
          {
-            return 0x3F; // TODO : Nothing is plugged. Handled plugged devices
+            // Nothing plugged: a real Plus reads 0x00 on ADC5 and ADC7, 0x3F on
+            // the others (https://cpctech.cpcwiki.de/docs/cpcplus.html,
+            // "Analogue inputs").
+            // TODO : Handle plugged devices
+            return (i == 0x680D || i == 0x680F) ? 0x00 : 0x3F;
          }
          else
          return asic_io_[i - 0x4000];

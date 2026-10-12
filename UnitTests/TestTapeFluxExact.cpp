@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 
 #include <vector>
@@ -27,7 +29,8 @@ static std::vector<CTape::DebugFlux> SnapshotFlux(CTape* tape)
 TEST(TapeFluxExact, ExportReloadOfUnmodifiedTapeIsLosslessAtFluxLevel)
 {
    const char* kExportPath = "./tape_null_experiment.cdt";
-   const char* kSourceTape = "./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt";
+   const std::string source_tape_path = TestWorkspace::Fixture("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt");
+   const char* kSourceTape = source_tape_path.c_str();
 
    std::vector<CTape::DebugFlux> before;
 

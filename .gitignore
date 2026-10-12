@@ -37,3 +37,6 @@
 /tmp/**
 
 /build/**
+
+# Per-test working directories, when the tests are run from the source tree
+UnitTests/test-work/

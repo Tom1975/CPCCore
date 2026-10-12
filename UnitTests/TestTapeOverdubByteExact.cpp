@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 
 #include <vector>
@@ -37,7 +39,7 @@ TEST(TapeOverdubByteExact, EntriesFarFromOverdubBurstAreUnchanged)
    machine->SetFixedSpeed(true);
    machine->SetSpeedLimit(EmulatorEngine::E_FULL);
 
-   machine->LoadTape("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt");
+   machine->LoadTape(TestWorkspace::Fixture("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt").c_str());
    for (int i = 0; i < 100; ++i)
       machine->RunTimeSlice();
 

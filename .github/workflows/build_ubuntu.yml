@@ -37,6 +37,15 @@ jobs:
         cmake .. -DCMAKE_BUILD_TYPE=Release -DGENERATE_UNITTESTS=TRUE -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         make all
         ls -l
+
+    - name: Test
+      # The UnitTests directory only: AmstradCoreTests has a failure that
+      # predates this change (GateArray.Clocks, which fails on master too) and
+      # CI has never run that suite.
+      working-directory: ${{github.workspace}}/build/UnitTests
+      # One process per test, so they run in parallel. "unitTests" is the whole
+      # binary in one go, which the individual tests already cover.
+      run: xvfb-run --auto-servernum ctest -j $(nproc) --output-on-failure -E "^unitTests$"
         
     - name: Install
       # Build your program with the given configuration

@@ -24,6 +24,8 @@ namespace fs = std::filesystem;
 #include <iostream>
 
 #include "gtest/gtest.h"
+
+#include "TestWorkspace.h"
 #include "MediaContainer.h"
 #include "DiskGen.h"
 #include "FormatTypeRAW.h"
@@ -38,6 +40,8 @@ bool TestMedia(const char* path_to_test)
    DataContainer inserted_media(&m_DiskTypeManager);
    inserted_media.Clear();
 
+   const std::string resolved = TestWorkspace::Fixture(path_to_test);
+   path_to_test = resolved.c_str();
    fs::path path(path_to_test);
    inserted_media.AddSourceFile(path.generic_string().c_str());
 
@@ -60,14 +64,14 @@ TEST(MediaContainer, test_zipped_kryoflux)
 
    inserted_media.Clear();
 
-   fs::path path("res/After Burner.zip");
+   fs::path path(TestWorkspace::Fixture("res/After Burner.zip"));
    inserted_media.AddSourceFile(path.generic_string().c_str());
 
    std::vector<IDisk*> disk_list = disk_gen.CreateDisk(&inserted_media);
 
    DiskBuilder disk_builder;
    IDisk* d1;
-   ASSERT_EQ(0, disk_builder.LoadDisk("res/After Burner/track00.0.raw", d1));
+   ASSERT_EQ(0, disk_builder.LoadDisk(TestWorkspace::Fixture("res/After Burner/track00.0.raw").c_str(), d1));
 
    ASSERT_EQ(1, disk_list.size());
    

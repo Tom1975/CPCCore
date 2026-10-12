@@ -28,6 +28,10 @@ public:
    virtual ~PPI8255();
 
    void SetPlus(bool plus) {plus_ = plus;}
+
+   // A GX4000 has no cassette and no printer port: those two lines of port B
+   // are not wired. Set from the machine type, see ComposePortB.
+   void SetConsoleWiring(bool console_wiring) { console_wiring_ = console_wiring; }
    void SetSig ( CSig* sig) {sig_ = sig;};
    void SetTape(CTape* tape) { tape_ = tape; };
    void SetLog(ILog* log) { log_ = log; };
@@ -98,6 +102,12 @@ public:
    // Connected to PSG
    Ay8912 * psg_;
    unsigned char tape_level_;
+
+   // GX4000 wiring: no cassette, no printer.
+   bool console_wiring_ = false;
+
+   // Port B as the hardware presents it (see PPI.cpp).
+   unsigned char ComposePortB() const;
 
    union ControlWord {
       unsigned char byte;
