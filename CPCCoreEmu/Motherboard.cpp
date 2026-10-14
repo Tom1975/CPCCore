@@ -144,6 +144,19 @@ void Motherboard::OnOff()
    asic_.HardReset();
 
    memory_.Initialisation();
+   ResetChips();
+}
+
+void Motherboard::Reset()
+{
+   asic_.HardReset();
+
+   memory_.ResetMapping();
+   ResetChips();
+}
+
+void Motherboard::ResetChips()
+{
    memory_.SetRmr2(0);
 
    psg_.Reset();

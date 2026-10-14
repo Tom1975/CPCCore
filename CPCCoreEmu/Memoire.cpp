@@ -609,19 +609,27 @@ void Memory::SetRam ( unsigned char RAMavailable )
 
 void Memory::Initialisation  ()
 {
-
-   rom_dis_ = ram_dis_ = false;
-
-   memset(sprite_info_, 0, sizeof(sprite_info_));
-   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
-   
-   // Initial configuraiton
+   // Power on : the RAM content is lost
    for (int i = 0; i < 4; i++)
    {
       memset (ram_buffer_[i], DEFAUT_VALUE, sizeof(RamBank));
    }
 
    memset(extended_ram_buffer_, DEFAUT_VALUE, sizeof( extended_ram_buffer_) );
+
+   ResetMapping();
+}
+
+void Memory::ResetMapping()
+{
+   rom_dis_ = ram_dis_ = false;
+   // The RAM configuration latch (PAL) is reset too : configuration 0
+   connected_bank_ = 0;
+
+   memset(sprite_info_, 0, sizeof(sprite_info_));
+   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
+
+   // Initial configuraiton
    for (int i = 0; i < 4; i++)
    {
       ram_read_[i] = &ram_buffer_[i];
