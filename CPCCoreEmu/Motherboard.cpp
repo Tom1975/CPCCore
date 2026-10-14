@@ -144,6 +144,10 @@ void Motherboard::OnOff()
    asic_.HardReset();
 
    memory_.Initialisation();
+   // The monitor powers the computer: it restarts with it, its sweep in a known state.
+   // A reset does not touch it.
+   monitor_.Reset();
+   vga_.PowerOn();
    ResetChips();
 }
 
