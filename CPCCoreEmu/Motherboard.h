@@ -122,7 +122,10 @@ public:
 
    ///////////////////////////////////////
    // Use the machine
+   // Power off then on : the RAM content is lost
    void OnOff();
+   // RESET line : the chips restart, the RAM keeps its content
+   void Reset();
    void Resync();
    void ForceTick(IComponent* component, int ticks);
    //void StartOptimized(unsigned int nb_cycles);
@@ -148,6 +151,8 @@ public:
    bool step_;
 
 protected:
+   // Common part of OnOff and Reset, once the memory is handled
+   void ResetChips();
 
    IKeyboardHandler* keyboardhandler_;
 

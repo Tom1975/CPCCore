@@ -33,7 +33,10 @@ public:
    ~Memory(void);
 
    void InitMemory();
+   // Power on : clears the RAM, then ResetMapping
    void Initialisation  ();
+   // RESET line : back to the initial memory configuration, the RAM content is kept
+   void ResetMapping();
    void SetPlus(bool plus) { plus_ = plus; }
 
    bool ExtendedPAL () { return extended_pal_;}

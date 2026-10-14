@@ -201,8 +201,10 @@ public:
 
    // Control
    void Reinit ();
+   // RESET line : the chips restart, the RAM keeps its content
    void Reset ();
    void ResetPlus();
+   // Power off then on : the RAM content is lost
    void OnOff ();
 
 
@@ -304,6 +306,8 @@ public:
    Motherboard * GetMotherboard() {return &motherboard_;}
 
 protected:
+   // Common part of OnOff and Reset, once the motherboard is reset
+   void RestartAfterReset();
 
    ///////////////////////////////////////
    // What's in this machine ?

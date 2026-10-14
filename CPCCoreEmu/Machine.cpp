@@ -749,12 +749,22 @@ void EmulatorEngine::Reinit ()
 
 void EmulatorEngine::OnOff ()
 {
-   multiface_stop_ = false;
-
    motherboard_.OnOff();
-
+   // Rebuilds the machine from its settings (ROMs, RAM, chips): this clears the RAM too
    UpdateComputer(true);
-   // todo : update computer
+   RestartAfterReset();
+}
+
+void EmulatorEngine::Reset ()
+{
+   // Same machine, so no UpdateComputer : it would clear the RAM
+   motherboard_.Reset();
+   RestartAfterReset();
+}
+
+void EmulatorEngine::RestartAfterReset()
+{
+   multiface_stop_ = false;
 
    GetPSG()->Reset ();
    GetSig()->Reset ();
@@ -791,21 +801,6 @@ void EmulatorEngine::ResetPlus()
    paste_available_ = false;*/
    OnOff();
 
-}
-
-void EmulatorEngine::Reset ()
-{
-   GetMem()->Initialisation ();
-   GetPSG()->Reset ();
-
-   GetSig()->Reset ();
-
-   display_->Reset();
-
-   time_elapsed_ = std::chrono::steady_clock::now();
-   time_computed_ = 0;
-
-   paste_available_ = false;
 }
 
 void EmulatorEngine::SetBreakpointHandler ( IBreakpoint* bp )
