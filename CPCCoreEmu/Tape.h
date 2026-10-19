@@ -211,10 +211,26 @@ public:
    bool use_tcn_filter_;
    unsigned int tape_length_;
 
+   // Model of the tape input of the CPC, applied to the ideal pulses of a CDT/TZX : the
+   // signal goes through an AC coupled amplifier and a comparator (LA6324) before the PPI.
+   // The defaults are those of the filter used for WAV files.
+   struct InputModel
+   {
+      bool enabled = true;
+      double fc_high_pass = 700.0;    // Hz : AC coupling
+      double fc_low_pass = 6200.0;    // Hz : bandwidth of the read chain
+      double hysteresis = 0.1;        // comparator thresholds, for a square of amplitude 1
+   };
+   static void SetInputModel(const InputModel& model) { input_model_ = model; }
+   static const InputModel& GetInputModel() { return input_model_; }
+
 protected:
    void ClearList ();
    void ComputeLenghtOfTape ();
    void PushPulse (int length , bool no_ratio = false );
+   // Moves every edge to the time the PPI sees it, through the input model
+   void ApplyInputModel ();
+   static InputModel input_model_;
    void PushPause (int length );
    void PushBit ( unsigned char bit );
    void PushByte ( unsigned char byte );

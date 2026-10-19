@@ -583,14 +583,14 @@ TEST(Dumps_Tape_Protections, SpeedlockV3DataTye1_OperationWolf_cdt)
 // Protection Speedlock V3 DATA TYPE 3
 // Batman The Movie(UK) (1989)[Original][TAPE].cdt
 //
-// DISABLED: this game only loads in the emulator when the CRTC VSYNC lasts 16
-// lines. With R3=&8E (set by the ROM), CRTC 0, 3 and 4 produce an 8-line
-// VSYNC (CRTC Compendium 14.2) and the load fails on all three; it loads on
-// CRTC 1 (always 16 lines), and on CRTC 3/4 forced to 16 lines. It used to
-// pass only because CRTC 0 wrongly produced a 16-line VSYNC. The game loads on
-// real CRTC 0/3/4 machines, so the problem lies elsewhere (tape timing or the
-// loader's reaction to the one-frame shift in MC WAIT FLYBACK, ROM &07BA).
-TEST(Dumps_Tape_Protections, DISABLED_SpeedlockV3DataType3_BatmanTheMovie_cdt)
+// The first bit of the Speedlock marker (&1D, code &A55A-&A577) is a pair of 1130T
+// pulses, timed by a 15 us loop and taken as 1 when H >= &A0 (`LD A,&9F : CP H`).
+// With the ideal square of the CDT, it counts 32 or 31 depending on the phase of that
+// loop against the tape: half of the phases failed, and the CRTC moved that phase
+// (MC WAIT FLYBACK is called 12 times, 4 frames longer with the 8-line VSYNC of CRTC 0).
+// On a CPC, the edge after the long sync pulse reaches the PPI sooner, through the AC
+// coupled tape input : CTape::InputModel gives it, and the marker has its margin back.
+TEST(Dumps_Tape_Protections, SpeedlockV3DataType3_BatmanTheMovie_cdt)
 {
    TestTape test;
    ASSERT_EQ(true, test.Test("464UK", "./TestConf.ini",

@@ -59,6 +59,7 @@ add_executable( unitTests
 						   TestWorkspace.cpp
 						   TestWorkspaceIsolation.cpp
                      TestZ84C30.cpp
+                     TestTapeInputModel.cpp
                      TestSnapshot.cpp
                      TestSnapshotMachineType.cpp
                      TestStateDeterminism.cpp
