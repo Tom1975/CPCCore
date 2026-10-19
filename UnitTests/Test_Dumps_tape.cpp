@@ -583,20 +583,14 @@ TEST(Dumps_Tape_Protections, SpeedlockV3DataTye1_OperationWolf_cdt)
 // Protection Speedlock V3 DATA TYPE 3
 // Batman The Movie(UK) (1989)[Original][TAPE].cdt
 //
-// DISABLED: with this dump, the load succeeds or fails depending on the phase between
-// the loader's sampling loop and the tape, whatever the CRTC.
 // The first bit of the Speedlock marker (&1D, code &A55A-&A577) is a pair of 1130T
 // pulses, timed by a 15 us loop and taken as 1 when H >= &A0 (`LD A,&9F : CP H`).
-// It starts 111 us after the sample that saw the sync edge, so the pair counts 32
-// when that sample came less than ~8.7 us after the edge, and 31 otherwise : half of
-// the phases give a wrong marker, and &A46A then clears the memory (no retry).
-// Measured by shifting the tape alone by 0..60 ticks at the loader start : fails for
-// 0-12 and 48-60, loads for 16-44. The later data bits have a full count of margin.
-// The CRTC only moves the phase : MC WAIT FLYBACK is called 12 times, and with the
-// 8-line VSYNC of CRTC 0 (R3=&8E) the wait lasts 4 frames longer than with CRTC 1.
-// The game loads on real machines : the 1130T "one" pulses of this dump are probably
-// shorter than on the original tape.
-TEST(Dumps_Tape_Protections, DISABLED_SpeedlockV3DataType3_BatmanTheMovie_cdt)
+// With the ideal square of the CDT, it counts 32 or 31 depending on the phase of that
+// loop against the tape: half of the phases failed, and the CRTC moved that phase
+// (MC WAIT FLYBACK is called 12 times, 4 frames longer with the 8-line VSYNC of CRTC 0).
+// On a CPC, the edge after the long sync pulse reaches the PPI sooner, through the AC
+// coupled tape input : CTape::InputModel gives it, and the marker has its margin back.
+TEST(Dumps_Tape_Protections, SpeedlockV3DataType3_BatmanTheMovie_cdt)
 {
    TestTape test;
    ASSERT_EQ(true, test.Test("464UK", "./TestConf.ini",

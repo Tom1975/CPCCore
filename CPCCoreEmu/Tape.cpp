@@ -3,6 +3,7 @@
 #include "Tape.h"
 
 #include <cmath>
+#include <vector>
 //#include "simple_regex.h"
 #include <algorithm>
 #include <memory>
@@ -1226,6 +1227,95 @@ int CTape::InsertTapeDelayed()
 }
 
 
+
+CTape::InputModel CTape::input_model_;
+
+void CTape::ApplyInputModel()
+{
+   // Each entry is a constant level of the ideal square, of amplitude 1. On a constant
+   // level, both first order filters have an exact solution :
+   //   high-pass : yh(t) = yh0.e^(-t/th)                          (the step passes through)
+   //   low-pass  : yl(t) = yl0.e^(-t/tl) + yh0.k.(e^(-t/th) - e^(-t/tl)), k = th / (th - tl)
+   // The comparator switches when yl crosses +h (to high) or -h (to low). After a long
+   // level, yh has drooped towards 0 : the next edge crosses the threshold sooner than
+   // after a short one, which is still far from 0.
+   if (nb_inversions_ < 2) return;
+
+   const double tau_hp = T_STATE_FREQ / (2.0 * M_PI * input_model_.fc_high_pass);
+   const double tau_lp = T_STATE_FREQ / (2.0 * M_PI * input_model_.fc_low_pass);
+   const double k = tau_hp / (tau_hp - tau_lp);
+   const double h = input_model_.hysteresis;
+   // Past this time, yl only decays towards 0 : a threshold not reached by then never is
+   const unsigned long long search_limit = static_cast<unsigned long long>(5.0 * (tau_hp + tau_lp));
+
+   // Offset, from the start of each entry, of the edge the comparator gives (-1 : none)
+   std::vector<long long> edge(nb_inversions_ + 1, -1);
+
+   // The tape starts on a settled level : the first edge is where it starts
+   double level = tape_array_[1].high ? 1.0 : -1.0;
+   const double first = static_cast<double>(tape_array_[1].length);
+   double yh = level * exp(-first / tau_hp);
+   double yl = level * exp(-first / tau_lp) + level * k * (exp(-first / tau_hp) - exp(-first / tau_lp));
+   bool comparator = tape_array_[1].high;
+   edge[1] = 0;
+
+   for (unsigned int i = 2; i <= nb_inversions_; i++)
+   {
+      const double u = tape_array_[i].high ? 1.0 : -1.0;
+      yh += u - level;
+      level = u;
+      const double yh0 = yh, yl0 = yl;
+      auto yl_at = [&](double t) { return yl0 * exp(-t / tau_lp) + yh0 * k * (exp(-t / tau_hp) - exp(-t / tau_lp)); };
+      const bool want = (u > 0);
+      const unsigned long long length = tape_array_[i].length;
+
+      if (comparator != want)
+      {
+         const unsigned long long limit = (length < search_limit) ? length : search_limit;
+         for (unsigned long long t = 0; t < limit; t++)
+         {
+            const double v = yl_at(static_cast<double>(t));
+            if ((want && v > h) || (!want && v < -h))
+            {
+               edge[i] = static_cast<long long>(t);
+               comparator = want;
+               break;
+            }
+         }
+      }
+      yh = yh0 * exp(-static_cast<double>(length) / tau_hp);
+      yl = yl_at(static_cast<double>(length));
+   }
+
+   // An entry now starts at its edge and lasts until the next edge. An entry without an
+   // edge (a pulse too short for the comparator) lasts 0 : the previous level goes on.
+   unsigned long long start = 0;
+   std::vector<unsigned long long> edge_time(nb_inversions_ + 2, 0);
+   for (unsigned int i = 1; i <= nb_inversions_; i++)
+   {
+      edge_time[i] = (edge[i] >= 0) ? start + edge[i] : 0;
+      start += tape_array_[i].length;
+   }
+   unsigned long long next_edge = start;   // the end of the tape
+   for (unsigned int i = nb_inversions_; i >= 1; i--)
+   {
+      if (edge[i] >= 0)
+      {
+         tape_array_[i].length = next_edge - edge_time[i];
+         next_edge = edge_time[i];
+      }
+      else
+      {
+         tape_array_[i].length = 0;
+      }
+   }
+   unsigned long long place = 0;
+   for (unsigned int i = 1; i <= nb_inversions_; i++)
+   {
+      place += tape_array_[i].length;
+      tape_array_[i].place = place;
+   }
+}
 
 void CTape::PushPulse (int length, bool noRatio )
 {
@@ -2641,6 +2731,10 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
 
    // Add an ending level length (to correct powerboat for example)
    PushPause(1000);
+   if (input_model_.enabled)
+   {
+      ApplyInputModel();
+   }
    is_tape_inserted_ = true;
    play_ = true;
    Reset();
