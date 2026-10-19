@@ -583,13 +583,19 @@ TEST(Dumps_Tape_Protections, SpeedlockV3DataTye1_OperationWolf_cdt)
 // Protection Speedlock V3 DATA TYPE 3
 // Batman The Movie(UK) (1989)[Original][TAPE].cdt
 //
-// DISABLED: this game only loads in the emulator when the CRTC VSYNC lasts 16
-// lines. With R3=&8E (set by the ROM), CRTC 0, 3 and 4 produce an 8-line
-// VSYNC (CRTC Compendium 14.2) and the load fails on all three; it loads on
-// CRTC 1 (always 16 lines), and on CRTC 3/4 forced to 16 lines. It used to
-// pass only because CRTC 0 wrongly produced a 16-line VSYNC. The game loads on
-// real CRTC 0/3/4 machines, so the problem lies elsewhere (tape timing or the
-// loader's reaction to the one-frame shift in MC WAIT FLYBACK, ROM &07BA).
+// DISABLED: with this dump, the load succeeds or fails depending on the phase between
+// the loader's sampling loop and the tape, whatever the CRTC.
+// The first bit of the Speedlock marker (&1D, code &A55A-&A577) is a pair of 1130T
+// pulses, timed by a 15 us loop and taken as 1 when H >= &A0 (`LD A,&9F : CP H`).
+// It starts 111 us after the sample that saw the sync edge, so the pair counts 32
+// when that sample came less than ~8.7 us after the edge, and 31 otherwise : half of
+// the phases give a wrong marker, and &A46A then clears the memory (no retry).
+// Measured by shifting the tape alone by 0..60 ticks at the loader start : fails for
+// 0-12 and 48-60, loads for 16-44. The later data bits have a full count of margin.
+// The CRTC only moves the phase : MC WAIT FLYBACK is called 12 times, and with the
+// 8-line VSYNC of CRTC 0 (R3=&8E) the wait lasts 4 frames longer than with CRTC 1.
+// The game loads on real machines : the 1130T "one" pulses of this dump are probably
+// shorter than on the original tape.
 TEST(Dumps_Tape_Protections, DISABLED_SpeedlockV3DataType3_BatmanTheMovie_cdt)
 {
    TestTape test;
