@@ -226,4 +226,8 @@ void Z84C30::Out(unsigned short address, unsigned char data)
 
 void Z84C30::In(unsigned char* data, unsigned short address)
 {
+   // Real Z80 CTC always answers a channel read with the current
+   // down-counter value (live or latched), never a floating bus.
+   // down_counter_ is kept exactly current by Tick() on every call.
+   *data = channel_[address & 0x3].down_counter_;
 }

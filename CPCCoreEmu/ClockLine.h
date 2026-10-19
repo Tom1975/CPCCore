@@ -11,6 +11,8 @@
 ///////
 class CClockLine : public IClockable
 {
+   friend class MachineState;
+
 public:
    CClockLine(void);
    virtual ~CClockLine(void);

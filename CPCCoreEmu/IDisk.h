@@ -41,6 +41,8 @@
 // IDisk
 class IDisk
 {
+   friend class MachineState;
+
 public:
    enum DiskType
    {

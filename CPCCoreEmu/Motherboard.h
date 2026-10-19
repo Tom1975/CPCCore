@@ -58,6 +58,10 @@ public:
 
 class Motherboard : public IMachine
 {
+   // Reads and restores the scheduler state, which is deliberately not part of
+   // the public surface: nothing outside a save state has any business with it.
+   friend class MachineState;
+
 public:
 
    ///////////////////////////////////////
@@ -95,6 +99,8 @@ public:
    // Configuration
    void SetPlus(bool plus);
    bool IsPLUS() { return plus_; }
+   void SetMachineType(int type) { type_machine_ = type; }
+   int GetMachineType() { return type_machine_; }
 
    ///////////////////////////////////////
    // Get machine info
@@ -116,7 +122,10 @@ public:
 
    ///////////////////////////////////////
    // Use the machine
+   // Power off then on : the RAM content is lost
    void OnOff();
+   // RESET line : the chips restart, the RAM keeps its content
+   void Reset();
    void Resync();
    void ForceTick(IComponent* component, int ticks);
    //void StartOptimized(unsigned int nb_cycles);
@@ -142,6 +151,8 @@ public:
    bool step_;
 
 protected:
+   // Common part of OnOff and Reset, once the memory is handled
+   void ResetChips();
 
    IKeyboardHandler* keyboardhandler_;
 
@@ -163,6 +174,10 @@ protected:
 
    // Specific configuration
    bool plus_;
+   // MachineSettings::HardwareType. Kept here rather than on EmulatorEngine so
+   // that the components and CSnapshot, which only ever see a Motherboard, can
+   // reach it.
+   int type_machine_;
 
    // Inner hardware
    Bus address_bus_;
@@ -253,9 +268,8 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
       if (elapsed_time_asic <= next_cycle)
       {
-         (crtc_.*(crtc_.TickFunction))();
-
-         signals_.v_sync_ = crtc_.ff4_;
+         // Same CRTC clock as CRTC::Tick() : character logic, bus interface, HSYNC / VSYNC pins
+         crtc_.ClockCharacter();
 
          // Lightgun :
          // If X/Y is in the current zone => do something

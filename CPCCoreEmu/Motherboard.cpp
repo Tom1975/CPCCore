@@ -5,6 +5,7 @@ Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_han
    generic_breakpoint_(nullptr),
    supervisor_(nullptr),
    plus_(false),
+   type_machine_(0),
    address_bus_(16), data_bus_(8),
    memory_(&monitor_), 
    keyboardhandler_(keyboard_handler),
@@ -143,6 +144,19 @@ void Motherboard::OnOff()
    asic_.HardReset();
 
    memory_.Initialisation();
+   ResetChips();
+}
+
+void Motherboard::Reset()
+{
+   asic_.HardReset();
+
+   memory_.ResetMapping();
+   ResetChips();
+}
+
+void Motherboard::ResetChips()
+{
    memory_.SetRmr2(0);
 
    psg_.Reset();
@@ -163,6 +177,9 @@ void Motherboard::SetPlus(bool plus)
    ppi_.SetPlus(plus_);
    vga_.SetPlus(plus_);
    memory_.SetPlus(plus_);
+   // The monitor of the CPC+ is set for its image : the ASIC sends the HSYNC 1 us later than a
+   // CRTC 0, 1, 2 with its GATE ARRAY (14.7.2), which would move the image 16 pixels to the left
+   monitor_.SetHorizontalPosition(plus_ ? 16 : 0);
 }
 
 

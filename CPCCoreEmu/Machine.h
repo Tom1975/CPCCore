@@ -87,6 +87,10 @@ public:
 
    bool LoadSnr (const char* path_file) {return sna_handler_.LoadSnr (path_file);}
    bool LoadBin(const char* path_file);
+   // Memory forms, for callers that must not touch the filesystem.
+   bool LoadSnapshotNow(const unsigned char* buffer, size_t size) { return sna_handler_.LoadSnapshot(buffer, size); }
+   bool SaveSnapshotNow(std::vector<unsigned char>& out);
+
    bool LoadSnapshot (const char* path_file);
    bool LoadSnapshotNow(const char* path_file);
    bool LoadSnapshotDelayed();
@@ -157,8 +161,15 @@ public:
    void Resync ();
    void StartPrecise(unsigned int nb_cycles);
    void UpdateExternalDevices();
-   void SetMachineType(int type) { type_machine_ = type; };
-   int GetMachineType() { return type_machine_; }
+   // The GX4000 has no keyboard, only a Pause button and two joystick ports, so
+   // the matrix wiring follows the machine type (see KeyboardHandler).
+   void SetMachineType(int type) {
+      motherboard_.SetMachineType(type);
+      const bool console = (type == MachineSettings::GX400);
+      keyboardhandler_.SetConsoleWiring(console);
+      motherboard_.GetPPI()->SetConsoleWiring(console);
+   };
+   int GetMachineType() { return motherboard_.GetMachineType(); }
    void SetPlus(bool plus);
    bool IsPLUS() { return motherboard_.IsPLUS(); }
 
@@ -190,8 +201,10 @@ public:
 
    // Control
    void Reinit ();
+   // RESET line : the chips restart, the RAM keeps its content
    void Reset ();
    void ResetPlus();
+   // Power off then on : the RAM content is lost
    void OnOff ();
 
 
@@ -293,6 +306,8 @@ public:
    Motherboard * GetMotherboard() {return &motherboard_;}
 
 protected:
+   // Common part of OnOff and Reset, once the motherboard is reset
+   void RestartAfterReset();
 
    ///////////////////////////////////////
    // What's in this machine ?
@@ -354,7 +369,6 @@ protected:
    /////////////////////////////////
    // Netlists
 
-   int type_machine_;
    bool do_snapshot_;
    std::string snapshot_file_;
 

@@ -28,7 +28,15 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 
    // looking for /n
    int offset = 0;
-   while (buffer[offset] != 0x0A && buffer[offset] != 0x0D && offset < size)
+   // Bounds check must run BEFORE the buffer[offset] reads (short-circuit
+   // evaluation is left-to-right) -- the original order read buffer[size]
+   // (one byte past the allocation) whenever the buffer's last byte was
+   // neither \n nor \r. Confirmed via AddressSanitizer: heap-buffer-overflow
+   // on every EmulatorEngine construction, since InitKeyboard() always hits
+   // this on the scancode file's own last line. Harmless in practice on a
+   // typical glibc heap (reads padding), fatal on Windows CI (real crash,
+   // no test output, exit code 1).
+   while (offset < size && buffer[offset] != 0x0A && buffer[offset] != 0x0D)
    {
       offset++;
    }
@@ -77,8 +85,21 @@ void KeyboardHandler::ValidateKeyboardMap()
 
 unsigned char KeyboardHandler::GetKeyboardMap(int index)
 {
-   
-    return keyboard_lines_[index]; 
+   if (console_wiring_)
+   {
+      // GX4000: nothing is wired to the matrix but the Pause button and the two
+      // joystick ports, so everything else reads as no key pressed (bit = 1).
+      // Same wiring as MAME's gx4000 input ports.
+      switch (index)
+      {
+      case 3: return keyboard_lines_[index] | 0xF7;  // Pause, bit 3
+      case 6: return keyboard_lines_[index] | 0xC0;  // joystick 2
+      case 9: return keyboard_lines_[index] | 0xC0;  // joystick 1
+      default: return 0xFF;
+      }
+   }
+
+    return keyboard_lines_[index];
 }
 
 
@@ -318,10 +339,12 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
    // This one depends on the keyboard type : It should be the same for AZERTY,QWERTY and so one.
    // Maybe it can differ depending on the keyboad ? (Pi can be different from PC for example)
    // TODO : Handle these keyboard in a smart way
+#ifndef CPCCORE_NO_HOST_KEYBOARD
    fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
    exe_path /= "Keyboards";
    exe_path /= KEYBOARD_SCANCODES_FILE;
    LoadScanCodeToMatrix(exe_path.string().c_str(), raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
+#endif
 }
 
 void KeyboardHandler::InitKeyboard (const char* path)
@@ -329,7 +352,11 @@ void KeyboardHandler::InitKeyboard (const char* path)
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
    memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
 
+#ifndef CPCCORE_NO_HOST_KEYBOARD
    LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
+#else
+   (void)path;
+#endif
 
 }
 

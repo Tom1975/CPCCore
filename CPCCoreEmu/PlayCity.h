@@ -13,6 +13,8 @@
 
 class PlayCity : public IExpansion
 {
+   friend class MachineState;
+
 public:
    PlayCity(IClockable* int_line, IClockable* nmi_line, /*SoundMixer *mixer, */SoundMixer *sound_hub);
    virtual ~PlayCity(void);

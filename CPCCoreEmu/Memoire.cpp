@@ -302,7 +302,11 @@ unsigned char Memory::ReadAsicRegister(const unsigned short i)
          // Analog
          if (i >= 0x6808 && i <= 0x680F)
          {
-            return 0x3F; // TODO : Nothing is plugged. Handled plugged devices
+            // Nothing plugged: a real Plus reads 0x00 on ADC5 and ADC7, 0x3F on
+            // the others (https://cpctech.cpcwiki.de/docs/cpcplus.html,
+            // "Analogue inputs").
+            // TODO : Handle plugged devices
+            return (i == 0x680D || i == 0x680F) ? 0x00 : 0x3F;
          }
          else
          return asic_io_[i - 0x4000];
@@ -605,19 +609,27 @@ void Memory::SetRam ( unsigned char RAMavailable )
 
 void Memory::Initialisation  ()
 {
-
-   rom_dis_ = ram_dis_ = false;
-
-   memset(sprite_info_, 0, sizeof(sprite_info_));
-   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
-   
-   // Initial configuraiton
+   // Power on : the RAM content is lost
    for (int i = 0; i < 4; i++)
    {
       memset (ram_buffer_[i], DEFAUT_VALUE, sizeof(RamBank));
    }
 
    memset(extended_ram_buffer_, DEFAUT_VALUE, sizeof( extended_ram_buffer_) );
+
+   ResetMapping();
+}
+
+void Memory::ResetMapping()
+{
+   rom_dis_ = ram_dis_ = false;
+   // The RAM configuration latch (PAL) is reset too : configuration 0
+   connected_bank_ = 0;
+
+   memset(sprite_info_, 0, sizeof(sprite_info_));
+   memset(monitor_->gate_array_->sprite_lines_, 0, sizeof(monitor_->gate_array_->sprite_lines_));
+
+   // Initial configuraiton
    for (int i = 0; i < 4; i++)
    {
       ram_read_[i] = &ram_buffer_[i];

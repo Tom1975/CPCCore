@@ -8,6 +8,8 @@
 
 #include "gtest/gtest.h"
 
+#include "TestWorkspace.h"
+
 #include "TestUtils.h"
 
 #define BUILD 0
@@ -226,7 +228,7 @@ TEST(Dumps_Tape_Protections, Hexagon_Eswat_cdt)
    cmd_space.Action(test.machine_);
    run_cycles.Action(test.machine_);
    // Insert tape 2
-   test.machine_->LoadTape("./res/Tape/Eswat - Cyber Police (UK) (64K) (Face B) (1990) [Original] [TAPE].cdt");
+   test.machine_->LoadTape(TestWorkspace::Fixture("./res/Tape/Eswat - Cyber Police (UK) (64K) (Face B) (1990) [Original] [TAPE].cdt").c_str());
 
    // Press space
    run_cycles.Action(test.machine_);
@@ -580,6 +582,14 @@ TEST(Dumps_Tape_Protections, SpeedlockV3DataTye1_OperationWolf_cdt)
 ////////////////////////////////////
 // Protection Speedlock V3 DATA TYPE 3
 // Batman The Movie(UK) (1989)[Original][TAPE].cdt
+//
+// The first bit of the Speedlock marker (&1D, code &A55A-&A577) is a pair of 1130T
+// pulses, timed by a 15 us loop and taken as 1 when H >= &A0 (`LD A,&9F : CP H`).
+// With the ideal square of the CDT, it counts 32 or 31 depending on the phase of that
+// loop against the tape: half of the phases failed, and the CRTC moved that phase
+// (MC WAIT FLYBACK is called 12 times, 4 frames longer with the 8-line VSYNC of CRTC 0).
+// On a CPC, the edge after the long sync pulse reaches the PPI sooner, through the AC
+// coupled tape input : CTape::InputModel gives it, and the marker has its margin back.
 TEST(Dumps_Tape_Protections, SpeedlockV3DataType3_BatmanTheMovie_cdt)
 {
    TestTape test;
@@ -781,7 +791,7 @@ TEST(Dumps_Tape_Protections, SpeedlockV7Type3_Lemmings_cdt)
    cmd_space.Action(test.machine_);
 
    // Insert tape 2
-   test.machine_->LoadTape("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt");
+   test.machine_->LoadTape(TestWorkspace::Fixture("./res/Tape/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt").c_str());
 
    // Load Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt
    ASSERT_EQ(true, test.MoreTest("./res/Tape/Record/Lemmings (UK) (1991) (01. Level 01 FUN - JUST DIG!) (Version Split) [Original] [TAPE].cdt_1.txt",

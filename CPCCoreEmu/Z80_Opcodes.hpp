@@ -1239,7 +1239,8 @@ unsigned int Z80::DefaultTick()
       break;
    case M_IO_W + 2:
    {
-      sig_->Out(address_, data_);
+      // T2 of the I/O cycle : IORQ asserted, position in the Gate Array microsecond (4.4.4)
+      sig_->Out(address_, data_, (counter_ + 1) & 0x3);
       nextcycle = 3 - (counter_ & 0x3);
 
       t_ = 4;

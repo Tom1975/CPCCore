@@ -7,6 +7,7 @@
 
 #include "PrinterDefault.h"
 #include "MediaManager.h"
+#include "CRC.h"
 #include <stdio.h>
 
 #ifdef PROF
@@ -215,25 +216,38 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
 {
 
    // Check RIFF chunk
-   int index = 0;
-   if (  size >= 12
-      && (memcmp(&buffer[0], "RIFF", 4) == 0)
-      && (memcmp(&buffer[8], "AMS!", 4) == 0)
+   if (  buffer == nullptr
+      || size < 12
+      || (memcmp(&buffer[0], "RIFF", 4) != 0)
+      || (memcmp(&buffer[8], "AMS!", 4) != 0)
       )
    {
-      // Reinit Cartridge
-      motherboard_.EjectCartridge();
+      // Incorrect headers
+      return -1;
+   }
 
-      // Ok, it's correct.
-      index += 4;
-      // Check the whole size
+   // A regular cartridge holds 32 pages. rasm's BUILDCPR LEGACY extends the same
+   // layout to 96 pages (cb00-cb95, 1.5 MB), which the PicoGX cartridge runs as
+   // three 512 KB blocks; pages 32-63 and 64-95 go to banks 1 and 2, switched
+   // like an extended cartridge (see Memory::Get).
+   const int kLegacyExtendedPages = 3 * Memory::kCartridgePages;
 
-      int chunk_size = buffer[index]
-         + (buffer[index+1] << 8)
-         + (buffer[index+2] << 16)
-         + (buffer[index+3] << 24);
+   // The file is walked twice: the first pass only validates, the second copies.
+   // Every page number and size is therefore known to fit before anything is
+   // written, and a refused file leaves the inserted cartridge as it was instead
+   // of ejecting it halfway through.
+   int highest_page = 0;
+   for (int pass = 0; pass < 2; pass++)
+   {
+      const bool copy = (pass == 1);
+      if (copy)
+      {
+         // Reinit Cartridge. The banks are reused from one load to the next, so
+         // clear them: a short or missing page must not keep the previous bytes.
+         GetMem()->ResetCartridgeBanks(highest_page / Memory::kCartridgePages + 1);
+      }
 
-      index += 8;
+      int index = 12;
 
       // 'fmt ' chunk ? skip it
       if (index + 8 < size && (memcmp(&buffer[index], "fmt ", 4) == 0))
@@ -241,49 +255,54 @@ int EmulatorEngine::LoadCprFromBuffer(unsigned char* buffer, int size)
          index += 8;
       }
 
-      // Good.
       // Now we are at the first cbxx
       while (index + 8 < size)
       {
-         if (buffer[index] == 'c' && buffer[index + 1] == 'b')
-         {
-            index += 2;
-            char buffer_block_number[3] = { 0 };
-            memcpy(buffer_block_number, &buffer[index], 2);
-            int block_number = atoi(buffer_block_number);
-            index += 2;
-
-            // Read size
-            int block_size = buffer[index]
-               + (buffer[index + 1] << 8)
-               + (buffer[index + 2] << 16)
-               + (buffer[index + 3] << 24);
-            index += 4;
-
-            if (block_size <= size && block_number < 256)
-            {
-               // Copy datas to proper ROM
-               unsigned char* rom = motherboard_.GetCartridge(block_number);
-               memset(rom, 0, 0x1000);
-               memcpy(rom, &buffer[index], block_size);
-               index += block_size;
-            }
-            else
-            {
-               return -1;
-            }
-         }
-         else
+         if (buffer[index] != 'c' || buffer[index + 1] != 'b'
+            || buffer[index + 2] < '0' || buffer[index + 2] > '9'
+            || buffer[index + 3] < '0' || buffer[index + 3] > '9')
          {
             return -1;
          }
+         const int block_number = (buffer[index + 2] - '0') * 10 + (buffer[index + 3] - '0');
+         index += 4;
+
+         // Read size
+         const unsigned int block_size = buffer[index]
+            | (buffer[index + 1] << 8)
+            | (buffer[index + 2] << 16)
+            | (static_cast<unsigned int>(buffer[index + 3]) << 24);
+         index += 4;
+
+         if (block_number >= kLegacyExtendedPages
+            || block_size > sizeof(Memory::RamBank)
+            || block_size > static_cast<unsigned int>(size - index))
+         {
+            return -1;
+         }
+
+         if (copy)
+         {
+            // Copy datas to proper ROM
+            memcpy(GetMem()->GetCartridgePage(block_number / Memory::kCartridgePages,
+                                              block_number % Memory::kCartridgePages),
+                   &buffer[index], block_size);
+         }
+         else if (block_number > highest_page)
+         {
+            highest_page = block_number;
+         }
+         index += block_size;
       }
    }
-   else
-   {
-      // Incorrect headers
-      return -1;
-   }
+
+   // Identity of the inserted cartridge, computed once here from the image
+   // itself. A save state carries it so a state taken with one cartridge is
+   // refused against another, the same way the drive and tape chunks refuse a
+   // different disc or tape. Once, because a cartridge is read-only: hashing
+   // the banks on every save would put half a megabyte of CRC on every rewind
+   // frame for a value that cannot change.
+   motherboard_.GetMem()->SetCartridgeCrc(CRC::ComputeCrc32(0xEDB88320, buffer, (unsigned int)size));
 
    // Insertion ok : Reset to 0
    ResetPlus();
@@ -327,99 +346,82 @@ int EmulatorEngine::LoadCpr(IContainedElement* container)
 
 int EmulatorEngine::LoadXprFromBuffer(unsigned char* buffer, int size)
 {
-
-   // Check RIFF chunk
-   int index = 0;
-   int nbbanks = 0;
-   if (size >= 12
-      && (memcmp(&buffer[0], "RIFF", 4) == 0)
-      && (memcmp(&buffer[8], "CXME", 4) == 0)
-      )
-   {
-      // Reinit Cartridge
-      motherboard_.EjectCartridge();
-      motherboard_.GetMem()->NewXPR();
-
-      // Ok, it's correct.
-      index += 4;
-      // Check the whole size
-
-      int chunk_size = buffer[index]
-         + (buffer[index + 1] << 8)
-         + (buffer[index + 2] << 16)
-         + (buffer[index + 3] << 24);
-
-      index += 8;
-
-      // 'NBBK ' chunk
-      if (index + 8 < size && (memcmp(&buffer[index], "NBBK", 4) == 0) && buffer[index+4] == 0x02 && buffer[index + 5] == 0 && buffer[index + 6] == 0 && buffer[index + 7] == 0)
-      {
-         index += 8;
-         if (index + 2 < size)
-         {
-            nbbanks = (buffer[index] << 8) + (buffer[index+1]);
-            index += 2;
-         }
-      }
-
-      // Good. Switch to bank 0
-      int index_bank = 0;
-      int index_slot = 0;
-      motherboard_.GetMem()->SwitchBank(index_slot);
-
-      // Now we are at the first cbxx
-      while (index + 8 < size)
-      {
-         if (buffer[index] == 'C' && buffer[index + 1] == 'X')
-         {
-            index += 2;
-            int block_number = (buffer[index]<<8) + buffer[index+1];
-            index += 2;
-
-            // Read size
-            int block_size = buffer[index]
-               + (buffer[index + 1] << 8)
-               + (buffer[index + 2] << 16)
-               + (buffer[index + 3] << 24);
-            index += 4;
-
-            if (index + block_size <= size )
-            {
-               if (index_bank >= nbbanks)
-               {
-                  index_bank = 0;
-                  motherboard_.GetMem()->AddNewBank();
-                  index_slot++;
-                  motherboard_.GetMem()->SwitchBank(index_slot);
-               }
-
-               // Copy datas to proper ROM
-               unsigned char* rom = motherboard_.GetCartridge(index_bank);
-               memset(rom, 0, 0x1000);
-               memcpy(rom, &buffer[index], block_size);
-               index += block_size;
-
-               index_bank++;
-            }
-            else
-            {
-               return -1;
-            }
-         }
-         else
-         {
-            return -1;
-         }
-      }
-   }
-   else
+   // Extended cartridge, as written by rasm's BUILDCPR EXTENDED: RIFF "CXME", an
+   // "NBBK" chunk with the number of pages per bank (16-bit big endian), then
+   // "CX" pages filled bank by bank. Memory::Get switches bank on a read of
+   // cartridge page 0 at &3FFF - n.
+   if (buffer == nullptr
+      || size < 22
+      || (memcmp(&buffer[0], "RIFF", 4) != 0)
+      || (memcmp(&buffer[8], "CXME", 4) != 0)
+      || (memcmp(&buffer[12], "NBBK", 4) != 0)
+      || buffer[16] != 0x02 || buffer[17] != 0 || buffer[18] != 0 || buffer[19] != 0)
    {
       // Incorrect headers
       return -1;
    }
 
-   // Reset default bak
-   motherboard_.GetMem()->SwitchBank(0);
+   const unsigned int pages_per_bank = (buffer[20] << 8) + buffer[21];
+   if (pages_per_bank == 0 || pages_per_bank > Memory::kCartridgePages)
+   {
+      return -1;
+   }
+
+   // Walked twice like a .cpr: validate everything, then copy.
+   unsigned int nb_pages = 0;
+   for (int pass = 0; pass < 2; pass++)
+   {
+      const bool copy = (pass == 1);
+      if (copy)
+      {
+         const unsigned int banks = (nb_pages == 0) ? 1 : (nb_pages + pages_per_bank - 1) / pages_per_bank;
+         if (banks > Memory::kMaxCartridgeBanks)
+         {
+            return -1;
+         }
+         GetMem()->ResetCartridgeBanks(banks);
+      }
+
+      int index = 22;
+      unsigned int page = 0;
+      while (index + 8 < size)
+      {
+         if (buffer[index] != 'C' || buffer[index + 1] != 'X')
+         {
+            return -1;
+         }
+         index += 4;
+
+         // Read size
+         const unsigned int block_size = buffer[index]
+            | (buffer[index + 1] << 8)
+            | (buffer[index + 2] << 16)
+            | (static_cast<unsigned int>(buffer[index + 3]) << 24);
+         index += 4;
+
+         if (block_size > sizeof(Memory::RamBank)
+            || block_size > static_cast<unsigned int>(size - index))
+         {
+            return -1;
+         }
+
+         if (copy)
+         {
+            // Copy datas to proper ROM
+            memcpy(GetMem()->GetCartridgePage(page / pages_per_bank, page % pages_per_bank),
+                   &buffer[index], block_size);
+         }
+         index += block_size;
+         ++page;
+      }
+      nb_pages = page;
+   }
+
+   // Same identity as a .cpr, so a save state refuses another cartridge.
+   GetMem()->SetCartridgeCrc(CRC::ComputeCrc32(0xEDB88320, buffer, (unsigned int)size));
+
+   // Reset default bank
+   GetMem()->SwitchBank(0);
    // Insertion ok : Reset to 0
    ResetPlus();
 
@@ -747,12 +749,22 @@ void EmulatorEngine::Reinit ()
 
 void EmulatorEngine::OnOff ()
 {
-   multiface_stop_ = false;
-
    motherboard_.OnOff();
-
+   // Rebuilds the machine from its settings (ROMs, RAM, chips): this clears the RAM too
    UpdateComputer(true);
-   // todo : update computer
+   RestartAfterReset();
+}
+
+void EmulatorEngine::Reset ()
+{
+   // Same machine, so no UpdateComputer : it would clear the RAM
+   motherboard_.Reset();
+   RestartAfterReset();
+}
+
+void EmulatorEngine::RestartAfterReset()
+{
+   multiface_stop_ = false;
 
    GetPSG()->Reset ();
    GetSig()->Reset ();
@@ -789,21 +801,6 @@ void EmulatorEngine::ResetPlus()
    paste_available_ = false;*/
    OnOff();
 
-}
-
-void EmulatorEngine::Reset ()
-{
-   GetMem()->Initialisation ();
-   GetPSG()->Reset ();
-
-   GetSig()->Reset ();
-
-   display_->Reset();
-
-   time_elapsed_ = std::chrono::steady_clock::now();
-   time_computed_ = 0;
-
-   paste_available_ = false;
 }
 
 void EmulatorEngine::SetBreakpointHandler ( IBreakpoint* bp )
@@ -1300,6 +1297,27 @@ bool EmulatorEngine::LoadSnapshotDelayed()
    }
 }
 
+bool EmulatorEngine::SaveSnapshotNow(std::vector<unsigned char>& out)
+{
+   // Immediate synchronous save — does not use the deferred flag mechanism,
+   // which needs HandleSnapshots() and so a whole time slice. A snapshot only
+   // describes the machine on an instruction boundary; new_instruction_ marks
+   // one, while M_FETCH/t_==1 does not (Opcode_CB/ED/DD/FD set it to fetch a
+   // prefixed opcode's second byte).
+   if (!GetProc()->new_instruction_)
+   {
+      bool old_stop_on_fetch = GetProc()->stop_on_fetch_;
+      GetProc()->stop_on_fetch_ = true;
+
+      unsigned int nb_opcodes = 1;
+      motherboard_.DebugOpcodes(nb_opcodes);
+
+      GetProc()->stop_on_fetch_ = old_stop_on_fetch;
+   }
+
+   return sna_handler_.SaveSnapshot(out);
+}
+
 bool EmulatorEngine::SaveSnapshot (const char* path_file)
 {
    do_snapshot_ = true;
@@ -1561,12 +1579,20 @@ void EmulatorEngine::UpdateComputer(bool no_cart_reload)
    unsigned int hardware_type = current_settings_->GetHardwareType();
    SetMachineType(hardware_type);
    if (hardware_type == MachineSettings::PLUS_6128
-      || hardware_type == MachineSettings::PLUS_464)
+      || hardware_type == MachineSettings::PLUS_464
+      || hardware_type == MachineSettings::GX400)
    {
       SetPlus(true);
       if (no_cart_reload == false)
       {
-         LoadCpr(current_settings_->GetDefaultCartridge());
+         // The cartridge named by a machine settings file is relative to the
+         // base directory, like the ROMs above, not to the current directory.
+         fs::path cartridge(current_settings_->GetDefaultCartridge());
+         if (cartridge.is_relative() && directories_ != nullptr)
+         {
+            cartridge = fs::path(directories_->GetBaseDirectory()) / cartridge;
+         }
+         LoadCpr(cartridge.string().c_str());
       }
    }
    else

@@ -1204,9 +1204,10 @@ unsigned short IDisk::GetTrackInfoForRev(int side, int track, Track* track_buffe
                   {
                      sector.real_size += 2; // Add CRC + first gap
 
-                     while ((memcmp(pattern_fe, &side_[side].tracks[track].revolution[rev].bitfield[index],
-                                    sizeof(pattern_f)) != 0)
-                        && (index < side_[side].tracks[track].revolution[rev].size - (int)sizeof(pattern_f)))
+                     // Bound first : the comparison reads sizeof(pattern_f) bytes from index.
+                     while ((index < side_[side].tracks[track].revolution[rev].size - (int)sizeof(pattern_f))
+                        && (memcmp(pattern_fe, &side_[side].tracks[track].revolution[rev].bitfield[index],
+                                   sizeof(pattern_f)) != 0))
                      {
                         index += 16;
                         ++sector.real_size;
@@ -1402,14 +1403,16 @@ unsigned int FindNextPattern(unsigned char* buffer, unsigned int size, unsigned 
 
    // Find this array
 
-   while (offset < size && memcmp(&buffer[offset], pattern_in_bits, size_of_pattern * 8) != 0)
+   // The pattern has to fit in what is left of the buffer, or the comparison reads past it.
+   const unsigned int size_in_bits = size_of_pattern * 8;
+   while (offset + size_in_bits <= size && memcmp(&buffer[offset], pattern_in_bits, size_in_bits) != 0)
    {
       ++offset;
    }
 
    delete[]pattern_in_bits;
 
-   if (offset == size) return -1;
+   if (offset + size_in_bits > size) return -1;
    return offset;
 }
 
@@ -1604,7 +1607,11 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
                   unsigned int max_comp_2 = next_correct_index[j] - tmp_buffer[j];
                   unsigned int min_comp = std::min<unsigned int>(max_comp_1, max_comp_2);
 
-                  while (revolution_comp_ok && localcount <= min_comp)
+                  // min_comp is inclusive and can reach the end of a revolution : stop at
+                  // the last bit either revolution actually holds.
+                  while (revolution_comp_ok && localcount <= min_comp
+                     && tmp_buffer[i] + localcount < side_[side].tracks[track].revolution[i].size
+                     && tmp_buffer[j] + localcount < side_[side].tracks[track].revolution[j].size)
                   {
                      // Compare
                      if (side_[side].tracks[track].revolution[i].bitfield[tmp_buffer[i] + localcount] != side_[side].tracks[

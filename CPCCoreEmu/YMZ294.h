@@ -16,6 +16,8 @@ const int CLOCK_DIV = 0;
 
 class YMZ294 : public IClockable
 {
+   friend class MachineState;
+
 public:
    typedef enum {
       LEFT, 

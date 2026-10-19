@@ -35,6 +35,13 @@ add_library(CPCCoreEmu ${SRCS} ${HEADERS} ${EXTRA} ${CONFIG} )
 target_include_directories( CPCCoreEmu PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../zlib ${CMAKE_CURRENT_BINARY_DIR}/../zlib ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(CPCCoreEmu PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+# An embedder that writes the CPC key matrix itself never reads the host
+# scancode tables, so it has no use for the per-OS Keyboards/ data files. Off by
+# default: the normal build keeps loading them exactly as before.
+option(CPCCORE_NO_HOST_KEYBOARD "Do not load the host scancode maps from Keyboards/" OFF)
+if (CPCCORE_NO_HOST_KEYBOARD)
+   target_compile_definitions(CPCCoreEmu PUBLIC CPCCORE_NO_HOST_KEYBOARD)
+endif()
 
 set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -66,7 +73,7 @@ else()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} --std=c++17)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
 endif()
 
 install ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Keyboards" DESTINATION .) 

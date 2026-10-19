@@ -12,6 +12,8 @@ class Monitor;
 
 class Memory : public IDmaSTOP
 {
+   friend class MachineState;
+
    friend class EmulatorEngine;
    friend class CSnapshot;
 
@@ -31,7 +33,10 @@ public:
    ~Memory(void);
 
    void InitMemory();
+   // Power on : clears the RAM, then ResetMapping
    void Initialisation  ();
+   // RESET line : back to the initial memory configuration, the RAM content is kept
+   void ResetMapping();
    void SetPlus(bool plus) { plus_ = plus; }
 
    bool ExtendedPAL () { return extended_pal_;}
@@ -166,6 +171,30 @@ public:
    unsigned char* GetCartridge(int index) {
       current_cartridge_bank_->cart_available[index] = true; return current_cartridge_bank_->bank[index];
 };
+   // Number of 16 KB pages a cartridge bank holds.
+   static constexpr int kCartridgePages = 32;
+   // Zeroes every page of the current bank, so a cartridge loaded into it does
+   // not inherit the bytes of the one before.
+   void ClearCartridgeBank() { memset(current_cartridge_bank_, 0, sizeof(BankCartridge)); }
+   // Upper bound on banks an extended cartridge may ask for: each one is 512 KB,
+   // and a file of a few hundred bytes must not make us allocate gigabytes.
+   static constexpr unsigned int kMaxCartridgeBanks = 64;
+   // Ejects the cartridge and leaves `count` empty banks, bank 0 current.
+   void ResetCartridgeBanks(unsigned int count)
+   {
+      EjectCartridge();
+      ClearCartridgeBank();
+      for (unsigned int i = 1; i < count; i++)
+      {
+         cartridge_list_.push_back(new BankCartridge());
+      }
+   }
+   // One page of a given bank, for loaders that fill every bank up front.
+   unsigned char* GetCartridgePage(unsigned int bank, unsigned int page)
+   {
+      cartridge_list_[bank]->cart_available[page] = true;
+      return cartridge_list_[bank]->bank[page];
+   }
    void EjectCartridge() {
       for (auto it : cartridge_list_)
       {
@@ -177,8 +206,16 @@ public:
       cartridge_list_.clear();
       cartridge_list_.push_back(cart_default_);
       current_cartridge_bank_ = cartridge_list_[0];
-
+      cartridge_crc_ = 0;
    }
+
+   // Identity of the cartridge currently inserted, or 0 for none. Computed
+   // once from the .cpr image when it is loaded rather than from the banks on
+   // demand: a cartridge is read-only, so the value never changes while it is
+   // in, and a save state that hashed half a megabyte of banks every time
+   // would be paying that cost on every rewind frame.
+   void SetCartridgeCrc(unsigned int crc) { cartridge_crc_ = crc; }
+   unsigned int GetCartridgeCrc() const { return cartridge_crc_; }
    void NewXPR()
    {
       for (auto it : cartridge_list_)
@@ -189,13 +226,13 @@ public:
          }
       }
       cartridge_list_.clear();
-      BankCartridge* newbank = new BankCartridge;
+      BankCartridge* newbank = new BankCartridge();
       cartridge_list_.push_back(newbank);
       current_cartridge_bank_ = cartridge_list_[0];
    }
    void AddNewBank()
    {
-      BankCartridge* newbank = new BankCartridge;
+      BankCartridge* newbank = new BankCartridge();
       cartridge_list_.push_back(newbank);
    }
 
@@ -357,6 +394,7 @@ public:
    std::vector<BankCartridge*> cartridge_list_;
    BankCartridge * current_cartridge_bank_;
    BankCartridge* cart_default_;
+   unsigned int cartridge_crc_ = 0;
 
    bool lower_rom_available_;
    unsigned short last_address_read_[4];

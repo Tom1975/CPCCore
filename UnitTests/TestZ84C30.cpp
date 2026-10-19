@@ -108,3 +108,42 @@ TEST(Z84C30, count_to_interrupt)
    ASSERT_EQ(interrupt.IsInterruted(), true);
 
 }
+
+// TEST : In() must return the live down-counter value, not a floating bus.
+// Real Z80 CTC hardware never floats a channel read -- it always answers
+// with the current count. The original In() body was empty (never wrote
+// *data at all), so a caller reading a channel always saw whatever was in
+// its buffer before the call (a "floating bus" from the emulator's point of
+// view) instead of the real counter value.
+TEST(Z84C30, In_ReturnsLiveDownCounterValue)
+{
+   Z84C30 z84c30;
+   Interrupt interrupt;
+
+   z84c30.Init(Z84C30::CHANNEL_0, nullptr, &interrupt);
+   // EnableInterrupt, Timer, x16, Rising edge, Auto, time constant following
+   z84c30.Out(0, 0x85);
+   // Time constant : 16
+   z84c30.Out(0, 16);
+
+   // Tick to load the constant, then run a handful of counts down.
+   for (int i = 0; i < 1 + 16 * 5; i++)
+      z84c30.Tick();
+
+   // 5 full x16 prescaler cycles consumed -> down-counter should read 11.
+   unsigned char data = 0xFF;
+   z84c30.In(&data, 0);
+   EXPECT_EQ(data, 11);
+}
+
+// TEST : In() on a channel that was never armed (no time constant, no Trg)
+// must still return the counter's real state (0, its reset value) rather
+// than leaving the caller's buffer untouched.
+TEST(Z84C30, In_OnUnarmedChannelReturnsCounterNotFloatingBus)
+{
+   Z84C30 z84c30;
+
+   unsigned char data = 0xFF;
+   z84c30.In(&data, 0);
+   EXPECT_EQ(data, 0) << "In() left the sentinel value untouched -- floating bus, not a real counter read";
+}

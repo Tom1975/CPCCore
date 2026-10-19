@@ -73,6 +73,11 @@ public:
 
    virtual void JoystickAction (unsigned int joy, unsigned int action);
 
+   // A GX4000 is a console: only the Pause button (line 3 bit 3) and the two
+   // joysticks (lines 6 and 9) are wired to the matrix, every other line reads
+   // as no key pressed. Set from the machine type, see GetKeyboardMap.
+   void SetConsoleWiring(bool console_wiring) { console_wiring_ = console_wiring; }
+
    void ForceKeyboardState ( unsigned char key_states[10]){ memcpy (keyboard_lines_, key_states, 10 );};
    unsigned char* GetKeyboardState () {return keyboard_lines_cached_;};
    unsigned char* GetRealKeyboardState() { return keyboard_lines_; };
@@ -90,6 +95,9 @@ protected :
    // Keyboard definition
    unsigned char keyboard_lines_ [10];
    unsigned char keyboard_lines_cached_ [10];
+
+   // GX4000 wiring: most of the matrix is not connected.
+   bool console_wiring_ = false;
 
 
    void CharAction(char c, bool pressed) ;

@@ -91,7 +91,31 @@ public:
 
    bool pal_present_;
    // Cached !
-   bool dispen_buffered_;
+   bool dispen_buffered_;     // DISPEN for the first byte of the character
+   bool dispen_buffered_h_;   // DISPEN for the second byte (half microsecond) of the character
+   bool half_border_;         // only one of the two bytes is displayed
+   void ApplyHalfBorder(int* buffer);
+
+   // HSYNC black (CBLACK_HSYNC, Compendium 16.2.3). A block is drawn on the tick of its character, but
+   // the HSYNC pin of that character is final only at the next tick (an I/O can move an edge inside the
+   // character : R2.JIT, R3.JIT). The black is applied then, and the block is given to the monitor.
+   struct BlackEdge { unsigned char pixel; bool level; };
+   void FinalizeBlock();
+   int* last_block_;               // block drawn on the previous tick (nullptr : out of the screen)
+   bool monitor_pending_;          // the previous block has not been given to the monitor yet
+   bool cblack_hsync_;             // CBLACK_HSYNC at the start of the next block to finalize
+   bool hsync_pin_last_;           // HSYNC pin at the end of the last finalized character
+   unsigned char nb_black_edges_;  // CBLACK_HSYNC edges not reached yet (pixel from the next block)
+   BlackEdge black_edges_[8];
+   // C-HSYNC to the monitor (SIG_GA_HSYNC, 16.2.2), Mode 2 pixel precision
+   int chsync_countdown_;          // pixels before H06 reaches 2 (-1 : not counting)
+   bool chsync_;                   // SIG_GA_HSYNC
+   int chsync_length_;             // pixels since SIG_GA_HSYNC is high
+   unsigned short chsync_mask_;    // SIG_GA_HSYNC on each pixel of the finalized block (bit 0 = 1st pixel)
+   // VSYNC black (CBLACK_VSYNC, 16.2.3) : from the rising edge of the CRTC VSYNC to the end of the 26th HSYNC
+   bool vsync_rise_in_block_;      // the CRTC VSYNC rose on the block not finalized yet
+   bool cblack_vsync_;
+   unsigned char v26_;
 
    // 
    int scanline_type_;       // 1 : scanlines / 0 : copylines

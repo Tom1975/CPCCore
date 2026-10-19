@@ -26,7 +26,7 @@ public:
    virtual void M1 ();
 
    // Adress
-   virtual void Out( const unsigned short address, const unsigned char data);
+   virtual void Out( const unsigned short address, const unsigned char data, unsigned int t_state = 0);
    virtual void In(unsigned char* a, unsigned short address);
 
    const bool IsAsicLocked() { return vga_->IsAsicLocked(); }
