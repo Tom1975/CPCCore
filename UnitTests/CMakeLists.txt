@@ -72,6 +72,7 @@ add_executable( unitTests
                      TestMachineStateRam.cpp
                      TestMachineStateSize.cpp
                      TestMachineStateExpansions.cpp
+                     TestSpeedLimit.cpp
                      TestReset.cpp
 
 )

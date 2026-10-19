@@ -182,6 +182,18 @@ void GateArray::Reset()
    v26_ = 0;
 }
 
+void GateArray::PowerOn()
+{
+   pen_r_ = 0;
+   buffered_ink_available_ = false;
+   buffered_ink_reg_ = 0;
+   border_reg_ = 0;
+   memset(ink_regs_, 0, sizeof(ink_regs_));
+   for (int i = 0; i < 16; i++) ink_list_[i] = ListeColorsIndex[0];
+   for (int i = 0; i < NB_BYTE_BORDER; i++) video_border_[i] = ListeColorsIndex[0];
+   Reset();
+}
+
 void GateArray::SetBus(Bus* address, Bus* data)
 {
    address_bus_ = address;
