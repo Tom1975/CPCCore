@@ -279,15 +279,16 @@ void Motherboard::InitStartOptimizedPlus()
    component_list_[nb_components_]->this_tick_time_ = 1;
    nb_components_++;
 
-   // FDC ?
-   component_elapsed_time_[nb_components_] = 8;
-   component_list_[nb_components_] = &fdc_;
-   component_list_[nb_components_]->this_tick_time_ = 8;
-
-   // ASIC
+   // ASIC (CRTC clock)
    component_elapsed_time_[nb_components_] = 11;
    component_list_[nb_components_] = &asic_;
    component_list_[nb_components_]->this_tick_time_ = 11;
+   nb_components_++;
+
+   // FDC ? After the ASIC, in the order the run loops read the deadlines
+   component_elapsed_time_[nb_components_] = 8;
+   component_list_[nb_components_] = &fdc_;
+   component_list_[nb_components_]->this_tick_time_ = 8;
    nb_components_++;
 
    // SET sur 6128 ou si DDI ( dependant de la pr�senc du FDC, donc ?)

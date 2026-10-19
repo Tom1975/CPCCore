@@ -212,7 +212,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
       unsigned short mem_addr = adress_start;
       for (unsigned int i = 0; i < size_of_buffer; i++)
       {
-         address_buffer[i] = ram_buffer_[0][mem_addr & 0x3FFF];
+         address_buffer[i] = ram_buffer_[mem_addr >> 14][mem_addr & 0x3FFF];
          mem_addr++;
       }
 
@@ -224,7 +224,7 @@ unsigned int Memory::GetDebugValue(unsigned char * address_buffer, unsigned shor
 
       for (unsigned int i = 0; i < size_of_buffer; i++)
       {
-         address_buffer[i] = (extended_ram_buffer_[data][0])[mem_addr & 0x3FFF];
+         address_buffer[i] = (extended_ram_buffer_[data][mem_addr >> 14])[mem_addr & 0x3FFF];
          mem_addr++;
       }
       break;
