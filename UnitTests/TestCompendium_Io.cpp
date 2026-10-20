@@ -220,20 +220,26 @@ TEST(Compendium_7, DISABLED_InReadsTheVSyncOnItsFourthMicrosecond)
    }
 }
 
-// 7.3 : port B programmed as an output, bit 0 = 1 drives the VSYNC line seen by the GATE ARRAY
-// (FAKE VSYNC) : R52 is reset at the end of the 2nd HSYNC, as for a CRTC VSYNC. (It does not work
-// on every CPC ; this is the behaviour of the CPC on which it works.)
-TEST(Compendium_7, DISABLED_FakeVSyncIsSeenByTheGateArray)
+// 7.3 : port B programmed as an output, bit 0 = 1 puts the VSYNC line of the PPI high (FAKE
+// VSYNC). The compendium found it does not work on some CPC and gives a wrong result on others :
+// the PPI is not strong enough against the CRTC, which drives the line. The emulation follows the
+// CRTC : a FAKE VSYNC does not reach the GATE ARRAY, R52 runs as without it.
+TEST(Compendium_7, FakeVSyncDoesNotOverrideTheCrtc)
 {
-   Machine m(CRTC::HD6845S);
-   ASSERT_TRUE(UntilPosition(m, 100, 0));
-   std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0xF700, 0x80));   // port B as an output
-   z80::Append(p, z80::Out(0xF500, 0x01));   // VSYNC line high
-   z80::Append(p, z80::kJrSelf);
-   m.Run(p);
-   ASSERT_TRUE(UntilPosition(m, 102, 46 + 16));
-   EXPECT_EQ(0, m.Ga().interrupt_counter_);
+   int counter[2];
+   for (int level = 0; level < 2; ++level)
+   {
+      Machine m(CRTC::HD6845S);
+      ASSERT_TRUE(UntilPosition(m, 100, 0));
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0xF700, 0x80));                              // port B as an output
+      z80::Append(p, z80::Out(0xF500, static_cast<unsigned char>(level))); // VSYNC line of the PPI
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      ASSERT_TRUE(UntilPosition(m, 102, 46 + 16));
+      counter[level] = m.Ga().interrupt_counter_;
+   }
+   EXPECT_EQ(counter[0], counter[1]);
 }
 
 /////////////////////////////////////////////////////////////

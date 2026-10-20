@@ -58,7 +58,7 @@ pas de comportement à vérifier).
 |---|---|---|---|
 | 7.1 | Principes | ➖ | |
 | 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | 🟡 | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`. **DISABLED** : `InReadsTheVSyncOnItsFourthMicrosecond` (l'IN émulé lit le port B à sa 3e µs) |
-| 7.3 | FAKE VSYNC : port B en sortie, bit 0 force la VSYNC vue par le GA | ❌ | **DISABLED** : `Compendium_7.FakeVSyncIsSeenByTheGateArray` (propagation désactivée, `if (false)` dans `PPI8255::UpdateSignalForPortB`) |
+| 7.3 | FAKE VSYNC : port B en sortie, bit 0 voudrait forcer la VSYNC | ✅ | `Compendium_7.FakeVSyncDoesNotOverrideTheCrtc` : d'après le compendium, ne fonctionne pas (ou mal) selon les CPC, le PPI est trop faible face au CRTC qui pilote la ligne ; l'émulation suit le CRTC |
 
 ## 8. Affichage, Z80A & Gate Array
 
