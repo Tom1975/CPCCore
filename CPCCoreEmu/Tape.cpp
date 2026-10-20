@@ -1270,7 +1270,15 @@ void CTape::ApplyInputModel()
       const bool want = (u > 0);
       const unsigned long long length = tape_array_[i].length;
 
-      if (comparator != want)
+      const unsigned char block = tape_array_[i].block_type;
+      const bool modelled = !input_model_.pure_pulses_only || block == 0x12 || block == 0x13 || block == 0x14;
+      if (!modelled)
+      {
+         // Block whose timings were measured (standard/turbo) : the edge stays where it is
+         edge[i] = 0;
+         comparator = want;
+      }
+      else if (comparator != want)
       {
          const unsigned long long limit = (length < search_limit) ? length : search_limit;
          for (unsigned long long t = 0; t < limit; t++)

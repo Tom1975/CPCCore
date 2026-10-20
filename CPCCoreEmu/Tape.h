@@ -220,6 +220,10 @@ public:
       double fc_high_pass = 700.0;    // Hz : AC coupling
       double fc_low_pass = 6200.0;    // Hz : bandwidth of the read chain
       double hysteresis = 0.1;        // comparator thresholds, for a square of amplitude 1
+      // Only the pulse blocks (0x12, 0x13, 0x14), whose lengths are the ideal ones written
+      // on the tape. The standard and turbo blocks (0x10, 0x11) are often timed on the
+      // read signal, which already carries this shift (Eswat : sync 1032T/397T).
+      bool pure_pulses_only = true;
    };
    static void SetInputModel(const InputModel& model) { input_model_ = model; }
 
