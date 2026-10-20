@@ -189,9 +189,7 @@ TEST(Compendium_27, VSyncRequestsAnInterruptOnlyIfBit5IsSet)
 // 27.2 : R52 goes back to 0 when it goes past 51, also during the 2 HSYNC that follow the start of
 // the VSYNC. R52 = 51 at the start of the VSYNC : it wraps at the end of the 1st HSYNC, which
 // requests the interrupt ; at the end of the 2nd HSYNC, R52 = 1 (bit 5 clear) : no interrupt.
-// DISABLED : GateArray::Tick() does not test R52 = 52 while it waits for the 2 HSYNC of the VSYNC :
-// R52 reaches 53 and the interrupt comes one line late, at the end of the 2nd HSYNC.
-TEST(Compendium_27, DISABLED_R52WrapsDuringTheVSyncWindow)
+TEST(Compendium_27, R52WrapsDuringTheVSyncWindow)
 {
    Machine m(CRTC::HD6845S);
    InstallEiRetHandler(m);

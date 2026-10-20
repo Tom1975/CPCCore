@@ -40,6 +40,8 @@ public:
 
 
    void Reset ();
+   // R52 asks the Z80 for an interrupt
+   void RequestRasterInterrupt();
 
    DMA* GetDMAChannel(int channel);
    void SetDMA(DMA* dma_list) {

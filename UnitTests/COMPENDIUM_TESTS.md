@@ -303,7 +303,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 27.1 | R52 compte les fins de HSYNC (même R3=1), 6 interruptions par frame | ✅ | `Compendium_27.R52CountsEveryHSyncEndEvenWithR3One`, `SixInterruptsPerFrame` |
-| 27.2 | Remise à 0 : dépassement de 51, RMR bit 4, 2e HSYNC après la VSYNC ; effacement du bit 5 à l'acquittement | 🟡 | `Compendium_27.VSyncResetsR52AtTheEndOfTheSecondHSync`, `AcknowledgeClearsBit5OfR52`. **DISABLED** : `R52WrapsDuringTheVSyncWindow` (R52 = 52 non testé pendant les 2 HSYNC de la VSYNC : interruption 1 ligne trop tard) |
+| 27.2 | Remise à 0 : dépassement de 51, RMR bit 4, 2e HSYNC après la VSYNC ; effacement du bit 5 à l'acquittement | ✅ | `Compendium_27.VSyncResetsR52AtTheEndOfTheSecondHSync`, `AcknowledgeClearsBit5OfR52`, `R52WrapsDuringTheVSyncWindow` |
 | 27.2 | RMR bit 4 à C0=R2+R3-1 prioritaire sur l'incrément ; à R2+R3-2 : remise à 0 puis incrément | 🟡 | `Compendium_27.RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync`. **DISABLED** : `RmrResetOnTheLastMicrosecondOfTheHSyncWins` (écritures GA sans T-state) |
 | 27.3.1 | Armement quand R52 reboucle à 0 ; une seule interruption en attente | ✅ | `Compendium_27.OnlyOneInterruptPending` |
 | 27.3.2 | Armement pendant la VSYNC (seulement si bit 5 = 1) | ✅ | `Compendium_27.VSyncRequestsAnInterruptOnlyIfBit5IsSet` |

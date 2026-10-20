@@ -182,6 +182,21 @@ void GateArray::Reset()
    v26_ = 0;
 }
 
+void GateArray::RequestRasterInterrupt()
+{
+   if (unlocked_)
+   {
+      sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
+   }
+   else
+   {
+      sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
+   }
+   sig_handler_->InterruptRaster();
+   sig_handler_->int_is_gate_array_ = true;
+   interrupt_raised_ = true;
+}
+
 void GateArray::SetBus(Bus* address, Bus* data)
 {
    address_bus_ = address;
@@ -347,51 +362,25 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       }
       else
       {
+         // Two independent mechanisms at each end of HSYNC (compendium 27.2) :
+         // - R52 goes back to 0 when it reaches 52, and requests an interrupt ;
+         // - at the end of the 2nd HSYNC after the start of the VSYNC, an interrupt is
+         //   requested if bit 5 of R52 is set, and R52 goes back to 0.
+         // The first one also runs while the second waits for its 2 HSYNC.
+         if (interrupt_counter_ == 52)
+         {
+            RequestRasterInterrupt();
+            interrupt_counter_ = 0;
+         }
          if (wait_for_hsync_ > 0)
          {
             wait_for_hsync_--;
             if (wait_for_hsync_ == 0)
             {
-               // If the counter>=32 (bit5=1), then no interrupt request is issued and counter is reset to 0.
                if (interrupt_counter_ >= 32)
                {
-                  // If the counter<32 (bit5=0), then an interrupt request is issued and counter is reset to 0.
-
-                  // plus todo : shift int by 1us
-                  if (unlocked_)
-                  {
-                     sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
-                  }
-                  else
-                  {
-                     sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
-                  }
-                  sig_handler_->InterruptRaster();
-                  sig_handler_->int_is_gate_array_ = true;
-                  interrupt_raised_ = true;
+                  RequestRasterInterrupt();
                }
-               // TODO everytime ????? sure ??????????????
-               // check with int from acid tests
-               interrupt_counter_ = 0;
-
-            }
-         }
-         else
-         {
-            if (interrupt_counter_ == 52)
-            {
-               // Raise ctrl_int signal
-               if (unlocked_)
-               {
-                  sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
-               }
-               else
-               {
-                  sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
-               }
-               sig_handler_->InterruptRaster();
-               sig_handler_->int_is_gate_array_ = true;
-               interrupt_raised_ = true;
                interrupt_counter_ = 0;
             }
          }
