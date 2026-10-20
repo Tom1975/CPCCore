@@ -309,7 +309,7 @@ pas de comportement à vérifier).
 | 27.3.2 | Armement pendant la VSYNC (seulement si bit 5 = 1) | ✅ | `Compendium_27.VSyncRequestsAnInterruptOnlyIfBit5IsSet` |
 | 27.3.3 | Z80 : EI retarde d'une instruction, HALT | ✅ | `Compendium_27.EiDefersTheInterruptByOneInstruction`, `HaltIsInterruptedLikeANopSled` |
 | 27.4 | IM 1 : appel en #38 = 5 µs (RST #38 = 4 µs) | ✅ | `Compendium_27.Im1CallLastsFiveMicroseconds` |
-| 27.5 | IM 2 : 7 µs | ❌ | **DISABLED** : `Compendium_27.Im2CallLastsSevenMicroseconds` (8 µs dans l'émulation) |
+| 27.5 | IM 2 : 7 µs | ✅ | `Compendium_27.Im2CallLastsSevenMicroseconds` |
 | 27.6.1-27.6.5 | Instant de l'interruption par type (R3=14 : 15 µs après C0vs=R2 sur 0/1/2, 16 sur 3/4 ; R3=0 : aucune sur 0/1, 17 sur 2, 18 sur 3/4) | ✅ | `Compendium_27.InterruptPositionFollowsR3` |
 | 27.7.1 | Course incrément de R52 / effacement du bit 5 | ➖ | non déterministe sur le matériel (dépend de la durée réelle de l'instruction qui suit EI) |
 | 27.7.2 | Fiabilité : fin de HSYNC sur le dernier T d'une instruction → interruption après l'instruction suivante | ❌ | à concevoir : placer la fin de HSYNC au T-state près (R3.JIT), NOP vs ADD HL,DE |

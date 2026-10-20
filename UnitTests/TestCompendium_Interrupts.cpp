@@ -309,8 +309,7 @@ TEST(Compendium_27, Im1CallLastsFiveMicroseconds)
 
 // 27.5 : IM 2 : the call through the vector table lasts 7 us. The low byte of the table address
 // is undetermined on a CPC "old" : the table holds 257 times the same byte.
-// DISABLED : the emulated IM 2 call lasts 8 us.
-TEST(Compendium_27, DISABLED_Im2CallLastsSevenMicroseconds)
+TEST(Compendium_27, Im2CallLastsSevenMicroseconds)
 {
    Machine m(CRTC::HD6845S);
    for (unsigned int a = 0x3000; a <= 0x3100; ++a) m.Ram()[a] = 0x31;

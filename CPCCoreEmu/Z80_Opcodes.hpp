@@ -1086,9 +1086,12 @@ unsigned int Z80::DefaultTick()
          // End of vectorized Interrupt Bug
          current_data_ = data_ = sig_->interrupt_io_data_;
 
-         machine_cycle_ = M_IO_R; t_ = 5;
+         // The vector byte was read during this acknowledge M1 cycle (as in IM 1, the call goes
+         // on with the stack writes) : push PC, then read the vector at I.data (compendium 27.5 : 7 us)
+         mem_ptr_.w = (ir_.b.h << 8) | data_;
+         machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = --sp_; current_data_ = pc_ >> 8; read_count_ = 0;
          current_opcode_ = 0xFF02; // Interrupt Mode 2
-         return 5;
+         return 1;
 
       }
    }
