@@ -222,6 +222,18 @@ public:
       double hysteresis = 0.1;        // comparator thresholds, for a square of amplitude 1
    };
    static void SetInputModel(const InputModel& model) { input_model_ = model; }
+
+   // Mechanics of the tape deck : the tape does not reach its speed as soon as the motor
+   // is powered. Durations of the linear speed ramps, in ticks (4 MHz) ; 0 gives an
+   // instantaneous speed. The firmware allows two seconds for the tape to reach full speed
+   // (CAS START MOTOR) ; 600 ms loads the whole tape corpus, from 400 to 700 ms.
+   struct Mechanics
+   {
+      double spin_up = 600.0 * 4000.0;
+      double run_down = 0.0;
+   };
+   static void SetMechanics(const Mechanics& mechanics) { mechanics_ = mechanics; }
+   static const Mechanics& GetMechanics() { return mechanics_; }
    static const InputModel& GetInputModel() { return input_model_; }
 
 protected:
@@ -231,6 +243,11 @@ protected:
    // Moves every edge to the time the PPI sees it, through the input model
    void ApplyInputModel ();
    static InputModel input_model_;
+   static Mechanics mechanics_;
+   // Tape speed, from 0 to 1, and the fraction of tick not yet played
+   double speed_ = 0.0;
+   double advance_carry_ = 0.0;
+   int TimeToCover(int length) const;
    void PushPause (int length );
    void PushBit ( unsigned char bit );
    void PushByte ( unsigned char byte );
@@ -326,6 +343,8 @@ protected:
    // Shift the start/stop of the motor.
    bool next_motor_state_;
    int time_to_change_motor_state_;
+   // SetMotorOn was called since the last tick : the delay counts from the call
+   bool motor_request_fresh_ = false;
 
    // Play button pressed ?
    bool play_;

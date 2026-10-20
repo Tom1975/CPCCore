@@ -1229,6 +1229,7 @@ int CTape::InsertTapeDelayed()
 
 
 CTape::InputModel CTape::input_model_;
+CTape::Mechanics CTape::mechanics_;
 
 void CTape::ApplyInputModel()
 {
@@ -3025,6 +3026,38 @@ void CTape::ComputeLenghtOfTape ()
    }
 }
 
+// Real time (ticks) for the tape to cover `length` ticks of tape, from the current speed
+int CTape::TimeToCover(int length) const
+{
+   const double target = motor_on_ ? 1.0 : 0.0;
+   const double ramp = motor_on_ ? mechanics_.spin_up : mechanics_.run_down;
+   if (ramp <= 0.0)
+   {
+      return length;
+   }
+   if (speed_ == target)
+   {
+      return (target == 0.0) ? 4000000 : length;
+   }
+   const double d = static_cast<double>(length);
+   const double rate = (target > speed_ ? 1.0 : -1.0) / ramp;
+   const double t_reach = (target - speed_) / rate;
+   const double d_reach = (speed_ + target) / 2.0 * t_reach;
+   double t;
+   if (d <= d_reach)
+   {
+      // speed.t + rate.t^2/2 = d
+      const double disc = speed_ * speed_ + 2.0 * rate * d;
+      t = (rate > 0) ? (-speed_ + sqrt(disc)) / rate : (-speed_ + sqrt(std::max(0.0, disc))) / rate;
+   }
+   else
+   {
+      // Past the ramp : constant speed (the tape has stopped if running down)
+      t = (target == 0.0) ? t_reach : t_reach + (d - d_reach) / target;
+   }
+   return static_cast<int>(std::min(4000000.0, std::max(1.0, ceil(t))));
+}
+
 unsigned int CTape::Tick (/*unsigned int nbTicks*/)
 {
    // Something to load ?
@@ -3046,14 +3079,48 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
    }
    // Counter
    bool motor_to_use = motor_on_;
+
+   // Mechanics : the motor accelerates the flywheel at a roughly constant torque, so the
+   // tape speed rises linearly to its nominal value (spin-up), and falls linearly on the
+   // flywheel when the motor is not powered (run-down). advance is the length of tape that
+   // went under the head during the elapsed this_tick_time_.
+   const double elapsed = static_cast<double>(this_tick_time_);
+   double advance = 0.0;
+   {
+      const double target = motor_to_use ? 1.0 : 0.0;
+      const double ramp = motor_to_use ? mechanics_.spin_up : mechanics_.run_down;
+      if (ramp <= 0.0 || speed_ == target)
+      {
+         speed_ = target;
+         advance = target * elapsed;
+      }
+      else
+      {
+         // Time to reach the target, then constant speed
+         const double rate = 1.0 / ramp;
+         const double t_reach = fabs(target - speed_) / rate;
+         const double t_ramp = std::min(elapsed, t_reach);
+         const double end_speed = speed_ + (target > speed_ ? rate : -rate) * t_ramp;
+         advance = (speed_ + end_speed) / 2.0 * t_ramp + target * (elapsed - t_ramp);
+         speed_ = (t_ramp >= t_reach) ? target : end_speed;
+      }
+      advance += advance_carry_;
+      advance_carry_ = advance - floor(advance);
+   }
+   const unsigned long long tape_advance = static_cast<unsigned long long>(floor(advance));
+   const bool tape_moving = motor_to_use || speed_ > 0.0 || tape_advance > 0;
    if (time_to_change_motor_state_ > 0)
    {
-      time_to_change_motor_state_ -= this_tick_time_;
+      // The delay starts with the request : the time elapsed before it (this tick was forced
+      // right after it) does not count
+      time_to_change_motor_state_ -= motor_request_fresh_ ? 1 : this_tick_time_;
+      motor_request_fresh_ = false;
 
       if (time_to_change_motor_state_ <= 0)
       {
          motor_on_ = next_motor_state_;
          time_to_change_motor_state_ = 0;
+
 
          if ( !motor_on_ )ppi8255_->SetDataRecorderR(false);
       }
@@ -3061,7 +3128,7 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
    }
 
 
-   if (motor_to_use)
+   if (tape_moving)
    {
       // If motor is just on, then dont add this ticks !
       if (!previous_motor_on_ )
@@ -3070,7 +3137,7 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
       {
          if ( tape_position_ <= nb_inversions_)
          {
-            counter_us_ += this_tick_time_;
+            counter_us_ += tape_advance;
             if ( counter_us_ > 4000000)
             {
                counter_sec_ ++;
@@ -3164,10 +3231,10 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
       {
          // If motor is off, or no tape is in, nothing happen
          // Do we have something ?
-         if (remaining_reversal_flux_ > this_tick_time_)
+         if (remaining_reversal_flux_ > tape_advance)
          {
             // Yes : Write the proper value to PPI port B
-            remaining_reversal_flux_ -= this_tick_time_;
+            remaining_reversal_flux_ -= tape_advance;
          }
          else
          {
@@ -3187,9 +3254,9 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
             }
             else
             {
-               if (tape_array_[tape_position_].length > ( this_tick_time_ - remaining_reversal_flux_))
+               if (tape_array_[tape_position_].length > ( tape_advance - remaining_reversal_flux_))
                {
-                  remaining_reversal_flux_ = tape_array_[tape_position_].length - ( this_tick_time_ - remaining_reversal_flux_);
+                  remaining_reversal_flux_ = tape_array_[tape_position_].length - ( tape_advance - remaining_reversal_flux_);
 
                   // Set the new value !
                   if (is_tape_inserted_ && play_ )
@@ -3305,6 +3372,7 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
       return this_tick_time_=4;
 
    this_tick_time_= static_cast<int>(( remaining_reversal_flux_ > 4000000)?4000000:remaining_reversal_flux_);
+   this_tick_time_ = TimeToCover(this_tick_time_);
    if (time_to_change_motor_state_ == 0)
       return this_tick_time_;
    if (this_tick_time_ > time_to_change_motor_state_)
@@ -3324,6 +3392,7 @@ void CTape::SetMotorOn ( bool bOn )
 
         /* m_bMotor = */next_motor_state_ = bOn;
       time_to_change_motor_state_ = MOTOR_DELAY;
+      motor_request_fresh_ = true;
       //m_bMotor = bOn;
       machine_->ForceTick ( this, 1) ;
    }
