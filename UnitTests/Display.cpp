@@ -18,7 +18,10 @@ CDisplay::CDisplay () : screenshot_detection_(false),
                         renderTexture_(nullptr), 
                         framebuffer_(nullptr), 
                         framebufferArray_(nullptr),
-                        screenshot_take_(false)
+                        screenshot_take_(false),
+                        // GetVideoBuffer(y) steps two framebuffer lines at a time
+                        m_Width(REAL_DISP_X),
+                        m_Height(REAL_DISP_Y / 2)
 
 {
 }
