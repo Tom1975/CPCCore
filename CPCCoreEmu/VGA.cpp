@@ -104,6 +104,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    buffered_ink_available_ = false;
    buffered_ink_reg_ = 0;
    buffered_pen_ = 0;
+   mode_window_ = false;
    finalized_black_mask_ = 0;
    border_reg_ = 0;
    memset(ink_regs_, 0, sizeof(ink_regs_));
@@ -474,25 +475,25 @@ void GateArray::TickSignals()
       hsync_counter_++;
    }
 
-   // TODO : This is incorrect : the mode changing should occur after the 2nd us APRES la reception du HSYNC.
-   // Mais ca empeche "Imperial Mahjong" de fonctionner correctement
+   // The mode is taken during the HSYNC of the GATE ARRAY (at most 6 us), from its 2nd microsecond : an
+   // HSYNC of 1 us does not change it (9.3.1). A write during such a microsecond is taken at its end.
+   // (An older note said that taking it after the 1st microsecond broke "Imperial Mahjong".)
+   if (mode_window_ && activation_mode_ != 0)
+   {
+      activation_mode_--;
+      if (activation_mode_ == 0)
+      {
+         buffered_screen_mode_ = screen_mode_;
+      }
+   }
    if (hsync_)
    {
       if ((sig_handler_->h_sync_ == false || hsync_counter_ == 6))
       {
          hsync_ = false;
       }
-
-      if (activation_mode_ != 0)
-      {
-         activation_mode_--;
-
-         if (activation_mode_ == 0)
-         {
-            buffered_screen_mode_ = screen_mode_;
-         }
-      }
    }
+   mode_window_ = hsync_ && hsync_counter_ >= 1;
    // End of HSYNC period
 
    // Ack of ctrl_int : bit 5 of interrupt counter reset

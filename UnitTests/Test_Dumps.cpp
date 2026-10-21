@@ -612,6 +612,26 @@ TEST(Dumps_Disk, Harricana)
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/[CPC] Harricana - Raid International Motoneige (1990)(Loriciels)(Fr)[RAW].raw", "run\"harri\r", &cmd_list, true));
 }
 
+// Imperial Mahjong : the disk holds CONFIG only ; it writes the configuration (language, side of a
+// vertical line drawn by the GATE ARRAY) and the catalogue with MAHJONG, then the game is run.
+// An older note said that taking the mode only from the 2nd microsecond of the HSYNC broke this game.
+TEST(Dumps_Disk, ImperialMahjong)
+{
+   TestDump test_dump;
+   CommandList cmd_list;
+   cmd_list.AddCommand(new CommandRunCycles(750));
+   cmd_list.AddCommand(new CommandKeyboard(" "));     // language
+   cmd_list.AddCommand(new CommandRunCycles(250));
+   cmd_list.AddCommand(new CommandKeyboard(" "));     // the vertical line is on the right
+   cmd_list.AddCommand(new CommandRunCycles(500));    // saving
+   cmd_list.AddCommand(new CommandKeyboard(" "));     // back to BASIC
+   cmd_list.AddCommand(new CommandRunCycles(250));
+   cmd_list.AddCommand(new CommandKeyboard("run\"mahjong\r"));
+   cmd_list.AddCommand(new CommandRunCycles(1000));   // title screen
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/ImperialMahjong.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/ImperialMahjong.dsk", "run\"config\r", &cmd_list));
+}
+
 //lappend testlist[SingleTest dsk24{ 6128 } {disk} {Hercule2.scp} {run"esat} {1070} {Hercule}]
 TEST(Dumps_Disk, Hercule)
 {

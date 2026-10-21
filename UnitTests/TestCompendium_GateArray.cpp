@@ -281,8 +281,7 @@ int ModeAfterAWriteOn(CRTC::TypeCRTC type, int write_c0, unsigned char r3 = 0x8E
 }
 
 // 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least.
-// DISABLED : the emulated GATE ARRAY changes the mode with a 1 us HSYNC.
-TEST(Compendium_9, DISABLED_ModeChangeNeedsAHSyncOfTwoMicroseconds)
+TEST(Compendium_9, ModeChangeNeedsAHSyncOfTwoMicroseconds)
 {
    EXPECT_EQ(2, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x81));
    EXPECT_EQ(0, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x82));
