@@ -344,6 +344,8 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    out.push_back(ga->vsync_rise_in_block_ ? 1 : 0);
    out.push_back(ga->cblack_vsync_ ? 1 : 0);
    out.push_back(ga->v26_);
+   out.push_back(ga->vsync_rise_pending_ ? 1 : 0);   // added later : optional when read
+   out.push_back(ga->buffered_pen_);                  // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -393,6 +395,8 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->vsync_rise_in_block_ = p[at++] != 0;
    ga->cblack_vsync_ = p[at++] != 0;
    ga->v26_ = p[at++];
+   ga->vsync_rise_pending_ = (at < size) ? (p[at++] != 0) : false;
+   ga->buffered_pen_ = (at < size) ? p[at++] : ga->pen_r_;
 
    return true;
 }

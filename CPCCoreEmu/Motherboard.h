@@ -268,12 +268,14 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
       if (elapsed_time_asic <= next_cycle)
       {
-         // Same CRTC clock as CRTC::Tick() : character logic, bus interface, HSYNC / VSYNC pins
+         // Same CRTC clock as CRTC::Tick() : end of the microsecond for the GATE ARRAY, then the next
+         // character (character logic, bus interface, HSYNC / VSYNC pins)
+         crtc_.gate_array_->TickVideo();
          crtc_.ClockCharacter();
+         crtc_.gate_array_->TickSignals();
 
          // Lightgun :
          // If X/Y is in the current zone => do something
-         crtc_.gate_array_->Tick();
 
          // Cursor
          if (crtc_.vlc_ >= crtc_.registers_list_[10] && crtc_.vlc_ <= crtc_.registers_list_[11]

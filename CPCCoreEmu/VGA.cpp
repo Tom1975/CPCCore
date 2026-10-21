@@ -93,6 +93,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    chsync_length_ = 0;
    chsync_mask_ = 0;
    vsync_rise_in_block_ = false;
+   vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
    memory_ram_buffer_ = 0;
@@ -102,6 +103,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    int i;
    buffered_ink_available_ = false;
    buffered_ink_reg_ = 0;
+   buffered_pen_ = 0;
    border_reg_ = 0;
    memset(ink_regs_, 0, sizeof(ink_regs_));
    for (i = 0; i < 32; i++)
@@ -178,6 +180,7 @@ void GateArray::Reset()
    chsync_length_ = 0;
    chsync_mask_ = 0;
    vsync_rise_in_block_ = false;
+   vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
 }
@@ -324,17 +327,17 @@ void GateArray::FinalizeBlock()
    nb_black_edges_ = kept;
 }
 
-unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
+unsigned int GateArray::Tick()
 {
-   // The previous block is complete : HSYNC black, then to the monitor
-   if (monitor_pending_)
-   {
-      FinalizeBlock();
-      monitor_->IncVideoBuffer();
-      monitor_->Tick();
-   }
-   monitor_pending_ = true;
+   TickVideo();
+   TickSignals();
+   return 4;
+}
 
+// Start of the microsecond, the CRTC has moved to its character : SSA, end of HSYNC (R52, interrupts),
+// raster interrupt and DMA of the ASIC, HSYNC and VSYNC of the GATE ARRAY
+void GateArray::TickSignals()
+{
    // MAJ SPLT ?
    if (ssa_new_counter_ > 0)
    {
@@ -489,7 +492,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       wait_for_hsync_ = 2;
       vsync_ = true;
       vsync_counter_ = 0;
-      vsync_rise_in_block_ = true;
+      vsync_rise_pending_ = true;
 
    }
 
@@ -504,6 +507,28 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       sig_handler_->hsync_raise_ = false;
    }
 
+
+}
+
+// End of the microsecond, the CRTC moves to the next character after it : the block displayed during
+// this microsecond is drawn, with the inks written by the Z80 during it (9.2.2), then the 2 bytes of
+// the character are read from the RAM, after the writes of the Z80 during the microsecond (8)
+unsigned int GateArray::TickVideo()
+{
+   // The previous block is complete : HSYNC black, then to the monitor
+   if (monitor_pending_)
+   {
+      FinalizeBlock();
+      monitor_->IncVideoBuffer();
+      monitor_->Tick();
+   }
+   monitor_pending_ = true;
+   // The CRTC VSYNC rose on the character of this block
+   if (vsync_rise_pending_)
+   {
+      vsync_rise_pending_ = false;
+      vsync_rise_in_block_ = true;
+   }
 
 #ifdef __NoOffset
    display_short_ = *(short*)(memory_->ram_buffer_[0] + ADDRESS);
@@ -533,6 +558,8 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    int* const line_buffer = buffer_to_display;
    if (buffer_to_display == 0)
    {
+      // Out of the screen : the pending ink is taken now
+      if (buffered_ink_available_) { monitor_->RecomputeColors(); }
       END_OF_DISPLAY
    }
    else
@@ -582,6 +609,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                      PUTPIXEL(0);
                      PUTPIXEL(1);
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      PUTPIXEL(2);
                      PUTPIXEL(3);
                      // Sprite
@@ -668,7 +696,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                         //pBufferToDisplay[i * 2] = m_InkList[(c1 >> (16-((i+1)*2))) & 0x3];
                         //pBufferToDisplay[i * 2+1] = m_InkList[(c1 >> (16 - ((i+1) * 2 ))) & 0x3];
 
-                        if (i == 1 && buffered_ink_available_)
+                        if (i == 3 && buffered_ink_available_)
                         {
                            monitor_->RecomputeColors(); 
                         }
@@ -732,11 +760,11 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      buffer_to_display[1] = ink_list_[(c1 >> (16 - (1 + 1))) & 0x1];
                      buffer_to_display[2] = ink_list_[(c1 >> (16 - (2 + 1))) & 0x1];
                      buffer_to_display[3] = ink_list_[(c1 >> (16 - (3 + 1))) & 0x1];
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      buffer_to_display[4] = ink_list_[(c1 >> (16 - (4 + 1))) & 0x1];
                      buffer_to_display[5] = ink_list_[(c1 >> (16 - (5 + 1))) & 0x1];
                      buffer_to_display[6] = ink_list_[(c1 >> (16 - (6 + 1))) & 0x1];
                      buffer_to_display[7] = ink_list_[(c1 >> (16 - (7 + 1))) & 0x1];
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      buffer_to_display[0 + 8] = ink_list_[(c1 >> (8 - (0 + 1))) & 0x1];
                      buffer_to_display[1 + 8] = ink_list_[(c1 >> (8 - (1 + 1))) & 0x1];
                      buffer_to_display[2 + 8] = ink_list_[(c1 >> (8 - (2 + 1))) & 0x1];
@@ -797,6 +825,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
+                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
                   *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
@@ -861,10 +890,14 @@ void GateArray::TickIO()
          {
             if (monitor_->screen_->IsDisplayed())
             {
+               // The new colour is displayed from the 2nd byte of the character of this microsecond
+               // (9.2.2) : the inks are changed when the block is drawn, the palette of the ASIC now.
+               // An ink still pending (written out of the screen, or twice in the microsecond) first
+               if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+               memory_->UpdateAsicPalette(pen_r_, data - 0x40, false);
+               buffered_pen_     = pen_r_;
                buffered_ink_     = ListeColorsIndex[data & 0x5F];
                buffered_ink_reg_ = data & 0x5F;
-
-               memory_->UpdateAsicPalette(pen_r_, data - 0x40);
                buffered_ink_available_ = true;
                /*if ( m_bSpeed)
                {

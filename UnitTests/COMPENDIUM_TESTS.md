@@ -64,9 +64,9 @@ pas de comportement à vérifier).
 
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
-| 8.1 | LD (HL),r8 : écriture RAM vue par le GA selon l'octet | ❌ | **DISABLED** : `Compendium_8.LdHlR8` (le GA lit la RAM 1 µs trop tôt : un octet écrit pendant la µs de sa lecture n'est pas affiché) |
-| 8.2 | LD (nn),HL (L à la 4e µs, H à la 5e) | ❌ | **DISABLED** : `Compendium_8.LdAaaaHl` (même cause) |
-| 8.3 | PUSH r16 (octet fort à la 3e µs, faible à la 4e) | ❌ | **DISABLED** : `Compendium_8.PushR16` (même cause) |
+| 8.1 | LD (HL),r8 : écriture RAM vue par le GA selon l'octet | ✅ | `Compendium_8.LdHlR8` (le GA lit la RAM à la fin de la µs, après les écritures du Z80) |
+| 8.2 | LD (nn),HL (L à la 4e µs, H à la 5e) | ✅ | `Compendium_8.LdAaaaHl` |
+| 8.3 | PUSH r16 (octet fort à la 3e µs, faible à la 4e) | ✅ | `Compendium_8.PushR16` |
 
 ## 9. Gate Array
 
@@ -75,7 +75,7 @@ pas de comportement à vérifier).
 | 9.1 | Pixelisation : ordre des bits par mode (0, 1, 2, 3) | ✅ | `Compendium_9.PixelBitsOfEachMode` |
 | 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | 🟡 | CPC+ aligné : `Compendium_9.PixelsOfEveryModeAlignedOnTheCpcPlus`. **DISABLED** : `Mode2PixelsAreOnePixelEarlyOnTheGateArray40010` (type de GA non émulé) |
 | 9.2.1 | Pixels parasites bord/mode 2 | ➖ | défaut d'alimentation, non émulé |
-| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ❌ | **DISABLED** : `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond` (1 µs trop tard), `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (1 µs trop tard, dépend du mode), `InkOnePixelEarlierInMode2OnTheAsic40226` |
+| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | 🟡 | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire). **DISABLED** : `InkOnePixelEarlierInMode2OnTheAsic40226` (voir §9.1) |
 | 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ❌ | **DISABLED** : `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (le mode change avec une HSYNC de 1 µs) |
 | 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
 | 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |

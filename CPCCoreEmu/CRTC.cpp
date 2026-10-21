@@ -815,11 +815,13 @@ void CRTC::ClockCharacter()
 
 unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
 {
+   // End of the microsecond for the GATE ARRAY, then the next character
+   gate_array_->TickVideo();
    ClockCharacter();
+   gate_array_->TickSignals();
 
    // Lightgun :
    // If X/Y is in the current zone => do something
-   gate_array_->Tick();
    
    // Cursor
    if ( vlc_ >= registers_list_[10] && vlc_ <= registers_list_[11]

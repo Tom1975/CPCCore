@@ -73,6 +73,10 @@ public:
 
    // Demarrage
    unsigned int Tick ();
+   // One microsecond is two steps around the clock of the CRTC : TickVideo() at the end of the
+   // microsecond (before the CRTC moves to the next character), TickSignals() at its start (after)
+   unsigned int TickVideo ();
+   void TickSignals ();
    void PreciseTick ();
    void TickIO ();
    void TickDisplays ();
@@ -116,6 +120,7 @@ public:
    unsigned short chsync_mask_;    // SIG_GA_HSYNC on each pixel of the finalized block (bit 0 = 1st pixel)
    // VSYNC black (CBLACK_VSYNC, 16.2.3) : from the rising edge of the CRTC VSYNC to the end of the 26th HSYNC
    bool vsync_rise_in_block_;      // the CRTC VSYNC rose on the block not finalized yet
+   bool vsync_rise_pending_;       // the CRTC VSYNC rose on this character : for the block drawn at its end
    bool cblack_vsync_;
    unsigned char v26_;
 
@@ -145,6 +150,7 @@ public:
    unsigned int sprite_ink_list_[16];
    unsigned int buffered_ink_ ;
    unsigned char buffered_ink_reg_;
+   unsigned char buffered_pen_;     // pen of the pending ink (PENR may change before the ink is applied)
    bool buffered_ink_available_;
 
    unsigned char screen_mode_;

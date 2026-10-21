@@ -203,7 +203,10 @@ int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, I
    const int new_colour = pixels[pixels.size() - 1];
    if (old_colour == new_colour) return -101;
    for (int i = 0; i < (int)pixels.size(); ++i)
+   {
       if (pixels[i] == new_colour) return i - 3 * 16;
+      if (pixels[i] != old_colour) return -103;   // a third colour before the new one
+   }
    return -102;
 }
 }
@@ -211,10 +214,7 @@ int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, I
 // 9.2.2 : CRTC 0, 1, 2 (GATE ARRAY 40010) : the new colour is drawn from the 2nd byte of the
 // character displayed during the microsecond of the I/O, whatever the mode (Mode 2 pixel 120 of the
 // schematics for OUT (C),r8 and OUT (n),A started on C0vs = 6, 152 for OUTI).
-// DISABLED : the new colour comes one microsecond late (pixel 24) : the GATE ARRAY draws the block
-// of the microsecond k + 1 at the end of the microsecond k, an ink written during k + 1 changes the
-// following block.
-TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecond)
+TEST(Compendium_9, InkTakenOnTheSecondByteOfTheIoMicrosecond)
 {
    for (int mode : { 0, 1, 2 })
    {
@@ -226,9 +226,7 @@ TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecond)
 }
 
 // 9.2.2 : CRTC 3 (ASIC 40489) : same position, whatever the mode.
-// DISABLED : one microsecond late, and the position depends on the mode (pixel 16 in mode 0, 20 in
-// modes 1 and 2).
-TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus)
+TEST(Compendium_9, InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus)
 {
    for (int mode : { 0, 1, 2 })
    {
@@ -239,7 +237,7 @@ TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlu
 }
 
 // 9.2.2 : CRTC 4 (ASIC 40226) : the colour changes one Mode 2 pixel earlier in mode 2.
-// DISABLED : not emulated, and the colour comes one microsecond late (see above).
+// DISABLED : not emulated (see 9.1, Mode2PixelsAreOnePixelEarlyOnTheGateArray40010).
 TEST(Compendium_9, DISABLED_InkOnePixelEarlierInMode2OnTheAsic40226)
 {
    EXPECT_EQ(8, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 1, InkInstruction::kOutCR8));
@@ -379,9 +377,7 @@ std::vector<unsigned char> Ld(unsigned char opcode, unsigned short value)
 
 // 8.1 : LD (HL),r8 (2 us) started on C0vs = c0 : the byte is written on its 2nd microsecond. The
 // GATE ARRAY reads the bytes 0, 1 on c0 (too early : 00), the bytes 2, 3 on c0 + 1 (FF).
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_LdHlR8)
+TEST(Compendium_8, LdHlR8)
 {
    const int expected[4] = { 0x00, 0x00, 0xFF, 0xFF };
    for (int n = 0; n < 4; ++n)
@@ -398,9 +394,7 @@ TEST(Compendium_8, DISABLED_LdHlR8)
 
 // 8.2 : LD (aaaa),HL (5 us), H = &FF, L = &55 : L is written on the 4th microsecond, H on the 5th.
 // Bytes aaaa, aaaa + 1 displayed : aaaa = byte 4 : 00 00 ; 5 : 00 00 ; 6 : 55 00 ; 7 : 55 FF.
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_LdAaaaHl)
+TEST(Compendium_8, LdAaaaHl)
 {
    const std::pair<int, int> expected[4] = { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x55, 0x00 }, { 0x55, 0xFF } };
    for (int n = 4; n < 8; ++n)
@@ -418,9 +412,7 @@ TEST(Compendium_8, DISABLED_LdAaaaHl)
 // 8.3 : PUSH DE (4 us), D = &FF, E = &55 : D is written (at SP - 1) on the 3rd microsecond, E (at
 // SP - 2) on the 4th. Bytes SP - 2, SP - 1 displayed : SP = byte 4 : 00 00 ; 5, 6, 7 : 00 FF ;
 // 8 : 55 FF.
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_PushR16)
+TEST(Compendium_8, PushR16)
 {
    const std::pair<int, int> expected[5] = { { 0x00, 0x00 }, { 0x00, 0xFF }, { 0x00, 0xFF }, { 0x00, 0xFF }, { 0x55, 0xFF } };
    for (int n = 4; n < 9; ++n)
