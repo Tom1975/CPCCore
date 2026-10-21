@@ -86,6 +86,7 @@ public:
    unsigned char* memory_ram_buffer_;
    unsigned char interrupt_counter_;   // 6 bits counter
    bool interrupt_raised_;
+   bool r52_reset_held_;              // R52 reset through RMR during this microsecond (27.2)
    unsigned char wait_for_hsync_ ;
 
    // Sync is already devided into two usable signals

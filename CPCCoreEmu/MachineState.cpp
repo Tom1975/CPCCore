@@ -352,6 +352,7 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    out.push_back(ga->sr_mode_);
    out.push_back(ga->sr_div_mode_);
    out.push_back(ga->sr_shown_ ? 1 : 0);
+   out.push_back(ga->r52_reset_held_ ? 1 : 0);        // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -416,6 +417,7 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    {
       ga->sr_mode_ = ga->sr_div_mode_ = ga->buffered_screen_mode_ & 3;
    }
+   ga->r52_reset_held_ = (at < size) ? (p[at++] != 0) : false;
 
    return true;
 }

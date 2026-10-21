@@ -104,6 +104,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    buffered_ink_available_ = false;
    buffered_ink_reg_ = 0;
    buffered_pen_ = 0;
+   r52_reset_held_ = false;
    mode_window_ = false;
    sr_ = 0;
    sr_div_ = 0;
@@ -410,7 +411,10 @@ void GateArray::TickSignals()
    // Falling edge of HSync
    if (sig_handler_->hsync_fall_)
    {
-      interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
+      // A reset of R52 through RMR holds during the microsecond of its write : on the last microsecond
+      // of the HSYNC, it wins over the increment of its end (27.2)
+      if (!r52_reset_held_)
+         interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
 
       // Plus ?
       if (plus_ && memory_->GetPRI() != 0)
@@ -459,6 +463,7 @@ void GateArray::TickSignals()
       }
       sig_handler_->hsync_fall_ = false;
    }
+   r52_reset_held_ = false;
 
    // Seems that it should occur either on HSync fall or when Monitor hsync is falling (ie 6us after hsync start at most)
    if ((sig_handler_->hsync_raise_)
@@ -939,8 +944,9 @@ void GateArray::TickIO()
 
             if (data & 0x10)
             {
-               // Remise a zero diviseur d'interruption
+               // Remise a zero diviseur d'interruption, until the end of this microsecond (27.2)
                interrupt_counter_ = 0;
+               r52_reset_held_ = true;
                sig_handler_->req_int_ = false;
                sig_handler_->int_ = false;
                //m_Sig->AcqInt ();

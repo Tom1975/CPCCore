@@ -357,9 +357,7 @@ TEST(Compendium_27, RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync)
    EXPECT_EQ(1, R52AfterHSyncEndWithResetAt(kR2 + 14 - 2));
 }
 
-// DISABLED : the end of the HSYNC increments R52 after the reset (R52 = 1) : GATE ARRAY writes are
-// applied without their T-state (CSig::Out -> GateArray::TickIO), unlike the CRTC ones.
-TEST(Compendium_27, DISABLED_RmrResetOnTheLastMicrosecondOfTheHSyncWins)
+TEST(Compendium_27, RmrResetOnTheLastMicrosecondOfTheHSyncWins)
 {
    EXPECT_EQ(0, R52AfterHSyncEndWithResetAt(kR2 + 14 - 1));
 }
