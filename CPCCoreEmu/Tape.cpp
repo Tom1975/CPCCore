@@ -3056,14 +3056,14 @@ int CTape::TimeToCover(int length) const
    {
       // speed.t + rate.t^2/2 = d
       const double disc = speed_ * speed_ + 2.0 * rate * d;
-      t = (rate > 0) ? (-speed_ + sqrt(disc)) / rate : (-speed_ + sqrt(std::max(0.0, disc))) / rate;
+      t = (rate > 0) ? (-speed_ + sqrt(disc)) / rate : (-speed_ + sqrt((std::max)(0.0, disc))) / rate;
    }
    else
    {
       // Past the ramp : constant speed (the tape has stopped if running down)
       t = (target == 0.0) ? t_reach : t_reach + (d - d_reach) / target;
    }
-   return static_cast<int>(std::min(4000000.0, std::max(1.0, ceil(t))));
+   return static_cast<int>((std::min)(4000000.0, (std::max)(1.0, ceil(t))));
 }
 
 unsigned int CTape::Tick (/*unsigned int nbTicks*/)
@@ -3107,7 +3107,7 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
          // Time to reach the target, then constant speed
          const double rate = 1.0 / ramp;
          const double t_reach = fabs(target - speed_) / rate;
-         const double t_ramp = std::min(elapsed, t_reach);
+         const double t_ramp = (std::min)(elapsed, t_reach);
          const double end_speed = speed_ + (target > speed_ ? rate : -rate) * t_ramp;
          advance = (speed_ + end_speed) / 2.0 * t_ramp + target * (elapsed - t_ramp);
          speed_ = (t_ramp >= t_reach) ? target : end_speed;
