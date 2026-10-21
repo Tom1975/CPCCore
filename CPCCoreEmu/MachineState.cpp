@@ -634,6 +634,7 @@ void MachineState::WriteFdc(Motherboard* board, std::vector<unsigned char>& out)
    out.push_back(f->hut_);
    out.push_back(f->start_dio_ ? 1 : 0);
    out.push_back(f->start_dio_pending_ ? 1 : 0);
+   PutU32(out, f->data_service_ticks_);               // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -757,6 +758,10 @@ bool MachineState::ReadFdc(Motherboard* board, const unsigned char* p, size_t si
       f->hut_ = p[at++];
       f->start_dio_ = p[at++] != 0;
       f->start_dio_pending_ = p[at++] != 0;
+   }
+   if (at + 4 <= size)
+   {
+      f->data_service_ticks_ = GetU32(&p[at]); at += 4;
    }
 
    // Writer and reader must agree byte for byte; if they ever drift apart this

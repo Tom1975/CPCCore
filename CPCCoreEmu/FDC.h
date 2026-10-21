@@ -289,6 +289,7 @@ protected:
    unsigned char hut_;                 // Specify : head unload time
    bool start_dio_;                    // DIO of the command, set once EXM is up (status #30 then #70)
    bool start_dio_pending_;
+   unsigned int data_service_ticks_;   // FDC ticks left to read the offered data byte
    void StartExecution();
 
    // Definition of commands

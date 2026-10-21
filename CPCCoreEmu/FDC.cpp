@@ -38,6 +38,10 @@
 #define SYNC_COUNT (12*8)
 
 #define DELAY_INSTR 30
+// A read data byte must be read within 26 us : 13 us in MFM at 8 MHz (datasheet), 4 MHz on the CPC ;
+// 26 NOPs measured by 64nops. A read on the 26th microsecond is in time (Cosa Nostra reads at 26 us) :
+// the byte is checked on the next FDC tick (2 us), 28 us after it was offered.
+#define kDataServiceTicks 14
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Result type
@@ -117,6 +121,7 @@ FDC::FDC(void) : load_progress_(-1)
    hut_ = 1;
    start_dio_ = false;
    start_dio_pending_ = false;
+   data_service_ticks_ = 0;
 
    for (int i = 0; i < NB_COMMAND_MAX; i++)
    {
@@ -741,8 +746,10 @@ void FDC::ResultPhase ()
    exm_ = false;
 
 
-   // Something to do ?
-   results_count_ = fdc_command_ [index_fdc_command_].result_number;
+   // Something to do ? Only when the result phase starts : a read (READ_END) is already in it, and its
+   // results may already be read (the count is not given again)
+   if (state_ != RESULT)
+      results_count_ = fdc_command_ [index_fdc_command_].result_number;
    /*if (FdcCommand[m_IndexFDCCommand].TransferType == WRITE)
    {
    if ( FdcCommand [m_IndexFDCCommand].func != NULL)
@@ -950,6 +957,13 @@ unsigned int FDC::Tick( )
    {
       timer_phase_ = 0;
       if (head_unload_edges_ > 0 && --head_unload_edges_ == 0) head_loaded_ = false;
+   }
+
+   // A data byte not read in time : overrun (the next one would overwrite it)
+   if (data_service_ticks_ > 0 && --data_service_ticks_ == 0 && state_ == EXEC_PRECISE && nb_data_in_buffer_ > 0
+      && fdc_command_[index_fdc_command_].transfer_type == READ)
+   {
+      or_ = true;
    }
 
    if (delay_for_instruction_>0)
@@ -1634,6 +1648,7 @@ void FDC::ReadSectorTick ()   // 6
             }
 
             nb_data_in_buffer_ = 1;
+            data_service_ticks_ = kDataServiceTicks;   // to be read within 26 us
 
             state_ = EXEC_PRECISE;
             rqm_ = true;
@@ -1645,6 +1660,7 @@ void FDC::ReadSectorTick ()   // 6
          case 2:
             // One data, then go to CRC check
             nb_data_in_buffer_ = 1;
+            data_service_ticks_ = kDataServiceTicks;   // to be read within 26 us
             state_ = EXEC_PRECISE;
             rqm_ = true;
             // Check for overrun - TODO
@@ -3471,6 +3487,7 @@ void FDC::ReadTrackTick ()
             if ( data_to_return_ > 0)
             {
                nb_data_in_buffer_ = 1;
+               data_service_ticks_ = kDataServiceTicks;   // to be read within 26 us
 
                state_ = EXEC_PRECISE;
                rqm_ = true;
@@ -3494,6 +3511,7 @@ void FDC::ReadTrackTick ()
             if (data_to_return_ > 0)
             {
                nb_data_in_buffer_ = 1;
+               data_service_ticks_ = kDataServiceTicks;   // to be read within 26 us
                state_ = EXEC_PRECISE;
                rqm_ = true;
             }
