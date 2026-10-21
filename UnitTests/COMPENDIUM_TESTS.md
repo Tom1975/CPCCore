@@ -30,7 +30,7 @@ pas de comportement à vérifier).
 | 4.2 | Numérotation des CRTC | ➖ | |
 | 4.3 | Vue générale des registres (bits par type) | 🟡 | masques R8/R9 : `CRTC_RegisterMasks.*`. À faire : masques de R0..R7, R12/R13 (bits utiles par type) |
 | 4.4.1 | Accès au CRTC (ports) | ✅ | `CRTC_RegisterMasks.R9KeepsOnlyFiveBits` |
-| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : voir §7.2 (DISABLED, 3e µs au lieu de 4e). À faire : IN A,(n), INI/IND |
+| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : port lu à sa 4e µs (§7.2). À faire : IN A,(n), INI/IND |
 | 4.4.3 | Délais d'accès | 🟡 | `CRTC_BusInterface.*`, `Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc`. À faire : OUT(n),A (3e µs partout), OUTD, lectures |
 | 4.4.4 | Dissection des OUT | ✅ | `CRTC_BusInterface.TState0IsTakenNow`, `Z80_IoTiming.*` |
 
@@ -57,7 +57,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 7.1 | Principes | ➖ | |
-| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | 🟡 | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`. **DISABLED** : `InReadsTheVSyncOnItsFourthMicrosecond` (l'IN émulé lit le port B à sa 3e µs ; la lecture à la 4e µs est prête mais décale le timing disque : captures de tests disque à refaire) |
+| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | ✅ | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`, `InReadsTheVSyncOnItsFourthMicrosecond` |
 | 7.3 | FAKE VSYNC : port B en sortie, bit 0 voudrait forcer la VSYNC | ✅ | `Compendium_7.FakeVSyncDoesNotOverrideTheCrtc` : d'après le compendium, ne fonctionne pas (ou mal) selon les CPC, le PPI est trop faible face au CRTC qui pilote la ligne ; l'émulation suit le CRTC |
 
 ## 8. Affichage, Z80A & Gate Array

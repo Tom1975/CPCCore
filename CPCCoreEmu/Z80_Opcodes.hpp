@@ -1219,7 +1219,7 @@ unsigned int Z80::DefaultTick()
 
    case M_IO_R + 2:
    {
-      sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF);
+      // WAIT until the last microsecond of the cycle : the Z80 samples the data bus at its end
       nextcycle = 3 - (counter_ & 0x3);
       t_ = 4;
       counter_ += nextcycle + 1;
@@ -1227,6 +1227,9 @@ unsigned int Z80::DefaultTick()
 
    }
    case M_IO_R + 4:
+      // The port is read on the last microsecond of the I/O cycle (compendium 7.2 : IN reads the
+      // VSYNC on its 4th microsecond)
+      sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF);
       current_data_ = data_;
    case M_IO_R + 5:
    case M_IO_R + 6:

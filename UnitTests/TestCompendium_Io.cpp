@@ -198,11 +198,7 @@ TEST(Compendium_7, PpiPortBBit0IsTheCrtcVSyncPin)
 // 7.2 : IN A,(C) lasts 4 us ; A gets bit 0 of port B on its 4th microsecond. The IN starts
 // k us before the VSYNC (C0 = 0 of the line C4 = R7) : bit 0 = 1 if the VSYNC starts on one of
 // its 4 microseconds.
-// DISABLED : the emulated IN reads port B on its 3rd microsecond (a VSYNC starting on the 4th one
-// is not seen). Reading it on the 4th one is ready, but it moves the disk timings : the polling loops
-// end one iteration earlier, the firmware ticks move by one interrupt and the disk is read at another
-// rotation phase. Some screenshots of the disk tests must be recorded again with it.
-TEST(Compendium_7, DISABLED_InReadsTheVSyncOnItsFourthMicrosecond)
+TEST(Compendium_7, InReadsTheVSyncOnItsFourthMicrosecond)
 {
    for (int start = 52; start < 64; ++start)
    {
