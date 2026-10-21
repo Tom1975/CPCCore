@@ -100,8 +100,11 @@ TEST(Compendium_9, PixelBitsOfEachMode)
       RecordFrame(m);
       const Machine::Block* b = m.FindBlock(kLine, 20);
       ASSERT_NE(nullptr, b);
+      // 9.1 : on the GATE ARRAY 40010, the Mode 2 pixels are one pixel early (the screen is filled with
+      // the same byte : the last pixel is the first one of the next block)
+      const int early = (mode == 2) ? 1 : 0;
       for (int i = 0; i < 16; ++i)
-         EXPECT_EQ(expected[mode][i % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
+         EXPECT_EQ(expected[mode][(i + early) % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
    }
 }
 
@@ -125,8 +128,7 @@ void DisplayEdges(Machine& m, int mode, int* start, int* end)
 
 // 9.1 : on the GATE ARRAY 40007, 40008, 40010 (and the ASIC 40226), the Mode 2 pixels are drawn
 // 1/16 us early : the border stops one pixel earlier and starts one pixel earlier on C0 = R1.
-// DISABLED : not emulated (the type of GATE ARRAY, GateArray::type_gate_array_, is never used).
-TEST(Compendium_9, DISABLED_Mode2PixelsAreOnePixelEarlyOnTheGateArray40010)
+TEST(Compendium_9, Mode2PixelsAreOnePixelEarlyOnTheGateArray40010)
 {
    Machine m1(CRTC::HD6845S), m2(CRTC::HD6845S);
    int start1, end1, start2, end2;
@@ -237,8 +239,7 @@ TEST(Compendium_9, InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus)
 }
 
 // 9.2.2 : CRTC 4 (ASIC 40226) : the colour changes one Mode 2 pixel earlier in mode 2.
-// DISABLED : not emulated (see 9.1, Mode2PixelsAreOnePixelEarlyOnTheGateArray40010).
-TEST(Compendium_9, DISABLED_InkOnePixelEarlierInMode2OnTheAsic40226)
+TEST(Compendium_9, InkOnePixelEarlierInMode2OnTheAsic40226)
 {
    EXPECT_EQ(8, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 1, InkInstruction::kOutCR8));
    EXPECT_EQ(7, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 2, InkInstruction::kOutCR8));
@@ -325,15 +326,18 @@ unsigned short ScreenByte(int line, int c0, int n)
    return (unsigned short)(kScreen | ((line % 8) << 11) | ((ma * 2) & 0x7FF) | (n & 1));
 }
 
-// Byte displayed for the byte n of the microsecond C0 = c0 of 'line' (mode 2, pen 1 = bit set).
+// Byte displayed for the byte n of the microsecond C0 = c0 of 'line' (mode 2, pen 1 = bit set). On the
+// GATE ARRAY 40010 the Mode 2 pixels are one pixel early (9.1) : the first one is in the previous block.
 int DisplayedByte(Machine& m, int line, int c0, int n)
 {
    const Machine::Block* b = m.FindBlock(line, c0 + n / 2 + 1);
-   if (b == nullptr) return -1;
+   const Machine::Block* previous = m.FindBlock(line, c0 + n / 2);
+   if (b == nullptr || previous == nullptr) return -1;
    int byte = 0;
    for (int i = 0; i < 8; ++i)
    {
-      const int pen = PenOf(m, b->pixels[(n & 1) * 8 + i]);
+      const int at = (n & 1) * 8 + i - 1;
+      const int pen = PenOf(m, at < 0 ? previous->pixels[15] : b->pixels[at]);
       if (pen < 0) return -1;
       byte = (byte << 1) | pen;
    }

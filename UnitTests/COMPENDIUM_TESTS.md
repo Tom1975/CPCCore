@@ -73,9 +73,9 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 9.1 | Pixelisation : ordre des bits par mode (0, 1, 2, 3) | ✅ | `Compendium_9.PixelBitsOfEachMode` |
-| 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | 🟡 | CPC+ aligné : `Compendium_9.PixelsOfEveryModeAlignedOnTheCpcPlus`. **DISABLED** : `Mode2PixelsAreOnePixelEarlyOnTheGateArray40010` (type de GA non émulé) |
+| 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | ✅ | `Compendium_9.Mode2PixelsAreOnePixelEarlyOnTheGateArray40010`, CPC+ aligné : `PixelsOfEveryModeAlignedOnTheCpcPlus` |
 | 9.2.1 | Pixels parasites bord/mode 2 | ➖ | défaut d'alimentation, non émulé |
-| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | 🟡 | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire). **DISABLED** : `InkOnePixelEarlierInMode2OnTheAsic40226` (voir §9.1) |
+| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226` |
 | 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ❌ | **DISABLED** : `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (le mode change avec une HSYNC de 1 µs) |
 | 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
 | 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |

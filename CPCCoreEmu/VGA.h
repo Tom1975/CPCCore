@@ -107,6 +107,9 @@ public:
    // character : R2.JIT, R3.JIT). The black is applied then, and the block is given to the monitor.
    struct BlackEdge { unsigned char pixel; bool level; };
    void FinalizeBlock();
+   unsigned short finalized_black_mask_;   // pixels of the last finalized block set black by CBLACK
+   // 9.1 : Mode 2 pixels output 1/16 us early (GATE ARRAY 40007, 40008, 40010, ASIC 40226)
+   void Mode2EarlyPixel(int* buffer);
    int* last_block_;               // block drawn on the previous tick (nullptr : out of the screen)
    bool monitor_pending_;          // the previous block has not been given to the monitor yet
    bool cblack_hsync_;             // CBLACK_HSYNC at the start of the next block to finalize

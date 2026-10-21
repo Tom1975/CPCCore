@@ -104,6 +104,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    buffered_ink_available_ = false;
    buffered_ink_reg_ = 0;
    buffered_pen_ = 0;
+   finalized_black_mask_ = 0;
    border_reg_ = 0;
    memset(ink_regs_, 0, sizeof(ink_regs_));
    for (i = 0; i < 32; i++)
@@ -250,6 +251,7 @@ void GateArray::FinalizeBlock()
 {
    const unsigned char quarters = crtc_->hsync_quarters_previous_;
    bool pin = hsync_pin_last_;
+   finalized_black_mask_ = 0;
    for (unsigned int q = 0; q < 4; ++q)
    {
       const bool level = ((quarters >> q) & 1) != 0;
@@ -302,7 +304,10 @@ void GateArray::FinalizeBlock()
          }
       }
       if ((cblack_hsync_ || cblack_vsync_) && last_block_ != nullptr)
+      {
          last_block_[p] = 0xFF000000;
+         finalized_black_mask_ |= (1 << p);
+      }
 
       if (chsync_countdown_ == 0 && cblack_hsync_)
       {
@@ -325,6 +330,17 @@ void GateArray::FinalizeBlock()
       black_edges_[kept++].pixel -= 16;
    }
    nb_black_edges_ = kept;
+}
+
+// 9.1 : the GATE ARRAY 40007, 40008, 40010 and the ASIC 40226 output the Mode 2 pixels 1/16 us earlier
+// than the other modes (not the ASIC 40489) : the border stops and starts one pixel earlier too. The
+// first pixel of the block goes to the last one of the previous block, unless CBLACK masked it.
+void GateArray::Mode2EarlyPixel(int* buffer)
+{
+   if (buffer == nullptr || buffered_screen_mode_ != 2 || crtc_->type_crtc_ == CRTC::AMS40489) return;
+   if (last_block_ != nullptr && (finalized_black_mask_ & 0x8000) == 0)
+      last_block_[15] = buffer[0];
+   memmove(buffer, buffer + 1, 15 * sizeof(int));
 }
 
 unsigned int GateArray::Tick()
@@ -538,7 +554,7 @@ unsigned int GateArray::TickVideo()
 #define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->AddressC9()+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
 #define DISPEN_TEST {dispen_buffered_ = crtc_->DispEn(0); dispen_buffered_h_ = crtc_->DispEn(1);}
-#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);last_block_ = line_buffer;display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;return 4;}
+#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);Mode2EarlyPixel(line_buffer);last_block_ = line_buffer;display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;return 4;}
 
 
    // PLUS : Handle the SSCR register
@@ -795,8 +811,21 @@ unsigned int GateArray::TickVideo()
                {
                   memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
 
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
+                  if (buffered_ink_available_)
+                  {
+                     const int first_of_second_byte = Mode2ExtendedLut[display_short_.byte.h][0];
+                     monitor_->RecomputeColors();
+                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
+                     // 9.2.2 : the GATE ARRAY 40010 changes the ink on the pixel 8 of its output whatever the
+                     // mode : the Mode 2 pixels being 1/16 us early (9.1), the first one of the 2nd byte keeps
+                     // the old ink. The ASIC 40226 changes it one pixel earlier in Mode 2.
+                     if (crtc_->type_crtc_ != CRTC::AMS40226)
+                        buffer_to_display[8] = first_of_second_byte;
+                  }
+                  else
+                  {
+                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
+                  }
 
                   END_OF_DISPLAY
                
