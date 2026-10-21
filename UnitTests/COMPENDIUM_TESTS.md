@@ -125,7 +125,7 @@ pas de comportement à vérifier).
 | 12.2.1 | RLAL CRTC 0 | ✅ | `CRTC_Crtc0Vertical.LineToLineRupture` |
 | 12.3 | CRTC 1 (+ RLAL) | ✅ | `CRTC_Crtc1.R4WrittenOnTheLastLine`, `Compendium_12.Crtc1R4EqualsC4BeforeTheLastLineOfTheRow`, `Compendium_12.LineToLineRuptureCrtc134` |
 | 12.4 | CRTC 2 | ✅ | voir 12.4.1-12.4.2 |
-| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine` |
+| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé) |
 | 12.4.2 | RLAL CRTC 2 | ✅ | `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 12.5 | CRTC 3/4 (+ exception CRTC 3 : R4=0 avec « ROM select » simultané) | 🟡 | `CRTC_AsicVertical.C4Overflows`, RLAL : `Compendium_12.LineToLineRuptureCrtc134`. À faire : exception CRTC 3 |
 
@@ -142,8 +142,8 @@ pas de comportement à vérifier).
 | 13.2.7 | RVLL CRTC 0 | ✅ | `Compendium_13.Crtc0RvllHiddenTwoMicrosecondLines` (tableau 1 p113), `Crtc0RvllWithR2Zero` (tableau 2). Relevé : chaque écriture de R0 tombe sur C0=0 de la ligne qu'elle dimensionne |
 | 13.3 | CRTC 1 : R0 libre (R0=0 normal) ; bug OUTI | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine`. Bug OUTI (C0 déborde « dans certains cas ») : ➖ non déterministe |
 | 13.3.1 | RVI (tableaux p116-118) | ✅ | `Compendium_13.Crtc1Rvi` (64 transitions), `AsicRvi` (lignes de compatibilité CRTC 3/4). Coquille : ligne C9 1→7 (3/4), R0.1 vaut 50 d'après sa séquence C0, pas 49 |
-| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`. **DISABLED** : `Compendium_13.Crtc2R0ZeroCountsNormally` (avec R0=0, le CRTC 2 émulé reste à C4=C9=0). À faire : R2=0 obligatoire |
-| 13.4.1 | RVLL CRTC 2 | 🟡 | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs). **DISABLED** : `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15 : même cause que §13.4) |
+| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1). À faire : R2=0 obligatoire |
+| 13.4.1 | RVLL CRTC 2 | ✅ | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs), `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15) |
 | 13.5 | CRTC 3/4 : R0=0 sans effet de bord | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine` |
 | 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | 🟡 | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`. À faire : chronogrammes p124-125 par type |
 | 13.7.1 | CRTC 1 : RFD par R0 prolongé (§13.7.1.2) | ❌ | non modélisé (DISABLED attendu) |
