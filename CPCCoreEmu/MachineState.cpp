@@ -601,6 +601,14 @@ void MachineState::WriteFdc(Motherboard* board, std::vector<unsigned char>& out)
    out.push_back(f->delayed_load_container_ ? 1 : 0);
    out.push_back(f->on_index_ ? 1 : 0);
    out.push_back(f->read_data_done_ ? 1 : 0);
+   // Head load (added later : optional when read)
+   PutU32(out, f->timer_phase_);
+   PutU32(out, f->start_delay_);
+   out.push_back(f->head_loaded_ ? 1 : 0);
+   PutU32(out, f->head_unload_edges_);
+   out.push_back(f->hut_);
+   out.push_back(f->start_dio_ ? 1 : 0);
+   out.push_back(f->start_dio_pending_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -715,6 +723,16 @@ bool MachineState::ReadFdc(Motherboard* board, const unsigned char* p, size_t si
    f->delayed_load_container_ = p[at++] != 0;
    f->on_index_ = p[at++] != 0;
    f->read_data_done_ = p[at++] != 0;
+   if (at + 16 <= size)
+   {
+      f->timer_phase_ = GetU32(&p[at]); at += 4;
+      f->start_delay_ = GetU32(&p[at]); at += 4;
+      f->head_loaded_ = p[at++] != 0;
+      f->head_unload_edges_ = GetU32(&p[at]); at += 4;
+      f->hut_ = p[at++];
+      f->start_dio_ = p[at++] != 0;
+      f->start_dio_pending_ = p[at++] != 0;
+   }
 
    // Writer and reader must agree byte for byte; if they ever drift apart this
    // catches it here rather than in a machine that quietly runs wrong.

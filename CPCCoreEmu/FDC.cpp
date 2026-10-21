@@ -109,6 +109,15 @@ FDC::FDC(void) : load_progress_(-1)
    cnt_exec_ = 0;
    old_state_ = INSTRUCTION;
 
+   // Specify values are not changed by a reset ; AMSDOS sets HUT = 1 at boot
+   timer_phase_ = 0;
+   start_delay_ = 0;
+   head_loaded_ = false;
+   head_unload_edges_ = 0;
+   hut_ = 1;
+   start_dio_ = false;
+   start_dio_pending_ = false;
+
    for (int i = 0; i < NB_COMMAND_MAX; i++)
    {
       fdc_command_ [i].func = NULL;
@@ -647,6 +656,30 @@ void FDC::TimingBeforePhase ()
    }*/
 }
 
+namespace
+{
+   const unsigned int kTimerPeriod = 1000;        // 2 ms in FDC ticks
+   const unsigned int kLoadedStartDelay = 48;     // ~100 us (64nops : 90 to 100 NOPs)
+   const unsigned int kHutEdges = 16;             // HUT unit : 16 ms at 8 MHz, 32 ms at 4 MHz
+}
+
+void FDC::StartExecution()
+{
+   if (state_ != EXEC && state_ != EXEC_PRECISE) return;
+   if (current_command_ != C_READ_ID && current_command_ != C_READ_SECTOR && current_command_ != C_READ_TRACK
+      && current_command_ != C_WRITE_SECTOR && current_command_ != C_FORMAT_TRACK && current_command_ != C_SCAN_EQUAL
+      && current_command_ != C_SCAN_LOW_OR_EQUAL && current_command_ != C_SCAN_HIGH_OR_EQUAL) return;
+
+   start_delay_ = head_loaded_ ? kLoadedStartDelay : (kTimerPeriod - timer_phase_) + kTimerPeriod;
+   head_loaded_ = true;
+   head_unload_edges_ = 0;
+   // Status #10 until the execution starts ; then the direction : FDC to CPU for the reads (Read ID too)
+   start_dio_ = (current_command_ == C_READ_ID || current_command_ == C_READ_SECTOR || current_command_ == C_READ_TRACK);
+   start_dio_pending_ = false;
+   dio_ = false;
+   exm_ = false;
+}
+
 void FDC::TimingAfterPhase ()
 {
    // Set timings
@@ -683,6 +716,7 @@ void FDC::ExecPhase ()
       {
          ((*this).*fdc_command_ [index_fdc_command_].func) ();
       }
+      StartExecution();
 
       // Go to result phase !
       if (nb_data_offset_ == nb_data_in_buffer_)
@@ -697,6 +731,7 @@ void FDC::ExecPhase ()
       {
          ((*this).*fdc_command_ [index_fdc_command_].func) ();
       }
+      StartExecution();
 
    }
 }
@@ -910,6 +945,13 @@ unsigned int FDC::Tick( )
       }
    }
 
+   // Internal timer : unloads the head HUT after the end of the last execution
+   if (++timer_phase_ >= kTimerPeriod)
+   {
+      timer_phase_ = 0;
+      if (head_unload_edges_ > 0 && --head_unload_edges_ == 0) head_loaded_ = false;
+   }
+
    if (delay_for_instruction_>0)
    {
       --delay_for_instruction_;
@@ -928,23 +970,22 @@ unsigned int FDC::Tick( )
       ||current_command_ == C_SCAN_LOW_OR_EQUAL
       ||current_command_ == C_SCAN_HIGH_OR_EQUAL))
    {
-      // Fix cosa nostra TODO : To check...
-      // On the WRITE, it's not correct to wait this long (sphaira and unique dont work anymore)
-      if (old_state_ != EXEC && old_state_ != EXEC_PRECISE)
+      if (start_delay_ > 0)
       {
-         old_state_ = state_;
-         cnt_exec_ = 0;
+         // Head load : the execution starts on the last tick (EXM, then DIO on the next one)
+         if (--start_delay_ == 0)
+         {
+            exm_ = dma_disable_;
+            start_dio_pending_ = start_dio_;
+         }
       }
-
-      if (cnt_exec_ == 32 || current_command_ == C_WRITE_SECTOR)
+      else
       {
-         if ( dma_disable_)
-            exm_ = true;
-         else
-            exm_ = false;
+      if (start_dio_pending_)
+      {
+         start_dio_pending_ = false;
+         dio_ = true;
       }
-      cnt_exec_++;
-
 
       if (disk_[current_drive_].NewBitAvailable ())
       {
@@ -967,6 +1008,7 @@ unsigned int FDC::Tick( )
             break;
          }
       }
+      }
    }
    else if (state_ == RESULT &&  ( current_command_ == C_READ_ID
       ||current_command_ == C_READ_SECTOR
@@ -977,6 +1019,15 @@ unsigned int FDC::Tick( )
    {
       ResultPhase ();
       current_command_ = C_NONE;
+   }
+
+   // End of an execution : the head unloads HUT later
+   if ((old_state_ == EXEC || old_state_ == EXEC_PRECISE) && state_ != EXEC && state_ != EXEC_PRECISE && head_loaded_)
+   {
+      start_delay_ = 0;
+      start_dio_pending_ = false;
+      head_unload_edges_ = hut_ * kHutEdges;
+      if (head_unload_edges_ == 0) head_loaded_ = false;
    }
    old_state_ = state_;
 
@@ -1056,8 +1107,6 @@ void FDC::ReadId() // 4a
    InitHandleSyncField ();
    on_index_ = false;
 
-   if ( disk_[current_drive_].NewBitAvailable ())
-      ReadIdTick ();
 }
 
 void FDC::ReadIdTick ()
@@ -1618,6 +1667,7 @@ void FDC::SpecifySpdDma()
    // b 4..7 : steprate (16-n)*2ms
    unsigned char n = parameters_[0] >> 4;
    step_rate_ = (16-n);
+   hut_ = parameters_[0] & 0x0F;
    dma_disable_ = parameters_[1]&0x1;
 
    dma_disable_  = true;

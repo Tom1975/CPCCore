@@ -277,6 +277,20 @@ protected:
    int cnt_exec_;
    Phase old_state_;
 
+   // Head load. The uPD765 of the CPC is clocked at 4 MHz : the datasheet times (8 MHz) are doubled.
+   // Its internal timers count a free running period of 2 ms. A read/write command waits for the head :
+   // - head unloaded : until the 2nd edge of the timer, 2 to 4 ms (64nops measures 1.8 to 3.8 ms, it is
+   //   shorter than HLT x 2 of the datasheet) ;
+   // - head still loaded (less than HUT x 32 ms after the end of the previous execution) : ~100 us.
+   unsigned int timer_phase_;          // FDC ticks (2 us) since the last edge of the internal timer
+   unsigned int start_delay_;          // FDC ticks before the execution of the command starts
+   bool head_loaded_;
+   unsigned int head_unload_edges_;    // timer edges before the head unloads (0 : not counting)
+   unsigned char hut_;                 // Specify : head unload time
+   bool start_dio_;                    // DIO of the command, set once EXM is up (status #30 then #70)
+   bool start_dio_pending_;
+   void StartExecution();
+
    // Definition of commands
    typedef enum  {
             C_NONE,

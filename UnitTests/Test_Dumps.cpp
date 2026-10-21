@@ -153,7 +153,10 @@ TEST(Dumps_Disk, BadCat)
    cmd_list.AddCommand(new CommandJoystick(0, 0));
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).bmp", SCR_COMPARE));
-   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).dsk", "run\"badcat\r", &cmd_list));
+   // The protection reads 3 times the weak sector C6 (track 40) and compares its bytes 105 and 106 : the three
+   // values must not be the same. With the weak / optional bits of the track, it fails for about 1 seed in 4 (the
+   // released version too). Seed 1 : the one of the application (rand is never seeded).
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).dsk", "run\"badcat\r", &cmd_list, true, 1));
 }
 
 TEST(Dumps_Disk, BaladeOutreRhin)

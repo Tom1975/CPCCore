@@ -385,9 +385,9 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
    machine_->LoadConfiguration(conf.string().c_str(), initfile.string().c_str());
    machine_->Reinit();
 
-   //  Fix a seed for randomness
-   srand(seed);
+   // Fixed speed seeds rand with 0x1337 : the seed of the test is set after it, or it would be lost
    machine_->SetFixedSpeed(bFixedSpeed);
+   srand(seed);
 
    // Load disk
    machine_->LoadDisk(dump_to_load.string().c_str(), 0, false);
@@ -596,8 +596,7 @@ bool TestTape::Test(const char* conf, const char* initfile, const char* dump_to_
    machine_->LoadConfiguration(conf, initfile);
    machine_->Reinit();
 
-   //  Fix a seed for randomness
-   srand(0xE7123456);
+   // Fixed speed : rand is seeded with 0x1337
    machine_->SetFixedSpeed(true);
 
    // Load disk
