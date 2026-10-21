@@ -105,7 +105,10 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    buffered_ink_reg_ = 0;
    buffered_pen_ = 0;
    mode_window_ = false;
-   finalized_black_mask_ = 0;
+   sr_ = 0;
+   sr_div_ = 0;
+   sr_mode_ = sr_div_mode_ = 0;
+   sr_shown_ = false;
    border_reg_ = 0;
    memset(ink_regs_, 0, sizeof(ink_regs_));
    for (i = 0; i < 32; i++)
@@ -165,6 +168,7 @@ void GateArray::Reset()
    prev_col_ = 0;
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
+   sr_mode_ = sr_div_mode_ = screen_mode_;
    activation_mode_ = 2;
 
    hsync_counter_ = 0;
@@ -252,7 +256,6 @@ void GateArray::FinalizeBlock()
 {
    const unsigned char quarters = crtc_->hsync_quarters_previous_;
    bool pin = hsync_pin_last_;
-   finalized_black_mask_ = 0;
    for (unsigned int q = 0; q < 4; ++q)
    {
       const bool level = ((quarters >> q) & 1) != 0;
@@ -305,10 +308,7 @@ void GateArray::FinalizeBlock()
          }
       }
       if ((cblack_hsync_ || cblack_vsync_) && last_block_ != nullptr)
-      {
          last_block_[p] = 0xFF000000;
-         finalized_black_mask_ |= (1 << p);
-      }
 
       if (chsync_countdown_ == 0 && cblack_hsync_)
       {
@@ -333,15 +333,59 @@ void GateArray::FinalizeBlock()
    nb_black_edges_ = kept;
 }
 
-// 9.1 : the GATE ARRAY 40007, 40008, 40010 and the ASIC 40226 output the Mode 2 pixels 1/16 us earlier
-// than the other modes (not the ASIC 40489) : the border stops and starts one pixel earlier too. The
-// first pixel of the block goes to the last one of the previous block, unless CBLACK masked it.
-void GateArray::Mode2EarlyPixel(int* buffer)
+namespace
 {
-   if (buffer == nullptr || buffered_screen_mode_ != 2 || crtc_->type_crtc_ == CRTC::AMS40489) return;
-   if (last_block_ != nullptr && (finalized_black_mask_ & 0x8000) == 0)
-      last_block_[15] = buffer[0];
-   memmove(buffer, buffer + 1, 15 * sizeof(int));
+// Pen decoded from the shift register in each mode (bit 7 is the next to come out)
+unsigned char PenOfRegister(unsigned char mode, unsigned char r)
+{
+   const unsigned char b7 = (r >> 7) & 1, b5 = (r >> 5) & 1, b3 = (r >> 3) & 1, b1 = (r >> 1) & 1;
+   switch (mode)
+   {
+   case 0:  return (b1 << 3) | (b5 << 2) | (b3 << 1) | b7;
+   case 2:  return b7;
+   default: return (b3 << 1) | b7;     // modes 1 and 3
+   }
+}
+const unsigned char kShiftPeriod[4] = { 4, 2, 1, 4 };
+}
+
+// GATE ARRAY 40007, 40008, 40010 and ASIC 40226 (9.1, 9.2.2, 9.3.4) : one block of 16 Mode 2 pixels
+// out of the shift register. 'buffer' is nullptr out of the screen : the register runs all the same.
+// - Mode 2 is one pixel early (9.1) : its bytes are loaded one pixel earlier than in the other modes ;
+// - a mode changed during the HSYNC reaches the decoder on the pixel 5, the divider on the pixel 6 :
+//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ;
+// - a written ink is taken on the pixel 8 of the output whatever the mode ; on the ASIC 40226, the
+//   pixel 7 in Mode 2 (9.2.2).
+void GateArray::ShiftRegisterBlock(int* buffer)
+{
+   const unsigned char bytes[2] = { display_short_.byte.l, display_short_.byte.h };
+   const bool shown[2] = { dispen_buffered_, dispen_buffered_h_ };
+   const unsigned char target = buffered_screen_mode_ & 3;
+   const bool asic_40226 = (crtc_->type_crtc_ == CRTC::AMS40226);
+   bool loaded = false;
+   for (int p = 0; p < 16; ++p)
+   {
+      if (p == 5) sr_mode_ = target;
+      if (p == 6) sr_div_mode_ = target;
+      const int q = p & 7;
+      if (q == 0) loaded = false;
+      if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+      {
+         sr_ = bytes[p >> 3];
+         sr_div_ = 0;
+         sr_shown_ = shown[p >> 3];
+         loaded = true;
+      }
+      else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+      {
+         sr_ <<= 1;
+         sr_div_ = 0;
+      }
+      if (buffered_ink_available_ && p >= ((asic_40226 && sr_mode_ == 2) ? 7 : 8))
+         monitor_->RecomputeColors();
+      if (buffer != nullptr)
+         buffer[p] = sr_shown_ ? ink_list_[PenOfRegister(sr_mode_, sr_)] : video_border_[0];
+   }
 }
 
 unsigned int GateArray::Tick()
@@ -555,7 +599,7 @@ unsigned int GateArray::TickVideo()
 #define ADDRESS  ((((crtc_->ma_ )& 0x3FF)<<1) | ((crtc_->AddressC9()+((memory_->GetSSCR() & 0x7F) >> 4)) & 0x7) <<11| ((crtc_->ma_& 0x3000)<<2))
 
 #define DISPEN_TEST {dispen_buffered_ = crtc_->DispEn(0); dispen_buffered_h_ = crtc_->DispEn(1);}
-#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);Mode2EarlyPixel(line_buffer);last_block_ = line_buffer;display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;return 4;}
+#define END_OF_DISPLAY   {ApplyHalfBorder(line_buffer);last_block_ = line_buffer;display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS); DISPEN_TEST;return 4;}
 
 
    // PLUS : Handle the SSCR register
@@ -573,6 +617,15 @@ unsigned int GateArray::TickVideo()
    // 16 pixels should be defined
    int* buffer_to_display = monitor_->GetVideoBufferForInc();
    int* const line_buffer = buffer_to_display;
+   if (!plus_)
+   {
+      // GATE ARRAY 40007, 40008, 40010, ASIC 40226 : the shift register (in or out of the screen)
+      ShiftRegisterBlock(line_buffer);
+      last_block_ = line_buffer;
+      display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS);
+      DISPEN_TEST;
+      return 4;
+   }
    if (buffer_to_display == 0)
    {
       // Out of the screen : the pending ink is taken now
@@ -646,26 +699,6 @@ unsigned int GateArray::TickVideo()
 
                   END_OF_DISPLAY
                }
-               else
-               {
-                  memcpy(buffer_to_display, Mode0ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                  //END_OF_DISPLAY
-                  ApplyHalfBorder(line_buffer);
-                  last_block_ = line_buffer;
-                  unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
-                  display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
-                  if (horizontal_shift > 0)
-                  {
-                     display_short_.word <<= horizontal_shift;
-                     unsigned short prev = *(short*)(memory_->ram_buffer_[0] + addr - 2);
-                     display_short_.word |= ((prev >> (16 - horizontal_shift)) & 0xFFFF);
-                  }
-                  DISPEN_TEST;
-                  return 4;
-               }
             }
             case 1:
 
@@ -735,15 +768,6 @@ unsigned int GateArray::TickVideo()
                   // next byte
                   END_OF_DISPLAY
                }
-               else
-               {
-                  memcpy(&buffer_to_display[0], &Mode1ExtendedLut[(display_short_.byte.l)], 8 * sizeof(int));
-
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
-                  END_OF_DISPLAY
-               
-               }
 
 
             case 2:
@@ -808,29 +832,6 @@ unsigned int GateArray::TickVideo()
                   // next byte
                   END_OF_DISPLAY
                }
-               else
-               {
-                  memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-
-                  if (buffered_ink_available_)
-                  {
-                     const int first_of_second_byte = Mode2ExtendedLut[display_short_.byte.h][0];
-                     monitor_->RecomputeColors();
-                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-                     // 9.2.2 : the GATE ARRAY 40010 changes the ink on the pixel 8 of its output whatever the
-                     // mode : the Mode 2 pixels being 1/16 us early (9.1), the first one of the 2nd byte keeps
-                     // the old ink. The ASIC 40226 changes it one pixel earlier in Mode 2.
-                     if (crtc_->type_crtc_ != CRTC::AMS40226)
-                        buffer_to_display[8] = first_of_second_byte;
-                  }
-                  else
-                  {
-                     memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-                  }
-
-                  END_OF_DISPLAY
-               
-               }
 
             }
             case 3:
@@ -841,29 +842,6 @@ unsigned int GateArray::TickVideo()
                   if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                   DrawSprites(buffer_to_display);
 
-                  END_OF_DISPLAY
-               }
-               else
-               {
-                  //unsigned int * pBufferToDisplay = monitor_->m_BufferToDisplay;
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
                   END_OF_DISPLAY
                }
             }

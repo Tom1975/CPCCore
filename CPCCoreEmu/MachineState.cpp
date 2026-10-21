@@ -347,6 +347,11 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    out.push_back(ga->vsync_rise_pending_ ? 1 : 0);   // added later : optional when read
    out.push_back(ga->buffered_pen_);                  // added later : optional when read
    out.push_back(ga->mode_window_ ? 1 : 0);           // added later : optional when read
+   out.push_back(ga->sr_);                            // shift register (added later : optional)
+   out.push_back(ga->sr_div_);
+   out.push_back(ga->sr_mode_);
+   out.push_back(ga->sr_div_mode_);
+   out.push_back(ga->sr_shown_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -399,6 +404,18 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->vsync_rise_pending_ = (at < size) ? (p[at++] != 0) : false;
    ga->buffered_pen_ = (at < size) ? p[at++] : ga->pen_r_;
    ga->mode_window_ = (at < size) ? (p[at++] != 0) : false;
+   if (at + 5 <= size)
+   {
+      ga->sr_ = p[at++];
+      ga->sr_div_ = p[at++];
+      ga->sr_mode_ = p[at++] & 3;
+      ga->sr_div_mode_ = p[at++] & 3;
+      ga->sr_shown_ = p[at++] != 0;
+   }
+   else
+   {
+      ga->sr_mode_ = ga->sr_div_mode_ = ga->buffered_screen_mode_ & 3;
+   }
 
    return true;
 }

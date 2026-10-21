@@ -79,7 +79,7 @@ pas de comportement à vérifier).
 | 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (mode pris de la 2e à la 6e µs de la HSYNC-GA) |
 | 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
 | 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |
-| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | ❌ | Relevé p56-73. **DISABLED** : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, R2.NJIT, GA 40010 : pixel 36 ancien mode — noir sur CRTC 1 —, pixels 37-40 nouveau mode), `ModeSplittingPixelsCrtc4` (§9.3.4.5, ASIC 40226 : 1 pixel ancien mode puis 6 nouveaux après le noir). Le GA émulé change de mode par bloc entier. Reste : §9.3.4.4 R3.JIT (tableaux p65-68 relevés, test à écrire avec R3 écrit au T-state) et variantes GA 40007/40008 |
+| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). **DISABLED** : `ModeSplittingPixelsCrtc4` (ASIC 40226 : 73/77 pixels au mieux, 2→0 et 2→3 à revérifier) |
 
 ## 10. Registre R9
 

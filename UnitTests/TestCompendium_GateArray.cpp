@@ -100,11 +100,12 @@ TEST(Compendium_9, PixelBitsOfEachMode)
       RecordFrame(m);
       const Machine::Block* b = m.FindBlock(kLine, 20);
       ASSERT_NE(nullptr, b);
-      // 9.1 : on the GATE ARRAY 40010, the Mode 2 pixels are one pixel early (the screen is filled with
-      // the same byte : the last pixel is the first one of the next block)
-      const int early = (mode == 2) ? 1 : 0;
+      // 9.1 : on the GATE ARRAY 40010, a byte starts on the 1st pixel of its half of the block in Mode 2,
+      // on the 2nd one in the other modes (the screen is filled with the same byte : the 1st pixel is the
+      // last one of the previous byte)
+      const int late = (mode == 2) ? 0 : 1;
       for (int i = 0; i < 16; ++i)
-         EXPECT_EQ(expected[mode][(i + early) % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
+         EXPECT_EQ(expected[mode][(i + 8 - late) % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
    }
 }
 
@@ -325,18 +326,15 @@ unsigned short ScreenByte(int line, int c0, int n)
    return (unsigned short)(kScreen | ((line % 8) << 11) | ((ma * 2) & 0x7FF) | (n & 1));
 }
 
-// Byte displayed for the byte n of the microsecond C0 = c0 of 'line' (mode 2, pen 1 = bit set). On the
-// GATE ARRAY 40010 the Mode 2 pixels are one pixel early (9.1) : the first one is in the previous block.
+// Byte displayed for the byte n of the microsecond C0 = c0 of 'line' (mode 2, pen 1 = bit set).
 int DisplayedByte(Machine& m, int line, int c0, int n)
 {
    const Machine::Block* b = m.FindBlock(line, c0 + n / 2 + 1);
-   const Machine::Block* previous = m.FindBlock(line, c0 + n / 2);
-   if (b == nullptr || previous == nullptr) return -1;
+   if (b == nullptr) return -1;
    int byte = 0;
    for (int i = 0; i < 8; ++i)
    {
-      const int at = (n & 1) * 8 + i - 1;
-      const int pen = PenOf(m, at < 0 ? previous->pixels[15] : b->pixels[at]);
+      const int pen = PenOf(m, b->pixels[(n & 1) * 8 + i]);
       if (pen < 0) return -1;
       byte = (byte << 1) | pen;
    }
@@ -534,18 +532,17 @@ void CheckSplits(CRTC::TypeCRTC type)
 }
 }
 
-// DISABLED : the emulated GATE ARRAY changes the mode on a whole block and draws no mixed pixel.
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc0)
+TEST(Compendium_9, ModeSplittingPixelsCrtc0)
 {
    CheckSplits(CRTC::HD6845S);
 }
 
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc1)
+TEST(Compendium_9, ModeSplittingPixelsCrtc1)
 {
    CheckSplits(CRTC::UM6845R);
 }
 
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc2)
+TEST(Compendium_9, ModeSplittingPixelsCrtc2)
 {
    CheckSplits(CRTC::MC6845);
 }
@@ -595,7 +592,9 @@ std::vector<int> ExpectedSplitAsic40226(int from, int to, unsigned char b)
 }
 }
 
-// DISABLED : the emulated GATE ARRAY changes the mode on a whole block and draws no mixed pixel.
+// DISABLED : the shift register of the GATE ARRAY 40010 (loads, divider, mode taken on the pixels
+// 5 / 6) gives 73 of the 77 pixels at best on the ASIC 40226 (with the shift on the position in the
+// byte) : the 2 -> 0 and 2 -> 3 splits differ on their pixels 3 and 4. To check against the schematics.
 TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
 {
    const unsigned char byte = 0xB4;
