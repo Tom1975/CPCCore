@@ -39,7 +39,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 5.1 | Décodage d'adresse : A14=0, A9-A8 = fonction ; n° de registre et valeur tronqués ; une I/O atteint tous les circuits décodés | ✅ | `Compendium_5.CrtcDecodesA14AndA9A8Only`, `OneOutReachesEveryDecodedChip`, `GateArrayNeedsA14OneOnTheCpcOld` |
-| 5.1 (*) | PAL/GATE ARRAY sélectionné avec A14=0 sur les machines à ASIC | ❌ | **DISABLED** : `Compendium_5.GateArraySelectedWithA14ZeroOnTheCpcPlus` (le GA exige A14=1 sur CPC+) |
+| 5.1 (*) | PAL sélectionné avec A14=0 sur les machines à ASIC (le GATE ARRAY exige toujours A14=1) | ✅ | `Compendium_5.PalSelectedWithA14ZeroOnTheCpcPlus`, `PalNeedsA14OneOnTheCpcOld` |
 | 5.2 | CPC+ : séquence de délockage ASIC (17 octets sur &BC00) | ✅ | `Compendium_5.AsicUnlockSequence`, `AsicUnlockWaitsForTheAcknowledgeByte`, `AsicSequenceWithAnotherStateLocks`, `AsicSequenceNeedsANonZeroRq00`, `AsicSequenceBrokenByAWrongByte`, `AsicSequenceIgnoredWithACrtc4` |
 
 ## 6. Construction d'un frame
@@ -57,7 +57,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 7.1 | Principes | ➖ | |
-| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | 🟡 | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`. **DISABLED** : `InReadsTheVSyncOnItsFourthMicrosecond` (l'IN émulé lit le port B à sa 3e µs) |
+| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | 🟡 | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`. **DISABLED** : `InReadsTheVSyncOnItsFourthMicrosecond` (l'IN émulé lit le port B à sa 3e µs ; la lecture à la 4e µs est prête mais décale le timing disque : captures de tests disque à refaire) |
 | 7.3 | FAKE VSYNC : port B en sortie, bit 0 voudrait forcer la VSYNC | ✅ | `Compendium_7.FakeVSyncDoesNotOverrideTheCrtc` : d'après le compendium, ne fonctionne pas (ou mal) selon les CPC, le PPI est trop faible face au CRTC qui pilote la ligne ; l'émulation suit le CRTC |
 
 ## 8. Affichage, Z80A & Gate Array

@@ -80,16 +80,25 @@ TEST(Compendium_5, OneOutReachesEveryDecodedChip)
    EXPECT_EQ(0x0E, m.Engine().GetPPI()->port_a_);
 }
 
-// 5.1 (*) : on the CPC with an ASIC (CRTC 3), the GATE ARRAY (PAL) is selected whatever A14 :
-// &3Fxx writes the border colour. On the CPC "old", A14 must be 1.
-TEST(Compendium_5, DISABLED_GateArraySelectedWithA14ZeroOnTheCpcPlus)
+// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected with A14 = 0 or 1 on the CPC+ (CRTC
+// 3, 4) ; on the CPC "old" A14 must be 1 (only a few CPC select it with A14 = 0). The GATE ARRAY
+// itself always needs A14 = 1.
+TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
 {
    Machine m(CRTC::AMS40489, "6128PLUS");
    std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0x3F00, 0x10));   // PENR : border
-   z80::Append(p, z80::Out(0x3F00, 0x4C));   // INKR : colour 12
+   z80::Append(p, z80::Out(0x3F00, 0xC1));   // RAM configuration 1
    RunProgram(m, p);
-   EXPECT_EQ(0x4C, m.Ga().border_reg_);
+   EXPECT_EQ(1, m.Engine().GetMem()->GetRamBankConfig());
+}
+
+TEST(Compendium_5, PalNeedsA14OneOnTheCpcOld)
+{
+   Machine m(CRTC::HD6845S);
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, z80::Out(0x3F00, 0xC1));
+   RunProgram(m, p);
+   EXPECT_EQ(0, m.Engine().GetMem()->GetRamBankConfig());
 }
 
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)
@@ -190,7 +199,9 @@ TEST(Compendium_7, PpiPortBBit0IsTheCrtcVSyncPin)
 // k us before the VSYNC (C0 = 0 of the line C4 = R7) : bit 0 = 1 if the VSYNC starts on one of
 // its 4 microseconds.
 // DISABLED : the emulated IN reads port B on its 3rd microsecond (a VSYNC starting on the 4th one
-// is not seen).
+// is not seen). Reading it on the 4th one is ready, but it moves the disk timings : the polling loops
+// end one iteration earlier, the firmware ticks move by one interrupt and the disk is read at another
+// rotation phase. Some screenshots of the disk tests must be recorded again with it.
 TEST(Compendium_7, DISABLED_InReadsTheVSyncOnItsFourthMicrosecond)
 {
    for (int start = 52; start < 64; ++start)

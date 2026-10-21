@@ -921,7 +921,10 @@ void GateArray::TickIO()
    }
    // PAL
 
-   if (pal_present_ && ((address_bus_->GetShortBus() & 0x8000) == 0x0000))
+   // Selected by A15 = 0. A14 must be 1 on the CPC "old" (compendium 5.1 : with A14 = 0 the PAL is
+   // selected on a few CPC only), it can be 0 or 1 with the ASIC of the CPC+.
+   const unsigned short pal_address = address_bus_->GetShortBus();
+   if (pal_present_ && (pal_address & 0x8000) == 0x0000 && (plus_ || (pal_address & 0x4000) == 0x4000))
    {
       // todo
       switch (data & 0xE0)
