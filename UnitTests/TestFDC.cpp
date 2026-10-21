@@ -11,6 +11,8 @@
 #include "FDC.h"
 #include "DskTypeManager.h"
 #include "TestWorkspace.h"
+#include "FormatTypeEDSK.h"
+#include <filesystem>
 #include <algorithm>
 
 /////////////////////////////////////////////////////////////
@@ -210,4 +212,25 @@ TEST(FDC_HeadLoad, StatusIsBusyThenExecutionThenDirection)
    bench.Run(1);
    EXPECT_EQ(0x70, bench.Status());                 // then DIO, until the ID is found
    bench.ReadResults();
+}
+
+// A disk saved as "name.dsk" is written to that name, not "name.dsk.DSK" (the extension is compared
+// whatever its case)
+TEST(FDC_SaveDisk, KeepsAnExtensionWrittenInLowerCase)
+{
+   FdcBench bench;
+   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "cpccore_savedisk_test";
+   std::filesystem::create_directories(dir);
+   const std::filesystem::path lower = dir / "saved.dsk";
+   const std::filesystem::path none = dir / "saved_no_extension";
+   std::filesystem::remove(lower);
+   std::filesystem::remove(dir / "saved.dsk.DSK");
+   std::filesystem::remove(dir / "saved_no_extension.DSK");
+   FormatTypeEDSK edsk;
+   bench.fdc_.WriteDiskAs(0, lower.string().c_str(), &edsk);
+   bench.fdc_.WriteDiskAs(0, none.string().c_str(), &edsk);
+   EXPECT_TRUE(std::filesystem::exists(lower));
+   EXPECT_FALSE(std::filesystem::exists(dir / "saved.dsk.DSK"));
+   EXPECT_TRUE(std::filesystem::exists(dir / "saved_no_extension.DSK"));
+   std::filesystem::remove_all(dir);
 }
