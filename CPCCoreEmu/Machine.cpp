@@ -36,7 +36,7 @@ const char* CartPath = "CART";
 EmulatorEngine::EmulatorEngine() :
    log_(nullptr), paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
    do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_), speed_()
+   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_), speed_(100)
 {
    breakpoint_handler_.Init(this);
    fdc_present_ = true;
@@ -620,6 +620,8 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
       default:
          configuration_manager_->SetConfiguration(config_name, "LimitSpeed", "C", ini_file);
    }
+   snprintf(tmp_buffer, sizeof(tmp_buffer), "%i", speed_);
+   configuration_manager_->SetConfiguration(config_name, "Speed", tmp_buffer, ini_file);
 
    // Disk in drive
    configuration_manager_->SetConfiguration(config_name, "FD1_Path", fd1_path_.c_str(), ini_file);
@@ -684,6 +686,13 @@ void EmulatorEngine::LoadConfiguration  (const char* config_name, const char* in
    else if (tmp_buffer[0] == 'G') speed_limit = E_SOUND_AND_VBL;
    else speed_limit = E_CUSTOM;
    SetSpeedLimit(speed_limit);
+
+   // Custom speed, in percent (the other limits run at 100%)
+   if (speed_limit == E_CUSTOM)
+   {
+      configuration_manager_->GetConfiguration(config_name, "Speed", "100", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
+      SetSpeed(atoi(tmp_buffer));
+   }
 
    configuration_manager_->GetConfiguration(config_name, "FD1_Path", "", tmp_buffer, MAX_SIZE_BUFFER, ini_file);
    if ( strlen(tmp_buffer) > 0)
@@ -836,7 +845,11 @@ bool EmulatorEngine::HasBreakpoint ( unsigned short addr)
 
 void EmulatorEngine::SetSpeed(int speed)
 {
-   speed_ = speed;
+   // A null speed would make HandleSyncro wait for all the emulated time
+   if (speed > 0)
+   {
+      speed_ = speed;
+   }
 }
 
 void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
