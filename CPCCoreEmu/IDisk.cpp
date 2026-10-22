@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IDisk.h"
+#include "EmuRandom.h"
 #include "FDC765.h"
 
 #include <cerrno>
@@ -349,7 +350,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
    // Sanity check
    if (side_[side].tracks[track].bitfield == nullptr)
    {
-      return (rand() & 0x1);
+      return (EmuRandom::Next() & 0x1);
    }
 
    unsigned char value = side_[side].tracks[track].bitfield[head_position_];
@@ -371,7 +372,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
       bool one_more;
       
       {
-         one_more = rand() & 0x1;
+         one_more = EmuRandom::Next() & 0x1;
       }
       
       if (one_more)
@@ -387,7 +388,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
 
    if ((value & BIT_WEAK) == BIT_WEAK)
    {
-      value = (rand() & 0x1) | (value & BIT_INDEX);
+      value = (EmuRandom::Next() & 0x1) | (value & BIT_INDEX);
    }
 
    // Get next bit
@@ -2691,11 +2692,10 @@ int IDisk::SmartOpen(FILE** file, const char* file_path, const char* file_ext)
 {
    int res;
 
-#ifdef _WIN32
-   if (file_ext != nullptr && stricmp(file_path + strlen(file_path) - strlen(file_ext), file_ext) != 0)
-#else
-   if (file_ext != NULL && strcmp(file_path + strlen(file_path) - strlen(file_ext), file_ext) != 0)
-#endif
+   // The extension is added unless the name already ends with it, whatever the case (".dsk" too)
+   const size_t path_length = strlen(file_path);
+   if (file_ext != nullptr && (path_length < strlen(file_ext)
+      || stricmp(file_path + path_length - strlen(file_ext), file_ext) != 0))
    {
       // Add extension
       char full_path[MAX_PATH];

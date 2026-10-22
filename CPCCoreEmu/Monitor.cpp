@@ -125,7 +125,7 @@ void Monitor::RecomputeAllColors()
 void Monitor::RecomputeColors()
 {
    gate_array_->buffered_ink_available_ = false;
-   unsigned int p = gate_array_->pen_r_;
+   unsigned int p = gate_array_->buffered_pen_;
    if (gate_array_->ink_list_[p] != gate_array_->buffered_ink_)
    {
       // PLUS : Update the ASIC Palette

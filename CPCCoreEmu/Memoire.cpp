@@ -352,7 +352,7 @@ unsigned char Memory::ReadAsicRegister(const unsigned short i)
    return last_value_read_;
 }
 
-void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color)
+unsigned int Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color, bool to_inks)
 {
    unsigned char r, g, b;
    switch (hardware_color & 0x1F)
@@ -402,8 +402,13 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       r <<= 4;
       g <<= 4;
       b <<= 4;
-      monitor_->gate_array_->ink_list_[color_index] = (r << 16) + (g << 8) + (b) | 0xFF000000;
-      monitor_->RecomputeAllColors();
+      const unsigned int colour = (r << 16) + (g << 8) + (b) | 0xFF000000;
+      if (to_inks)
+      {
+         monitor_->gate_array_->ink_list_[color_index] = colour;
+         monitor_->RecomputeAllColors();
+      }
+      return colour;
    }
    else
    {
@@ -412,6 +417,7 @@ void Memory::UpdateAsicPalette(unsigned char color_index, unsigned char hardware
       asic_io_[0x2421] = (g);
       for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40] | 0xFF000000;
    }
+   return 0;
 }
 
 void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)

@@ -93,6 +93,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    chsync_length_ = 0;
    chsync_mask_ = 0;
    vsync_rise_in_block_ = false;
+   vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
    memory_ram_buffer_ = 0;
@@ -102,6 +103,13 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    int i;
    buffered_ink_available_ = false;
    buffered_ink_reg_ = 0;
+   buffered_pen_ = 0;
+   r52_reset_held_ = false;
+   mode_window_ = false;
+   sr_ = 0;
+   sr_div_ = 0;
+   sr_mode_ = sr_div_mode_ = 0;
+   sr_shown_ = false;
    border_reg_ = 0;
    memset(ink_regs_, 0, sizeof(ink_regs_));
    for (i = 0; i < 32; i++)
@@ -161,6 +169,7 @@ void GateArray::Reset()
    prev_col_ = 0;
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
+   sr_mode_ = sr_div_mode_ = screen_mode_;
    activation_mode_ = 2;
 
    hsync_counter_ = 0;
@@ -178,8 +187,24 @@ void GateArray::Reset()
    chsync_length_ = 0;
    chsync_mask_ = 0;
    vsync_rise_in_block_ = false;
+   vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
+}
+
+void GateArray::RequestRasterInterrupt()
+{
+   if (unlocked_)
+   {
+      sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
+   }
+   else
+   {
+      sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
+   }
+   sig_handler_->InterruptRaster();
+   sig_handler_->int_is_gate_array_ = true;
+   interrupt_raised_ = true;
 }
 
 void GateArray::SetBus(Bus* address, Bus* data)
@@ -309,17 +334,72 @@ void GateArray::FinalizeBlock()
    nb_black_edges_ = kept;
 }
 
-unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
+namespace
 {
-   // The previous block is complete : HSYNC black, then to the monitor
-   if (monitor_pending_)
+// Pen decoded from the shift register in each mode (bit 7 is the next to come out)
+unsigned char PenOfRegister(unsigned char mode, unsigned char r)
+{
+   const unsigned char b7 = (r >> 7) & 1, b5 = (r >> 5) & 1, b3 = (r >> 3) & 1, b1 = (r >> 1) & 1;
+   switch (mode)
    {
-      FinalizeBlock();
-      monitor_->IncVideoBuffer();
-      monitor_->Tick();
+   case 0:  return (b1 << 3) | (b5 << 2) | (b3 << 1) | b7;
+   case 2:  return b7;
+   default: return (b3 << 1) | b7;     // modes 1 and 3
    }
-   monitor_pending_ = true;
+}
+const unsigned char kShiftPeriod[4] = { 4, 2, 1, 4 };
+}
 
+// GATE ARRAY 40007, 40008, 40010 and ASIC 40226 (9.1, 9.2.2, 9.3.4) : one block of 16 Mode 2 pixels
+// out of the shift register. 'buffer' is nullptr out of the screen : the register runs all the same.
+// - Mode 2 is one pixel early (9.1) : its bytes are loaded one pixel earlier than in the other modes ;
+// - a mode changed during the HSYNC reaches the decoder on the pixel 5, the divider on the pixel 6 :
+//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ;
+// - a written ink is taken on the pixel 8 of the output whatever the mode ; on the ASIC 40226, the
+//   pixel 7 in Mode 2 (9.2.2).
+void GateArray::ShiftRegisterBlock(int* buffer)
+{
+   const unsigned char bytes[2] = { display_short_.byte.l, display_short_.byte.h };
+   const bool shown[2] = { dispen_buffered_, dispen_buffered_h_ };
+   const unsigned char target = buffered_screen_mode_ & 3;
+   const bool asic_40226 = (crtc_->type_crtc_ == CRTC::AMS40226);
+   bool loaded = false;
+   for (int p = 0; p < 16; ++p)
+   {
+      if (p == 5) sr_mode_ = target;
+      if (p == 6) sr_div_mode_ = target;
+      const int q = p & 7;
+      if (q == 0) loaded = false;
+      if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+      {
+         sr_ = bytes[p >> 3];
+         sr_div_ = 0;
+         sr_shown_ = shown[p >> 3];
+         loaded = true;
+      }
+      else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+      {
+         sr_ <<= 1;
+         sr_div_ = 0;
+      }
+      if (buffered_ink_available_ && p >= ((asic_40226 && sr_mode_ == 2) ? 7 : 8))
+         monitor_->RecomputeColors();
+      if (buffer != nullptr)
+         buffer[p] = sr_shown_ ? ink_list_[PenOfRegister(sr_mode_, sr_)] : video_border_[0];
+   }
+}
+
+unsigned int GateArray::Tick()
+{
+   TickVideo();
+   TickSignals();
+   return 4;
+}
+
+// Start of the microsecond, the CRTC has moved to its character : SSA, end of HSYNC (R52, interrupts),
+// raster interrupt and DMA of the ASIC, HSYNC and VSYNC of the GATE ARRAY
+void GateArray::TickSignals()
+{
    // MAJ SPLT ?
    if (ssa_new_counter_ > 0)
    {
@@ -331,7 +411,10 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    // Falling edge of HSync
    if (sig_handler_->hsync_fall_)
    {
-      interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
+      // A reset of R52 through RMR holds during the microsecond of its write : on the last microsecond
+      // of the HSYNC, it wins over the increment of its end (27.2)
+      if (!r52_reset_held_)
+         interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
 
       // Plus ?
       if (plus_ && memory_->GetPRI() != 0)
@@ -347,51 +430,25 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       }
       else
       {
+         // Two independent mechanisms at each end of HSYNC (compendium 27.2) :
+         // - R52 goes back to 0 when it reaches 52, and requests an interrupt ;
+         // - at the end of the 2nd HSYNC after the start of the VSYNC, an interrupt is
+         //   requested if bit 5 of R52 is set, and R52 goes back to 0.
+         // The first one also runs while the second waits for its 2 HSYNC.
+         if (interrupt_counter_ == 52)
+         {
+            RequestRasterInterrupt();
+            interrupt_counter_ = 0;
+         }
          if (wait_for_hsync_ > 0)
          {
             wait_for_hsync_--;
             if (wait_for_hsync_ == 0)
             {
-               // If the counter>=32 (bit5=1), then no interrupt request is issued and counter is reset to 0.
                if (interrupt_counter_ >= 32)
                {
-                  // If the counter<32 (bit5=0), then an interrupt request is issued and counter is reset to 0.
-
-                  // plus todo : shift int by 1us
-                  if (unlocked_)
-                  {
-                     sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
-                  }
-                  else
-                  {
-                     sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
-                  }
-                  sig_handler_->InterruptRaster();
-                  sig_handler_->int_is_gate_array_ = true;
-                  interrupt_raised_ = true;
+                  RequestRasterInterrupt();
                }
-               // TODO everytime ????? sure ??????????????
-               // check with int from acid tests
-               interrupt_counter_ = 0;
-
-            }
-         }
-         else
-         {
-            if (interrupt_counter_ == 52)
-            {
-               // Raise ctrl_int signal
-               if (unlocked_)
-               {
-                  sig_handler_->interrupt_io_data_ = (memory_->GetIVR() & 0xF8) | 0x6;
-               }
-               else
-               {
-                  sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
-               }
-               sig_handler_->InterruptRaster();
-               sig_handler_->int_is_gate_array_ = true;
-               interrupt_raised_ = true;
                interrupt_counter_ = 0;
             }
          }
@@ -406,6 +463,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       }
       sig_handler_->hsync_fall_ = false;
    }
+   r52_reset_held_ = false;
 
    // Seems that it should occur either on HSync fall or when Monitor hsync is falling (ie 6us after hsync start at most)
    if ((sig_handler_->hsync_raise_)
@@ -466,25 +524,25 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       hsync_counter_++;
    }
 
-   // TODO : This is incorrect : the mode changing should occur after the 2nd us APRES la reception du HSYNC.
-   // Mais ca empeche "Imperial Mahjong" de fonctionner correctement
+   // The mode is taken during the HSYNC of the GATE ARRAY (at most 6 us), from its 2nd microsecond : an
+   // HSYNC of 1 us does not change it (9.3.1). A write during such a microsecond is taken at its end.
+   // (An older note said that taking it after the 1st microsecond broke "Imperial Mahjong".)
+   if (mode_window_ && activation_mode_ != 0)
+   {
+      activation_mode_--;
+      if (activation_mode_ == 0)
+      {
+         buffered_screen_mode_ = screen_mode_;
+      }
+   }
    if (hsync_)
    {
       if ((sig_handler_->h_sync_ == false || hsync_counter_ == 6))
       {
          hsync_ = false;
       }
-
-      if (activation_mode_ != 0)
-      {
-         activation_mode_--;
-
-         if (activation_mode_ == 0)
-         {
-            buffered_screen_mode_ = screen_mode_;
-         }
-      }
    }
+   mode_window_ = hsync_ && hsync_counter_ >= 1;
    // End of HSYNC period
 
    // Ack of ctrl_int : bit 5 of interrupt counter reset
@@ -500,7 +558,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       wait_for_hsync_ = 2;
       vsync_ = true;
       vsync_counter_ = 0;
-      vsync_rise_in_block_ = true;
+      vsync_rise_pending_ = true;
 
    }
 
@@ -515,6 +573,28 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
       sig_handler_->hsync_raise_ = false;
    }
 
+
+}
+
+// End of the microsecond, the CRTC moves to the next character after it : the block displayed during
+// this microsecond is drawn, with the inks written by the Z80 during it (9.2.2), then the 2 bytes of
+// the character are read from the RAM, after the writes of the Z80 during the microsecond (8)
+unsigned int GateArray::TickVideo()
+{
+   // The previous block is complete : HSYNC black, then to the monitor
+   if (monitor_pending_)
+   {
+      FinalizeBlock();
+      monitor_->IncVideoBuffer();
+      monitor_->Tick();
+   }
+   monitor_pending_ = true;
+   // The CRTC VSYNC rose on the character of this block
+   if (vsync_rise_pending_)
+   {
+      vsync_rise_pending_ = false;
+      vsync_rise_in_block_ = true;
+   }
 
 #ifdef __NoOffset
    display_short_ = *(short*)(memory_->ram_buffer_[0] + ADDRESS);
@@ -542,8 +622,19 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
    // 16 pixels should be defined
    int* buffer_to_display = monitor_->GetVideoBufferForInc();
    int* const line_buffer = buffer_to_display;
+   if (!plus_)
+   {
+      // GATE ARRAY 40007, 40008, 40010, ASIC 40226 : the shift register (in or out of the screen)
+      ShiftRegisterBlock(line_buffer);
+      last_block_ = line_buffer;
+      display_short_.word = *(short*)(memory_->ram_buffer_[0] + ADDRESS);
+      DISPEN_TEST;
+      return 4;
+   }
    if (buffer_to_display == 0)
    {
+      // Out of the screen : the pending ink is taken now
+      if (buffered_ink_available_) { monitor_->RecomputeColors(); }
       END_OF_DISPLAY
    }
    else
@@ -593,6 +684,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
 
                      PUTPIXEL(0);
                      PUTPIXEL(1);
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      PUTPIXEL(2);
                      PUTPIXEL(3);
                      // Sprite
@@ -611,26 +703,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   // next byte
 
                   END_OF_DISPLAY
-               }
-               else
-               {
-                  memcpy(buffer_to_display, Mode0ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], Mode0ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                  //END_OF_DISPLAY
-                  ApplyHalfBorder(line_buffer);
-                  last_block_ = line_buffer;
-                  unsigned int addr = ((((crtc_->ma_) & 0x3FF) << 1) | (((crtc_->AddressC9()) & 0x7) << 11) | ((crtc_->ma_ & 0x3000) << 2));
-                  display_short_.word = *(short*)(memory_->ram_buffer_[0] + addr);
-                  if (horizontal_shift > 0)
-                  {
-                     display_short_.word <<= horizontal_shift;
-                     unsigned short prev = *(short*)(memory_->ram_buffer_[0] + addr - 2);
-                     display_short_.word |= ((prev >> (16 - horizontal_shift)) & 0xFFFF);
-                  }
-                  DISPEN_TEST;
-                  return 4;
                }
             }
             case 1:
@@ -679,7 +751,7 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                         //pBufferToDisplay[i * 2] = m_InkList[(c1 >> (16-((i+1)*2))) & 0x3];
                         //pBufferToDisplay[i * 2+1] = m_InkList[(c1 >> (16 - ((i+1) * 2 ))) & 0x3];
 
-                        if (i == 1 && buffered_ink_available_)
+                        if (i == 3 && buffered_ink_available_)
                         {
                            monitor_->RecomputeColors(); 
                         }
@@ -700,15 +772,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   }
                   // next byte
                   END_OF_DISPLAY
-               }
-               else
-               {
-                  memcpy(&buffer_to_display[0], &Mode1ExtendedLut[(display_short_.byte.l)], 8 * sizeof(int));
-
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], Mode1ExtendedLut[(display_short_.byte.h)], 8 * sizeof(int));
-                  END_OF_DISPLAY
-               
                }
 
 
@@ -743,11 +806,11 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                      buffer_to_display[1] = ink_list_[(c1 >> (16 - (1 + 1))) & 0x1];
                      buffer_to_display[2] = ink_list_[(c1 >> (16 - (2 + 1))) & 0x1];
                      buffer_to_display[3] = ink_list_[(c1 >> (16 - (3 + 1))) & 0x1];
-                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      buffer_to_display[4] = ink_list_[(c1 >> (16 - (4 + 1))) & 0x1];
                      buffer_to_display[5] = ink_list_[(c1 >> (16 - (5 + 1))) & 0x1];
                      buffer_to_display[6] = ink_list_[(c1 >> (16 - (6 + 1))) & 0x1];
                      buffer_to_display[7] = ink_list_[(c1 >> (16 - (7 + 1))) & 0x1];
+                     if (buffered_ink_available_) { monitor_->RecomputeColors(); }
                      buffer_to_display[0 + 8] = ink_list_[(c1 >> (8 - (0 + 1))) & 0x1];
                      buffer_to_display[1 + 8] = ink_list_[(c1 >> (8 - (1 + 1))) & 0x1];
                      buffer_to_display[2 + 8] = ink_list_[(c1 >> (8 - (2 + 1))) & 0x1];
@@ -774,16 +837,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   // next byte
                   END_OF_DISPLAY
                }
-               else
-               {
-                  memcpy(buffer_to_display, &Mode2ExtendedLut[display_short_.byte.l], 8 * sizeof(int));
-
-                  if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-                  memcpy(&buffer_to_display[8], &Mode2ExtendedLut[display_short_.byte.h], 8 * sizeof(int));
-
-                  END_OF_DISPLAY
-               
-               }
 
             }
             case 3:
@@ -794,28 +847,6 @@ unsigned int GateArray::Tick(/*unsigned int nbTicks*/)
                   if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
                   DrawSprites(buffer_to_display);
 
-                  END_OF_DISPLAY
-               }
-               else
-               {
-                  //unsigned int * pBufferToDisplay = monitor_->m_BufferToDisplay;
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word & 0xFF]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
-                  *buffer_to_display++ = ink_list_[byte_to_pixel03_b_[display_short_.word >> 8]];
                   END_OF_DISPLAY
                }
             }
@@ -872,10 +903,14 @@ void GateArray::TickIO()
          {
             if (monitor_->screen_->IsDisplayed())
             {
+               // The new colour is displayed from the 2nd byte of the character of this microsecond
+               // (9.2.2) : the inks are changed when the block is drawn, the palette of the ASIC now.
+               // An ink still pending (written out of the screen, or twice in the microsecond) first
+               if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+               memory_->UpdateAsicPalette(pen_r_, data - 0x40, false);
+               buffered_pen_     = pen_r_;
                buffered_ink_     = ListeColorsIndex[data & 0x5F];
                buffered_ink_reg_ = data & 0x5F;
-
-               memory_->UpdateAsicPalette(pen_r_, data - 0x40);
                buffered_ink_available_ = true;
                /*if ( m_bSpeed)
                {
@@ -909,8 +944,9 @@ void GateArray::TickIO()
 
             if (data & 0x10)
             {
-               // Remise a zero diviseur d'interruption
+               // Remise a zero diviseur d'interruption, until the end of this microsecond (27.2)
                interrupt_counter_ = 0;
+               r52_reset_held_ = true;
                sig_handler_->req_int_ = false;
                sig_handler_->int_ = false;
                //m_Sig->AcqInt ();
@@ -932,7 +968,10 @@ void GateArray::TickIO()
    }
    // PAL
 
-   if (pal_present_ && ((address_bus_->GetShortBus() & 0x8000) == 0x0000))
+   // Selected by A15 = 0. A14 must be 1 on the CPC "old" (compendium 5.1 : with A14 = 0 the PAL is
+   // selected on a few CPC only), it can be 0 or 1 with the ASIC of the CPC+.
+   const unsigned short pal_address = address_bus_->GetShortBus();
+   if (pal_present_ && (pal_address & 0x8000) == 0x0000 && (plus_ || (pal_address & 0x4000) == 0x4000))
    {
       // todo
       switch (data & 0xE0)

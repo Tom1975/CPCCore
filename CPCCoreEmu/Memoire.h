@@ -80,7 +80,9 @@ public:
    unsigned short GetWordWrite(unsigned short i) {return ((GetWrite ( i+1 )<<8) | (GetWrite(i)));};
 
    void WriteAsicRegister(unsigned short addr, unsigned char data);
-   void UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color );
+   // Palette of the ASIC for a hardware colour ; a pen is also given to the displayed inks unless
+   // to_inks is false. Returns the colour of the pen.
+   unsigned int UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color, bool to_inks = true);
 
    void Set ( unsigned short addr, unsigned char data ) {
       last_value_read_ = data;

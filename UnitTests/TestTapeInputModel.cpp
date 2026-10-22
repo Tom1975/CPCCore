@@ -89,3 +89,27 @@ TEST(TapeInputModel, EdgeAfterALongPulseComesEarlier)
 
    delete machine;
 }
+
+TEST(TapeInputModel, TurboBlocksArePlayedAsTimed)
+{
+   DirectoriesImp dirImp; CDisplay display; Log log;
+   SoundFactory soundFactory; ConfigurationManager conf_manager;
+   EmulatorEngine* machine = new EmulatorEngine();
+   display.Init(false);
+   display.Show(false);
+   machine->SetDirectories(&dirImp);
+   machine->SetLog(&log);
+   machine->SetConfigurationManager(&conf_manager);
+   machine->Init(&display, &soundFactory);
+
+   // Turbo block (0x11) : pilot 2254T x 100, sync 1032T/397T, zero 590T, one 1181T, 2 bytes
+   std::vector<unsigned char> tzx = { 'Z', 'X', 'T', 'a', 'p', 'e', '!', 0x1A, 1, 20, 0x11 };
+   const unsigned short words[] = { 2254, 1032, 397, 590, 1181, 100 };
+   for (unsigned short w : words) { tzx.push_back(w & 0xFF); tzx.push_back(w >> 8); }
+   tzx.insert(tzx.end(), { 8, 0, 0, 2, 0, 0, 0xFF, 0x00 });
+
+   // The read signal already shaped these timings : the model leaves them
+   EXPECT_EQ(Load(machine, tzx, false), Load(machine, tzx, true));
+
+   delete machine;
+}

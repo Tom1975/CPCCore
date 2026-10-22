@@ -344,6 +344,15 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    out.push_back(ga->vsync_rise_in_block_ ? 1 : 0);
    out.push_back(ga->cblack_vsync_ ? 1 : 0);
    out.push_back(ga->v26_);
+   out.push_back(ga->vsync_rise_pending_ ? 1 : 0);   // added later : optional when read
+   out.push_back(ga->buffered_pen_);                  // added later : optional when read
+   out.push_back(ga->mode_window_ ? 1 : 0);           // added later : optional when read
+   out.push_back(ga->sr_);                            // shift register (added later : optional)
+   out.push_back(ga->sr_div_);
+   out.push_back(ga->sr_mode_);
+   out.push_back(ga->sr_div_mode_);
+   out.push_back(ga->sr_shown_ ? 1 : 0);
+   out.push_back(ga->r52_reset_held_ ? 1 : 0);        // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -393,6 +402,22 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
    ga->vsync_rise_in_block_ = p[at++] != 0;
    ga->cblack_vsync_ = p[at++] != 0;
    ga->v26_ = p[at++];
+   ga->vsync_rise_pending_ = (at < size) ? (p[at++] != 0) : false;
+   ga->buffered_pen_ = (at < size) ? p[at++] : ga->pen_r_;
+   ga->mode_window_ = (at < size) ? (p[at++] != 0) : false;
+   if (at + 5 <= size)
+   {
+      ga->sr_ = p[at++];
+      ga->sr_div_ = p[at++];
+      ga->sr_mode_ = p[at++] & 3;
+      ga->sr_div_mode_ = p[at++] & 3;
+      ga->sr_shown_ = p[at++] != 0;
+   }
+   else
+   {
+      ga->sr_mode_ = ga->sr_div_mode_ = ga->buffered_screen_mode_ & 3;
+   }
+   ga->r52_reset_held_ = (at < size) ? (p[at++] != 0) : false;
 
    return true;
 }
@@ -601,6 +626,15 @@ void MachineState::WriteFdc(Motherboard* board, std::vector<unsigned char>& out)
    out.push_back(f->delayed_load_container_ ? 1 : 0);
    out.push_back(f->on_index_ ? 1 : 0);
    out.push_back(f->read_data_done_ ? 1 : 0);
+   // Head load (added later : optional when read)
+   PutU32(out, f->timer_phase_);
+   PutU32(out, f->start_delay_);
+   out.push_back(f->head_loaded_ ? 1 : 0);
+   PutU32(out, f->head_unload_edges_);
+   out.push_back(f->hut_);
+   out.push_back(f->start_dio_ ? 1 : 0);
+   out.push_back(f->start_dio_pending_ ? 1 : 0);
+   PutU32(out, f->data_service_ticks_);               // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -715,6 +749,20 @@ bool MachineState::ReadFdc(Motherboard* board, const unsigned char* p, size_t si
    f->delayed_load_container_ = p[at++] != 0;
    f->on_index_ = p[at++] != 0;
    f->read_data_done_ = p[at++] != 0;
+   if (at + 16 <= size)
+   {
+      f->timer_phase_ = GetU32(&p[at]); at += 4;
+      f->start_delay_ = GetU32(&p[at]); at += 4;
+      f->head_loaded_ = p[at++] != 0;
+      f->head_unload_edges_ = GetU32(&p[at]); at += 4;
+      f->hut_ = p[at++];
+      f->start_dio_ = p[at++] != 0;
+      f->start_dio_pending_ = p[at++] != 0;
+   }
+   if (at + 4 <= size)
+   {
+      f->data_service_ticks_ = GetU32(&p[at]); at += 4;
+   }
 
    // Writer and reader must agree byte for byte; if they ever drift apart this
    // catches it here rather than in a machine that quietly runs wrong.
