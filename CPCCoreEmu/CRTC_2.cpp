@@ -49,6 +49,14 @@ void CRTC::ClockTick2 ()
       ma_++;
    }
 
+   if (c0_reset && prev == 0)
+   {
+      // A line of one character (R0 = 0) : its C0==0 position is also its end. The "Derniere Ligne"
+      // state is evaluated with the counters of this line, before those of the next one (13.4 : R0 = 0
+      // does not disturb the counting of C9 and C4)
+      last_line_ = (vcc_ == registers_list_[4]) && c9_eq_r9_at_start_ && !dlp_ && !hsync_on_line_start_;
+   }
+
    if (c0_reset)
    {
       // Vertical sync width counter
@@ -171,6 +179,8 @@ void CRTC::ClockTick2 ()
    ///////////////////////////////
    // Last line state
    const bool first_line = (vcc_ == 0 && vlc_ == 0);
+   // Evaluated on the C0==0 position, at the end of the character (a line of one character, R0 = 0,
+   // is evaluated before the next line starts, see above)
    if (prev == 0 && !c0_reset)
    {
       last_line_ = (vcc_ == registers_list_[4]) && c9_eq_r9_at_start_ && !dlp_ && !hsync_on_line_start_;

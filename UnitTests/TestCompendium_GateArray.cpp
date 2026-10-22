@@ -100,8 +100,12 @@ TEST(Compendium_9, PixelBitsOfEachMode)
       RecordFrame(m);
       const Machine::Block* b = m.FindBlock(kLine, 20);
       ASSERT_NE(nullptr, b);
+      // 9.1 : on the GATE ARRAY 40010, a byte starts on the 1st pixel of its half of the block in Mode 2,
+      // on the 2nd one in the other modes (the screen is filled with the same byte : the 1st pixel is the
+      // last one of the previous byte)
+      const int late = (mode == 2) ? 0 : 1;
       for (int i = 0; i < 16; ++i)
-         EXPECT_EQ(expected[mode][i % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
+         EXPECT_EQ(expected[mode][(i + 8 - late) % 8], PenOf(m, b->pixels[i])) << "pixel " << i;
    }
 }
 
@@ -125,8 +129,7 @@ void DisplayEdges(Machine& m, int mode, int* start, int* end)
 
 // 9.1 : on the GATE ARRAY 40007, 40008, 40010 (and the ASIC 40226), the Mode 2 pixels are drawn
 // 1/16 us early : the border stops one pixel earlier and starts one pixel earlier on C0 = R1.
-// DISABLED : not emulated (the type of GATE ARRAY, GateArray::type_gate_array_, is never used).
-TEST(Compendium_9, DISABLED_Mode2PixelsAreOnePixelEarlyOnTheGateArray40010)
+TEST(Compendium_9, Mode2PixelsAreOnePixelEarlyOnTheGateArray40010)
 {
    Machine m1(CRTC::HD6845S), m2(CRTC::HD6845S);
    int start1, end1, start2, end2;
@@ -203,7 +206,10 @@ int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, I
    const int new_colour = pixels[pixels.size() - 1];
    if (old_colour == new_colour) return -101;
    for (int i = 0; i < (int)pixels.size(); ++i)
+   {
       if (pixels[i] == new_colour) return i - 3 * 16;
+      if (pixels[i] != old_colour) return -103;   // a third colour before the new one
+   }
    return -102;
 }
 }
@@ -211,10 +217,7 @@ int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, I
 // 9.2.2 : CRTC 0, 1, 2 (GATE ARRAY 40010) : the new colour is drawn from the 2nd byte of the
 // character displayed during the microsecond of the I/O, whatever the mode (Mode 2 pixel 120 of the
 // schematics for OUT (C),r8 and OUT (n),A started on C0vs = 6, 152 for OUTI).
-// DISABLED : the new colour comes one microsecond late (pixel 24) : the GATE ARRAY draws the block
-// of the microsecond k + 1 at the end of the microsecond k, an ink written during k + 1 changes the
-// following block.
-TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecond)
+TEST(Compendium_9, InkTakenOnTheSecondByteOfTheIoMicrosecond)
 {
    for (int mode : { 0, 1, 2 })
    {
@@ -226,9 +229,7 @@ TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecond)
 }
 
 // 9.2.2 : CRTC 3 (ASIC 40489) : same position, whatever the mode.
-// DISABLED : one microsecond late, and the position depends on the mode (pixel 16 in mode 0, 20 in
-// modes 1 and 2).
-TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus)
+TEST(Compendium_9, InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus)
 {
    for (int mode : { 0, 1, 2 })
    {
@@ -239,8 +240,7 @@ TEST(Compendium_9, DISABLED_InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlu
 }
 
 // 9.2.2 : CRTC 4 (ASIC 40226) : the colour changes one Mode 2 pixel earlier in mode 2.
-// DISABLED : not emulated, and the colour comes one microsecond late (see above).
-TEST(Compendium_9, DISABLED_InkOnePixelEarlierInMode2OnTheAsic40226)
+TEST(Compendium_9, InkOnePixelEarlierInMode2OnTheAsic40226)
 {
    EXPECT_EQ(8, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 1, InkInstruction::kOutCR8));
    EXPECT_EQ(7, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 2, InkInstruction::kOutCR8));
@@ -282,8 +282,7 @@ int ModeAfterAWriteOn(CRTC::TypeCRTC type, int write_c0, unsigned char r3 = 0x8E
 }
 
 // 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least.
-// DISABLED : the emulated GATE ARRAY changes the mode with a 1 us HSYNC.
-TEST(Compendium_9, DISABLED_ModeChangeNeedsAHSyncOfTwoMicroseconds)
+TEST(Compendium_9, ModeChangeNeedsAHSyncOfTwoMicroseconds)
 {
    EXPECT_EQ(2, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x81));
    EXPECT_EQ(0, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x82));
@@ -379,9 +378,7 @@ std::vector<unsigned char> Ld(unsigned char opcode, unsigned short value)
 
 // 8.1 : LD (HL),r8 (2 us) started on C0vs = c0 : the byte is written on its 2nd microsecond. The
 // GATE ARRAY reads the bytes 0, 1 on c0 (too early : 00), the bytes 2, 3 on c0 + 1 (FF).
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_LdHlR8)
+TEST(Compendium_8, LdHlR8)
 {
    const int expected[4] = { 0x00, 0x00, 0xFF, 0xFF };
    for (int n = 0; n < 4; ++n)
@@ -398,9 +395,7 @@ TEST(Compendium_8, DISABLED_LdHlR8)
 
 // 8.2 : LD (aaaa),HL (5 us), H = &FF, L = &55 : L is written on the 4th microsecond, H on the 5th.
 // Bytes aaaa, aaaa + 1 displayed : aaaa = byte 4 : 00 00 ; 5 : 00 00 ; 6 : 55 00 ; 7 : 55 FF.
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_LdAaaaHl)
+TEST(Compendium_8, LdAaaaHl)
 {
    const std::pair<int, int> expected[4] = { { 0x00, 0x00 }, { 0x00, 0x00 }, { 0x55, 0x00 }, { 0x55, 0xFF } };
    for (int n = 4; n < 8; ++n)
@@ -418,9 +413,7 @@ TEST(Compendium_8, DISABLED_LdAaaaHl)
 // 8.3 : PUSH DE (4 us), D = &FF, E = &55 : D is written (at SP - 1) on the 3rd microsecond, E (at
 // SP - 2) on the 4th. Bytes SP - 2, SP - 1 displayed : SP = byte 4 : 00 00 ; 5, 6, 7 : 00 FF ;
 // 8 : 55 FF.
-// DISABLED : the GATE ARRAY reads the RAM one microsecond early (at the end of the previous
-// microsecond) : a byte written on the microsecond of its read is not displayed.
-TEST(Compendium_8, DISABLED_PushR16)
+TEST(Compendium_8, PushR16)
 {
    const std::pair<int, int> expected[5] = { { 0x00, 0x00 }, { 0x00, 0xFF }, { 0x00, 0xFF }, { 0x00, 0xFF }, { 0x55, 0xFF } };
    for (int n = 4; n < 9; ++n)
@@ -539,18 +532,17 @@ void CheckSplits(CRTC::TypeCRTC type)
 }
 }
 
-// DISABLED : the emulated GATE ARRAY changes the mode on a whole block and draws no mixed pixel.
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc0)
+TEST(Compendium_9, ModeSplittingPixelsCrtc0)
 {
    CheckSplits(CRTC::HD6845S);
 }
 
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc1)
+TEST(Compendium_9, ModeSplittingPixelsCrtc1)
 {
    CheckSplits(CRTC::UM6845R);
 }
 
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc2)
+TEST(Compendium_9, ModeSplittingPixelsCrtc2)
 {
    CheckSplits(CRTC::MC6845);
 }
@@ -600,7 +592,9 @@ std::vector<int> ExpectedSplitAsic40226(int from, int to, unsigned char b)
 }
 }
 
-// DISABLED : the emulated GATE ARRAY changes the mode on a whole block and draws no mixed pixel.
+// DISABLED : the shift register of the GATE ARRAY 40010 (loads, divider, mode taken on the pixels
+// 5 / 6) gives 73 of the 77 pixels at best on the ASIC 40226 (with the shift on the position in the
+// byte) : the 2 -> 0 and 2 -> 3 splits differ on their pixels 3 and 4. To check against the schematics.
 TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
 {
    const unsigned char byte = 0xB4;

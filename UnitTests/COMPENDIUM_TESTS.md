@@ -30,7 +30,7 @@ pas de comportement à vérifier).
 | 4.2 | Numérotation des CRTC | ➖ | |
 | 4.3 | Vue générale des registres (bits par type) | 🟡 | masques R8/R9 : `CRTC_RegisterMasks.*`. À faire : masques de R0..R7, R12/R13 (bits utiles par type) |
 | 4.4.1 | Accès au CRTC (ports) | ✅ | `CRTC_RegisterMasks.R9KeepsOnlyFiveBits` |
-| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : voir §7.2 (DISABLED, 3e µs au lieu de 4e). À faire : IN A,(n), INI/IND |
+| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : port lu à sa 4e µs (§7.2). À faire : IN A,(n), INI/IND |
 | 4.4.3 | Délais d'accès | 🟡 | `CRTC_BusInterface.*`, `Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc`. À faire : OUT(n),A (3e µs partout), OUTD, lectures |
 | 4.4.4 | Dissection des OUT | ✅ | `CRTC_BusInterface.TState0IsTakenNow`, `Z80_IoTiming.*` |
 
@@ -39,7 +39,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 5.1 | Décodage d'adresse : A14=0, A9-A8 = fonction ; n° de registre et valeur tronqués ; une I/O atteint tous les circuits décodés | ✅ | `Compendium_5.CrtcDecodesA14AndA9A8Only`, `OneOutReachesEveryDecodedChip`, `GateArrayNeedsA14OneOnTheCpcOld` |
-| 5.1 (*) | PAL/GATE ARRAY sélectionné avec A14=0 sur les machines à ASIC | ❌ | **DISABLED** : `Compendium_5.GateArraySelectedWithA14ZeroOnTheCpcPlus` (le GA exige A14=1 sur CPC+) |
+| 5.1 (*) | PAL sélectionné avec A14=0 sur les machines à ASIC (le GATE ARRAY exige toujours A14=1) | ✅ | `Compendium_5.PalSelectedWithA14ZeroOnTheCpcPlus`, `PalNeedsA14OneOnTheCpcOld` |
 | 5.2 | CPC+ : séquence de délockage ASIC (17 octets sur &BC00) | ✅ | `Compendium_5.AsicUnlockSequence`, `AsicUnlockWaitsForTheAcknowledgeByte`, `AsicSequenceWithAnotherStateLocks`, `AsicSequenceNeedsANonZeroRq00`, `AsicSequenceBrokenByAWrongByte`, `AsicSequenceIgnoredWithACrtc4` |
 
 ## 6. Construction d'un frame
@@ -57,29 +57,29 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 7.1 | Principes | ➖ | |
-| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | 🟡 | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`. **DISABLED** : `InReadsTheVSyncOnItsFourthMicrosecond` (l'IN émulé lit le port B à sa 3e µs) |
-| 7.3 | FAKE VSYNC : port B en sortie, bit 0 force la VSYNC vue par le GA | ❌ | **DISABLED** : `Compendium_7.FakeVSyncIsSeenByTheGateArray` (propagation désactivée, `if (false)` dans `PPI8255::UpdateSignalForPortB`) |
+| 7.2 | VSYNC lue sur le port B du PPI (bit 0 = broche VSYNC du CRTC) ; IN A,(C) met A à jour à sa 4e µs (référence C0vs) | ✅ | `Compendium_7.PpiPortBBit0IsTheCrtcVSyncPin`, `InReadsTheVSyncOnItsFourthMicrosecond` |
+| 7.3 | FAKE VSYNC : port B en sortie, bit 0 voudrait forcer la VSYNC | ✅ | `Compendium_7.FakeVSyncDoesNotOverrideTheCrtc` : d'après le compendium, ne fonctionne pas (ou mal) selon les CPC, le PPI est trop faible face au CRTC qui pilote la ligne ; l'émulation suit le CRTC |
 
 ## 8. Affichage, Z80A & Gate Array
 
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
-| 8.1 | LD (HL),r8 : écriture RAM vue par le GA selon l'octet | ❌ | **DISABLED** : `Compendium_8.LdHlR8` (le GA lit la RAM 1 µs trop tôt : un octet écrit pendant la µs de sa lecture n'est pas affiché) |
-| 8.2 | LD (nn),HL (L à la 4e µs, H à la 5e) | ❌ | **DISABLED** : `Compendium_8.LdAaaaHl` (même cause) |
-| 8.3 | PUSH r16 (octet fort à la 3e µs, faible à la 4e) | ❌ | **DISABLED** : `Compendium_8.PushR16` (même cause) |
+| 8.1 | LD (HL),r8 : écriture RAM vue par le GA selon l'octet | ✅ | `Compendium_8.LdHlR8` (le GA lit la RAM à la fin de la µs, après les écritures du Z80) |
+| 8.2 | LD (nn),HL (L à la 4e µs, H à la 5e) | ✅ | `Compendium_8.LdAaaaHl` |
+| 8.3 | PUSH r16 (octet fort à la 3e µs, faible à la 4e) | ✅ | `Compendium_8.PushR16` |
 
 ## 9. Gate Array
 
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 9.1 | Pixelisation : ordre des bits par mode (0, 1, 2, 3) | ✅ | `Compendium_9.PixelBitsOfEachMode` |
-| 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | 🟡 | CPC+ aligné : `Compendium_9.PixelsOfEveryModeAlignedOnTheCpcPlus`. **DISABLED** : `Mode2PixelsAreOnePixelEarlyOnTheGateArray40010` (type de GA non émulé) |
+| 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | ✅ | `Compendium_9.Mode2PixelsAreOnePixelEarlyOnTheGateArray40010`, CPC+ aligné : `PixelsOfEveryModeAlignedOnTheCpcPlus` |
 | 9.2.1 | Pixels parasites bord/mode 2 | ➖ | défaut d'alimentation, non émulé |
-| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ❌ | **DISABLED** : `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond` (1 µs trop tard), `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (1 µs trop tard, dépend du mode), `InkOnePixelEarlierInMode2OnTheAsic40226` |
-| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ❌ | **DISABLED** : `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (le mode change avec une HSYNC de 1 µs) |
+| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226` |
+| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (mode pris de la 2e à la 6e µs de la HSYNC-GA) |
 | 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
 | 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |
-| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | ❌ | Relevé p56-73. **DISABLED** : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, R2.NJIT, GA 40010 : pixel 36 ancien mode — noir sur CRTC 1 —, pixels 37-40 nouveau mode), `ModeSplittingPixelsCrtc4` (§9.3.4.5, ASIC 40226 : 1 pixel ancien mode puis 6 nouveaux après le noir). Le GA émulé change de mode par bloc entier. Reste : §9.3.4.4 R3.JIT (tableaux p65-68 relevés, test à écrire avec R3 écrit au T-state) et variantes GA 40007/40008 |
+| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). **DISABLED** : `ModeSplittingPixelsCrtc4` (ASIC 40226 : 73/77 pixels au mieux, 2→0 et 2→3 à revérifier) |
 
 ## 10. Registre R9
 
@@ -125,7 +125,7 @@ pas de comportement à vérifier).
 | 12.2.1 | RLAL CRTC 0 | ✅ | `CRTC_Crtc0Vertical.LineToLineRupture` |
 | 12.3 | CRTC 1 (+ RLAL) | ✅ | `CRTC_Crtc1.R4WrittenOnTheLastLine`, `Compendium_12.Crtc1R4EqualsC4BeforeTheLastLineOfTheRow`, `Compendium_12.LineToLineRuptureCrtc134` |
 | 12.4 | CRTC 2 | ✅ | voir 12.4.1-12.4.2 |
-| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine` |
+| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé) |
 | 12.4.2 | RLAL CRTC 2 | ✅ | `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 12.5 | CRTC 3/4 (+ exception CRTC 3 : R4=0 avec « ROM select » simultané) | 🟡 | `CRTC_AsicVertical.C4Overflows`, RLAL : `Compendium_12.LineToLineRuptureCrtc134`. À faire : exception CRTC 3 |
 
@@ -142,8 +142,8 @@ pas de comportement à vérifier).
 | 13.2.7 | RVLL CRTC 0 | ✅ | `Compendium_13.Crtc0RvllHiddenTwoMicrosecondLines` (tableau 1 p113), `Crtc0RvllWithR2Zero` (tableau 2). Relevé : chaque écriture de R0 tombe sur C0=0 de la ligne qu'elle dimensionne |
 | 13.3 | CRTC 1 : R0 libre (R0=0 normal) ; bug OUTI | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine`. Bug OUTI (C0 déborde « dans certains cas ») : ➖ non déterministe |
 | 13.3.1 | RVI (tableaux p116-118) | ✅ | `Compendium_13.Crtc1Rvi` (64 transitions), `AsicRvi` (lignes de compatibilité CRTC 3/4). Coquille : ligne C9 1→7 (3/4), R0.1 vaut 50 d'après sa séquence C0, pas 49 |
-| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`. **DISABLED** : `Compendium_13.Crtc2R0ZeroCountsNormally` (avec R0=0, le CRTC 2 émulé reste à C4=C9=0). À faire : R2=0 obligatoire |
-| 13.4.1 | RVLL CRTC 2 | 🟡 | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs). **DISABLED** : `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15 : même cause que §13.4) |
+| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1). À faire : R2=0 obligatoire |
+| 13.4.1 | RVLL CRTC 2 | ✅ | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs), `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15) |
 | 13.5 | CRTC 3/4 : R0=0 sans effet de bord | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine` |
 | 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | 🟡 | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`. À faire : chronogrammes p124-125 par type |
 | 13.7.1 | CRTC 1 : RFD par R0 prolongé (§13.7.1.2) | ❌ | non modélisé (DISABLED attendu) |
@@ -303,13 +303,13 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 27.1 | R52 compte les fins de HSYNC (même R3=1), 6 interruptions par frame | ✅ | `Compendium_27.R52CountsEveryHSyncEndEvenWithR3One`, `SixInterruptsPerFrame` |
-| 27.2 | Remise à 0 : dépassement de 51, RMR bit 4, 2e HSYNC après la VSYNC ; effacement du bit 5 à l'acquittement | 🟡 | `Compendium_27.VSyncResetsR52AtTheEndOfTheSecondHSync`, `AcknowledgeClearsBit5OfR52`. **DISABLED** : `R52WrapsDuringTheVSyncWindow` (R52 = 52 non testé pendant les 2 HSYNC de la VSYNC : interruption 1 ligne trop tard) |
-| 27.2 | RMR bit 4 à C0=R2+R3-1 prioritaire sur l'incrément ; à R2+R3-2 : remise à 0 puis incrément | 🟡 | `Compendium_27.RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync`. **DISABLED** : `RmrResetOnTheLastMicrosecondOfTheHSyncWins` (écritures GA sans T-state) |
+| 27.2 | Remise à 0 : dépassement de 51, RMR bit 4, 2e HSYNC après la VSYNC ; effacement du bit 5 à l'acquittement | ✅ | `Compendium_27.VSyncResetsR52AtTheEndOfTheSecondHSync`, `AcknowledgeClearsBit5OfR52`, `R52WrapsDuringTheVSyncWindow` |
+| 27.2 | RMR bit 4 à C0=R2+R3-1 prioritaire sur l'incrément ; à R2+R3-2 : remise à 0 puis incrément | ✅ | `Compendium_27.RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync`, `RmrResetOnTheLastMicrosecondOfTheHSyncWins` (la remise à 0 tient jusqu'à la fin de sa µs) |
 | 27.3.1 | Armement quand R52 reboucle à 0 ; une seule interruption en attente | ✅ | `Compendium_27.OnlyOneInterruptPending` |
 | 27.3.2 | Armement pendant la VSYNC (seulement si bit 5 = 1) | ✅ | `Compendium_27.VSyncRequestsAnInterruptOnlyIfBit5IsSet` |
 | 27.3.3 | Z80 : EI retarde d'une instruction, HALT | ✅ | `Compendium_27.EiDefersTheInterruptByOneInstruction`, `HaltIsInterruptedLikeANopSled` |
 | 27.4 | IM 1 : appel en #38 = 5 µs (RST #38 = 4 µs) | ✅ | `Compendium_27.Im1CallLastsFiveMicroseconds` |
-| 27.5 | IM 2 : 7 µs | ❌ | **DISABLED** : `Compendium_27.Im2CallLastsSevenMicroseconds` (8 µs dans l'émulation) |
+| 27.5 | IM 2 : 7 µs | ✅ | `Compendium_27.Im2CallLastsSevenMicroseconds` |
 | 27.6.1-27.6.5 | Instant de l'interruption par type (R3=14 : 15 µs après C0vs=R2 sur 0/1/2, 16 sur 3/4 ; R3=0 : aucune sur 0/1, 17 sur 2, 18 sur 3/4) | ✅ | `Compendium_27.InterruptPositionFollowsR3` |
 | 27.7.1 | Course incrément de R52 / effacement du bit 5 | ➖ | non déterministe sur le matériel (dépend de la durée réelle de l'instruction qui suit EI) |
 | 27.7.2 | Fiabilité : fin de HSYNC sur le dernier T d'une instruction → interruption après l'instruction suivante | ❌ | à concevoir : placer la fin de HSYNC au T-state près (R3.JIT), NOP vs ADD HL,DE |

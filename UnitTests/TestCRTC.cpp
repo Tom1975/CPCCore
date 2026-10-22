@@ -3609,8 +3609,7 @@ TEST(Compendium_13, Crtc2Rvll)
 }
 
 // Rows with hidden lines of 1 us (R0 = 0) : C9 5, 6, 7 and 8 to 15.
-// DISABLED : with R0 = 0, the emulated CRTC 2 keeps C4 = C9 = 0 (see Crtc2R0ZeroCountsNormally).
-TEST(Compendium_13, DISABLED_Crtc2RvllOneMicrosecondLines)
+TEST(Compendium_13, Crtc2RvllOneMicrosecondLines)
 {
    std::vector<Rupture> r;
    for (int c9 : { 5, 2, 7, 1, 6, 9, 12, 15, 8, 3 })
@@ -3619,19 +3618,34 @@ TEST(Compendium_13, DISABLED_Crtc2RvllOneMicrosecondLines)
 }
 
 // 13.4, 13.4.1 : the CRTC 2 is not disturbed by R0 = 0 for counting C9 and C4 : a frame of 312
-// lines lasts 312 us.
-// DISABLED : the emulated CRTC 2 keeps C4 = C9 = 0 with R0 = 0.
-TEST(Compendium_13, DISABLED_Crtc2R0ZeroCountsNormally)
+// lines lasts 312 us. R0 = 0 is set after the HSYNC of an ordinary line : "Derniere Ligne
+// Precedente" is false, the last line is recognised without HSYNC (12.4.1).
+TEST(Compendium_13, Crtc2R0ZeroCountsNormally)
 {
    CRTC crtc; CSig sig;
    TypedScreen(crtc, sig, CRTC::MC6845, 38, 0, 7);
-   ASSERT_TRUE(ReachLine(crtc, 0, 0));
+   ASSERT_TRUE(ReachLine(crtc, 1, 0));
    WriteRegister(crtc, 0, 0);
    AdvanceMicroseconds(crtc, 4 * 312);
    for (int i = 0; i < 1000 && !(crtc.vcc_ == 0 && crtc.vlc_ == 0); ++i) Advance(crtc);
    int us = 0;
    do { Advance(crtc); ++us; } while (!(crtc.vcc_ == 0 && crtc.vlc_ == 0) && us < 1000);
    EXPECT_EQ(312, us);
+}
+
+// 12.4.1 "Absence de HSYNC" : R0 = 0 set just after the HSYNC of a last line keeps "Derniere Ligne
+// Precedente" true, as there is no more HSYNC to update it : the next C4 == R4 and C9 == R9 is not a
+// last line, C4 goes on past R4.
+TEST(Compendium_12, Crtc2LastLineStaysPreviousWithoutHSync)
+{
+   CRTC crtc; CSig sig;
+   TypedScreen(crtc, sig, CRTC::MC6845, 38, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 0, 0));
+   WriteRegister(crtc, 0, 0);
+   // 320 lines of 1 us after (0, 0) : (40, 0) instead of the (1, 0) of a frame of 312 lines
+   for (int us = 0; us < 312 + 8; ++us) Advance(crtc);
+   EXPECT_EQ(40, crtc.vcc_);
+   EXPECT_EQ(0, crtc.vlc_);
 }
 
 namespace
@@ -3703,4 +3717,3 @@ TEST(Compendium_13, AsicRvi)
    CheckRvi(CRTC::AMS40489, RviAsic());
    CheckRvi(CRTC::AMS40226, RviAsic());
 }
-

@@ -1,4 +1,5 @@
 #pragma once
+#include "EmuRandom.h"
 
 #include <list>
 #include <thread>
@@ -197,7 +198,7 @@ public:
    bool IsRecording ();
 
    void SetFixedSpeed(bool bFixed) { if (bFixed) SetRandomSeed(0x1337);  GetFDC()->SetFixedSpeed(bFixed); }
-   void SetRandomSeed(unsigned int seed) { srand(seed); };
+   void SetRandomSeed(unsigned int seed) { EmuRandom::Seed(seed); };
 
    // Control
    void Reinit ();

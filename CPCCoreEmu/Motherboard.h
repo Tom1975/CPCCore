@@ -128,6 +128,8 @@ public:
    void Reset();
    void Resync();
    void ForceTick(IComponent* component, int ticks);
+   // Restart a component's period from now, whatever was elapsed (snapshot load)
+   void SetTickPeriod(IComponent* component, int ticks);
    //void StartOptimized(unsigned int nb_cycles);
 
 
@@ -210,6 +212,13 @@ protected:
    // Running the emulation
    IComponent * component_list_[10]; // Used to avoid allocation
    unsigned int component_elapsed_time_[32];
+   // A run loop is running : its deadlines are in local copies
+   bool running_ = false;
+   // ForceTick asked for the tape during a run loop, applied by the loop after the Z80 cycle
+   bool tape_force_pending_ = false;
+   int tape_force_ticks_ = 0;
+   void ApplyTapeForce(unsigned int& deadline, unsigned int now);
+   static void ShortenTickPeriod(IComponent* component, unsigned int& deadline, unsigned int now, int ticks);
 
    int nb_components_;
    int z80_index_;
@@ -250,6 +259,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       ++elapsed;
    }
 
+   running_ = true;
    while (next_cycle < nb_cycles)
    {
       if ( z80_.IsBreak())
@@ -268,12 +278,14 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
 
       if (elapsed_time_asic <= next_cycle)
       {
-         // Same CRTC clock as CRTC::Tick() : character logic, bus interface, HSYNC / VSYNC pins
+         // Same CRTC clock as CRTC::Tick() : end of the microsecond for the GATE ARRAY, then the next
+         // character (character logic, bus interface, HSYNC / VSYNC pins)
+         crtc_.gate_array_->TickVideo();
          crtc_.ClockCharacter();
+         crtc_.gate_array_->TickSignals();
 
          // Lightgun :
          // If X/Y is in the current zone => do something
-         crtc_.gate_array_->Tick();
 
          // Cursor
          if (crtc_.vlc_ >= crtc_.registers_list_[10] && crtc_.vlc_ <= crtc_.registers_list_[11]
@@ -317,6 +329,13 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
          z80_.counter_++;
          elapsed_time_z80 += (z80_.*(z80_.tick_functions_)[z80_.machine_cycle_ | z80_.t_])();
       }
+      if (tape_force_pending_)
+      {
+         if constexpr (tape_present)
+            ApplyTapeForce(elapsed_time_tape, next_cycle);
+         else
+            tape_force_pending_ = false;
+      }
 
       /*if (elapsed_time_dma <= next_cycle)
       {
@@ -336,6 +355,7 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       signals_.Propagate();
       ++next_cycle;
    }
+   running_ = false;
    index = 0;
    component_elapsed_time_[index++] = elapsed_time_psg - nb_cycles;
    component_elapsed_time_[index++] = elapsed_time_z80 - nb_cycles;

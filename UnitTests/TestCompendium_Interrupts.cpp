@@ -189,9 +189,7 @@ TEST(Compendium_27, VSyncRequestsAnInterruptOnlyIfBit5IsSet)
 // 27.2 : R52 goes back to 0 when it goes past 51, also during the 2 HSYNC that follow the start of
 // the VSYNC. R52 = 51 at the start of the VSYNC : it wraps at the end of the 1st HSYNC, which
 // requests the interrupt ; at the end of the 2nd HSYNC, R52 = 1 (bit 5 clear) : no interrupt.
-// DISABLED : GateArray::Tick() does not test R52 = 52 while it waits for the 2 HSYNC of the VSYNC :
-// R52 reaches 53 and the interrupt comes one line late, at the end of the 2nd HSYNC.
-TEST(Compendium_27, DISABLED_R52WrapsDuringTheVSyncWindow)
+TEST(Compendium_27, R52WrapsDuringTheVSyncWindow)
 {
    Machine m(CRTC::HD6845S);
    InstallEiRetHandler(m);
@@ -311,8 +309,7 @@ TEST(Compendium_27, Im1CallLastsFiveMicroseconds)
 
 // 27.5 : IM 2 : the call through the vector table lasts 7 us. The low byte of the table address
 // is undetermined on a CPC "old" : the table holds 257 times the same byte.
-// DISABLED : the emulated IM 2 call lasts 8 us.
-TEST(Compendium_27, DISABLED_Im2CallLastsSevenMicroseconds)
+TEST(Compendium_27, Im2CallLastsSevenMicroseconds)
 {
    Machine m(CRTC::HD6845S);
    for (unsigned int a = 0x3000; a <= 0x3100; ++a) m.Ram()[a] = 0x31;
@@ -360,9 +357,7 @@ TEST(Compendium_27, RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync)
    EXPECT_EQ(1, R52AfterHSyncEndWithResetAt(kR2 + 14 - 2));
 }
 
-// DISABLED : the end of the HSYNC increments R52 after the reset (R52 = 1) : GATE ARRAY writes are
-// applied without their T-state (CSig::Out -> GateArray::TickIO), unlike the CRTC ones.
-TEST(Compendium_27, DISABLED_RmrResetOnTheLastMicrosecondOfTheHSyncWins)
+TEST(Compendium_27, RmrResetOnTheLastMicrosecondOfTheHSyncWins)
 {
    EXPECT_EQ(0, R52AfterHSyncEndWithResetAt(kR2 + 14 - 1));
 }

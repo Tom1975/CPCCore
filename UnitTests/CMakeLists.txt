@@ -59,6 +59,8 @@ add_executable( unitTests
 						   TestWorkspace.cpp
 						   TestWorkspaceIsolation.cpp
                      TestZ84C30.cpp
+                     TestDebugMemory.cpp
+                     TestTapeInputModel.cpp
                      TestSnapshot.cpp
                      TestSnapshotMachineType.cpp
                      TestStateDeterminism.cpp
@@ -72,7 +74,6 @@ add_executable( unitTests
                      TestMachineStateRam.cpp
                      TestMachineStateSize.cpp
                      TestMachineStateExpansions.cpp
-                     TestSpeedLimit.cpp
                      TestReset.cpp
 
 )

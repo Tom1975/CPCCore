@@ -80,16 +80,25 @@ TEST(Compendium_5, OneOutReachesEveryDecodedChip)
    EXPECT_EQ(0x0E, m.Engine().GetPPI()->port_a_);
 }
 
-// 5.1 (*) : on the CPC with an ASIC (CRTC 3), the GATE ARRAY (PAL) is selected whatever A14 :
-// &3Fxx writes the border colour. On the CPC "old", A14 must be 1.
-TEST(Compendium_5, DISABLED_GateArraySelectedWithA14ZeroOnTheCpcPlus)
+// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected with A14 = 0 or 1 on the CPC+ (CRTC
+// 3, 4) ; on the CPC "old" A14 must be 1 (only a few CPC select it with A14 = 0). The GATE ARRAY
+// itself always needs A14 = 1.
+TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
 {
    Machine m(CRTC::AMS40489, "6128PLUS");
    std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0x3F00, 0x10));   // PENR : border
-   z80::Append(p, z80::Out(0x3F00, 0x4C));   // INKR : colour 12
+   z80::Append(p, z80::Out(0x3F00, 0xC1));   // RAM configuration 1
    RunProgram(m, p);
-   EXPECT_EQ(0x4C, m.Ga().border_reg_);
+   EXPECT_EQ(1, m.Engine().GetMem()->GetRamBankConfig());
+}
+
+TEST(Compendium_5, PalNeedsA14OneOnTheCpcOld)
+{
+   Machine m(CRTC::HD6845S);
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, z80::Out(0x3F00, 0xC1));
+   RunProgram(m, p);
+   EXPECT_EQ(0, m.Engine().GetMem()->GetRamBankConfig());
 }
 
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)
@@ -189,9 +198,7 @@ TEST(Compendium_7, PpiPortBBit0IsTheCrtcVSyncPin)
 // 7.2 : IN A,(C) lasts 4 us ; A gets bit 0 of port B on its 4th microsecond. The IN starts
 // k us before the VSYNC (C0 = 0 of the line C4 = R7) : bit 0 = 1 if the VSYNC starts on one of
 // its 4 microseconds.
-// DISABLED : the emulated IN reads port B on its 3rd microsecond (a VSYNC starting on the 4th one
-// is not seen).
-TEST(Compendium_7, DISABLED_InReadsTheVSyncOnItsFourthMicrosecond)
+TEST(Compendium_7, InReadsTheVSyncOnItsFourthMicrosecond)
 {
    for (int start = 52; start < 64; ++start)
    {
@@ -220,20 +227,26 @@ TEST(Compendium_7, DISABLED_InReadsTheVSyncOnItsFourthMicrosecond)
    }
 }
 
-// 7.3 : port B programmed as an output, bit 0 = 1 drives the VSYNC line seen by the GATE ARRAY
-// (FAKE VSYNC) : R52 is reset at the end of the 2nd HSYNC, as for a CRTC VSYNC. (It does not work
-// on every CPC ; this is the behaviour of the CPC on which it works.)
-TEST(Compendium_7, DISABLED_FakeVSyncIsSeenByTheGateArray)
+// 7.3 : port B programmed as an output, bit 0 = 1 puts the VSYNC line of the PPI high (FAKE
+// VSYNC). The compendium found it does not work on some CPC and gives a wrong result on others :
+// the PPI is not strong enough against the CRTC, which drives the line. The emulation follows the
+// CRTC : a FAKE VSYNC does not reach the GATE ARRAY, R52 runs as without it.
+TEST(Compendium_7, FakeVSyncDoesNotOverrideTheCrtc)
 {
-   Machine m(CRTC::HD6845S);
-   ASSERT_TRUE(UntilPosition(m, 100, 0));
-   std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0xF700, 0x80));   // port B as an output
-   z80::Append(p, z80::Out(0xF500, 0x01));   // VSYNC line high
-   z80::Append(p, z80::kJrSelf);
-   m.Run(p);
-   ASSERT_TRUE(UntilPosition(m, 102, 46 + 16));
-   EXPECT_EQ(0, m.Ga().interrupt_counter_);
+   int counter[2];
+   for (int level = 0; level < 2; ++level)
+   {
+      Machine m(CRTC::HD6845S);
+      ASSERT_TRUE(UntilPosition(m, 100, 0));
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0xF700, 0x80));                              // port B as an output
+      z80::Append(p, z80::Out(0xF500, static_cast<unsigned char>(level))); // VSYNC line of the PPI
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      ASSERT_TRUE(UntilPosition(m, 102, 46 + 16));
+      counter[level] = m.Ga().interrupt_counter_;
+   }
+   EXPECT_EQ(counter[0], counter[1]);
 }
 
 /////////////////////////////////////////////////////////////

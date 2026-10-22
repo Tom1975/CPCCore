@@ -73,6 +73,7 @@ public:
    void Cycle()
    {
       const unsigned char hcc = Crtc().hcc_;
+      const int line_before = Crtc().vcc_ * (Crtc().registers_list_[9] + 1) + Crtc().vlc_;
       engine_->GetMotherboard()->DebugNew(1);
       ++cycles_;
       if (Crtc().hcc_ != hcc) c0_change_cycle_ = cycles_;
@@ -91,11 +92,11 @@ public:
             b.pixels_at = nullptr;
             blocks_.push_back(b);
          }
-         // Drawn on the last cycle of a microsecond, with the CRTC moving to the next C0 : the
-         // block is displayed during the microsecond of the new C0.
+         // Drawn on the last cycle of a microsecond, just before the CRTC moves to the next C0 :
+         // the block is displayed during the microsecond that ends.
          block_pending_.pixels_at = Ga().last_block_;
-         block_pending_.line = Crtc().vcc_ * (Crtc().registers_list_[9] + 1) + Crtc().vlc_;
-         block_pending_.c0 = Crtc().hcc_;
+         block_pending_.line = line_before;
+         block_pending_.c0 = hcc;
       }
    }
 

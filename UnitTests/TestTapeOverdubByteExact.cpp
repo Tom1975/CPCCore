@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "EmuRandom.h"
 
 #include "TestWorkspace.h"
 
@@ -35,7 +36,7 @@ TEST(TapeOverdubByteExact, EntriesFarFromOverdubBurstAreUnchanged)
    machine->LoadConfiguration("./TestConf.ini", "./TestConf_0.ini");
    machine->Reinit();
 
-   srand(0xE7123456);
+   EmuRandom::Seed(0xE7123456);
    machine->SetFixedSpeed(true);
    machine->SetSpeedLimit(EmulatorEngine::E_FULL);
 
