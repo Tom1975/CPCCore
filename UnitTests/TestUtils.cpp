@@ -10,6 +10,7 @@
 #define fopen_s(pFile,filename,mode) (((*(pFile))=fopen((filename), (mode))) == NULL)
 #include <sys/stat.h>
 #endif
+#include "EmuRandom.h"
 #include <filesystem>
 namespace fs = std::filesystem;
 #endif
@@ -387,7 +388,7 @@ bool TestDump::Test(std::filesystem::path conf, std::filesystem::path initfile, 
 
    // Fixed speed seeds rand with 0x1337 : the seed of the test is set after it, or it would be lost
    machine_->SetFixedSpeed(bFixedSpeed);
-   srand(seed);
+   EmuRandom::Seed(seed);
 
    // Load disk
    machine_->LoadDisk(dump_to_load.string().c_str(), 0, false);

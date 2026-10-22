@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IDisk.h"
+#include "EmuRandom.h"
 #include "FDC765.h"
 
 #include <cerrno>
@@ -349,7 +350,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
    // Sanity check
    if (side_[side].tracks[track].bitfield == nullptr)
    {
-      return (rand() & 0x1);
+      return (EmuRandom::Next() & 0x1);
    }
 
    unsigned char value = side_[side].tracks[track].bitfield[head_position_];
@@ -371,7 +372,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
       bool one_more;
       
       {
-         one_more = rand() & 0x1;
+         one_more = EmuRandom::Next() & 0x1;
       }
       
       if (one_more)
@@ -387,7 +388,7 @@ unsigned char IDisk::GetNextBit(int side, int track)
 
    if ((value & BIT_WEAK) == BIT_WEAK)
    {
-      value = (rand() & 0x1) | (value & BIT_INDEX);
+      value = (EmuRandom::Next() & 0x1) | (value & BIT_INDEX);
    }
 
    // Get next bit

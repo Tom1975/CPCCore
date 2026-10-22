@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DiskGen.h"
+#include "EmuRandom.h"
 //#include "rand.h"
 #include <stdlib.h>
 #include <vector>
@@ -232,7 +233,7 @@ void DiskGen::Tick()
             if (encode_scheme_ == CODE_FM)
             {
                // TODO : Not supported now
-               b = ( rand() & 0x1) | (b & BIT_INDEX);
+               b = ( EmuRandom::Next() & 0x1) | (b & BIT_INDEX);
             }
 
 
@@ -518,7 +519,7 @@ void DiskGen::ComputeSpeed(int typeOfSpeed)
          final_speed_ = static_cast<int>(vsMax - current_track_ * slope);
          if (!fixed_speed_)
          {
-            final_speed_ += rand() % 100;
+            final_speed_ += EmuRandom::Next() % 100;
          }
 
          break;
