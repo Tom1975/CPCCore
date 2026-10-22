@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "EmuRandom.h"
 
 #include "TestWorkspace.h"
 
@@ -43,7 +44,7 @@ TEST(TapeRecording, RecordOntoFreshBlankTapeDoesNotCrash)
    machine->LoadConfiguration("./TestConf.ini", "./TestConf_0.ini");
    machine->Reinit();
 
-   srand(0xE7123456);
+   EmuRandom::Seed(0xE7123456);
    machine->SetFixedSpeed(true);
 
    CTape* tape = machine->GetTape();
@@ -127,7 +128,7 @@ TEST(TapeRecording, OverdubOntoLoadedTapeDoesNotUnderflowNextEntryLength)
    machine->LoadConfiguration("./TestConf.ini", "./TestConf_0.ini");
    machine->Reinit();
 
-   srand(0xE7123456);
+   EmuRandom::Seed(0xE7123456);
    machine->SetFixedSpeed(true);
 
    // Real commercial tape dump already used by Test_Dumps_tape.cpp -- real
@@ -228,7 +229,7 @@ TEST(TapeRecording, RecordedTapeReloadsAndReplaysTheWrittenSignal)
       machine->LoadConfiguration("./TestConf.ini", "./TestConf_0.ini");
       machine->Reinit();
 
-      srand(0xE7123456);
+      EmuRandom::Seed(0xE7123456);
       machine->SetFixedSpeed(true);
 
       CTape* tape = machine->GetTape();
@@ -379,7 +380,7 @@ TEST(TapeRecording, StopRecordActuallyStopsRecording)
    machine->LoadConfiguration("./TestConf.ini", "./TestConf_0.ini");
    machine->Reinit();
 
-   srand(0xE7123456);
+   EmuRandom::Seed(0xE7123456);
    machine->SetFixedSpeed(true);
 
    CTape* tape = machine->GetTape();

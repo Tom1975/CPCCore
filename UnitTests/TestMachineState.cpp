@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "EmuRandom.h"
 
 #include "TestWorkspace.h"
 
@@ -236,14 +237,14 @@ void CheckOneMachine(const char* section, int slices_before_save,
    // layer uses it for weak sectors and drive-speed jitter. Both runs have to
    // start from the same point or they diverge for a reason no save state could
    // ever fix.
-   srand(0x5AFE5EED);
+   EmuRandom::Seed(0x5AFE5EED);
    for (int i = 0; i < kSlicesAfterSave; ++i)
       machine->RunTimeSlice();
    const Fingerprint straight_through = Capture(machine);
 
    ASSERT_TRUE(MachineState::Load(machine, &state[0], state.size()));
    const Fingerprint at_restore = Capture(machine);
-   srand(0x5AFE5EED);
+   EmuRandom::Seed(0x5AFE5EED);
 
    // Split the two failure modes: a field that is already wrong the instant the
    // state comes back was not carried, as opposed to one that only drifts once
@@ -910,13 +911,13 @@ TEST(MachineStateTest, RestoringAStateReproducesTheSameRunFromACartridge)
    std::vector<unsigned char> state;
    ASSERT_TRUE(MachineState::Save(machine, state));
 
-   srand(0x5AFE5EED);
+   EmuRandom::Seed(0x5AFE5EED);
    for (int i = 0; i < kSlicesAfter; ++i)
       machine->RunTimeSlice();
    const Fingerprint straight_through = Capture(machine);
 
    ASSERT_TRUE(MachineState::Load(machine, &state[0], state.size()));
-   srand(0x5AFE5EED);
+   EmuRandom::Seed(0x5AFE5EED);
    for (int i = 0; i < kSlicesAfter; ++i)
       machine->RunTimeSlice();
    const Fingerprint after_restore = Capture(machine);
