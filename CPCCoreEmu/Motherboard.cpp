@@ -333,45 +333,82 @@ void Motherboard::Resync()
    // Place them in the file
 
    // PSG
-   ForceTick(&psg_, 0);
+   SetTickPeriod(&psg_, 0);
 
    // z80
-   ForceTick(&z80_, 0);
+   SetTickPeriod(&z80_, 0);
 
-   // CRTC�Asic
+   // CRTC/Asic
    if (plus_)
    {
-      ForceTick(&asic_, 11);
+      SetTickPeriod(&asic_, 11);
 
-      ForceTick(&dma_[0], 11);
-      ForceTick(&dma_[1], 11);
-      ForceTick(&dma_[2], 11);
+      SetTickPeriod(&dma_[0], 11);
+      SetTickPeriod(&dma_[1], 11);
+      SetTickPeriod(&dma_[2], 11);
    }
    else
    {
-      ForceTick(&crtc_, 8);
+      SetTickPeriod(&crtc_, 8);
 
    }
 
    // Tape ?
-   ForceTick(&tape_, 1);
+   SetTickPeriod(&tape_, 1);
 
    // FDC ?
-   ForceTick(&fdc_, 8);
+   SetTickPeriod(&fdc_, 8);
 
    // Gate Array
-   ForceTick(&vga_, 2);
+   SetTickPeriod(&vga_, 2);
 
 }
 
 void Motherboard::ForceTick(IComponent* component, int ticks)
 {
-   // Look for this item
+   // A component asks to be ticked earlier, in `ticks` cycles (0 : as soon as possible).
+   // Its Tick() takes this_tick_time_ as the time elapsed since its previous tick: the
+   // period that ends now has to keep the time already elapsed, or the component loses it.
+   if (running_ && component == &tape_)
+   {
+      // The run loops keep the deadlines in local copies : they apply it themselves, after
+      // the Z80 cycle that asked for it (an OUT to the PPI port C).
+      tape_force_pending_ = true;
+      tape_force_ticks_ = ticks;
+      return;
+   }
+
    for (int i = 0; i < nb_components_; i++)
    {
       if (component_list_[i] == component)
       {
-         // Found ? Just set the "current" value to 0
+         ShortenTickPeriod(component_list_[i], component_elapsed_time_[i], 0, ticks);
+         return;
+      }
+   }
+}
+
+void Motherboard::ShortenTickPeriod(IComponent* component, unsigned int& deadline, unsigned int now, int ticks)
+{
+   const unsigned int delay = (ticks > 0) ? ticks : 1;
+   const unsigned int remaining = deadline - now;
+   component->this_tick_time_ = component->this_tick_time_ - remaining + delay;
+   deadline = now + delay;
+}
+
+void Motherboard::ApplyTapeForce(unsigned int& deadline, unsigned int now)
+{
+   tape_force_pending_ = false;
+   ShortenTickPeriod(&tape_, deadline, now, tape_force_ticks_);
+}
+
+void Motherboard::SetTickPeriod(IComponent* component, int ticks)
+{
+   // Restart the component's period, whatever was elapsed (used once a snapshot is loaded).
+   for (int i = 0; i < nb_components_; i++)
+   {
+      if (component_list_[i] == component)
+      {
          if (ticks == 0)
          {
             component_list_[i]->this_tick_time_ -= (component_elapsed_time_[i] - 1);
@@ -382,11 +419,9 @@ void Motherboard::ForceTick(IComponent* component, int ticks)
             component_list_[i]->this_tick_time_ = ticks;
             component_elapsed_time_[i] = ticks;
          }
-
          return;
       }
    }
-
 }
 
 // New
@@ -421,6 +456,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
    next_cycle = 0;
 
    int old_counter = next_cycle;
+   running_ = true;
    while (run_ && nb_opcodes > 0)
    {
       if (elapsed_time_psg == next_cycle)
@@ -431,6 +467,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
       RUN_COMPOSANT_N(crtc_, elapsed_time_crtc);
       RUN_COMPOSANT_N(fdc_, elapsed_time_fdc);
       RUN_COMPOSANT_N(z80_, elapsed_time_z80);
+      if (tape_force_pending_) ApplyTapeForce(elapsed_time_tape, next_cycle);
 
       for (int i = 0; i < signals_.nb_expansion_; i++)
       {
@@ -479,6 +516,7 @@ int Motherboard::DebugOpcodes( unsigned int& nb_opcodes )
       }
    }
 
+   running_ = false;
    index = 0;
    component_elapsed_time_[index++] = elapsed_time_psg - next_cycle;
    component_elapsed_time_[index++] = elapsed_time_z80 - next_cycle;
@@ -559,6 +597,7 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
 
    int old_counter = next_cycle;
 
+   running_ = true;
    while (run_ && next_cycle < nb_cycles)
    {
       if (elapsed_time_psg == next_cycle)
@@ -569,6 +608,7 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       RUN_COMPOSANT_N(crtc_, elapsed_time_crtc);
       RUN_COMPOSANT_N(fdc_, elapsed_time_fdc);
       RUN_COMPOSANT_N(z80_, elapsed_time_z80);
+      if (tape_force_pending_) ApplyTapeForce(elapsed_time_tape, next_cycle);
 
       for (int i = 0; i < signals_.nb_expansion_; i++)
       {
@@ -628,6 +668,7 @@ int Motherboard::DebugNew(unsigned int nb_cycles)
       }
    }
    
+   running_ = false;
    index = 0;
    component_elapsed_time_[index++] = elapsed_time_psg - next_cycle;
    component_elapsed_time_[index++] = elapsed_time_z80 - next_cycle;

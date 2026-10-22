@@ -168,7 +168,8 @@ TEST(Dumps_Tape_Protections, Elmar_Krieger_Prehistorik_2_cdt)
    TestTape test;
    // Press space
    CommandKeyboard cmd_space(" ");
-   CommandRunCycles run_cycles(350);
+   // The game reads the keyboard some seconds after the load : press space well after it
+   CommandRunCycles run_cycles(1000);
 
    // First test : To the white screen, with '0' countdown
    ASSERT_EQ(true, test.Test("464", "./TestConf.ini",
