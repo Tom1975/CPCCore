@@ -207,6 +207,25 @@ void GateArray::RequestRasterInterrupt()
    interrupt_raised_ = true;
 }
 
+void GateArray::PowerOn()
+{
+   pen_r_ = 0;
+   buffered_ink_available_ = false;
+   buffered_ink_reg_ = 0;
+   buffered_pen_ = 0;
+   border_reg_ = 0;
+   memset(ink_regs_, 0, sizeof(ink_regs_));
+   for (int i = 0; i < 16; i++) ink_list_[i] = ListeColorsIndex[0];
+   for (int i = 0; i < NB_BYTE_BORDER; i++) video_border_[i] = ListeColorsIndex[0];
+   // The shift register and the HSYNC timing start empty
+   sr_ = 0;
+   sr_div_ = 0;
+   sr_shown_ = false;
+   mode_window_ = false;
+   r52_reset_held_ = false;
+   Reset();
+}
+
 void GateArray::SetBus(Bus* address, Bus* data)
 {
    address_bus_ = address;
