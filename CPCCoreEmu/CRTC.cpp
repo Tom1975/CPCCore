@@ -324,8 +324,8 @@ bool CRTC::HSyncPinFollowsComparators() const
 // - CRTC 0 : 4 pixels after the clock or the I/O ;
 // - CRTC 1 : 5 pixels after the clock, 4 after an I/O ;
 // - CRTC 2 : rising edge 3 pixels after the clock or the I/O, falling edge 4 ;
-// - CRTC 3, 4 : the pin is one microsecond late (ClockHSyncPin), then 0 (CRTC 3, supposed : 17th pixel
-//   after the start of the character R2-1 displayed) or 2 pixels (CRTC 4 : 19th pixel).
+// - CRTC 3, 4 : the pin is one microsecond late (ClockHSyncPin), then 2 pixels (CRTC 4 : 19th pixel after
+//   the start of the character R2-1 displayed ; CRTC 3, not measured : like the CRTC 4).
 unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
 {
    switch (type_crtc_)
@@ -336,8 +336,6 @@ unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
       return (t_state == 0) ? 5 : 4 * t_state + 4;
    case MC6845:
       return 4 * t_state + (rise ? 3 : 4);
-   case AMS40489:
-      return 0;
    default:
       return 2;
    }
@@ -346,7 +344,7 @@ unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
 // Pixel of the block of the microsecond where the GATE ARRAY sees the VSYNC pin rise, on the clock edge
 // that brings C4 to R7 (16.2.1, R7 programmed before) : the black starts on the 5th pixel (CRTC 0, 2),
 // the 6th (CRTC 1) or the 2nd (CRTC 4) of the character displayed then. Not delayed by a microsecond on
-// the ASIC, unlike the HSYNC. CRTC 3 : not measured, kept on the 1st pixel.
+// the ASIC, unlike the HSYNC. CRTC 3 : not measured, like the CRTC 4.
 unsigned int CRTC::VSyncPinEdge() const
 {
    switch (type_crtc_)
@@ -356,8 +354,6 @@ unsigned int CRTC::VSyncPinEdge() const
       return 4;
    case UM6845R:
       return 5;
-   case AMS40489:
-      return 0;
    default:
       return 1;
    }

@@ -2695,12 +2695,12 @@ void HSyncLineSetup(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type, unsigned char r2
 }
 
 // R3l = 2, R2 programmed before : black from the 5th / 6th / 4th pixel (CRTC 0 / 1 / 2) for
-// 32 / 32 / 33 pixels. CRTC 3 (supposed), 4 : one block later, from the 17th / 19th pixel.
+// 32 / 32 / 33 pixels. CRTC 4 : one block later, from the 19th pixel ; CRTC 3 (not measured) : like the CRTC 4.
 TEST(GateArray_HSyncBlack, R2ProgrammedBefore)
 {
    struct { CRTC::TypeCRTC type; int start; int length; } const cases[] = {
       { CRTC::HD6845S, 4, 32 }, { CRTC::UM6845R, 5, 32 }, { CRTC::MC6845, 3, 33 },
-      { CRTC::AMS40489, 16, 32 }, { CRTC::AMS40226, 18, 32 },
+      { CRTC::AMS40489, 18, 32 }, { CRTC::AMS40226, 18, 32 },
    };
    for (const auto& c : cases)
    {

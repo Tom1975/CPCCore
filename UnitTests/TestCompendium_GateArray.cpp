@@ -672,18 +672,17 @@ int LastBlack(Machine& m, int line, int c0_first, int c0_last)
 
 // 16.2.1 : R7 programmed before C4 reaches it. The black starts on the 5th pixel (CRTC 0, 2), the 6th
 // (CRTC 1) or the 2nd (CRTC 4) of the character displayed when C4 becomes R7 : the last one of the line
-// before (C0 = R0), displayed one microsecond late. CRTC 3 : not given by the compendium.
+// before (C0 = R0), displayed one microsecond late. CRTC 3 : not given by the compendium, like the CRTC 4.
 TEST(Compendium_16, VSyncBlackStartsInTheCharacterDisplayedWhenC4ReachesR7)
 {
    for (const TypedMachine& t : kSyncMachines)
    {
-      if (t.type == CRTC::AMS40489) continue;
       SCOPED_TRACE(t.config);
       SCOPED_TRACE((int)t.type);
       Machine m(t.type, t.config);
       RecordSyncFrame(m, {});
       const int line = 30 * 8;
-      const int expected = (t.type == CRTC::UM6845R) ? 5 : (t.type == CRTC::AMS40226) ? 1 : 4;
+      const int expected = (t.type == CRTC::UM6845R) ? 5 : (t.type == CRTC::AMS40489 || t.type == CRTC::AMS40226) ? 1 : 4;
       EXPECT_EQ(-1, FirstBlack(m, line - 1, 62, 63));
       EXPECT_EQ(expected, FirstBlack(m, line, 0, 0));
    }
