@@ -184,7 +184,9 @@ public:
    void ClockHSyncPin();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
-   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }
+   // The SKEW delay line is clocked by the character clock (19.2.4) : it takes DISPEN at the end of the
+   // character and gives it back for a whole character
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 3 : 0); }
    void ClockDispEnHalvesCrtc02();
    void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
    // DISPEN for the first (half = 0) or the second (half = 1) half of the current character

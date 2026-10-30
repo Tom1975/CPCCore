@@ -3762,3 +3762,30 @@ TEST(Compendium_15, Crtc0R3lRewrittenOnTheEndPositionRestartsTheHSync)
       }
    }
 }
+
+// 19.2.4 : CRTC 0, R1 > R0 (R0 = 63, R1 = 64) : C0 == R0 replaces C0 == R1, a border byte on the second half
+// of C0 = 63. The SKEW delay of R8 counts character clocks : the delayed border is a whole character, on
+// C0 = 0 (+1) or C0 = 1 (+2), as it would be on C0 == R1 (schematic p196).
+TEST(Compendium_19, SkewDelaysTheR0BorderByWholeCharacters)
+{
+   const struct { unsigned char r8; const char* halves; } cases[] = {
+      { 0x00, "10 11 11 11" }, { 0x10, "11 00 11 11" }, { 0x20, "11 11 00 11" } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(c.r8);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::HD6845S);
+      WriteRegister(crtc, 1, 64);
+      WriteRegister(crtc, 8, c.r8);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      AdvanceUntilHccEquals(crtc, 63);
+      std::string halves;
+      for (int i = 0; i < 4; ++i)
+      {
+         if (i > 0) { Advance(crtc); halves += ' '; }
+         halves += crtc.DispEn(0) ? '1' : '0';
+         halves += crtc.DispEn(1) ? '1' : '0';
+      }
+      EXPECT_EQ(c.halves, halves);   // C0 = 63, 0, 1, 2
+   }
+}

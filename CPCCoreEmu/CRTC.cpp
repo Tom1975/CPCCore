@@ -438,7 +438,7 @@ bool CRTC::DispEn(int half) const
    case 3:
       return false;
    default:
-      // The SKEW delay line keeps both halves of each character
+      // The SKEW delay line keeps one value per character (ClockDispTmg)
       return ((dispen_history_ >> (2 * (skew - 1) + (half ? 1 : 0))) & 1) != 0;
    }
 }

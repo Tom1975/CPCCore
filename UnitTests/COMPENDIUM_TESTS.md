@@ -242,7 +242,7 @@ pas de comportement à vérifier).
 | 19.2.1 | BORDER ON | ✅ | `CRTC_SkewDispTmg.DelaysTheBorderOnCrtc034` |
 | 19.2.2 | BORDER OFF | ✅ | `Compendium_19.BorderOffDuringALine` |
 | 19.2.3 | Délai +1/+2 | ✅ | `CRTC_SkewDispTmg.DelaysTheBorderOnCrtc034`, `R1EqualsR0`, `NoSkewOnCrtc12` |
-| 19.2.4 | Absence de condition C0=R1 (R1>R0) avec skew | ❌ | |
+| 19.2.4 | Absence de condition C0=R1 (R1>R0) avec skew | ✅ | `Compendium_19.SkewDelaysTheR0BorderByWholeCharacters` (la ligne de retard SKEW est cadencée par caractère : le border de C0=R0 retardé occupe tout le caractère 0 ou 1) |
 | 19.2.5 | Désintégration du border CRTC 0 | ✅ | `CRTC_SkewDispTmg.Crtc0BorderDisintegration` |
 | 19.3.1-19.3.2 | Interlace : IS / IVM | ✅ | `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame`, `InterlaceVideoModeAlternatesTheLines` |
 | 19.3.3-19.3.4 | Restrictions, fonction mal aimée (BORDER ON + interlace) | ❌ | |
