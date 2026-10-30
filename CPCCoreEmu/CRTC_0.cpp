@@ -186,7 +186,11 @@ void CRTC::ClockTick0 ()
 
    if (prev <= 2)
    {
-      const unsigned char next_c9 = (c9_eq_r9_now && !adjust_confirmed_) ? 0 : ((vlc_ + 1) & 0x1F);
+      unsigned char next_c9 = (c9_eq_r9_now && !adjust_confirmed_) ? 0 : ((vlc_ + 1) & 0x1F);
+      // Additional line of an adjustment never confirmed (R0<2) : it is compared with R5 with its own C9, so
+      // with R5=0 it lasts one line and C4, C9 return to 0 whatever R9 (13.2.5, 13.2.7)
+      if (adjust_ && !adjust_confirmed_ && vcc_ != registers_list_[4])
+         next_c9 = vlc_;
       adjust_end_ = (next_c9 == ((registers_list_[5] + (interlace_line ? 1 : 0)) & 0x1F));
    }
 
