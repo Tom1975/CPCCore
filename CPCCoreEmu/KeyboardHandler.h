@@ -82,7 +82,7 @@ public:
    unsigned char* GetKeyboardState () {return keyboard_lines_cached_;};
    unsigned char* GetRealKeyboardState() { return keyboard_lines_; };
 
-   void InitKeyboard (const char* path);
+   void InitKeyboard ();
 
 protected :
 
