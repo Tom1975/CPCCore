@@ -245,7 +245,7 @@ pas de comportement à vérifier).
 | 19.2.4 | Absence de condition C0=R1 (R1>R0) avec skew | ✅ | `Compendium_19.SkewDelaysTheR0BorderByWholeCharacters` (la ligne de retard SKEW est cadencée par caractère : le border de C0=R0 retardé occupe tout le caractère 0 ou 1) |
 | 19.2.5 | Désintégration du border CRTC 0 | ✅ | `CRTC_SkewDispTmg.Crtc0BorderDisintegration` |
 | 19.3.1-19.3.2 | Interlace : IS / IVM | ✅ | `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame`, `InterlaceVideoModeAlternatesTheLines` |
-| 19.3.3-19.3.4 | Restrictions, fonction mal aimée (BORDER ON + interlace) | ❌ | |
+| 19.3.3-19.3.4 | Restrictions, fonction mal aimée (interlace activé en temps réel) | ✅ | texte surtout didactique ; VSYNC plus tôt en IVM sur 0/1/3/4, pas sur 2 : `Compendium_28.IvmVSyncTwiceAsEarly` ; activation en cours de frame : tests §19.5-19.7 (`CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`, `InterlaceMidVSync`, `InterlaceParityFrozenByR6`) |
 | 19.4.1-19.4.4 | Programmation verticale en interlace par type | 🟡 | `CRTC_Compendium.InterlaceVideoModeAlternatesTheLines`. À faire : R9=N-2 (0, 3/4), N-1 (1, 2), R9=0 en IVM |
 | 19.5.2 | Parité CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6`, `IvmVSyncDelayedOnOddC4` |
 | 19.5.3 | Parité CRTC 1 (tables p211-212) | 🟡 | `CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`. À faire : tables complètes |
