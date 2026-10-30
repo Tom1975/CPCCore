@@ -218,7 +218,7 @@ pas de comportement à vérifier).
 | 17.4.1 | VMA'/VMA quand C4=0, CRTC 0/3/4 | ✅ | `Compendium_17.FirstRowAtR12R13AndR1AboveR0` |
 | 17.4.2 | CRTC 1 | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter` |
 | 17.4.3 | CRTC 2 (+ bug AND VMA' avec R1=0) | 🟡 | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine`. À faire : bug AND (non modélisé) |
-| 17.5.1-17.5.2 | Prise en compte de R1=0 | ❌ | chronogrammes p187 |
+| 17.5.1-17.5.2 | Prise en compte de R1=0 | 🟡 | CRTC 0/1/2 : `Compendium_17.R1ZeroTakenForTheNextLineUpToAnIoOnC0EqualsR0` (OUT(C),r8 débuté sur &3B..&3D pris, &3E trop tard). **DISABLED** : `R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic` (CRTC 3/4 : le départ &3C donne encore le border dans l'émulation ; 1 µs de plus que le décalage ASIC de 4.4.3, non compris) |
 | 17.6.1 | R1=R0 et C0=R0 : 1 µs de border | ✅ | `Compendium_17.R1EqualsR0GivesOneBorderMicrosecond`, `CRTC_SkewDispTmg.R1EqualsR0` |
 | 17.6.2 | R1>R0 et C0=R0 : octet de border CRTC 0/2 | ✅ | `CRTC_Compendium.BorderByteWhenR1GreaterThanR0`, `Crtc0R0ZeroAlternatesBytes` |
 

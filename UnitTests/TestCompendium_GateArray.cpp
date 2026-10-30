@@ -740,3 +740,73 @@ TEST(Compendium_16, ASecondCrtcVSyncRestartsTheTwentySixLines)
       EXPECT_EQ(asic ? 26 : 46, lines);
    }
 }
+
+/////////////////////////////////////////////////////////////
+// 17.5 : R1 = 0 written by an OUT (C),r8 started on C0 = &3B .. &3E (R0 = &3F) : taken for the next line
+// (C0 == R1 on its first character : border) up to the start on &3D on CRTC 0, 1, 2 (I/O on &3F), only
+// on &3B on CRTC 3, 4 (their OUT (C),r8 is taken one microsecond later, 4.4.3).
+
+namespace
+{
+// Machine on a displayed line, then OUT (C),C (R1 = 0) started after 'nops' NOPs. Returns the C0 the OUT
+// starts on and whether the next line is border.
+int R1ZeroOut(CRTC::TypeCRTC type, const char* config, int nops, bool* border_next_line)
+{
+   Machine m(type, config);
+   Prepare(m, 1, 0xFF);
+   if (m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine && m.Crtc().hcc_ == 0; }, 4 * 20000) < 0) return -1;
+   std::vector<unsigned char> p = { z80::kDi, 0x01, 0x01, 0xBC, 0xED, 0x49,   // LD BC,&BC01 : OUT (C),C : select R1
+                                    0x01, 0x00, 0xBD };                       // LD BC,&BD00
+   for (int i = 0; i < nops; ++i) p.push_back(z80::kNop);
+   const unsigned short at = (unsigned short)(kProgram + p.size());
+   z80::Append(p, { 0xED, 0x49 });                                            // OUT (C),C : R1 = 0
+   z80::Append(p, z80::kJrSelf);
+   m.RecordBlocks(true);
+   m.Run(p);
+   int line = -1;
+   const int start = m.InstructionStart(at, &line);
+   for (int i = 0; i < 4 * 64 * 3; ++i) m.Cycle();
+   m.RecordBlocks(false);
+   const int next_line = (start >= 0x3B) ? line + 1 : line + 2;
+   const Machine::Block* b = m.FindBlock(next_line, 10);
+   *border_next_line = (b != nullptr && PenOf(m, b->pixels[8]) == kBorder);
+   return start;
+}
+}
+
+namespace
+{
+struct R1ZeroCase { CRTC::TypeCRTC type; const char* config; int last_start; };
+void CheckR1Zero(const R1ZeroCase& t)
+{
+   SCOPED_TRACE(t.config);
+   SCOPED_TRACE((int)t.type);
+   bool border = false;
+   const int start0 = R1ZeroOut(t.type, t.config, 0, &border);
+   ASSERT_GE(start0, 0);
+   for (int c0 = 0x3B; c0 <= 0x3E; ++c0)
+   {
+      SCOPED_TRACE(c0);
+      const int nops = (c0 - start0 + 64) % 64;
+      ASSERT_EQ(c0, R1ZeroOut(t.type, t.config, nops, &border));
+      EXPECT_EQ(c0 <= t.last_start, border);
+   }
+}
+}
+
+TEST(Compendium_17, R1ZeroTakenForTheNextLineUpToAnIoOnC0EqualsR0)
+{
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::HD6845S, "6128", 0x3D }, R1ZeroCase{ CRTC::UM6845R, "6128", 0x3D },
+                                R1ZeroCase{ CRTC::MC6845, "6128", 0x3D } })
+      CheckR1Zero(t);
+}
+
+// CRTC 3, 4 : the OUT (C),r8 started on &3C (I/O taken on the 4th microsecond, C0 = &3F = R0) still gives
+// the border in the emulation, too late on the real machine. The ASIC takes an OUT (C),r8 one microsecond
+// later than CRTC 0 (4.4.3, Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc) ; for R1 = 0 it should be
+// one more : not understood (C0 == R1 evaluated one character ahead would also move 17.3).
+TEST(Compendium_17, DISABLED_R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic)
+{
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::AMS40489, "6128PLUS", 0x3B }, R1ZeroCase{ CRTC::AMS40226, "6128PLUS", 0x3B } })
+      CheckR1Zero(t);
+}
