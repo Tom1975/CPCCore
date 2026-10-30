@@ -730,20 +730,19 @@ void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* i
       asic_registers[0x2400 + i*2] = in_buffer[0x880 + i*2];
       asic_registers[0x2400 + i * 2+1] = in_buffer[0x880 + i * 2+1];
 
-      unsigned char r = (asic_registers[(0x2400+i*2) & 0xFFFE] >> 4);
-      unsigned char b = asic_registers[(0x2400 + i*2) & 0xFFFE] & 0x0F;
-      unsigned char g = asic_registers[((0x2400 + i*2) & 0xFFFE) + 1] & 0xF;
-      r <<= 4;
-      g <<= 4;
-      b <<= 4;
+      const unsigned int colour = machine_->GetMem()->AsicColour(i);
       if (i < 16) // Only first 16 are on the palette list
       {
-         machine_->GetVGA()->ink_list_[i] = (r << 16) + (g << 8) + (b);
+         machine_->GetVGA()->ink_list_[i] = colour;
       }
       else if (i==16)
       {
          for (int j = 0; j < NB_BYTE_BORDER; j++)
-            machine_->GetVGA()->video_border_[j] = (r << 16) + (g << 8) + (b) + 0xFF000000;
+            machine_->GetVGA()->video_border_[j] = colour;
+      }
+      else // Sprite inks 1-15
+      {
+         machine_->GetVGA()->sprite_ink_list_[i - 16] = colour;
       }
    }
    machine_->GetMonitor()->RecomputeAllColors();

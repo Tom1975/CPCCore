@@ -399,10 +399,7 @@ unsigned int Memory::UpdateAsicPalette(unsigned char color_index, unsigned char 
       asic_io_[0x2400+ color_index*2] = (b | (r << 4));
       asic_io_[0x2401+ color_index * 2] = (g);
 
-      r <<= 4;
-      g <<= 4;
-      b <<= 4;
-      const unsigned int colour = (r << 16) + (g << 8) + (b) | 0xFF000000;
+      const unsigned int colour = AsicColour(color_index);
       if (to_inks)
       {
          monitor_->gate_array_->ink_list_[color_index] = colour;
@@ -418,6 +415,17 @@ unsigned int Memory::UpdateAsicPalette(unsigned char color_index, unsigned char 
       for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40] | 0xFF000000;
    }
    return 0;
+}
+
+unsigned int Memory::AsicColour(int entry) const
+{
+   // Palette register : byte 0 = red (bits 7-4) and blue (bits 3-0), byte 1 = green (bits 3-0).
+   // The colour goes through the display, as the Gate Array table does (ConvertRGB).
+   const unsigned char rb = asic_io_[0x2400 + entry * 2];
+   const unsigned char g = asic_io_[0x2401 + entry * 2] & 0x0F;
+   const unsigned int rgb = ((rb >> 4) << 20) | (g << 12) | ((rb & 0x0F) << 4);
+   const unsigned int colour = (monitor_ != nullptr && monitor_->screen_ != nullptr) ? monitor_->screen_->ConvertRGB(rgb) : rgb;
+   return colour | 0xFF000000;
 }
 
 void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
@@ -533,43 +541,19 @@ void Memory::WriteAsicRegister(unsigned short addr, unsigned char data)
          if (addr >= 0x6400 && addr < 0x6420)
          {
             int p = (addr - 0x6400) >> 1;
-            // Get r, g, b
-            unsigned char r = (asic_io_[(addr - 0x4000) & 0xFFFE] >> 4);
-            unsigned char b = asic_io_[(addr - 0x4000) & 0xFFFE] & 0x0F;
-            unsigned char g = asic_io_[((addr - 0x4000) & 0xFFFE) + 1] & 0xF;
-
-            r <<= 4;
-            g <<= 4;
-            b <<= 4;
-
-            monitor_->gate_array_->ink_list_[p] = (r << 16) + (g << 8) + (b) | 0xFF000000;
+            monitor_->gate_array_->ink_list_[p] = AsicColour(p);
          }
          else if (addr == 0x6420 || addr == 0x6421)
          {
             // Border
-            unsigned char r = (asic_io_[(addr - 0x4000) & 0xFFFE] >> 4);
-            unsigned char b = asic_io_[(addr - 0x4000) & 0xFFFE] & 0x0F;
-            unsigned char g = asic_io_[((addr - 0x4000) & 0xFFFE) + 1] & 0xF;
-
-            r <<= 4;
-            g <<= 4;
-            b <<= 4;
-            for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = (r << 16) + (g << 8) + (b) + 0xFF000000;
+            const unsigned int colour = AsicColour(16);
+            for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = colour;
          }
          // Sprite palette
          else if (addr >= 0x6422 && addr < 0x6440)
          {
             int p = (addr - 0x6420) >> 1;
-            // Get r, g, b
-            unsigned char r = (asic_io_[(addr - 0x4000) & 0xFFFE] >> 4);
-            unsigned char b = asic_io_[(addr - 0x4000) & 0xFFFE] & 0x0F;
-            unsigned char g = asic_io_[((addr - 0x4000) & 0xFFFE) + 1] & 0xF;
-
-            r <<= 4;
-            g <<= 4;
-            b <<= 4;
-
-            monitor_->gate_array_->sprite_ink_list_[p] = (r << 16) + (g << 8) + (b) + 0xFF000000;
+            monitor_->gate_array_->sprite_ink_list_[p] = AsicColour(16 + p);
 
          }
          // SSA

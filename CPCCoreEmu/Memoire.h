@@ -83,6 +83,9 @@ public:
    // Palette of the ASIC for a hardware colour ; a pen is also given to the displayed inks unless
    // to_inks is false. Returns the colour of the pen.
    unsigned int UpdateAsicPalette(unsigned char color_index, unsigned char hardware_color, bool to_inks = true);
+   // Colour of an entry of the ASIC palette (0-15 pens, 16 border, 17-31 sprite inks), in the
+   // format of the display, like the colours of the Gate Array
+   unsigned int AsicColour(int entry) const;
 
    void Set ( unsigned short addr, unsigned char data ) {
       last_value_read_ = data;
