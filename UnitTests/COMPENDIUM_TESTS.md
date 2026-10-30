@@ -30,8 +30,8 @@ pas de comportement à vérifier).
 | 4.2 | Numérotation des CRTC | ➖ | |
 | 4.3 | Vue générale des registres (bits par type) | ✅ | `Compendium_4.RegistersKeepTheBitsOfTheirType` (R0..R7, R12, R13 ; R3 sur 4 bits sur CRTC 1/2), R8/R9 : `CRTC_RegisterMasks.*` |
 | 4.4.1 | Accès au CRTC (ports) | ✅ | `CRTC_RegisterMasks.R9KeepsOnlyFiveBits` |
-| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : port lu à sa 4e µs (§7.2). À faire : IN A,(n), INI/IND |
-| 4.4.3 | Délais d'accès | 🟡 | `CRTC_BusInterface.*`, `Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc`. À faire : OUT(n),A (3e µs partout), OUTD, lectures |
+| 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | ✅ | OUT : `Z80_IoTiming.*`, `Compendium_4.WriteTakenOnTheMicrosecondOfEachInstruction` ; IN : `Compendium_4.ReadTakenOnTheMicrosecondOfEachInstruction` (IN A,(C), IN A,(n), INI, IND), `Compendium_7.InReadsTheVSyncOnItsFourthMicrosecond` |
+| 4.4.3 | Délais d'accès | ✅ | table complète : `Compendium_4.WriteTakenOnTheMicrosecondOfEachInstruction` (OUT (C),r8 / OUT (C),0 3e µs, 4e sur 3/4 ; OUT (n),A 3e ; OUTI / OUTD 5e ; 5 types), `Compendium_4.ReadTakenOnTheMicrosecondOfEachInstruction` (IN r8,(C), INI, IND 4e ; IN A,(n) 3e), `CRTC_BusInterface.*` |
 | 4.4.4 | Dissection des OUT | ✅ | `CRTC_BusInterface.TState0IsTakenNow`, `Z80_IoTiming.*` |
 
 ## 5. Les autres circuits

@@ -280,3 +280,109 @@ TEST(Compendium_29, PpiPortBOutputReadsBackOnTheCpcOld)
    RunProgram(m, p);
    EXPECT_EQ(0x5A, m.Ram()[kResult]);
 }
+
+/////////////////////////////////////////////////////////////
+// 4.4.2, 4.4.3 : microsecond of each I/O instruction where the access is taken
+
+namespace
+{
+// Writes : R12 is selected, 'setup' prepares the registers, 'io' writes R12. Returns the microsecond of
+// the instruction (1 = its first) on whose end the CRTC first clocks with the new R12.
+int WriteMicrosecond(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& setup,
+                     const std::vector<unsigned char>& io)
+{
+   Machine m(type, config);
+   std::vector<unsigned char> p = { z80::kDi, 0x01, 0x0C, 0xBC, 0xED, 0x49 };   // LD BC,&BC0C : OUT (C),C
+   z80::Append(p, setup);
+   // A NOP marks the start : InstructionStart follows PC, which an instruction with an operand only moves
+   // once the operand is read
+   const unsigned short at = (unsigned short)(kProgram + p.size());
+   p.push_back(z80::kNop);
+   z80::Append(p, io);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   if (m.InstructionStart(at, nullptr) < 0) return -1;
+   for (int c = 0; c < 4; ++c) m.Cycle();   // the NOP
+   const unsigned char before = m.Crtc().registers_list_[12];
+   for (int us = 1; us <= 8; ++us)
+   {
+      // Cycles 2, 3, 4 of the microsecond : sampled just before the clock edge (4th cycle)
+      for (int c = 0; c < 2; ++c) m.Cycle();
+      if (m.Crtc().registers_list_[12] != before) return us;
+      for (int c = 0; c < 2; ++c) m.Cycle();
+   }
+   return -1;
+}
+
+// Reads : 'io' reads PPI port B (bit 0 : CRTC VSYNC) to kResult, 'setup' prepares the registers. The
+// instruction starts k us before the VSYNC ; returns the last microsecond of the instruction (1 = its
+// first) on which a rising VSYNC is still seen.
+int ReadMicrosecond(const std::vector<unsigned char>& setup, const std::vector<unsigned char>& io)
+{
+   int last_seen = -1;
+   for (int start = 52; start < 64; ++start)
+   {
+      Machine m(CRTC::HD6845S);
+      if (!UntilPosition(m, kVSyncLine - 1, start)) return -2;
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, setup);
+      const unsigned short at = (unsigned short)(kProgram + p.size());
+      p.push_back(z80::kNop);   // marks the start (see WriteMicrosecond)
+      z80::Append(p, io);
+      z80::Append(p, z80::kJrSelf);
+      m.Ram()[kResult] = 0;
+      m.Run(p);
+      if (m.InstructionStart(at, nullptr) < 0) return -3;
+      for (int c = 0; c < 4; ++c) m.Cycle();   // the NOP
+      // Microsecond of the instruction on which the VSYNC is high first (first cycle of each microsecond)
+      int us = 1;
+      while (!m.Sig().v_sync_ && us < 20)
+      {
+         for (int c = 0; c < 4; ++c) m.Cycle();
+         ++us;
+      }
+      for (int i = 0; i < 4 * 20; ++i) m.Cycle();
+      if ((m.Ram()[kResult] & 1) && us > last_seen) last_seen = us;
+   }
+   return last_seen;
+}
+}
+
+// 4.4.3 : writes taken on the 3rd us of OUT (C),r8 / OUT (C),0 (4th on CRTC 3, 4 : the ASIC misses the
+// I/O and takes it on the next window), the 3rd of OUT (n),A, the 5th of OUTI / OUTD, on every CRTC.
+TEST(Compendium_4, WriteTakenOnTheMicrosecondOfEachInstruction)
+{
+   const std::vector<unsigned char> to_bd00 = { 0x01, 0x15, 0xBD };                                   // LD BC,&BD15
+   const struct { CRTC::TypeCRTC type; const char* config; int out_c; } types[] = {
+      { CRTC::HD6845S, "6128", 3 }, { CRTC::UM6845R, "6128", 3 }, { CRTC::MC6845, "6128", 3 },
+      { CRTC::AMS40489, "6128PLUS", 4 }, { CRTC::AMS40226, "6128PLUS", 4 } };
+   for (const auto& t : types)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      EXPECT_EQ(t.out_c, WriteMicrosecond(t.type, t.config, to_bd00, { 0xED, 0x49 }));   // OUT (C),C
+      EXPECT_EQ(t.out_c, WriteMicrosecond(t.type, t.config, to_bd00, { 0xED, 0x71 }));   // OUT (C),0
+      EXPECT_EQ(3, WriteMicrosecond(t.type, t.config, { 0x3E, 0xBD }, { 0xD3, 0x00 })); // LD A,&BD : OUT (&00),A
+      // LD HL,&5000 : LD (HL),&15 : LD BC,&BE00 (OUTI / OUTD decrement B first)
+      const std::vector<unsigned char> hl = { 0x21, 0x00, 0x50, 0x36, 0x15, 0x01, 0x00, 0xBE };
+      EXPECT_EQ(5, WriteMicrosecond(t.type, t.config, hl, { 0xED, 0xA3 }));   // OUTI
+      EXPECT_EQ(5, WriteMicrosecond(t.type, t.config, hl, { 0xED, 0xAB }));   // OUTD
+   }
+}
+
+// 4.4.3 : reads taken on the 4th us of IN r8,(C), INI, IND and the 3rd of IN A,(n).
+TEST(Compendium_4, ReadTakenOnTheMicrosecondOfEachInstruction)
+{
+   const std::vector<unsigned char> store_a = { 0x32, (unsigned char)(kResult & 0xFF), (unsigned char)(kResult >> 8) };
+   std::vector<unsigned char> in_c = { 0xED, 0x78 };   // IN A,(C)
+   z80::Append(in_c, store_a);
+   std::vector<unsigned char> in_n = { 0xDB, 0x00 };   // IN A,(&00) : port &F500
+   z80::Append(in_n, store_a);
+   const std::vector<unsigned char> hl = { 0x21, (unsigned char)(kResult & 0xFF), (unsigned char)(kResult >> 8) };
+   std::vector<unsigned char> bc_hl = { 0x01, 0x00, 0xF5 };
+   z80::Append(bc_hl, hl);
+   EXPECT_EQ(4, ReadMicrosecond({ 0x01, 0x00, 0xF5 }, in_c));
+   EXPECT_EQ(3, ReadMicrosecond({ 0x3E, 0xF5 }, in_n));
+   EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xA2 }));   // INI
+   EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xAA }));   // IND
+}
