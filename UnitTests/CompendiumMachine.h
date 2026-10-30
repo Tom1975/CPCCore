@@ -36,15 +36,16 @@ public:
       engine_->LoadConfiguration(config, "./TestConf.ini");
       engine_->Reinit();
       for (int i = 0; i < 50; i++) engine_->RunTimeSlice();
-      // The CRTC type is changed after the boot : R3 is written again so that the sync widths the
-      // boot derived for the configured type (VSYNC length from R3h) follow the new one.
+      // The CRTC type is changed after the boot : R3 is written again with the value of the firmware (&8E),
+      // so that the sync widths follow the new type (the previous one may not have kept the VSYNC width,
+      // 4.3 : R3h does not exist on CRTC 1, 2).
       CRTC& crtc = *engine_->GetCRTC();
       if (crtc.type_crtc_ != type)
       {
          crtc.DefinirTypeCRTC(type);
          const unsigned char selected = crtc.adddress_register_;
          crtc.Out(0xBC00, 3);
-         crtc.Out(0xBD00, crtc.registers_list_[3]);
+         crtc.Out(0xBD00, 0x8E);
          crtc.Out(0xBC00, selected);
       }
    }

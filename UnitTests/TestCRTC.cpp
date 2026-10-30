@@ -261,7 +261,8 @@ TEST(CRTC_RegisterDefaults, MatchTheEuropeanRomTableAfterReset)
       EXPECT_EQ(0x3F, crtc.registers_list_[0]);
       EXPECT_EQ(0x28, crtc.registers_list_[1]);
       EXPECT_EQ(0x2E, crtc.registers_list_[2]);
-      EXPECT_EQ(0x8E, crtc.registers_list_[3]);
+      // R3h does not exist on CRTC 1, 2 (4.3)
+      EXPECT_EQ((type == CRTC::UM6845R || type == CRTC::MC6845) ? 0x0E : 0x8E, crtc.registers_list_[3]);
       EXPECT_EQ(0x26, crtc.registers_list_[4]);
       EXPECT_EQ(0x00, crtc.registers_list_[5]);
       EXPECT_EQ(0x19, crtc.registers_list_[6]);
@@ -3810,4 +3811,26 @@ TEST(Compendium_13, Crtc1LastLineCancelledDuringALengthenedR0GivesARfd)
    EXPECT_EQ(38, crtc.vcc_);
    EXPECT_EQ(8, crtc.vlc_);
    EXPECT_EQ(kOffset, crtc.ma_);
+}
+
+// 4.3 : bits kept by each register on a write of &FF (table p22). R3 : the VSYNC width (bits 7-4) only
+// exists on CRTC 0, 3, 4. R8, R9 : CRTC_RegisterMasks. R10/R11 are read-only status on CRTC 3, 4.
+TEST(Compendium_4, RegistersKeepTheBitsOfTheirType)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool crtc12 = (type == CRTC::UM6845R || type == CRTC::MC6845);
+      const struct { int reg; unsigned char kept; } cases[] = {
+         { 0, 0xFF }, { 1, 0xFF }, { 2, 0xFF }, { 3, (unsigned char)(crtc12 ? 0x0F : 0xFF) }, { 4, 0x7F },
+         { 5, 0x1F }, { 6, 0x7F }, { 7, 0x7F }, { 12, 0x3F }, { 13, 0xFF } };
+      for (const auto& c : cases)
+      {
+         SCOPED_TRACE(c.reg);
+         CRTC crtc; CSig sig;
+         MakeCrtc(crtc, sig, type);
+         WriteRegister(crtc, (unsigned char)c.reg, 0xFF);
+         EXPECT_EQ(c.kept, crtc.registers_list_[c.reg]);
+      }
+   }
 }

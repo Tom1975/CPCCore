@@ -64,6 +64,13 @@ CRTCRegistersAcces CRTCAccess[32] = {
 
 // R8 bits kept on write, per CRTC type (Compendium 19.1/19.2) : bits 0-1 = interlace on all types,
 // bits 4-5 = SKEW-DISPTMG (BORDER delay / force) on CRTC 0/3/4, bits 6-7 = cursor skew on CRTC 0 only.
+// R3 bits kept on write (Compendium 4.3) : the VSYNC width (bits 7-4) only exists on CRTC 0/3/4, CRTC 1/2
+// have a fixed 16 line VSYNC.
+static unsigned char R3Mask(CRTC::TypeCRTC type_crtc)
+{
+   return (type_crtc == CRTC::UM6845R || type_crtc == CRTC::MC6845) ? 0x0F : 0xFF;
+}
+
 static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
 {
    switch (type_crtc)
@@ -107,7 +114,7 @@ void CRTC::Reset()
    registers_list_[0] = 0x3F;   registers_mask_[0] = 0xFF;
    registers_list_[1] = 0x28;   registers_mask_[1] = 0xFF;
    registers_list_[2] = 0x2E;   registers_mask_[2] = 0xFF;
-   registers_list_[3] = 0x8E;   registers_mask_[3] = 0xFF;
+   registers_list_[3] = 0x8E & R3Mask(type_crtc_);   registers_mask_[3] = R3Mask(type_crtc_);
    registers_list_[4] = 0x26;   registers_mask_[4] = 0x7F;
    registers_list_[5] = 0x00;   registers_mask_[5] = 0x1F;
    registers_list_[6] = 0x19;   registers_mask_[6] = 0x7F;
@@ -815,6 +822,7 @@ void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
    default:
       TickFunction = &CRTC::ClockTick34;
    }
+   registers_mask_[3] = R3Mask(type_crtc_);
    registers_mask_[8] = R8Mask(type_crtc_);
 }
 

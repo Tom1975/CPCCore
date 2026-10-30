@@ -28,7 +28,7 @@ pas de comportement à vérifier).
 |---|---|---|---|
 | 4.1 | Table ROM européenne, durée d'un frame | ✅ | `CRTC_RegisterDefaults.MatchTheEuropeanRomTableAfterReset`, `CRTC_FrameTiming.StandardEuropeanFrameIs19968Microseconds` |
 | 4.2 | Numérotation des CRTC | ➖ | |
-| 4.3 | Vue générale des registres (bits par type) | 🟡 | masques R8/R9 : `CRTC_RegisterMasks.*`. À faire : masques de R0..R7, R12/R13 (bits utiles par type) |
+| 4.3 | Vue générale des registres (bits par type) | ✅ | `Compendium_4.RegistersKeepTheBitsOfTheirType` (R0..R7, R12, R13 ; R3 sur 4 bits sur CRTC 1/2), R8/R9 : `CRTC_RegisterMasks.*` |
 | 4.4.1 | Accès au CRTC (ports) | ✅ | `CRTC_RegisterMasks.R9KeepsOnlyFiveBits` |
 | 4.4.2 | Instructions Z80A d'I/O, cycles d'attente du GA | 🟡 | OUT : `Z80_IoTiming.*`. IN A,(C) : port lu à sa 4e µs (§7.2). À faire : IN A,(n), INI/IND |
 | 4.4.3 | Délais d'accès | 🟡 | `CRTC_BusInterface.*`, `Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc`. À faire : OUT(n),A (3e µs partout), OUTD, lectures |
