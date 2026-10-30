@@ -146,7 +146,7 @@ pas de comportement à vérifier).
 | 13.4.1 | RVLL CRTC 2 | ✅ | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs), `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15) |
 | 13.5 | CRTC 3/4 : R0=0 sans effet de bord | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine` |
 | 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | 🟡 | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`. À faire : chronogrammes p124-125 par type |
-| 13.7.1 | CRTC 1 : RFD par R0 prolongé (§13.7.1.2) | ❌ | non modélisé (DISABLED attendu) |
+| 13.7.1 | CRTC 1 : RFD par R0 prolongé (§13.7.1.2) | 🟡 | `Compendium_13.Crtc1LastLineCancelledDuringALengthenedR0GivesARfd` (R9 annulé pendant la prolongation : pas de fin de frame, ligne suivante sur R12/R13). À faire : variante R4 et alternance « 1 frame sur 2 » (parité du R.F.D.), R0 par OUTI (§13.7.1.1) |
 | 13.7.2 | CRTC 0 : R0 agrandi à C0=1 de la dernière ligne | ✅ | `CRTC_Crtc0Vertical.R0EnlargedOnC0Equals1OfALastLine` |
 | 13.8.1-13.8.3 | Offset selon C0 (écrans de 4, 2, 1 µs) | ✅ | `Compendium_13.OffsetOnEveryShortLineCrtc134`, `Crtc0R0ZeroNeverTakesTheOffset`, `CRTC_Crtc0Vertical.R0EqualsOneAlternatesC4`. Chronogrammes fins p128-131 non relevés |
 

@@ -17,6 +17,8 @@
 //                       frame or a R.F.D., cleared at the line end after C0==R1 && C9==R9 (or C9==R9 alone
 //                       when R1>R0), unless C4==R4 at that line end (17.4.2, 11.2.4, 11.6).
 // - status_border_r6_   status bit 5, updated at the line end (21.3.3).
+// - last_line_sampled_  last_line_ already sampled on this line : R0 lengthened on the last line which is
+//                       then cancelled gives a R.F.D. (13.7.1.2).
 // Not yet handled : the frame parity used by the R.F.D. in the C9==R9 test on C0==R1 (11.6.1, 19.5.3).
 //
 ///////////////////////////////////////////////////////////////
@@ -48,6 +50,8 @@ void CRTC::ClockTick1 ()
 
    if (c0_reset)
    {
+      last_line_sampled_ = false;
+
       // Vertical sync width counter
       if (ff4_)    // CE
       {
@@ -147,10 +151,16 @@ void CRTC::ClockTick1 ()
       }
    }
 
-   // Last line, sampled when C0 reaches R0
+   // Last line, sampled when C0 reaches R0. R0 lengthened on C0==R0 of the last line, the last line
+   // cancelled (R4, R9) during the lengthening : the frame end states set on the first C0==R0 meet a
+   // line that is no longer the last one, a R.F.D. at the end of the line (13.7.1.2)
    if (hcc_ == registers_list_[0])
    {
-      last_line_ = (vcc_ == registers_list_[4]) && C9EqualsR9();
+      const bool last_line = (vcc_ == registers_list_[4]) && C9EqualsR9();
+      if (last_line_sampled_ && last_line_ && !last_line)
+         rfd_ = true;
+      last_line_ = last_line;
+      last_line_sampled_ = true;
    }
 
    // VMA' is updated when C0 reaches R1 on the last line of a character (17). After a R.F.D. the test

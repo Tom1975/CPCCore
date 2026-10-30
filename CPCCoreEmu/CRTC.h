@@ -94,6 +94,7 @@ public:
    bool vma_reload_;            // VMA is loaded from R12/R13 at the line start instead of VMA'
    bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
+   bool last_line_sampled_;     // CRTC 1 : last_line_ already sampled on C0==R0 of this line (13.7.1.2)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0

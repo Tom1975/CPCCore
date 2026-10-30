@@ -3789,3 +3789,25 @@ TEST(Compendium_19, SkewDelaysTheR0BorderByWholeCharacters)
       EXPECT_EQ(c.halves, halves);   // C0 = 63, 0, 1, 2
    }
 }
+
+// 13.7.1.2 : CRTC 1, last line of the frame (C4 = R4 = 38, C9 = R9 = 7, R5 = 0). R0 lengthened (63 -> 70) on
+// C0 = R0, then R9 changed during the lengthening so that C9 != R9 : the frame end states set on the first
+// C0 == R0 meet a line that is no longer the last one, a R.F.D. at the end of the line. The frame does not
+// end (C4 = 38, C9 = 8) and the next line starts from R12/R13.
+TEST(Compendium_13, Crtc1LastLineCancelledDuringALengthenedR0GivesARfd)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 38, 0, 7);
+   SetOffset(crtc);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   AdvanceUntilHccEquals(crtc, 63);
+   WriteRegister(crtc, 0, 70);
+   Advance(crtc);
+   Advance(crtc);
+   WriteRegister(crtc, 9, 8);
+   AdvanceUntilHccEquals(crtc, 70);
+   Advance(crtc);   // C0 = 0 of the next line
+   EXPECT_EQ(38, crtc.vcc_);
+   EXPECT_EQ(8, crtc.vlc_);
+   EXPECT_EQ(kOffset, crtc.ma_);
+}

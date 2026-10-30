@@ -172,6 +172,7 @@ void CRTC::Reset()
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
+   last_line_sampled_ = false;
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
