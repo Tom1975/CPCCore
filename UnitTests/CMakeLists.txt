@@ -75,6 +75,7 @@ add_executable( unitTests
                      TestMachineStateSize.cpp
                      TestMachineStateExpansions.cpp
                      TestReset.cpp
+                     TestAsicPalette.cpp
 
 )
 
