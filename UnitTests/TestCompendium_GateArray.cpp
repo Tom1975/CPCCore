@@ -810,3 +810,44 @@ TEST(Compendium_17, DISABLED_R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic)
    for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::AMS40489, "6128PLUS", 0x3B }, R1ZeroCase{ CRTC::AMS40226, "6128PLUS", 0x3B } })
       CheckR1Zero(t);
 }
+// 6.1.4, 20.1-20.2 : address of the video RAM read by the GATE ARRAY. R12 bits 5-4 -> A15-A14,
+// C9 bits 2-0 -> A13-A11, VMA bits 9-0 -> A10-A1, A0 : the byte of the microsecond.
+// The page &C000 holds at each even address a word equal to that address : the word the GATE
+// ARRAY reads gives the address. At C4 = C9 = C0 = 0 the CRTC loads R12/R13 (20.3) ; one line of
+// characters later, VMA has moved by R1.
+
+TEST(Compendium_20, AddressOfTheVideoRam)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& machine : machines)
+   {
+      SCOPED_TRACE(machine.config);
+      SCOPED_TRACE((int)machine.type);
+      Machine m(machine.type, machine.config);
+      for (unsigned int a = 0xC000; a <= 0xFFFF; a += 2)
+      {
+         m.Ram()[a] = (unsigned char)(a & 0xFF);
+         m.Ram()[a + 1] = (unsigned char)(a >> 8);
+      }
+      // R12 = &31 : page &C000 (bits 5-4), no overscan bits (3-2), VMA bits 9-8 = 01 ; R13 = &23
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(12, 0x31));
+      z80::Append(p, z80::WriteCrtc(13, 0x23));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+
+      // First line of characters, C0 = 0, each value of C9 : &C000 + C9 * &800 + &123 * 2
+      for (int c9 = 0; c9 < 8; ++c9)
+      {
+         SCOPED_TRACE(c9);
+         ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == c9 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+         EXPECT_EQ(0xC000 + c9 * 0x800 + 0x123 * 2, m.Ga().display_short_.word);
+      }
+      // Second line of characters, C9 = 0, C0 = 0 : VMA = &123 + R1
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 1 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+      EXPECT_EQ(0xC000 + (0x123 + kR1) * 2, m.Ga().display_short_.word);
+   }
+}

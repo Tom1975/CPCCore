@@ -49,7 +49,7 @@ pas de comportement à vérifier).
 | 6.1.1 | Comptage des caractères | ✅ | `CRTC_HorizontalCounter.WrapsFromR0BackToZero` |
 | 6.1.2 | Synchronisations | ✅ | `CRTC_VerticalSync.AssertedWhenC4ReachesR7`, `CRTC_SyncWidths.*` |
 | 6.1.3 | Affichage des caractères (DISPEN) | ✅ | `CRTC_DisplayEnable.BorderAssertedAtR1AndClearedAtNewLine` |
-| 6.1.4 | Pointeur vidéo : adresse = R12.5-4 → A15-A14, C9.2-0 → A13-A11, VMA.9-0 → A10-A1 | ❌ | adresse produite pour des valeurs choisies de R12/R13/C9 |
+| 6.1.4 | Pointeur vidéo : adresse = R12.5-4 → A15-A14, C9.2-0 → A13-A11, VMA.9-0 → A10-A1 | ✅ | `Compendium_20.AddressOfTheVideoRam` (mot lu par le GA = son adresse, C9 0-7 et 2e ligne de caractères, 5 types) |
 | 6.1.5 | Retards GA : affichage 1 µs après le pointeur CRTC | 🟡 | implicite dans `GateArray_*`. À faire : test explicite du caractère affiché vs C0 |
 
 ## 7. Synchronisation
@@ -265,12 +265,12 @@ pas de comportement à vérifier).
 
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
-| 20.1-20.2 | Calcul du pointeur vidéo | ❌ | voir §6.1.4 (test machine à écrire) |
+| 20.1-20.2 | Calcul du pointeur vidéo | ✅ | `Compendium_20.AddressOfTheVideoRam` (voir §6.1.4) |
 | 20.3.1 | Mise à jour CRTC 0 (C4=C9=C0=0) | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
 | 20.3.2 | CRTC 1 (à chaque C0=0 tant que C4=0) | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter` |
 | 20.3.3 | CRTC 2 (à C0=R1 de la dernière ligne) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine` |
 | 20.3.4 | CRTC 3/4 | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
-| 20.4 | Délais de prise en compte (8 µs entre R13 et R12, §24.1) | ❌ | |
+| 20.4 | Délais de prise en compte (renvoi §13.8 ; « 8 µs » entre R13 et R12, §13.6/§24.1) | ✅ | §13.8 pour la prise en compte. Les « 8 µs » ne sont pas un délai du CRTC mais la durée des instructions : `Z80_IoTiming.R13ThenR12AtTheEighthMicrosecond` (R13 à la 3e µs, R12 à la 10e : 7 µs d'écart, R12 dans la 8e µs) |
 | 20.5 | Overscan bits (R12 bits 3-2 = 11 → retenue sur la page) | ✅ | `Compendium_20.OverscanBitsCarryIntoThePage` |
 
 ## 21. Registres en lecture
@@ -281,7 +281,7 @@ pas de comportement à vérifier).
 | 21.3.2 | Status CRTC 0/2 (haute impédance) | 🟡 | `CRTC_RegisterRead.StatusPort` |
 | 21.3.3 | Status CRTC 1 (bit 5) | ✅ | `CRTC_Crtc1.StatusBorderR6` |
 | 21.3.4 | Status CRTC 3/4 | ✅ | `CRTC_Compendium.AsicStatus1`, `AsicStatus2` |
-| 21.4 | Pas de dummy register sur CPC | ❌ | |
+| 21.4 | Pas de dummy register sur CPC | ✅ | registre 31 : `CRTC_RegisterRead.Crtc0` / `Crtc2` (0), `Crtc1` (non nul), `Crtc34UseAThreeBitTable` (R15) |
 
 ## 22-25. Autres registres, fullscreen, trucs et astuces, temps fixe
 
