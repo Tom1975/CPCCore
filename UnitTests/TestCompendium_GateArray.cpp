@@ -630,3 +630,114 @@ TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
             if (expected[i] != kAny) EXPECT_EQ(expected[i], PenOf(m, pixels[end + i])) << "pixel " << i << " after the black";
       }
 }
+
+/////////////////////////////////////////////////////////////
+// 14.9, 16.2.1, 16.2.5 : VSYNC black of the GATE ARRAY (CBLACK_VSYNC)
+
+namespace
+{
+struct TypedMachine { CRTC::TypeCRTC type; const char* config; };
+const TypedMachine kSyncMachines[] = { { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+                                       { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+const int kBlackPixel = (int)0xFF000000;
+
+// Firmware screen (R7 = 30, R2 = 46), the CRTC registers of 'crtc' written, one frame recorded from C4 = 0.
+void RecordSyncFrame(Machine& m, const std::vector<unsigned char>& crtc)
+{
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, crtc);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+   ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+   m.RecordBlocks(true);
+   for (int i = 0; i < 4 * 19968; ++i) m.Cycle();
+   m.RecordBlocks(false);
+}
+
+// Index of the first / last black pixel of 'line' over the blocks c0_first..c0_last (-1 : none).
+int FirstBlack(Machine& m, int line, int c0_first, int c0_last)
+{
+   const std::vector<int> pixels = LinePixels(m, line, c0_first, c0_last - c0_first + 1);
+   for (int i = 0; i < (int)pixels.size(); ++i) if (pixels[i] == kBlackPixel) return i;
+   return -1;
+}
+int LastBlack(Machine& m, int line, int c0_first, int c0_last)
+{
+   const std::vector<int> pixels = LinePixels(m, line, c0_first, c0_last - c0_first + 1);
+   for (int i = (int)pixels.size() - 1; i >= 0; --i) if (pixels[i] == kBlackPixel) return i;
+   return -1;
+}
+}
+
+// 16.2.1 : R7 programmed before C4 reaches it. The black starts on the 5th pixel (CRTC 0, 2), the 6th
+// (CRTC 1) or the 2nd (CRTC 4) of the character displayed when C4 becomes R7 : the last one of the line
+// before (C0 = R0), displayed one microsecond late. CRTC 3 : not given by the compendium.
+TEST(Compendium_16, VSyncBlackStartsInTheCharacterDisplayedWhenC4ReachesR7)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      if (t.type == CRTC::AMS40489) continue;
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      RecordSyncFrame(m, {});
+      const int line = 30 * 8;
+      const int expected = (t.type == CRTC::UM6845R) ? 5 : (t.type == CRTC::AMS40226) ? 1 : 4;
+      EXPECT_EQ(-1, FirstBlack(m, line - 1, 62, 63));
+      EXPECT_EQ(expected, FirstBlack(m, line, 0, 0));
+   }
+}
+
+// 14.9 : the VSYNC black ends with the 26th HSYNC, 1 pixel Mode 2 after the end of its black on CRTC 0
+// and 1, at the same time on CRTC 2, 3 and 4.
+TEST(Compendium_14, VSyncBlackEndsOnePixelAfterTheHSyncOnCrtc0And1)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      RecordSyncFrame(m, {});
+      const int last_vsync_line = 30 * 8 + 25;   // its HSYNC is the 26th
+      const int hsync_end = LastBlack(m, last_vsync_line + 1, 58, 63);
+      ASSERT_GE(hsync_end, 0);
+      const int extra = (t.type == CRTC::HD6845S || t.type == CRTC::UM6845R) ? 1 : 0;
+      EXPECT_EQ(hsync_end + extra, LastBlack(m, last_vsync_line, 58, 63));
+   }
+}
+
+// 16.2.5 (and 16.2.3) : a new CRTC VSYNC while the one of the GATE ARRAY runs puts V26 back to 0. R3h = 0
+// (16 lines), R7 = C4 written on C4 = 32 / C9 = 4, before the HSYNC : CRTC 0, 1, 2 start a VSYNC whatever
+// C9, the black lasts 20 + 26 = 46 lines. CRTC 3, 4 do not : 26 lines.
+TEST(Compendium_16, ASecondCrtcVSyncRestartsTheTwentySixLines)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(3, 0x0E));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+      m.RecordBlocks(true);
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 32 && m.Crtc().vlc_ == 4 && m.Crtc().hcc_ == 2; }, 4 * 20000), 0);
+      p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(7, 32));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 64 * 80; ++i) m.Cycle();
+      m.RecordBlocks(false);
+      int lines = 0;
+      for (int line = 200; line < 312; ++line)
+      {
+         const Machine::Block* b = m.FindBlock(line, 11);
+         if (b != nullptr && b->pixels[8] == kBlackPixel) ++lines;
+      }
+      const bool asic = (t.type == CRTC::AMS40489 || t.type == CRTC::AMS40226);
+      EXPECT_EQ(asic ? 26 : 46, lines);
+   }
+}

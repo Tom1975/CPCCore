@@ -168,7 +168,7 @@ pas de comportement à vérifier).
 | 14.7.2 | Démarrage HSYNC CRTC 3/4 (1 µs plus tard) | ✅ | `CRTC_HSyncPin.AsicHSyncIsOneMicrosecondLate` |
 | 14.7 | Position du noir HSYNC en pixels M2 par type (CRTC 0 : 5e, 1 : 6e, 2 : 4e, 3 : 17e, 4 : 19e) | ✅ | `GateArray_HSyncBlack.R2ProgrammedBefore` |
 | 14.8 | HSYNC et interruptions | ✅ | `Compendium_27.InterruptPositionFollowsR3` |
-| 14.9 | Schémas HSYNC : fin du noir VSYNC GA 1 pixel M2 après la fin de HSYNC (CRTC 0/1), simultanée (2/3/4) | ❌ | |
+| 14.9 | Schémas HSYNC : fin du noir VSYNC GA 1 pixel M2 après la fin de HSYNC (CRTC 0/1), simultanée (2/3/4) | ✅ | `Compendium_14.VSyncBlackEndsOnePixelAfterTheHSyncOnCrtc0And1` (`CRTC::VSyncBlackEndDelay`) |
 
 ## 15. Registre R2
 
@@ -193,11 +193,11 @@ pas de comportement à vérifier).
 |---|---|---|---|
 | 16.1 | VSYNC quand C4 atteint R7 | ✅ | `CRTC_VerticalSync.AssertedWhenC4ReachesR7` |
 | 16.2.1 | Affichage de la zone VSYNC (noir V26) | ✅ | `GateArray_VSyncBlack.TwentySixHSyncWhateverTheCrtcVSync` |
-| 16.2.1 | Début du noir VSYNC par type (CRTC 0/2 : 5e pixel, 1 : 6e, 4 : 2e) | ❌ | |
+| 16.2.1 | Début du noir VSYNC par type (CRTC 0/2 : 5e pixel, 1 : 6e, 4 : 2e) | ✅ | `Compendium_16.VSyncBlackStartsInTheCharacterDisplayedWhenC4ReachesR7` (`CRTC::VSyncPinEdge` ; CRTC 3 non documenté, laissé au 1er pixel). À faire : cas R7.JIT (selon l'instruction) |
 | 16.2.2 | Signal C-SYNC moniteur (V26=2 → C-VSYNC on, 6 → off) | 🟡 | `GateArray_CHSync.LengthFollowsR3l` (H06). À faire : C-VSYNC |
-| 16.2.3 | Gestion de C-SYNC (XNOR, nouvelle VSYNC pendant V26 → remise à 0) | 🟡 | `GateArray_VSyncBlack.*`. À faire : remise à 0 de V26 |
+| 16.2.3 | Gestion de C-SYNC (XNOR, nouvelle VSYNC pendant V26 → remise à 0) | ✅ | `GateArray_VSyncBlack.*`, remise à 0 de V26 : `Compendium_16.ASecondCrtcVSyncRestartsTheTwentySixLines` |
 | 16.2.4 | Tolérances du moniteur | ❌ | |
-| 16.2.5 | Interactions CRTC/GA (HSYNC débordant sur la ligne C4=R7 → V26=1 immédiat) | ❌ | |
+| 16.2.5 | Interactions CRTC/GA (nouvelle VSYNC CRTC pendant V26 → V26 remis à 0 ; CRTC 3/4 : C-VSYNC tant que la VSYNC CRTC est active) | 🟡 | `Compendium_16.ASecondCrtcVSyncRestartsTheTwentySixLines` (46 lignes sur CRTC 0/1/2, 26 sur 3/4, exemple p168). À faire : C-VSYNC moniteur des CRTC 3/4 |
 | 16.3 | Protection de VSYNC (1) et (2) | ✅ | `CRTC_VerticalSync.RewritingR7DoesNotRestartTheVSync`, `CRTC_AsicVertical.InfiniteVSyncWithoutProtection` |
 | 16.4.1 | Conditions CRTC 0 (VSYNC bloquée, gel C3h) | ✅ | `CRTC_Crtc0Vertical.R7WrittenDuringALine`, `VSyncCounterFrozenWithR0Zero`, `VSyncFrozenByAShortLine` |
 | 16.4.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1VSyncStartedDuringALine` |

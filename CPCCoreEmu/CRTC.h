@@ -171,6 +171,8 @@ public:
    void WriteBus(unsigned short address, unsigned char data, unsigned int t_state);
    bool HSyncPinFollowsComparators() const;
    unsigned int HSyncPinEdge(bool rise, unsigned int t_state) const;
+   unsigned int VSyncPinEdge() const;
+   unsigned int VSyncBlackEndDelay() const;
    void HSyncStartComparatorChanged(unsigned int t_state);
    void HSyncEndComparatorChanged(unsigned int t_state);
    unsigned int LastTStateInWindow() const;

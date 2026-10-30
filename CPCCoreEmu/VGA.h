@@ -136,6 +136,7 @@ public:
    bool vsync_rise_pending_;       // the CRTC VSYNC rose on this character : for the block drawn at its end
    bool cblack_vsync_;
    unsigned char v26_;
+   int vsync_black_end_in_;        // pixels before CBLACK_VSYNC ends, after the 26th HSYNC (-1 : not ending)
 
    // 
    int scanline_type_;       // 1 : scanlines / 0 : copylines

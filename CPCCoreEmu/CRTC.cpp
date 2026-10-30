@@ -343,6 +343,33 @@ unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
    }
 }
 
+// Pixel of the block of the microsecond where the GATE ARRAY sees the VSYNC pin rise, on the clock edge
+// that brings C4 to R7 (16.2.1, R7 programmed before) : the black starts on the 5th pixel (CRTC 0, 2),
+// the 6th (CRTC 1) or the 2nd (CRTC 4) of the character displayed then. Not delayed by a microsecond on
+// the ASIC, unlike the HSYNC. CRTC 3 : not measured, kept on the 1st pixel.
+unsigned int CRTC::VSyncPinEdge() const
+{
+   switch (type_crtc_)
+   {
+   case HD6845S:
+   case MC6845:
+      return 4;
+   case UM6845R:
+      return 5;
+   case AMS40489:
+      return 0;
+   default:
+      return 1;
+   }
+}
+
+// Pixels the VSYNC black of the GATE ARRAY lasts after the end of the 26th HSYNC (14.9) : 1 pixel Mode 2
+// on CRTC 0 and 1, none on CRTC 2, 3 and 4 (the black ends with the HSYNC).
+unsigned int CRTC::VSyncBlackEndDelay() const
+{
+   return (type_crtc_ == HD6845S || type_crtc_ == UM6845R) ? 1 : 0;
+}
+
 // R2 written : C0==R2 starts the HSYNC
 void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 {
