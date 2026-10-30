@@ -3909,3 +3909,76 @@ TEST(Compendium_10, R9TablesPages79And80)
       CheckR9Write(type, 38, 7, 38, 2, 1, g == 3 ? end : plus1);
    }
 }
+
+// 11.2.5 : CRTC 2, R4 = 10, R9 = 3, R5 = 16. R9 / R4 written on the last line of the frame are taken at once
+// for the counting of C9 and C4 during the additional lines (C4 + 1 on each C9 == R9, whatever R4) ; the
+// frame still ends after the 16 R5 lines.
+TEST(Compendium_11, Crtc2R4R9WrittenOnTheLastLineCountDuringTheAdjustment)
+{
+   const struct { int reg; unsigned char value; std::vector<Line> lines; } cases[] = {
+      { 9, 5, { {10, 4}, {10, 5}, {11, 0}, {11, 1}, {11, 2}, {11, 3}, {11, 4}, {11, 5}, {12, 0}, {12, 1},
+                {12, 2}, {12, 3}, {12, 4}, {12, 5}, {13, 0}, {13, 1}, {0, 0} } },
+      { 4, 5, { {11, 0}, {11, 1}, {11, 2}, {11, 3}, {12, 0}, {12, 1}, {12, 2}, {12, 3}, {13, 0}, {13, 1},
+                {13, 2}, {13, 3}, {14, 0}, {14, 1}, {14, 2}, {14, 3}, {0, 0} } },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R" << c.reg << " = " << (int)c.value);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 10, 16, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, (unsigned char)c.reg, c.value);
+      for (const Line& expected : c.lines)
+         EXPECT_EQ(expected, NextLine(crtc));
+   }
+}
+
+// 11.3.1 : CRTC 2, R5 = 16, rewritten on the additional line C5 = 5 : with C5 + 1 (6) the adjustment stops
+// after that line (6 lines) ; with a lower value (3) C5 overflows up to 31, then 0, 1, 2 (35 lines).
+TEST(Compendium_11, Crtc2R5WrittenDuringTheAdjustment)
+{
+   for (const auto& c : { std::make_pair(6, 6), std::make_pair(3, 35) })
+   {
+      SCOPED_TRACE(c.first);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 10, 16, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      for (int i = 0; i < 6; ++i) NextLine(crtc);   // additional lines C5 = 0 .. 5
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 5, (unsigned char)c.first);
+      int lines = 6;
+      while (NextLine(crtc) != Line(0, 0) && lines < 100) ++lines;
+      EXPECT_EQ(c.second, lines);
+   }
+}
+
+// 11.9 : CRTC 2, interlace (R8 = 1), R4 = 37, R9 = 7 : one frame out of two ends with the interlace line
+// (38, 0). R8 = 0 written during it : it is no longer an interlace line, the last line is cancelled, C9
+// counts up to R9 and C4 goes on (39). R4 then written with C4 (38) : C4 == R4 makes a last line again
+// when C9 reaches R9.
+TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
+{
+   for (bool r4_with_c4 : { false, true })
+   {
+      SCOPED_TRACE(r4_with_c4 ? "R4 = C4" : "R4 unchanged");
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 37, 0, 7);
+      WriteRegister(crtc, 8, 1);
+      AdvanceMicroseconds(crtc, 3 * 19968);
+      bool found = false;
+      for (int frame = 0; frame < 3 && !found; ++frame)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 37, 7));
+         if (NextLine(crtc) != Line(38, 0)) continue;   // the frame without the interlace line
+         found = true;
+         AdvanceUntilHccEquals(crtc, 10);
+         WriteRegister(crtc, 8, 0);
+         if (r4_with_c4) WriteRegister(crtc, 4, 38);
+         for (int c9 = 1; c9 < 8; ++c9)
+            EXPECT_EQ(Line(38, c9), NextLine(crtc));
+         EXPECT_EQ(r4_with_c4 ? Line(0, 0) : Line(39, 0), NextLine(crtc));
+      }
+      EXPECT_TRUE(found);
+   }
+}

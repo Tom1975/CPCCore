@@ -100,9 +100,9 @@ pas de comportement à vérifier).
 | 11.1 | R5 sur 5 bits, ligne interlace en plus | ✅ | `Compendium_11.R5KeepsFiveBits`, `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame` |
 | 11.2.1-11.2.2 | Ajustement CRTC 0 | ✅ | `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`, `R5IsSampledUntilC0Equals2` |
 | 11.2.3-11.2.4 | Ajustement CRTC 1 | ✅ | `CRTC_Crtc1.AdjustmentUsesC5`, `R4WrittenOnTheLastLine` |
-| 11.2.5 | Ajustement CRTC 2 (C4++ à chaque C9=R9, R4/R9 pris pendant l'additionnel) | 🟡 | `CRTC_Compendium.Crtc2AdjustmentUsesC5`. À faire : écritures R4/R9 pendant l'additionnel |
+| 11.2.5 | Ajustement CRTC 2 (C4++ à chaque C9=R9, R4/R9 pris pendant l'additionnel) | ✅ | `CRTC_Compendium.Crtc2AdjustmentUsesC5`, `Compendium_11.Crtc2R4R9WrittenOnTheLastLineCountDuringTheAdjustment` |
 | 11.2.6 | Ajustement CRTC 3/4 | ✅ | `CRTC_AsicVertical.AdjustmentKeepsC4AtR4` |
-| 11.3.1 | R5 modifié pendant l'ajustement, CRTC 0/2 (R5=C5+1 → fin ; R5<C5+1 → débordement) | 🟡 | CRTC 0 : `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`. À faire : CRTC 2, débordement jusqu'à 31 |
+| 11.3.1 | R5 modifié pendant l'ajustement, CRTC 0/2 (R5=C5+1 → fin ; R5<C5+1 → débordement) | ✅ | CRTC 0 : `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5` ; CRTC 2 (fin et débordement jusqu'à 31) : `Compendium_11.Crtc2R5WrittenDuringTheAdjustment` |
 | 11.3.2 | CRTC 1 (bug R5=0 pendant l'additionnel) | ✅ | `CRTC_Crtc1.R5ZeroDuringTheAdjustment` |
 | 11.3.3 | CRTC 3/4 (fin immédiate) | ✅ | `CRTC_AsicVertical.R5LoweredEndsTheAdjustment` |
 | 11.4.1 | R5 avant l'ajustement, CRTC 1/2/3/4 (évalué à chaque C0) | ✅ | `Compendium_11.R5WrittenAtTheEndOfTheLastLine` |
@@ -114,7 +114,7 @@ pas de comportement à vérifier).
 | 11.6.4 | RFD et autres CRTC (sans effet) | ✅ | `Compendium_11.RfdOnlyOnCrtc1` |
 | 11.7 | R6 et ajustement (border en ajustement ; CRTC 1 split-border) | ✅ | `Compendium_11.R6BorderInTheAdjustment` (0/1/2), `CRTC_AsicVertical.R6TestedAtTheLineStartOnly` (3/4) |
 | 11.8 | Ajustement en interlace (R5 lignes sur chaque frame) | ✅ | `Compendium_11.AdjustmentOnEveryInterlacedFrame` (CRTC 0/1/3/4 ; CRTC 2 a une logique différente, non testée) |
-| 11.9 | Ligne d'ajustement interlace (CRTC 2 : R8=0 pendant la ligne → last line annulée) | 🟡 | `CRTC_Compendium.Crtc1InterlaceLineAfterR5`. À faire : CRTC 2 |
+| 11.9 | Ligne d'ajustement interlace (CRTC 2 : R8=0 pendant la ligne → last line annulée) | ✅ | `CRTC_Compendium.Crtc1InterlaceLineAfterR5` ; CRTC 2 : `Compendium_11.Crtc2InterlaceSwitchedOffDuringTheInterlaceLine` (R8=0 : C9 jusqu'à R9 puis C4=39 ; R4←C4 : fin de frame) |
 
 ## 12. Registre R4
 
