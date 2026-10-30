@@ -386,3 +386,17 @@ TEST(Compendium_4, ReadTakenOnTheMicrosecondOfEachInstruction)
    EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xA2 }));   // INI
    EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xAA }));   // IND
 }
+
+// 12.5 : CRTC 3, an I/O on the CRTC with the ROM select active (A13 = 0 : OUT (C),0 with B = %00000001)
+// is taken 1 us earlier, on the 3rd us of the OUT (C),r8 instead of the 4th ; not with B = %00100001
+// (printer and PPI selected as well, without effect). The ASIC of the CRTC 4 is not concerned.
+TEST(Compendium_12, Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier)
+{
+   const std::vector<unsigned char> rom_select = { 0x01, 0x00, 0x01 };   // LD BC,&0100
+   const std::vector<unsigned char> no_rom_select = { 0x01, 0x00, 0x21 };   // LD BC,&2100
+   const std::vector<unsigned char> out_c_0 = { 0xED, 0x71 };
+   EXPECT_EQ(3, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", rom_select, out_c_0));
+   EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", no_rom_select, out_c_0));
+   EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40226, "6128PLUS", rom_select, out_c_0));
+   EXPECT_EQ(3, WriteMicrosecond(CRTC::HD6845S, "6128", rom_select, out_c_0));
+}

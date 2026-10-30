@@ -180,7 +180,7 @@ public:
    unsigned int VSyncBlackEndDelay() const;
    void HSyncStartComparatorChanged(unsigned int t_state);
    void HSyncEndComparatorChanged(unsigned int t_state);
-   unsigned int LastTStateInWindow() const;
+   unsigned int LastTStateInWindow(unsigned short address) const;
    void ClockBusInterface();
    void ClockHSyncPin();
    void ComputeSyncWidths();

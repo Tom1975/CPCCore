@@ -661,14 +661,18 @@ unsigned char CRTC::In ( unsigned short address )
 // - ASIC (CRTC 3, 4) : the window spans the end of the previous microsecond and the start
 //   of the current one : only T-state 0 is taken now. OUT(C),r8 is missed and taken by the
 //   next window, while IORQ is still asserted (wait states) : 4th microsecond instead of 3rd.
-unsigned int CRTC::LastTStateInWindow() const
+//   CRTC 3 only : with the ROM select active during the I/O (A13 = 0), it takes it 1 us earlier, on the
+//   current window, as CRTC 0, 1, 2 (12.5 : the printer, PPI or FDC select do not change it ; not CRTC 4).
+unsigned int CRTC::LastTStateInWindow(unsigned short address) const
 {
-   return (type_crtc_ == AMS40489 || type_crtc_ == AMS40226) ? 0 : 1;
+   if (type_crtc_ == AMS40489)
+      return ((address & 0x2000) == 0) ? 1 : 0;
+   return (type_crtc_ == AMS40226) ? 0 : 1;
 }
 
 void CRTC::Out (unsigned short address, unsigned char data, unsigned int t_state)
 {
-   if (t_state > LastTStateInWindow())
+   if (t_state > LastTStateInWindow(address))
    {
       io_pending_ = true;
       io_pending_address_ = address;
