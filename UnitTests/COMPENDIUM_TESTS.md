@@ -50,7 +50,7 @@ pas de comportement à vérifier).
 | 6.1.2 | Synchronisations | ✅ | `CRTC_VerticalSync.AssertedWhenC4ReachesR7`, `CRTC_SyncWidths.*` |
 | 6.1.3 | Affichage des caractères (DISPEN) | ✅ | `CRTC_DisplayEnable.BorderAssertedAtR1AndClearedAtNewLine` |
 | 6.1.4 | Pointeur vidéo : adresse = R12.5-4 → A15-A14, C9.2-0 → A13-A11, VMA.9-0 → A10-A1 | ✅ | `Compendium_20.AddressOfTheVideoRam` (mot lu par le GA = son adresse, C9 0-7 et 2e ligne de caractères, 5 types) |
-| 6.1.5 | Retards GA : affichage 1 µs après le pointeur CRTC | 🟡 | implicite dans `GateArray_*`. À faire : test explicite du caractère affiché vs C0 |
+| 6.1.5 | Retards GA : affichage 1 µs après le pointeur CRTC | ✅ | `Compendium_6.CharacterDisplayedOneMicrosecondAfterItsAddress` (caractère 10 affiché pendant la µs C0=11, 5 types) |
 
 ## 7. Synchronisation
 

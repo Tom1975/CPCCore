@@ -851,3 +851,34 @@ TEST(Compendium_20, AddressOfTheVideoRam)
       EXPECT_EQ(0xC000 + (0x123 + kR1) * 2, m.Ga().display_short_.word);
    }
 }
+
+/////////////////////////////////////////////////////////////
+// 6.1.5 : the GATE ARRAY displays a character one microsecond after the CRTC gave its address : the
+// block drawn during the microsecond C0 = k shows the character k - 1. Screen of 0 (pen 0), the
+// character 10 of kLine is &FFFF (pen 1) ; 2 pixels of margin for the Mode 2 pixel in advance (9.1).
+TEST(Compendium_6, CharacterDisplayedOneMicrosecondAfterItsAddress)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& t : machines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      Prepare(m, 2, 0x00);
+      const int c4 = kLine / 8, c9 = kLine % 8;
+      const unsigned short address = (unsigned short)(kScreen + c9 * 0x800 + (c4 * kR1 + 10) * 2);
+      m.Ram()[address] = 0xFF;
+      m.Ram()[address + 1] = 0xFF;
+      RecordFrame(m);
+      auto pen1 = [&](int c0) {
+         int n = 0;
+         for (int px : LinePixels(m, kLine, c0, 1)) if (PenOf(m, px) == 1) ++n;
+         return n;
+      };
+      EXPECT_LE(pen1(10), 2);
+      EXPECT_GE(pen1(11), 14);
+      EXPECT_LE(pen1(12), 2);
+   }
+}
