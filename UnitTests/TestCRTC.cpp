@@ -3717,3 +3717,48 @@ TEST(Compendium_13, AsicRvi)
    CheckRvi(CRTC::AMS40489, RviAsic());
    CheckRvi(CRTC::AMS40226, RviAsic());
 }
+
+// 15.3.3 : CRTC 0, R2 = 11, R3l = 10 ; R2 rewritten to 21 (= R2 + R3l) during the HSYNC. On C0 = 21 C3l
+// reaches R3l : the HSYNC ends and cannot restart while C3l == R3l (two HSYNC are never glued). R3l
+// rewritten on that position (OUT(C),r8) releases C0 == R2 : a new HSYNC starts on the T-state of the I/O
+// (as an R2.JIT, about 4 pixels after the end), C3l is not reset : 10, 11 .. 15, 0, 1 -> ends on C0 = 28.
+TEST(Compendium_15, Crtc0R3lRewrittenOnTheEndPositionRestartsTheHSync)
+{
+   for (bool rewrite_r3 : { false, true })
+   {
+      SCOPED_TRACE(rewrite_r3 ? "R3l rewritten on C0 = 21" : "R3l unchanged");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::HD6845S);
+      WriteRegister(crtc, 2, 11);
+      WriteRegister(crtc, 3, 0x8A);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      std::string pin;
+      int falls = 0;
+      unsigned char quarters_on_21 = 0xFF;
+      while (crtc.hcc_ != 40)
+      {
+         const int c0 = crtc.hcc_;
+         if (c0 == 15) WriteRegisterAt(crtc, 2, 21, kOutCR8);
+         if (rewrite_r3 && c0 == 21) WriteRegisterAt(crtc, 3, 0x81, kOutCR8);
+         if (c0 == 21) quarters_on_21 = crtc.hsync_quarters_;
+         sig.hsync_fall_ = sig.hsync_raise_ = false;
+         Advance(crtc);
+         if (sig.hsync_fall_) ++falls;
+         if (crtc.hcc_ >= 10 && crtc.hcc_ < 30) pin += sig.h_sync_ ? '1' : '0';
+      }
+      // Pin on the clock edge of each character, C0 = 10 to 29 (on C0 = 21 : low on the edge, high again
+      // from the I/O, see the quarters)
+      if (rewrite_r3)
+      {
+         EXPECT_EQ("01111111111011111100", pin);
+         EXPECT_EQ(0x0E, quarters_on_21);   // low on the T-state of the end, high again from the I/O
+         EXPECT_EQ(2, falls);
+      }
+      else
+      {
+         EXPECT_EQ("01111111111000000000", pin);
+         EXPECT_EQ(0x00, quarters_on_21);
+         EXPECT_EQ(1, falls);
+      }
+   }
+}

@@ -177,7 +177,7 @@ pas de comportement à vérifier).
 | 15.1 | Généralités | ➖ | |
 | 15.2.1-15.2.2 | HSYNC avec R2 prédéfini (C0=R2 non géré pendant la HSYNC) | ✅ | `Compendium_15.R2RewrittenDuringTheHSync` |
 | 15.3.1-15.3.2 | Réentrance, HSYNC infinie | ✅ | `CRTC_HSyncReentrancy.*`, `CRTC_R0Zero.Crtc0HSyncIsProtected` |
-| 15.3.3 | CRTC 0 : R3l modifié à la position de réentrance → nouvelle HSYNC sans remise à 0 de C3l | ❌ | |
+| 15.3.3 | CRTC 0 : R3l modifié à la position de réentrance → nouvelle HSYNC sans remise à 0 de C3l | ✅ | `Compendium_15.Crtc0R3lRewrittenOnTheEndPositionRestartsTheHSync` (R2=11, R3l=10, R2←21 ; R3l inchangé : pas de reprise ; R3l←1 sur C0=21 : reprise au T-state de l'I/O, C3l 10..15,0,1, fin sur C0=28) |
 | 15.3.4 | CRTC 1/2 (CRTC 1 : 2e C-HSYNC, CRTC 2 : non) | 🟡 | `CRTC_HSyncReentrancy.Crtc1OverflowsWithAnInvisibleRestart`. À faire : C-HSYNC côté GA |
 | 15.3.5 | CRTC 3/4 | ✅ | `CRTC_HSyncReentrancy.Crtc234Overflow` |
 | 15.4.1-15.4.3 | VSYNC pendant la HSYNC, CRTC 0/1/3/4 (sans problème) | ✅ | `Compendium_15.VSyncDuringTheHSync` |
@@ -312,7 +312,7 @@ pas de comportement à vérifier).
 | 27.5 | IM 2 : 7 µs | ✅ | `Compendium_27.Im2CallLastsSevenMicroseconds` |
 | 27.6.1-27.6.5 | Instant de l'interruption par type (R3=14 : 15 µs après C0vs=R2 sur 0/1/2, 16 sur 3/4 ; R3=0 : aucune sur 0/1, 17 sur 2, 18 sur 3/4) | ✅ | `Compendium_27.InterruptPositionFollowsR3` |
 | 27.7.1 | Course incrément de R52 / effacement du bit 5 | ➖ | non déterministe sur le matériel (dépend de la durée réelle de l'instruction qui suit EI) |
-| 27.7.2 | Fiabilité : fin de HSYNC sur le dernier T d'une instruction → interruption après l'instruction suivante | ❌ | à concevoir : placer la fin de HSYNC au T-state près (R3.JIT), NOP vs ADD HL,DE |
+| 27.7.2 | Fiabilité : fin de HSYNC sur le dernier T d'une instruction → interruption après l'instruction suivante | ➖ | dépend du 1/16 µs propre au circuit (CRTC 1 variable d'un exemplaire à l'autre, GA 40008/40010) ; le compendium ne fixe pas l'issue pour le CRTC 0 de référence et conclut que c'est « hasardeux ». Cas NOP (déterministe : interruption à la fin du NOP) : `Compendium_27.InterruptPositionFollowsR3`, `HaltIsInterruptedLikeANopSled` |
 
 ## 28. Identification CRTC
 

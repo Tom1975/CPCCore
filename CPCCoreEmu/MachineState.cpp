@@ -969,6 +969,8 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->hsync_quarters_previous_);
    out.push_back(c->hsync_ ? 1 : 0);
    out.push_back(c->hsync_pin_stage_ ? 1 : 0);
+   out.push_back(c->hsync_ended_on_r2_ ? 1 : 0);      // added later : optional when read
+   out.push_back(c->hsync_end_c3l_);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -1058,6 +1060,13 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    if (size - at < 2) return false;
    c->hsync_ = p[at++] != 0;
    c->hsync_pin_stage_ = p[at++] != 0;
+   c->hsync_ended_on_r2_ = false;
+   c->hsync_end_c3l_ = 0;
+   if (size - at >= 2)
+   {
+      c->hsync_ended_on_r2_ = p[at++] != 0;
+      c->hsync_end_c3l_ = p[at++];
+   }
 
    return (at == size);
 }

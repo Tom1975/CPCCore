@@ -163,6 +163,8 @@ void CRTC::Reset()
    io_pending_data_ = 0;
    hsync_quarters_ = 0;
    hsync_quarters_previous_ = 0;
+   hsync_ended_on_r2_ = false;
+   hsync_end_c3l_ = 0;
    hsync_ = false;
    hsync_rise_ = false;
    hsync_fall_ = false;
@@ -253,6 +255,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 {
    started = ended = false;
    const bool c0_is_r2 = (hcc_ == registers_list_[2]);
+   hsync_ended_on_r2_ = false;
 
    if (hsync_)
    {
@@ -278,8 +281,11 @@ void CRTC::ClockHSync(bool& started, bool& ended)
          }
          else
          {
-            // CRTC 0 is protected : the HSYNC ends, and cannot restart on this position (15.3)
+            // CRTC 0 is protected : the HSYNC ends, and cannot restart on this position (15.3) as long as
+            // C3l==R3l holds (see HSyncEndComparatorChanged)
             ended = true;
+            hsync_ended_on_r2_ = c0_is_r2;
+            hsync_end_c3l_ = horinzontal_pulse_;
          }
       }
 
@@ -310,7 +316,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 //   microsecond (C3l=0) with R3l=0 cuts the HSYNC (OUTI : it never starts) ; CRTC 2 R3l=0 is 16 us.
 //   CRTC 1 handles R3l=0 (no HSYNC) during the whole HSYNC : it is cut (14.5.2).
 // CRTC 3, 4 synchronise the HSYNC with the display : no JIT (14.5.4.4, 14.7.2).
-// A restart on the position where the HSYNC has just ended is not described : not handled.
+// CRTC 0 : a restart on the position where the HSYNC has just ended, R3l rewritten there (15.3.3).
 bool CRTC::HSyncPinFollowsComparators() const
 {
    return type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845;
@@ -383,8 +389,22 @@ void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 // R3 written : C3l==R3l ends the HSYNC
 void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators() || !hsync_) return;
+   if (!HSyncPinFollowsComparators()) return;
    const unsigned char r3l = registers_list_[3] & 0x0F;
+   // CRTC 0 (15.3.3) : on C0=R2+R3l with C0==R2 again, the end comparator (C3l==R3l) inhibits the start.
+   // R3l rewritten on this character releases it : the HSYNC starts again on the T-state of the I/O (as
+   // an R2.JIT), C3l is not reset and goes on counting (overflow up to the new R3l).
+   if (type_crtc_ == HD6845S && !hsync_ && hsync_ended_on_r2_ && r3l != 0 && r3l != hsync_end_c3l_)
+   {
+      hsync_ended_on_r2_ = false;
+      hsync_quarters_ |= (0x0F << t_state) & 0x0F;
+      hsync_ = true;
+      signals_->h_sync_ = true;
+      signals_->hsync_raise_ = true;
+      horinzontal_pulse_ = hsync_end_c3l_;
+      return;
+   }
+   if (!hsync_) return;
    bool end;
    if (type_crtc_ == UM6845R && r3l == 0)
       end = true;

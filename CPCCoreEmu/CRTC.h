@@ -122,6 +122,10 @@ public:
    // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
    unsigned char hsync_quarters_;
    unsigned char hsync_quarters_previous_;
+   // CRTC 0 : the HSYNC ended on this character with C0==R2 (the end comparator won) and C3l then
+   // (15.3.3 : R3l rewritten on this character restarts it without resetting C3l)
+   bool hsync_ended_on_r2_;
+   unsigned char hsync_end_c3l_;
    // Internal HSYNC (C0==R2 / C3l==R3l logic) and its events on the current character ; the pin
    // follows it directly on CRTC 0, 1, 2, through a one character delay on CRTC 3, 4 (14.7.2)
    bool hsync_;
