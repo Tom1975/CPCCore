@@ -89,9 +89,9 @@ pas de comportement à vérifier).
 | 10.2 | Prise en compte de R9 tant que C0 ≤ R0 | ✅ | `Compendium_10.R9WrittenDuringTheLineEndsTheRow` (5 types), `CRTC_Crtc0Vertical.R9WrittenDuringTheLine`, `CRTC_Crtc1.R9WrittenDuringTheLine` |
 | 10.3.1 | Règles de comptage CRTC 0 | ✅ | `CRTC_Crtc0Vertical.*` |
 | 10.3.2 | CRTC 1 | ✅ | `CRTC_Crtc1.R9WrittenDuringTheLine` |
-| 10.3.3 | CRTC 2 (débordement de C9, R9 lié à la dernière ligne) | 🟡 | débordement : `Compendium_10.R9BelowC9`. À faire : R9 écrit pendant la HSYNC ignoré pour la dernière ligne |
+| 10.3.3 | CRTC 2 (débordement de C9, R9 lié à la dernière ligne) | ✅ | débordement : `Compendium_10.R9BelowC9` ; R9 écrit pendant / après la HSYNC (dernière ligne, §12.4.2) : `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 10.3.4 | CRTC 3/4 : comparaison C9 ≥ R9, pas de débordement | ✅ | `CRTC_AsicVertical.C9CannotOverflow` |
-| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | 🟡 | cas R9 < C9 avec C4≠R4 : `Compendium_10.R9BelowC9`. À faire : cas C4=R4 et R9 0→n |
+| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | ✅ | `Compendium_10.R9TablesPages79And80` (les 6 tableaux, 8 cas, R9 écrit sur C0=10 ; CRTC 2 du tableau R9 0→n non fixé par le compendium : exclu), `Compendium_10.R9BelowC9` |
 
 ## 11. Registre R5
 

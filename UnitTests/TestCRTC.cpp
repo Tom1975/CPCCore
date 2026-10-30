@@ -3834,3 +3834,78 @@ TEST(Compendium_4, RegistersKeepTheBitsOfTheirType)
       }
    }
 }
+
+// 10.3, tables p79-80 : R9 written on C0 = 10 (after C0 = 1, outside the HSYNC, before R1 : this fixes the
+// notes of the tables) of a line (C4, C9). Expected on the next line : C9, C4 and whether VMA starts
+// from R12/R13. CRTC 2 of the last table (R9 0 -> n) depends on the last line authorised in the HSYNC :
+// not given.
+namespace
+{
+enum class C4Next { kSame, kPlusOne, kZero };
+struct R9Case { int c9_next; C4Next c4; bool offset; };   // c9_next < 0 : C9 + 1
+R9Case Next(int c9, C4Next c4, bool offset) { return { c9, c4, offset }; }
+
+void CheckR9Write(CRTC::TypeCRTC type, unsigned char r4, unsigned char r9, int c4, int c9, int new_r9, const R9Case& e)
+{
+   SCOPED_TRACE(testing::Message() << TypeName(type) << " R4=" << (int)r4 << " R9=" << (int)r9 << " on C4=" << c4
+                                   << " C9=" << c9 << " -> R9=" << new_r9);
+   CRTC crtc; CSig sig;
+   TypedScreen(crtc, sig, type, r4, 0, r9);
+   ASSERT_TRUE(ReachLine(crtc, c4, c9));
+   AdvanceUntilHccEquals(crtc, 10);
+   SetOffset(crtc);
+   if (new_r9 >= 0) WriteRegister(crtc, 9, (unsigned char)new_r9);
+   const Line next = NextLine(crtc);
+   EXPECT_EQ(e.c9_next < 0 ? c9 + 1 : e.c9_next, next.second);
+   EXPECT_EQ(e.c4 == C4Next::kSame ? c4 : e.c4 == C4Next::kPlusOne ? c4 + 1 : 0, next.first);
+   EXPECT_EQ(e.offset, crtc.ma_ == kOffset);
+}
+
+int Group(CRTC::TypeCRTC type)
+{
+   switch (type)
+   {
+   case CRTC::HD6845S: return 0;
+   case CRTC::UM6845R: return 1;
+   case CRTC::MC6845: return 2;
+   default: return 3;
+   }
+}
+}
+
+TEST(Compendium_10, R9TablesPages79And80)
+{
+   const R9Case plus1 = Next(-1, C4Next::kSame, false);
+   const R9Case end = Next(0, C4Next::kZero, true);
+   const R9Case next_row = Next(0, C4Next::kPlusOne, false);
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      const int g = Group(type);
+      for (int c9 = 0; c9 < 8; ++c9)
+      {
+         // Table 1 : R9 7 -> 0, C4 = R4 (> 0)
+         R9Case t1 = plus1;
+         if (g == 3) t1 = end;
+         else if (c9 == 0) t1 = (g == 0) ? next_row : end;
+         else if (c9 == 7 && g != 1) t1 = end;
+         CheckR9Write(type, 38, 7, 38, c9, 0, t1);
+         // Table 2 : R9 7 -> 0, C4 != R4
+         CheckR9Write(type, 38, 7, 10, c9, 0, (g == 3 || c9 == 0) ? next_row : plus1);
+         // Table 3 : R9 7 -> C9, C4 = R4 (case 8 : R9 already 7)
+         CheckR9Write(type, 38, 7, 38, c9, c9 == 7 ? -1 : c9, (g == 0 && c9 != 7) ? next_row : end);
+         // Table 4 : R9 7 -> C9, C4 != R4
+         CheckR9Write(type, 38, 7, 10, c9, c9 == 7 ? -1 : c9, next_row);
+         // Table 6 : R4 = R9 = 0 (every line is C4 = C9 = 0), R9 0 -> n
+         if (g != 2)
+         {
+            const int n = c9;
+            R9Case t6 = end;
+            if (n > 0 && g == 1) t6 = Next(1, C4Next::kZero, true);
+            if (n > 0 && g == 3) t6 = Next(1, C4Next::kZero, false);
+            CheckR9Write(type, 0, 0, 0, 0, n == 0 ? -1 : n, t6);
+         }
+      }
+      // Table 5 : R9 7 -> 1 on C9 = 2, C4 = R4
+      CheckR9Write(type, 38, 7, 38, 2, 1, g == 3 ? end : plus1);
+   }
+}
