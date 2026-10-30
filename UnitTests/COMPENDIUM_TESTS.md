@@ -134,7 +134,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 13.1 | C0 de 0 à R0 | ✅ | `CRTC_HorizontalCounter.WrapsFromR0BackToZero` |
-| 13.2.1 | CRTC 0 : les 3 premières µs | 🟡 | couvert indirectement par `CRTC_Crtc0Vertical.*`. À faire : un test par position C0=0/1/2 |
+| 13.2.1 | CRTC 0 : les 3 premières µs | ✅ | `Compendium_13.Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds` (R9 écrit sur C0=0/1/2, lignes C9=7 et C9=0), `CRTC_Crtc0Vertical.R4WrittenOnC0Equals0Or1OfTheLastLine`, `R5IsSampledUntilC0Equals2` |
 | 13.2.2 | Gel de VSYNC | ✅ | `CRTC_Crtc0Vertical.VSyncFrozenByAShortLine` |
 | 13.2.3-13.2.4 | Gel de ligne additionnelle, gel de C9 | ✅ | `CRTC_R0Zero.*` |
 | 13.2.5 | R0=1 | ✅ | `CRTC_Crtc0Vertical.R0EqualsOneAlternatesC4` |

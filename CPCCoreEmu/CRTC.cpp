@@ -152,6 +152,7 @@ void CRTC::Reset()
    last_line_ = false;
    adjust_ = false;
    adjust_confirmed_ = false;
+   last_line_seen_ = false;
    adjust_end_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;

@@ -3982,3 +3982,30 @@ TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
       EXPECT_TRUE(found);
    }
 }
+
+// 13.2.1, 12.2 : CRTC 0 evaluates the last line at the end of C0 = 0 and C0 = 1 ; on C0 = 2 the fate of C4 is
+// sealed. R9 7 -> 0 on a line with C4 = R4 = 38 :
+// - line C9 = 7 (a last line) : written on C0 = 0 the last line is cancelled, C9 counts on (38, 8) ;
+//   written on C0 = 1 the additional management is already armed : C9 returns to 0 and C4 is incremented
+//   once (39, 0, table p79 case 8) ; written on C0 = 2 the frame ends ;
+// - line C9 = 0 : written on C0 = 0 or 1 it becomes the last line (frame end, R12/R13), on C0 = 2 C4 + 1.
+TEST(Compendium_13, Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds)
+{
+   for (int c0 = 0; c0 <= 2; ++c0)
+   {
+      for (int c9 : { 7, 0 })
+      {
+         SCOPED_TRACE(testing::Message() << "R9 written on C0 = " << c0 << " of C9 = " << c9);
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, CRTC::HD6845S, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 38, c9));
+         SetOffset(crtc);
+         if (c0 > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c0);   // ReachLine stops on C0 = 0
+         WriteRegister(crtc, 9, 0);
+         const bool frame_end = (c9 == 7) ? (c0 == 2) : (c0 < 2);
+         const Line expected = frame_end ? Line(0, 0) : (c9 == 7 && c0 == 0) ? Line(38, 8) : Line(39, 0);
+         EXPECT_EQ(expected, NextLine(crtc));
+         EXPECT_EQ(frame_end, crtc.ma_ == kOffset);
+      }
+   }
+}
