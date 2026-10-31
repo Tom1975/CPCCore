@@ -630,3 +630,255 @@ TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
             if (expected[i] != kAny) EXPECT_EQ(expected[i], PenOf(m, pixels[end + i])) << "pixel " << i << " after the black";
       }
 }
+
+/////////////////////////////////////////////////////////////
+// 14.9, 16.2.1, 16.2.5 : VSYNC black of the GATE ARRAY (CBLACK_VSYNC)
+
+namespace
+{
+struct TypedMachine { CRTC::TypeCRTC type; const char* config; };
+const TypedMachine kSyncMachines[] = { { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+                                       { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+const int kBlackPixel = (int)0xFF000000;
+
+// Firmware screen (R7 = 30, R2 = 46), the CRTC registers of 'crtc' written, one frame recorded from C4 = 0.
+void RecordSyncFrame(Machine& m, const std::vector<unsigned char>& crtc)
+{
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, crtc);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+   ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+   m.RecordBlocks(true);
+   for (int i = 0; i < 4 * 19968; ++i) m.Cycle();
+   m.RecordBlocks(false);
+}
+
+// Index of the first / last black pixel of 'line' over the blocks c0_first..c0_last (-1 : none).
+int FirstBlack(Machine& m, int line, int c0_first, int c0_last)
+{
+   const std::vector<int> pixels = LinePixels(m, line, c0_first, c0_last - c0_first + 1);
+   for (int i = 0; i < (int)pixels.size(); ++i) if (pixels[i] == kBlackPixel) return i;
+   return -1;
+}
+int LastBlack(Machine& m, int line, int c0_first, int c0_last)
+{
+   const std::vector<int> pixels = LinePixels(m, line, c0_first, c0_last - c0_first + 1);
+   for (int i = (int)pixels.size() - 1; i >= 0; --i) if (pixels[i] == kBlackPixel) return i;
+   return -1;
+}
+}
+
+// 16.2.1 : R7 programmed before C4 reaches it. The black starts on the 5th pixel (CRTC 0, 2), the 6th
+// (CRTC 1) or the 2nd (CRTC 4) of the character displayed when C4 becomes R7 : the last one of the line
+// before (C0 = R0), displayed one microsecond late. CRTC 3 : not given by the compendium, like the CRTC 4.
+TEST(Compendium_16, VSyncBlackStartsInTheCharacterDisplayedWhenC4ReachesR7)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      RecordSyncFrame(m, {});
+      const int line = 30 * 8;
+      const int expected = (t.type == CRTC::UM6845R) ? 5 : (t.type == CRTC::AMS40489 || t.type == CRTC::AMS40226) ? 1 : 4;
+      EXPECT_EQ(-1, FirstBlack(m, line - 1, 62, 63));
+      EXPECT_EQ(expected, FirstBlack(m, line, 0, 0));
+   }
+}
+
+// 14.9 : the VSYNC black ends with the 26th HSYNC, 1 pixel Mode 2 after the end of its black on CRTC 0
+// and 1, at the same time on CRTC 2, 3 and 4.
+TEST(Compendium_14, VSyncBlackEndsOnePixelAfterTheHSyncOnCrtc0And1)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      RecordSyncFrame(m, {});
+      const int last_vsync_line = 30 * 8 + 25;   // its HSYNC is the 26th
+      const int hsync_end = LastBlack(m, last_vsync_line + 1, 58, 63);
+      ASSERT_GE(hsync_end, 0);
+      const int extra = (t.type == CRTC::HD6845S || t.type == CRTC::UM6845R) ? 1 : 0;
+      EXPECT_EQ(hsync_end + extra, LastBlack(m, last_vsync_line, 58, 63));
+   }
+}
+
+// 16.2.5 (and 16.2.3) : a new CRTC VSYNC while the one of the GATE ARRAY runs puts V26 back to 0. R3h = 0
+// (16 lines), R7 = C4 written on C4 = 32 / C9 = 4, before the HSYNC : CRTC 0, 1, 2 start a VSYNC whatever
+// C9, the black lasts 20 + 26 = 46 lines. CRTC 3, 4 do not : 26 lines.
+TEST(Compendium_16, ASecondCrtcVSyncRestartsTheTwentySixLines)
+{
+   for (const TypedMachine& t : kSyncMachines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(3, 0x0E));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+      m.RecordBlocks(true);
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 32 && m.Crtc().vlc_ == 4 && m.Crtc().hcc_ == 2; }, 4 * 20000), 0);
+      p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(7, 32));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 64 * 80; ++i) m.Cycle();
+      m.RecordBlocks(false);
+      int lines = 0;
+      for (int line = 200; line < 312; ++line)
+      {
+         const Machine::Block* b = m.FindBlock(line, 11);
+         if (b != nullptr && b->pixels[8] == kBlackPixel) ++lines;
+      }
+      const bool asic = (t.type == CRTC::AMS40489 || t.type == CRTC::AMS40226);
+      EXPECT_EQ(asic ? 26 : 46, lines);
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// 17.5 : R1 = 0 written by an OUT (C),r8 started on C0 = &3B .. &3E (R0 = &3F) : taken for the next line
+// (C0 == R1 on its first character : border) up to the start on &3D on CRTC 0, 1, 2 (I/O on &3F), only
+// on &3B on CRTC 3, 4 (their OUT (C),r8 is taken one microsecond later, 4.4.3).
+
+namespace
+{
+// Machine on a displayed line, then OUT (C),C (R1 = 0) started after 'nops' NOPs. Returns the C0 the OUT
+// starts on and whether the next line is border.
+int R1ZeroOut(CRTC::TypeCRTC type, const char* config, int nops, bool* border_next_line)
+{
+   Machine m(type, config);
+   Prepare(m, 1, 0xFF);
+   if (m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine && m.Crtc().hcc_ == 0; }, 4 * 20000) < 0) return -1;
+   std::vector<unsigned char> p = { z80::kDi, 0x01, 0x01, 0xBC, 0xED, 0x49,   // LD BC,&BC01 : OUT (C),C : select R1
+                                    0x01, 0x00, 0xBD };                       // LD BC,&BD00
+   for (int i = 0; i < nops; ++i) p.push_back(z80::kNop);
+   const unsigned short at = (unsigned short)(kProgram + p.size());
+   z80::Append(p, { 0xED, 0x49 });                                            // OUT (C),C : R1 = 0
+   z80::Append(p, z80::kJrSelf);
+   m.RecordBlocks(true);
+   m.Run(p);
+   int line = -1;
+   const int start = m.InstructionStart(at, &line);
+   for (int i = 0; i < 4 * 64 * 3; ++i) m.Cycle();
+   m.RecordBlocks(false);
+   const int next_line = (start >= 0x3B) ? line + 1 : line + 2;
+   const Machine::Block* b = m.FindBlock(next_line, 10);
+   *border_next_line = (b != nullptr && PenOf(m, b->pixels[8]) == kBorder);
+   return start;
+}
+}
+
+namespace
+{
+struct R1ZeroCase { CRTC::TypeCRTC type; const char* config; int last_start; };
+void CheckR1Zero(const R1ZeroCase& t)
+{
+   SCOPED_TRACE(t.config);
+   SCOPED_TRACE((int)t.type);
+   bool border = false;
+   const int start0 = R1ZeroOut(t.type, t.config, 0, &border);
+   ASSERT_GE(start0, 0);
+   for (int c0 = 0x3B; c0 <= 0x3E; ++c0)
+   {
+      SCOPED_TRACE(c0);
+      const int nops = (c0 - start0 + 64) % 64;
+      ASSERT_EQ(c0, R1ZeroOut(t.type, t.config, nops, &border));
+      EXPECT_EQ(c0 <= t.last_start, border);
+   }
+}
+}
+
+TEST(Compendium_17, R1ZeroTakenForTheNextLineUpToAnIoOnC0EqualsR0)
+{
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::HD6845S, "6128", 0x3D }, R1ZeroCase{ CRTC::UM6845R, "6128", 0x3D },
+                                R1ZeroCase{ CRTC::MC6845, "6128", 0x3D } })
+      CheckR1Zero(t);
+}
+
+// CRTC 3, 4 : the OUT (C),r8 started on &3C (I/O taken on the 4th microsecond, C0 = &3F = R0) still gives
+// the border in the emulation, too late on the real machine. The ASIC takes an OUT (C),r8 one microsecond
+// later than CRTC 0 (4.4.3, Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc) ; for R1 = 0 it should be
+// one more : not understood (C0 == R1 evaluated one character ahead would also move 17.3).
+TEST(Compendium_17, DISABLED_R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic)
+{
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::AMS40489, "6128PLUS", 0x3B }, R1ZeroCase{ CRTC::AMS40226, "6128PLUS", 0x3B } })
+      CheckR1Zero(t);
+}
+// 6.1.4, 20.1-20.2 : address of the video RAM read by the GATE ARRAY. R12 bits 5-4 -> A15-A14,
+// C9 bits 2-0 -> A13-A11, VMA bits 9-0 -> A10-A1, A0 : the byte of the microsecond.
+// The page &C000 holds at each even address a word equal to that address : the word the GATE
+// ARRAY reads gives the address. At C4 = C9 = C0 = 0 the CRTC loads R12/R13 (20.3) ; one line of
+// characters later, VMA has moved by R1.
+
+TEST(Compendium_20, AddressOfTheVideoRam)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& machine : machines)
+   {
+      SCOPED_TRACE(machine.config);
+      SCOPED_TRACE((int)machine.type);
+      Machine m(machine.type, machine.config);
+      for (unsigned int a = 0xC000; a <= 0xFFFF; a += 2)
+      {
+         m.Ram()[a] = (unsigned char)(a & 0xFF);
+         m.Ram()[a + 1] = (unsigned char)(a >> 8);
+      }
+      // R12 = &31 : page &C000 (bits 5-4), no overscan bits (3-2), VMA bits 9-8 = 01 ; R13 = &23
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(12, 0x31));
+      z80::Append(p, z80::WriteCrtc(13, 0x23));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 19968 * 2; ++i) m.Cycle();
+
+      // First line of characters, C0 = 0, each value of C9 : &C000 + C9 * &800 + &123 * 2
+      for (int c9 = 0; c9 < 8; ++c9)
+      {
+         SCOPED_TRACE(c9);
+         ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 0 && m.Crtc().vlc_ == c9 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+         EXPECT_EQ(0xC000 + c9 * 0x800 + 0x123 * 2, m.Ga().display_short_.word);
+      }
+      // Second line of characters, C9 = 0, C0 = 0 : VMA = &123 + R1
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Crtc().vcc_ == 1 && m.Crtc().vlc_ == 0 && m.Crtc().hcc_ == 1; }, 4 * 20000), 0);
+      EXPECT_EQ(0xC000 + (0x123 + kR1) * 2, m.Ga().display_short_.word);
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// 6.1.5 : the GATE ARRAY displays a character one microsecond after the CRTC gave its address : the
+// block drawn during the microsecond C0 = k shows the character k - 1. Screen of 0 (pen 0), the
+// character 10 of kLine is &FFFF (pen 1) ; 2 pixels of margin for the Mode 2 pixel in advance (9.1).
+TEST(Compendium_6, CharacterDisplayedOneMicrosecondAfterItsAddress)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& t : machines)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      Machine m(t.type, t.config);
+      Prepare(m, 2, 0x00);
+      const int c4 = kLine / 8, c9 = kLine % 8;
+      const unsigned short address = (unsigned short)(kScreen + c9 * 0x800 + (c4 * kR1 + 10) * 2);
+      m.Ram()[address] = 0xFF;
+      m.Ram()[address + 1] = 0xFF;
+      RecordFrame(m);
+      auto pen1 = [&](int c0) {
+         int n = 0;
+         for (int px : LinePixels(m, kLine, c0, 1)) if (PenOf(m, px) == 1) ++n;
+         return n;
+      };
+      EXPECT_LE(pen1(10), 2);
+      EXPECT_GE(pen1(11), 14);
+      EXPECT_LE(pen1(12), 2);
+   }
+}

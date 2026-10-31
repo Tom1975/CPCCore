@@ -87,6 +87,7 @@ public:
    bool last_line_;             // C4==R4 && C9==R9, sampled at the end of characters 0 and 1
    bool adjust_;                // additional management armed
    bool adjust_confirmed_;      // additional management confirmed at the end of character 2 : C9 compared to R5
+   bool last_line_seen_;        // CRTC 0 : last_line_ sampled true on this line (13.2.1)
    bool adjust_end_;            // next C9 == R5, sampled at the end of characters 0 to 2
    bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
    bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
@@ -94,6 +95,7 @@ public:
    bool vma_reload_;            // VMA is loaded from R12/R13 at the line start instead of VMA'
    bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
+   bool last_line_sampled_;     // CRTC 1 : last_line_ already sampled on C0==R0 of this line (13.7.1.2)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
@@ -122,6 +124,10 @@ public:
    // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
    unsigned char hsync_quarters_;
    unsigned char hsync_quarters_previous_;
+   // CRTC 0 : the HSYNC ended on this character with C0==R2 (the end comparator won) and C3l then
+   // (15.3.3 : R3l rewritten on this character restarts it without resetting C3l)
+   bool hsync_ended_on_r2_;
+   unsigned char hsync_end_c3l_;
    // Internal HSYNC (C0==R2 / C3l==R3l logic) and its events on the current character ; the pin
    // follows it directly on CRTC 0, 1, 2, through a one character delay on CRTC 3, 4 (14.7.2)
    bool hsync_;
@@ -171,14 +177,18 @@ public:
    void WriteBus(unsigned short address, unsigned char data, unsigned int t_state);
    bool HSyncPinFollowsComparators() const;
    unsigned int HSyncPinEdge(bool rise, unsigned int t_state) const;
+   unsigned int VSyncPinEdge() const;
+   unsigned int VSyncBlackEndDelay() const;
    void HSyncStartComparatorChanged(unsigned int t_state);
    void HSyncEndComparatorChanged(unsigned int t_state);
-   unsigned int LastTStateInWindow() const;
+   unsigned int LastTStateInWindow(unsigned short address) const;
    void ClockBusInterface();
    void ClockHSyncPin();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
-   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }
+   // The SKEW delay line is clocked by the character clock (19.2.4) : it takes DISPEN at the end of the
+   // character and gives it back for a whole character
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 3 : 0); }
    void ClockDispEnHalvesCrtc02();
    void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
    // DISPEN for the first (half = 0) or the second (half = 1) half of the current character

@@ -80,9 +80,19 @@ void CRTC::ClockTick2 ()
       bool new_frame = false;
       if (adjust_)
       {
-         // C5 counts the additional lines (11.2.5)
-         vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
-         new_frame = (vertical_adjust_counter_ == adjust_lines);
+         // The interlace line (the one after the R5 lines) is no longer one when the interlace is switched
+         // off during it : the additional management ends, C9 and C4 count as usual and C4 == R4 can make a
+         // last line again (11.9)
+         if (vertical_adjust_counter_ == registers_list_[5] && !InterlaceOn())
+         {
+            adjust_ = false;
+         }
+         else
+         {
+            // C5 counts the additional lines (11.2.5)
+            vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
+            new_frame = (vertical_adjust_counter_ == adjust_lines);
+         }
       }
       else if (last_line_)
       {

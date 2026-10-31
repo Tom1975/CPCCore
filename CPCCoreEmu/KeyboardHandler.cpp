@@ -59,10 +59,9 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 
 KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
 {
-   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
-   exe_path /= "Keyboards";
-   exe_path /= KEYBOARD_SCANCODES_FILE;   
-   InitKeyboard (exe_path.string().c_str());
+   // The scan code file is loaded by LoadKeyboardMap, once the base directory is known (SetDirectories) :
+   // loaded here it was looked for in the current directory, and missing when run from elsewhere
+   InitKeyboard();
    memset ( keyboard_config_, 0, sizeof keyboard_config_);
 }
 
@@ -347,17 +346,13 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
 #endif
 }
 
-void KeyboardHandler::InitKeyboard (const char* path)
+void KeyboardHandler::InitKeyboard ()
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
    memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
-
-#ifndef CPCCORE_NO_HOST_KEYBOARD
-   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
-#else
-   (void)path;
-#endif
-
+   memset ( raw_to_cpc_map_, 0, sizeof (raw_to_cpc_map_));
+   memset ( dead_key_, 0, sizeof (dead_key_));
+   memset ( raw_to_functions_, 0, sizeof (raw_to_functions_));
 }
 
 void KeyboardHandler::CharPressed (char c)

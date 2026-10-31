@@ -353,6 +353,7 @@ void MachineState::WriteGateArray(Motherboard* board, std::vector<unsigned char>
    out.push_back(ga->sr_div_mode_);
    out.push_back(ga->sr_shown_ ? 1 : 0);
    out.push_back(ga->r52_reset_held_ ? 1 : 0);        // added later : optional when read
+   out.push_back((unsigned char)(ga->vsync_black_end_in_ + 1));   // added later : optional (0 : not ending)
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -418,6 +419,7 @@ bool MachineState::ReadGateArray(Motherboard* board, const unsigned char* p, siz
       ga->sr_mode_ = ga->sr_div_mode_ = ga->buffered_screen_mode_ & 3;
    }
    ga->r52_reset_held_ = (at < size) ? (p[at++] != 0) : false;
+   ga->vsync_black_end_in_ = (at < size) ? (int)p[at++] - 1 : -1;
 
    return true;
 }
@@ -967,6 +969,10 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->hsync_quarters_previous_);
    out.push_back(c->hsync_ ? 1 : 0);
    out.push_back(c->hsync_pin_stage_ ? 1 : 0);
+   out.push_back(c->hsync_ended_on_r2_ ? 1 : 0);      // added later : optional when read
+   out.push_back(c->hsync_end_c3l_);
+   out.push_back(c->last_line_sampled_ ? 1 : 0);      // added later : optional when read
+   out.push_back(c->last_line_seen_ ? 1 : 0);         // added later : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -1056,6 +1062,15 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    if (size - at < 2) return false;
    c->hsync_ = p[at++] != 0;
    c->hsync_pin_stage_ = p[at++] != 0;
+   c->hsync_ended_on_r2_ = false;
+   c->hsync_end_c3l_ = 0;
+   if (size - at >= 2)
+   {
+      c->hsync_ended_on_r2_ = p[at++] != 0;
+      c->hsync_end_c3l_ = p[at++];
+   }
+   c->last_line_sampled_ = (size - at >= 1) ? (p[at++] != 0) : false;
+   c->last_line_seen_ = (size - at >= 1) ? (p[at++] != 0) : false;
 
    return (at == size);
 }

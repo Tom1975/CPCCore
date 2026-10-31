@@ -96,6 +96,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
+   vsync_black_end_in_ = -1;
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
 
@@ -190,6 +191,7 @@ void GateArray::Reset()
    vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
+   vsync_black_end_in_ = -1;
 }
 
 void GateArray::RequestRasterInterrupt()
@@ -302,18 +304,26 @@ void GateArray::FinalizeBlock()
    const int kChsyncStart = 2 * 16 + 3;
    const int kChsyncMaxLength = 4 * 16;
    chsync_mask_ = 0;
-   // CBLACK_VSYNC : set by the rising edge of the CRTC VSYNC (on the start of the block), cleared on the
-   // end of the 26th HSYNC counted by V26, whatever the length of the CRTC VSYNC
-   if (vsync_rise_in_block_)
-   {
-      vsync_rise_in_block_ = false;
-      cblack_vsync_ = true;
-      v26_ = 0;
-   }
+   // CBLACK_VSYNC : set by the rising edge of the CRTC VSYNC (VSyncPinEdge in the block), cleared on the
+   // end of the 26th HSYNC counted by V26 (VSyncBlackEndDelay pixels later), whatever the length of the
+   // CRTC VSYNC
+   const int vsync_rise = vsync_rise_in_block_ ? (int)crtc_->VSyncPinEdge() : -1;
+   vsync_rise_in_block_ = false;
    unsigned char next = 0;
    for (int p = 0; p < 16; ++p)
    {
       bool fall = false;
+      if (vsync_black_end_in_ == 0)
+      {
+         cblack_vsync_ = false;
+         vsync_black_end_in_ = -1;
+      }
+      if (p == vsync_rise)
+      {
+         cblack_vsync_ = true;
+         v26_ = 0;
+         vsync_black_end_in_ = -1;
+      }
       while (next < nb_black_edges_ && black_edges_[next].pixel == p)
       {
          cblack_hsync_ = black_edges_[next++].level;
@@ -324,11 +334,20 @@ void GateArray::FinalizeBlock()
             chsync_countdown_ = -1;
             fall = true;
             if (cblack_vsync_ && ++v26_ == 26)
-               cblack_vsync_ = false;
+            {
+               vsync_black_end_in_ = (int)crtc_->VSyncBlackEndDelay();
+               if (vsync_black_end_in_ == 0)
+               {
+                  cblack_vsync_ = false;
+                  vsync_black_end_in_ = -1;
+               }
+            }
          }
       }
       if ((cblack_hsync_ || cblack_vsync_) && last_block_ != nullptr)
          last_block_[p] = 0xFF000000;
+      if (vsync_black_end_in_ > 0)
+         --vsync_black_end_in_;
 
       if (chsync_countdown_ == 0 && cblack_hsync_)
       {

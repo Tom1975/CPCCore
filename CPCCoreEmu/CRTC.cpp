@@ -64,6 +64,13 @@ CRTCRegistersAcces CRTCAccess[32] = {
 
 // R8 bits kept on write, per CRTC type (Compendium 19.1/19.2) : bits 0-1 = interlace on all types,
 // bits 4-5 = SKEW-DISPTMG (BORDER delay / force) on CRTC 0/3/4, bits 6-7 = cursor skew on CRTC 0 only.
+// R3 bits kept on write (Compendium 4.3) : the VSYNC width (bits 7-4) only exists on CRTC 0/3/4, CRTC 1/2
+// have a fixed 16 line VSYNC.
+static unsigned char R3Mask(CRTC::TypeCRTC type_crtc)
+{
+   return (type_crtc == CRTC::UM6845R || type_crtc == CRTC::MC6845) ? 0x0F : 0xFF;
+}
+
 static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
 {
    switch (type_crtc)
@@ -107,7 +114,7 @@ void CRTC::Reset()
    registers_list_[0] = 0x3F;   registers_mask_[0] = 0xFF;
    registers_list_[1] = 0x28;   registers_mask_[1] = 0xFF;
    registers_list_[2] = 0x2E;   registers_mask_[2] = 0xFF;
-   registers_list_[3] = 0x8E;   registers_mask_[3] = 0xFF;
+   registers_list_[3] = 0x8E & R3Mask(type_crtc_);   registers_mask_[3] = R3Mask(type_crtc_);
    registers_list_[4] = 0x26;   registers_mask_[4] = 0x7F;
    registers_list_[5] = 0x00;   registers_mask_[5] = 0x1F;
    registers_list_[6] = 0x19;   registers_mask_[6] = 0x7F;
@@ -145,6 +152,7 @@ void CRTC::Reset()
    last_line_ = false;
    adjust_ = false;
    adjust_confirmed_ = false;
+   last_line_seen_ = false;
    adjust_end_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
@@ -163,6 +171,8 @@ void CRTC::Reset()
    io_pending_data_ = 0;
    hsync_quarters_ = 0;
    hsync_quarters_previous_ = 0;
+   hsync_ended_on_r2_ = false;
+   hsync_end_c3l_ = 0;
    hsync_ = false;
    hsync_rise_ = false;
    hsync_fall_ = false;
@@ -170,6 +180,7 @@ void CRTC::Reset()
    vma_reload_ = true;
    vma_reload_clear_ = false;
    rfd_ = false;
+   last_line_sampled_ = false;
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
@@ -253,6 +264,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 {
    started = ended = false;
    const bool c0_is_r2 = (hcc_ == registers_list_[2]);
+   hsync_ended_on_r2_ = false;
 
    if (hsync_)
    {
@@ -278,8 +290,11 @@ void CRTC::ClockHSync(bool& started, bool& ended)
          }
          else
          {
-            // CRTC 0 is protected : the HSYNC ends, and cannot restart on this position (15.3)
+            // CRTC 0 is protected : the HSYNC ends, and cannot restart on this position (15.3) as long as
+            // C3l==R3l holds (see HSyncEndComparatorChanged)
             ended = true;
+            hsync_ended_on_r2_ = c0_is_r2;
+            hsync_end_c3l_ = horinzontal_pulse_;
          }
       }
 
@@ -310,7 +325,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
 //   microsecond (C3l=0) with R3l=0 cuts the HSYNC (OUTI : it never starts) ; CRTC 2 R3l=0 is 16 us.
 //   CRTC 1 handles R3l=0 (no HSYNC) during the whole HSYNC : it is cut (14.5.2).
 // CRTC 3, 4 synchronise the HSYNC with the display : no JIT (14.5.4.4, 14.7.2).
-// A restart on the position where the HSYNC has just ended is not described : not handled.
+// CRTC 0 : a restart on the position where the HSYNC has just ended, R3l rewritten there (15.3.3).
 bool CRTC::HSyncPinFollowsComparators() const
 {
    return type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845;
@@ -324,8 +339,8 @@ bool CRTC::HSyncPinFollowsComparators() const
 // - CRTC 0 : 4 pixels after the clock or the I/O ;
 // - CRTC 1 : 5 pixels after the clock, 4 after an I/O ;
 // - CRTC 2 : rising edge 3 pixels after the clock or the I/O, falling edge 4 ;
-// - CRTC 3, 4 : the pin is one microsecond late (ClockHSyncPin), then 0 (CRTC 3, supposed : 17th pixel
-//   after the start of the character R2-1 displayed) or 2 pixels (CRTC 4 : 19th pixel).
+// - CRTC 3, 4 : the pin is one microsecond late (ClockHSyncPin), then 2 pixels (CRTC 4 : 19th pixel after
+//   the start of the character R2-1 displayed ; CRTC 3, not measured : like the CRTC 4).
 unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
 {
    switch (type_crtc_)
@@ -336,11 +351,34 @@ unsigned int CRTC::HSyncPinEdge(bool rise, unsigned int t_state) const
       return (t_state == 0) ? 5 : 4 * t_state + 4;
    case MC6845:
       return 4 * t_state + (rise ? 3 : 4);
-   case AMS40489:
-      return 0;
    default:
       return 2;
    }
+}
+
+// Pixel of the block of the microsecond where the GATE ARRAY sees the VSYNC pin rise, on the clock edge
+// that brings C4 to R7 (16.2.1, R7 programmed before) : the black starts on the 5th pixel (CRTC 0, 2),
+// the 6th (CRTC 1) or the 2nd (CRTC 4) of the character displayed then. Not delayed by a microsecond on
+// the ASIC, unlike the HSYNC. CRTC 3 : not measured, like the CRTC 4.
+unsigned int CRTC::VSyncPinEdge() const
+{
+   switch (type_crtc_)
+   {
+   case HD6845S:
+   case MC6845:
+      return 4;
+   case UM6845R:
+      return 5;
+   default:
+      return 1;
+   }
+}
+
+// Pixels the VSYNC black of the GATE ARRAY lasts after the end of the 26th HSYNC (14.9) : 1 pixel Mode 2
+// on CRTC 0 and 1, none on CRTC 2, 3 and 4 (the black ends with the HSYNC).
+unsigned int CRTC::VSyncBlackEndDelay() const
+{
+   return (type_crtc_ == HD6845S || type_crtc_ == UM6845R) ? 1 : 0;
 }
 
 // R2 written : C0==R2 starts the HSYNC
@@ -360,8 +398,22 @@ void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 // R3 written : C3l==R3l ends the HSYNC
 void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators() || !hsync_) return;
+   if (!HSyncPinFollowsComparators()) return;
    const unsigned char r3l = registers_list_[3] & 0x0F;
+   // CRTC 0 (15.3.3) : on C0=R2+R3l with C0==R2 again, the end comparator (C3l==R3l) inhibits the start.
+   // R3l rewritten on this character releases it : the HSYNC starts again on the T-state of the I/O (as
+   // an R2.JIT), C3l is not reset and goes on counting (overflow up to the new R3l).
+   if (type_crtc_ == HD6845S && !hsync_ && hsync_ended_on_r2_ && r3l != 0 && r3l != hsync_end_c3l_)
+   {
+      hsync_ended_on_r2_ = false;
+      hsync_quarters_ |= (0x0F << t_state) & 0x0F;
+      hsync_ = true;
+      signals_->h_sync_ = true;
+      signals_->hsync_raise_ = true;
+      horinzontal_pulse_ = hsync_end_c3l_;
+      return;
+   }
+   if (!hsync_) return;
    bool end;
    if (type_crtc_ == UM6845R && r3l == 0)
       end = true;
@@ -395,7 +447,7 @@ bool CRTC::DispEn(int half) const
    case 3:
       return false;
    default:
-      // The SKEW delay line keeps both halves of each character
+      // The SKEW delay line keeps one value per character (ClockDispTmg)
       return ((dispen_history_ >> (2 * (skew - 1) + (half ? 1 : 0))) & 1) != 0;
    }
 }
@@ -610,14 +662,18 @@ unsigned char CRTC::In ( unsigned short address )
 // - ASIC (CRTC 3, 4) : the window spans the end of the previous microsecond and the start
 //   of the current one : only T-state 0 is taken now. OUT(C),r8 is missed and taken by the
 //   next window, while IORQ is still asserted (wait states) : 4th microsecond instead of 3rd.
-unsigned int CRTC::LastTStateInWindow() const
+//   CRTC 3 only : with the ROM select active during the I/O (A13 = 0), it takes it 1 us earlier, on the
+//   current window, as CRTC 0, 1, 2 (12.5 : the printer, PPI or FDC select do not change it ; not CRTC 4).
+unsigned int CRTC::LastTStateInWindow(unsigned short address) const
 {
-   return (type_crtc_ == AMS40489 || type_crtc_ == AMS40226) ? 0 : 1;
+   if (type_crtc_ == AMS40489)
+      return ((address & 0x2000) == 0) ? 1 : 0;
+   return (type_crtc_ == AMS40226) ? 0 : 1;
 }
 
 void CRTC::Out (unsigned short address, unsigned char data, unsigned int t_state)
 {
-   if (t_state > LastTStateInWindow())
+   if (t_state > LastTStateInWindow(address))
    {
       io_pending_ = true;
       io_pending_address_ = address;
@@ -771,6 +827,7 @@ void CRTC::DefinirTypeCRTC(TypeCRTC type_crtc)
    default:
       TickFunction = &CRTC::ClockTick34;
    }
+   registers_mask_[3] = R3Mask(type_crtc_);
    registers_mask_[8] = R8Mask(type_crtc_);
 }
 

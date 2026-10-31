@@ -151,3 +151,63 @@ TEST(Z80_IoTiming, OutiIsTakenAtTheSameTimeOnEveryCrtc)
    ASSERT_GE(crtc0, 0);
    EXPECT_EQ(crtc0, crtc3);
 }
+
+// 13.6 / 24.1 : the shortest R13 then R12 update. B=&BC, A=12, C=13, H=R12, L=R13 :
+// OUT (C),C / INC B / OUT (C),L / OUT (&FF),A / OUT (C),H (OUT (&FF),A selects R12 : port &0CFF,
+// data 12). With the durations of 4.4.3 (OUT (C),r8 : 4 us, I/O on the 3rd ; OUT (n),A : 3 us),
+// R13 is written on the 3rd us and R12 on the 10th : 7 us apart, R12 in the 8th us counted from
+// the one of R13 -- the "8 us" of the compendium. Not a delay of the CRTC : only the instructions.
+TEST(Z80_IoTiming, R13ThenR12AtTheEighthMicrosecond)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      DirectoriesImp dirImp;
+      ConfigurationManager conf_manager;
+      CDisplay display;
+      display.Init(false);
+      display.Show(false);
+      SoundFactory soundFactory;
+      std::unique_ptr<EmulatorEngine> engine(new EmulatorEngine());
+      EmulatorEngine& machine = *engine;
+      machine.SetDirectories(&dirImp);
+      machine.SetConfigurationManager(&conf_manager);
+      machine.SetLog(NULL);
+      machine.Init(&display, &soundFactory);
+      machine.GetMem()->Initialisation();
+      machine.SetFixedSpeed(true);
+      machine.LoadConfiguration("6128", "./TestConf.ini");
+      machine.Reinit();
+      for (int i = 0; i < 50; i++) machine.RunTimeSlice();
+
+      CRTC* crtc = machine.GetCRTC();
+      crtc->DefinirTypeCRTC(type);
+      crtc->registers_list_[12] = 0x30;
+      crtc->registers_list_[13] = 0x00;
+      const std::vector<unsigned char> program = {
+         0xF3,                // DI
+         0x01, 0x0D, 0xBC,    // LD BC,&BC0D
+         0x3E, 0x0C,          // LD A,12
+         0x21, 0x2A, 0x15,    // LD HL,&152A : R12 = &15, R13 = &2A
+         0xED, 0x49,          // OUT (C),C   : select R13
+         0x04,                // INC B
+         0xED, 0x69,          // OUT (C),L   : R13 = L
+         0xD3, 0xFF,          // OUT (&FF),A : select R12
+         0xED, 0x61,          // OUT (C),H   : R12 = H
+         0x18, 0xFE };        // JR $
+      unsigned char* ram = machine.GetMotherboard()->GetRamBuffer();
+      for (size_t i = 0; i < program.size(); i++) ram[0x4000 + i] = program[i];
+      machine.GetProc()->PrepareForFetch(0x4000);
+
+      int r13_at = -1, r12_at = -1;
+      for (int cycle = 0; cycle < 400 && r12_at < 0; ++cycle)
+      {
+         machine.GetMotherboard()->DebugNew(1);
+         if (r13_at < 0 && crtc->registers_list_[13] == 0x2A) r13_at = cycle;
+         if (r12_at < 0 && crtc->registers_list_[12] == 0x15) r12_at = cycle;
+      }
+      SCOPED_TRACE((int)type);
+      ASSERT_GE(r13_at, 0);
+      ASSERT_GE(r12_at, 0);
+      EXPECT_EQ(7 * 4, r12_at - r13_at);   // 4 MHz cycles
+   }
+}
