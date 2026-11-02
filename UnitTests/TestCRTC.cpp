@@ -3799,6 +3799,48 @@ TEST(Compendium_20, OffsetTakenAtTheFrameStart)
    }
 }
 
+// 20.3.1-20.3.4 : chronograms p242-243. R12 = &10 (R13 = 0), then R12 = &30 by OUT (C),r8 taken on C0 = p (the
+// dark cell : the I/O microsecond, on the ASIC the 4th microsecond of the OUT, 4.4.3) :
+// - CRTC 0, 3, 4 : on C0 = 63 of the last line, taken by the frame start ; on C0 = 0 of the first line, too late ;
+// - CRTC 1 : on C0 = 63 and on C0 = 0 (C4 = 0) taken, the update is immediate ;
+// - CRTC 2 (R1 = 40), on the last line : on C0 = 39 and on C0 = R1 = 40 taken, on C0 = 41 too late.
+// The offset is read on the character C0 = 1 of the first line of the frame (VMA = offset + 1).
+TEST(Compendium_20, OffsetWrittenAroundItsLoad)
+{
+   struct { CRTC::TypeCRTC type; int c4, c9, c0; unsigned char high; } const cases[] = {
+      { CRTC::HD6845S, 38, 7, 63, 0x30 }, { CRTC::HD6845S, 0, 0, 0, 0x10 },
+      { CRTC::AMS40489, 38, 7, 63, 0x30 }, { CRTC::AMS40489, 0, 0, 0, 0x10 },
+      { CRTC::AMS40226, 38, 7, 63, 0x30 }, { CRTC::AMS40226, 0, 0, 0, 0x10 },
+      { CRTC::UM6845R, 38, 7, 63, 0x30 }, { CRTC::UM6845R, 0, 0, 0, 0x30 },
+      { CRTC::MC6845, 38, 7, 39, 0x30 }, { CRTC::MC6845, 38, 7, 40, 0x30 }, { CRTC::MC6845, 38, 7, 41, 0x10 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << ", I/O on C0 = " << c.c0 << " of C4 = " << c.c4);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, c.type);
+      WriteRegister(crtc, 12, 0x10);
+      WriteRegister(crtc, 13, 0x00);
+      ASSERT_TRUE(ReachLine(crtc, 37, 0));
+      ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+      // On the ASIC, OUT (C),r8 is taken 1 us after its I/O : the I/O is on C0 = p - 1
+      const bool asic = (c.type == CRTC::AMS40489 || c.type == CRTC::AMS40226);
+      if (asic && c.c0 == 0)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         AdvanceUntilHccEquals(crtc, 63);
+      }
+      else if (c.c0 > 0)
+      {
+         AdvanceUntilHccEquals(crtc, (unsigned char)(asic ? c.c0 - 1 : c.c0));
+      }
+      WriteRegisterAt(crtc, 12, 0x30, kOutCR8);
+      if (c.c4 != 0 || asic) ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      AdvanceUntilHccEquals(crtc, 1);
+      EXPECT_EQ(c.high, (crtc.ma_ - 1) >> 8) << std::hex << "VMA = " << crtc.ma_;
+   }
+}
+
 // 20.5 : VMA counts on 14 bits : with R12 bits 3-2 = 11 (overscan bits), the carry of bit 11 changes
 // the page bits 12-13 : &0FFF + 1 = &1000.
 TEST(Compendium_20, OverscanBitsCarryIntoThePage)

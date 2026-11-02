@@ -266,9 +266,9 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 20.1-20.2 | Calcul du pointeur vidéo | ✅ | `Compendium_20.AddressOfTheVideoRam` (voir §6.1.4) |
-| 20.3.1 | Mise à jour CRTC 0 (C4=C9=C0=0) | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
-| 20.3.2 | CRTC 1 (à chaque C0=0 tant que C4=0) | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter` |
-| 20.3.3 | CRTC 2 (à C0=R1 de la dernière ligne) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine` |
+| 20.3.1 | Mise à jour CRTC 0 (C4=C9=C0=0) | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart`, `Compendium_20.OffsetWrittenAroundItsLoad` (chronogrammes p242-243, CRTC 0-4 : R12 pris sur C0=63, trop tard sur C0=0 ; CRTC 1 pris sur C0=0 ; CRTC 2 pris sur C0=R1, trop tard sur R1+1 ; ASIC : µs de prise = 4e µs de l'OUT) |
+| 20.3.2 | CRTC 1 (à chaque C0=0 tant que C4=0) | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter`, `Compendium_20.OffsetWrittenAroundItsLoad` (modèle : latch VMA transparent pendant C0=0) |
+| 20.3.3 | CRTC 2 (à C0=R1 de la dernière ligne) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine`, `Compendium_20.OffsetWrittenAroundItsLoad` (modèle : latch VMA' transparent pendant C0=R1) |
 | 20.3.4 | CRTC 3/4 | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
 | 20.4 | Délais de prise en compte (renvoi §13.8 ; « 8 µs » entre R13 et R12, §13.6/§24.1) | ✅ | §13.8 pour la prise en compte. Les « 8 µs » ne sont pas un délai du CRTC mais la durée des instructions : `Z80_IoTiming.R13ThenR12AtTheEighthMicrosecond` (R13 à la 3e µs, R12 à la 10e : 7 µs d'écart, R12 dans la 8e µs) |
 | 20.5 | Overscan bits (R12 bits 3-2 = 11 → retenue sur la page) | ✅ | `Compendium_20.OverscanBitsCarryIntoThePage` |

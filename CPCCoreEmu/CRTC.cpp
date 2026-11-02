@@ -791,6 +791,19 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
             case 12:
             case 13:
                {
+               // The VMA (CRTC 1) and VMA' (CRTC 2) load latches are transparent while their enable is active :
+               // R12/R13 written then reach their output at once (20.3.2, 20.3.3). CRTC 0, 3, 4 load on the edge.
+               const unsigned short offset = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+               if (type_crtc_ == UM6845R && hcc_ == 0 && vma_reload_)
+               {
+                  // CRTC 1 : C0=0 of a line that starts from R12/R13
+                  ma_ = offset;
+               }
+               else if (type_crtc_ == MC6845 && hcc_ == registers_list_[1] && registers_list_[1] != 0 && last_line_)
+               {
+                  // CRTC 2 : C0=R1 of the last line (with R1=0, the last line state falls during C0=0, 17.4.3)
+                  bu_ = offset;
+               }
                break;
                }
             }
