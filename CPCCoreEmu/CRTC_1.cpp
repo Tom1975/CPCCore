@@ -36,6 +36,18 @@ void CRTC::ClockTick1 ()
 
    const bool interlace_video = ((registers_list_[8] & 0x3) == 0x3);
 
+   // VMA' is a register loaded on the clock edge that ends the character C0 == R1 of the last line of a
+   // character (C9 == R9), with the VMA of that character : R1 written during that character removes the load
+   // (R1.JIT, 17.4.2, chronogram p185). After a R.F.D. the test takes ParitéC9 in place of the bit 0 of C9
+   // until the frame end : with the wrong parity it fails, VMA' is not updated and VMA keeps being loaded
+   // from R12/R13 (11.6.1)
+   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
+   if ( hcc_ == registers_list_[1] && r1_c9_test )
+   {
+      bu_ = ma_;
+      vma_reload_clear_ = true;
+   }
+
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
    if (c0_reset)
@@ -161,16 +173,6 @@ void CRTC::ClockTick1 ()
          rfd_ = true;
       last_line_ = last_line;
       last_line_sampled_ = true;
-   }
-
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17). After a R.F.D. the test
-   // takes ParitéC9 in place of the bit 0 of C9 until the frame end : with the wrong parity it fails, VMA'
-   // is not updated and VMA keeps being loaded from R12/R13 (11.6.1)
-   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
-   if ( hcc_ == registers_list_[1] && r1_c9_test )
-   {
-      bu_ = ma_;
-      vma_reload_clear_ = true;
    }
 
    // VSYNC (16.3, 16.4.2) : R7 is ignored during a VSYNC ; a new one needs the C4==R7 equality to change

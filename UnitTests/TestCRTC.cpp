@@ -3413,6 +3413,32 @@ TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)
    }
 }
 
+// 17.4.2, 17.4.3, chronograms p185-186 : R1 = 255 written on the line C9 = R9 during the character C0 = p
+// (R1 = 40). VMA' is loaded with VMA (row start + 40) if the C0 = R1 condition was taken, else it keeps the row
+// start : the next row starts there.
+// - CRTC 1 : written on C0 = 39 or C0 = R1 = 40 (R1.JIT) VMA' is not loaded ; on C0 = 41 it is ;
+// - CRTC 2 : written on C0 = 39 it is not loaded ; on C0 = R1 = 40 the update comes too late : loaded.
+// CRTC 0, 3, 4 : not given.
+TEST(Compendium_17, R1WrittenAroundC0EqualsR1)
+{
+   const struct { CRTC::TypeCRTC type; int p; bool loaded; } cases[] = {
+      { CRTC::UM6845R, 39, false }, { CRTC::UM6845R, 40, false }, { CRTC::UM6845R, 41, true },
+      { CRTC::MC6845, 39, false }, { CRTC::MC6845, 40, true }, { CRTC::MC6845, 41, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " R1 written on C0 = " << c.p);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      const unsigned short row = crtc.ma_;
+      AdvanceUntilHccEquals(crtc, (unsigned char)c.p);
+      WriteRegister(crtc, 1, 255);
+      AdvanceUntilHccEquals(crtc, 0);
+      EXPECT_EQ(c.loaded ? row + 40 : row, crtc.ma_);
+   }
+}
+
 // 17.4.1 : CRTC 0, 3, 4 : on C4 = C9 = C0 = 0, VMA' = R12/R13 and VMA = VMA' : the first row is
 // at R12/R13 ; with R1 > R0, VMA' is never loaded again : every row starts at R12/R13.
 TEST(Compendium_17, FirstRowAtR12R13AndR1AboveR0)
