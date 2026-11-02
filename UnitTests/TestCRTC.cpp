@@ -2313,6 +2313,34 @@ TEST(CRTC_Compendium, InterlaceMidVSync)
    }
 }
 
+// 19.7.2, 19.7.3 : MID-VSYNC with R7 = 0 (R8 = 1) : the VSYNC handling coincides with the frame start.
+// CRTC 0, 1, 2 : ParitéFrame toggles first, the MID-VSYNC (C0 = R0/2) happens when the new frame is even ;
+// CRTC 3, 4 : the VSYNC is handled before ParitéFrame toggles, the MID-VSYNC happens when the new frame is odd.
+TEST(Compendium_19, MidVSyncWithR7Zero)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool asic = (type == CRTC::AMS40489 || type == CRTC::AMS40226);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 7, 0);
+      WriteRegister(crtc, 8, 1);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      std::string starts;
+      for (int frame = 0; frame < 2; ++frame)
+      {
+         ASSERT_NE(-1, TicksUntilVSyncRisingEdge(crtc, sig, 2 * 19968));
+         ASSERT_EQ(0, crtc.vcc_);
+         const bool mid = (crtc.hcc_ == 31);
+         ASSERT_TRUE(mid || crtc.hcc_ == 0) << "C0 = " << int(crtc.hcc_);
+         starts += mid ? 'M' : 'L';
+         EXPECT_EQ(asic ? !crtc.even_field_ : crtc.even_field_, mid) << "frame " << frame;
+      }
+      EXPECT_TRUE(starts == "LM" || starts == "ML") << starts;
+   }
+}
+
 // 19.4, 19.8 : Interlace Video Mode (R8 = 3), 8-line characters (R9 = 6 on
 // CRTC 0, 3, 4 ; R9 = 7 on CRTC 1) : one frame displays the even lines of the
 // characters, the other one the odd lines.
