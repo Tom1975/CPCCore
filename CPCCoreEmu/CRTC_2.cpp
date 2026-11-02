@@ -27,6 +27,9 @@
 //                           HSYNC spanning C0=0 hides it) starts a GHOST VSYNC : C3h counts the lines,
 //                           no new VSYNC is accepted, but the pin stays low (15.4.4).
 // - the border is not lifted on C0=0 while a HSYNC is active (15.5).
+// - frame_end_no_extra_ (FE) the frame ended without additional line on the previous line end. During the next
+//                           line, interlace && ParitéR6 decodes it as the additional line : IVM switched on
+//                           during the first line of an odd frame gives a new line 0 (19.6.3 bug).
 //
 ///////////////////////////////////////////////////////////////
 
@@ -82,8 +85,18 @@ void CRTC::ClockTick2 ()
       // Additional interlace line when ParitéR6 is odd, counted as one more R5 line (19.6.3)
       const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
 
+      // FE : the line that ends follows a frame end that produced no additional line. The additional line
+      // condition (interlace && ParitéR6) is decoded during it : met there (IVM switched on during the first
+      // line of an odd frame), this line was the additional line and the frame restarts (19.6.3 bug)
+      const bool decoded_as_additional = frame_end_no_extra_ && InterlaceOn() && parity_r6_;
+      frame_end_no_extra_ = false;
+
       bool new_frame = false;
-      if (adjust_)
+      if (decoded_as_additional)
+      {
+         new_frame = true;
+      }
+      else if (adjust_)
       {
          // The interlace line (the one after the R5 lines) is no longer one when the interlace is switched
          // off during it : the additional management ends, C9 and C4 count as usual and C4 == R4 can make a
@@ -97,6 +110,7 @@ void CRTC::ClockTick2 ()
             // C5 counts the additional lines (11.2.5)
             vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
             new_frame = (vertical_adjust_counter_ == adjust_lines);
+            frame_end_no_extra_ = new_frame && (adjust_lines == registers_list_[5]);
          }
       }
       else if (last_line_)
@@ -110,6 +124,7 @@ void CRTC::ClockTick2 ()
          else
          {
             new_frame = true;
+            frame_end_no_extra_ = true;
          }
       }
 

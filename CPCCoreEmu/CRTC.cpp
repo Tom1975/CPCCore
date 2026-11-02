@@ -186,6 +186,7 @@ void CRTC::Reset()
    last_line_eq_ = false;
    dlp_ = false;
    gdl_reenabled_ = false;
+   frame_end_no_extra_ = false;
    vsync_ghost_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;

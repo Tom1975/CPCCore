@@ -3453,6 +3453,31 @@ TEST(Compendium_17, Crtc2R1ZeroOnTheFrameStartOnlyAndsTheOffset)
    }
 }
 
+// 19.6.3 : CRTC 2, IVM switched on (R8 = 3) during the first line of an odd frame, on any C0 : that line becomes
+// an additional line and a new line 0 follows (the frame is one line longer). Its address C9 is odd at once.
+// On an even frame it stays line 0.
+TEST(Compendium_19, Crtc2IvmOnTheFirstLineOfAnOddFrame)
+{
+   for (bool odd : { true, false })
+   {
+      for (int c0 : { 0, 10, 63 })
+      {
+         SCOPED_TRACE(testing::Message() << (odd ? "odd" : "even") << " frame, R8 = 3 written on C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, CRTC::MC6845);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         if (crtc.even_field_ == odd) NextFrameLines(crtc);
+         ASSERT_EQ(odd, !crtc.even_field_);
+         if (c0 > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c0);
+         WriteRegister(crtc, 8, 3);
+         if (odd && c0 < 63) EXPECT_EQ(1, AddressC9(crtc));
+         const Line next = NextLine(crtc);
+         if (odd) EXPECT_EQ(Line(0, 0), next);
+         else EXPECT_NE(Line(0, 0), next);
+      }
+   }
+}
+
 // 15.6 : the three examples of p158 on CRTC 2 (R0 = 63), over 4 frames (C4 overflows up to 127 before
 // it meets R7 = 30 again) :
 // - R2 = 50, R3l = 14 : the HSYNC covers C0 = 63, the position before C0 = 0 : GHOST VSYNC, display kept ;

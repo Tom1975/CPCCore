@@ -253,7 +253,7 @@ pas de comportement à vérifier).
 | 19.5.5 | Parité CRTC 3/4 | ✅ | `CRTC_Compendium.IvmVSyncDelayedOnOddC4` |
 | 19.6.1 | Ligne additionnelle interlace CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6` |
 | 19.6.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1InterlaceLineAfterR5` |
-| 19.6.3 | CRTC 2 (+ bug IVM coupé pendant la ligne additionnelle) | 🟡 | `CRTC_Compendium.InterlaceParityFrozenByR6`. À faire : bug (non modélisé) |
+| 19.6.3 | CRTC 2 (+ bug IVM coupé pendant la ligne additionnelle) | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6`, `Compendium_11.Crtc2InterlaceSwitchedOffDuringTheInterlaceLine` (IVM coupé pendant la ligne additionnelle : C4 continue), `Compendium_19.Crtc2IvmOnTheFirstLineOfAnOddFrame` (IVM activé sur la ligne 0 d'un frame impair, C0=0/10/63 : nouvelle ligne 0, C9 d'adresse impair ; frame pair : pas d'effet). Modèle : bascule FE (fin de frame sans ligne additionnelle) ; pendant la ligne suivante, interlace && ParitéR6 la décode comme ligne additionnelle |
 | 19.6.4 | CRTC 3/4 | ✅ | `CRTC_Compendium.InterlaceAdditionalLineCounters` |
 | 19.7 | MID-VSYNC (ordre parité/VSYNC avec R7=0 : 0/1/2 vs 3/4) | 🟡 | `CRTC_Compendium.InterlaceMidVSync`. À faire : cas R7=0 |
 | 19.8.1 | Comptage IVM CRTC 0 | ✅ | `CRTC_Compendium.Crtc0Ivm*` |
