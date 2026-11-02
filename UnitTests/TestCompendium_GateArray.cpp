@@ -246,6 +246,26 @@ TEST(Compendium_9, InkOnePixelEarlierInMode2OnTheAsic40226)
    EXPECT_EQ(7, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 2, InkInstruction::kOutCR8));
 }
 
+// 9.2.2 : the three schematics of each GATE ARRAY (OUTI, OUT (C),r8, OUT (n),A), every mode (0 to 3), every
+// type : the new colour is drawn from the 2nd byte of the I/O microsecond ; CRTC 4 (ASIC 40226) one Mode 2
+// pixel earlier in mode 2 only.
+TEST(Compendium_9, InkTakenOnEveryInstructionModeAndType)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128" },
+   };
+   const InkInstruction instructions[] = { InkInstruction::kOuti, InkInstruction::kOutCR8, InkInstruction::kOutNA };
+   for (const auto& m : machines)
+      for (int mode = 0; mode < 4; ++mode)
+         for (InkInstruction instruction : instructions)
+         {
+            SCOPED_TRACE(testing::Message() << "CRTC type " << (int)m.type << ", mode " << mode << ", instruction " << (int)instruction);
+            const int expected = (m.type == CRTC::AMS40226 && mode == 2) ? 7 : 8;
+            EXPECT_EQ(expected, FirstPixelWithTheNewInk(m.type, m.config, mode, instruction));
+         }
+}
+
 /////////////////////////////////////////////////////////////
 // 9.3 : graphic mode
 
@@ -281,11 +301,15 @@ int ModeAfterAWriteOn(CRTC::TypeCRTC type, int write_c0, unsigned char r3 = 0x8E
 }
 }
 
-// 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least.
+// 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least, on every CPC.
 TEST(Compendium_9, ModeChangeNeedsAHSyncOfTwoMicroseconds)
 {
-   EXPECT_EQ(2, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x81));
-   EXPECT_EQ(0, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x82));
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      EXPECT_EQ(2, ModeAfterAWriteOn(type, 40, 0x81));
+      EXPECT_EQ(0, ModeAfterAWriteOn(type, 40, 0x82));
+   }
 }
 
 // 9.3.2 : CRTC 0, 1, 2, R2 = 46, R3 = 14 : the new mode is taken for the next line when the write
@@ -296,9 +320,9 @@ TEST(Compendium_9, ModeChangeWindowCrtc012)
    for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
    {
       SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 45));
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 51));
-      EXPECT_EQ(2, ModeAfterAWriteOn(type, 52));
+      // The 10 rows of the schematic p53 : writes on C0vs 45 to 54
+      for (int write_c0 = 45; write_c0 <= 54; ++write_c0)
+         EXPECT_EQ(write_c0 <= 51 ? 0 : 2, ModeAfterAWriteOn(type, write_c0)) << "write on C0vs " << write_c0;
    }
 }
 
@@ -308,8 +332,83 @@ TEST(Compendium_9, ModeChangeWindowCrtc34)
    for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
    {
       SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 52));
-      EXPECT_EQ(2, ModeAfterAWriteOn(type, 53));
+      // The 10 rows of the schematic p53 : writes on C0vs 45 to 54
+      for (int write_c0 = 45; write_c0 <= 54; ++write_c0)
+         EXPECT_EQ(write_c0 <= 52 ? 0 : 2, ModeAfterAWriteOn(type, write_c0)) << "write on C0vs " << write_c0;
+   }
+}
+
+namespace
+{
+// Screen of 'byte' in mode 'from', R3l = 3 (R1 = 63 if 'whole_line' : the bytes under the HSYNC are displayed),
+// mode 'to' asked on C0 = 10 of kLine, then R3l = 'r3l' written by OUT (C),C with its I/O (3rd microsecond) on
+// C0vs = 46 + 'r3l', the microsecond where C3l = r3l : R3.JIT, the HSYNC ends 0.25 us after r3l microseconds.
+// r3l < 0 : no R3 write. Runs to C0 = 10 of the next line (blocks recorded from the mode write). Null : the
+// write could not be placed.
+std::unique_ptr<Machine> RunWithAnR3Jit(CRTC::TypeCRTC type, int from, int to, unsigned char byte, int r3l, bool whole_line)
+{
+   for (int attempt = 0; attempt < 16; ++attempt)
+   {
+      std::unique_ptr<Machine> machine(new Machine(type));
+      Machine& m = *machine;
+      Prepare(m, from, byte);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(3, 0x83));
+      if (whole_line) z80::Append(p, z80::WriteCrtc(1, 63));
+      z80::Append(p, { 0x01, 0x03, 0xBC, 0xED, 0x49 });   // LD BC,&BC03 : OUT (C),C
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      for (int i = 0; i < 4 * 19968; ++i) m.Cycle();
+      if (!m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine && m.Crtc().hcc_ == 10; }, 4 * 20000)) return nullptr;
+      const int write_c0 = 46 + r3l;
+      p = { z80::kDi };
+      z80::Append(p, RmrMode(to));
+      if (r3l >= 0)
+      {
+         if (!m.CyclesUntil([&]() { return m.Crtc().hcc_ == 12; }, 4 * 200)) return nullptr;
+         // From C0 = 12 + 5 (DI, RMR), to the OUT (C),C of R3 : NOPs, then LD BC (3 us)
+         const int nops = write_c0 - 2 - 3 - 17 + (attempt / 2) - 4;
+         p.insert(p.end(), std::max(0, nops), z80::kNop);
+         p.insert(p.end(), attempt & 1, z80::kNop);
+         z80::Append(p, { 0x01, (unsigned char)(0x80 | r3l), 0xBD });   // LD BC,&BD8r
+      }
+      const unsigned short at = (unsigned short)(kProgram + p.size());
+      if (r3l >= 0) z80::Append(p, { 0xED, 0x49 });                  // OUT (C),C
+      z80::Append(p, z80::kJrSelf);
+      m.RecordBlocks(true);
+      m.Run(p);
+      if (r3l >= 0)
+      {
+         int line = -1;
+         const int start = m.InstructionStart(at, &line);
+         if (line != kLine || start + 2 != write_c0) continue;
+      }
+      const bool ok = m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine + 1 && m.Crtc().hcc_ == 10; }, 4 * 200) >= 0;
+      m.RecordBlocks(false);
+      if (!ok) return nullptr;
+      return machine;
+   }
+   return nullptr;
+}
+
+// Mode on C0 = 10 of the line after kLine : mode 2 screen, mode 0 asked, R3.JIT on C3l = 'r3l' (-1 : none).
+int ModeAfterAnR3Jit(CRTC::TypeCRTC type, int r3l)
+{
+   const std::unique_ptr<Machine> m = RunWithAnR3Jit(type, 2, 0, 0x00, r3l, false);
+   return (m != nullptr) ? m->Ga().buffered_screen_mode_ : -1;
+}
+}
+
+// 9.3.4.1 : CRTC 0, 1, 2 : a R3.JIT does not shorten the period the mode change needs : on the 2nd microsecond
+// of the HSYNC (1.25 us) the mode does not change, on the 3rd one (2.25 us) it does.
+TEST(Compendium_9, ModeChangeWithAnR3Jit)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      EXPECT_EQ(0, ModeAfterAnR3Jit(type, -1));
+      EXPECT_EQ(2, ModeAfterAnR3Jit(type, 1));
+      EXPECT_EQ(0, ModeAfterAnR3Jit(type, 2));
    }
 }
 
@@ -547,6 +646,69 @@ TEST(Compendium_9, ModeSplittingPixelsCrtc2)
    CheckSplits(CRTC::MC6845);
 }
 
+// 9.3.4.4 : mode splitting with a R3.JIT on the 3rd microsecond (R3l = 3, R3l = 2 written on C3l = 2), GATE
+// ARRAY 40010, schematics p65-68. The shift register runs as in R3.NJIT (9.3.4.3) : the mode is taken at the same
+// moment, only the end of the black moves 4 Mode 2 pixels later. Of the pixels 36 .. 40 of 9.3.4.3, the black
+// covers 36 .. 39 on CRTC 0, 1 and 2 (the R3.JIT chronograms p141 end the black of CRTC 0 and 2 on the same
+// pixel). Same mode changes too (0 -> 0 : pen B, 1 -> 1 : pen D, 2 -> 2 : H0, 3 -> 3 : B). To mode 2, pixel 40
+// belongs to the next byte (not checked). 'extra_pixel' : pixel 39 displayed too (the purple pixel of the
+// schematics p65-68, CRTC 2).
+namespace
+{
+std::vector<int> ExpectedJitSplit(int from, int to, unsigned char b, bool extra_pixel)
+{
+   std::vector<int> e(5, kBlack);
+   int pen = 0;
+   if (from == to)
+   {
+      switch (from)
+      {
+      case 0: pen = (Bit(b, 0) << 3) | (Bit(b, 4) << 2) | (Bit(b, 2) << 1) | Bit(b, 6); break;
+      case 1: pen = (Bit(b, 0) << 1) | Bit(b, 4); break;
+      case 2: pen = Bit(b, 0); break;
+      case 3: pen = (Bit(b, 2) << 1) | Bit(b, 6); break;
+      }
+   }
+   else
+   {
+      pen = ExpectedSplit(from, to, b, false)[3];
+   }
+   e[3] = extra_pixel ? pen : kBlack;
+   e[4] = (to == 2) ? kAny : pen;
+   return e;
+}
+
+void CheckJitSplits(CRTC::TypeCRTC type, bool extra_pixel)
+{
+   const unsigned char byte = 0xB4;   // 1011 0100
+   for (int from = 0; from < 4; ++from)
+      for (int to = 0; to < 4; ++to)
+      {
+         SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type << ", mode " << from << " -> " << to);
+         const std::unique_ptr<Machine> m = RunWithAnR3Jit(type, from, to, byte, 2, true);
+         ASSERT_NE(nullptr, m);
+         const std::vector<int> pixels = LinePixels(*m, kLine, 46, 3);
+         const std::vector<int> expected = ExpectedJitSplit(from, to, byte, extra_pixel);
+         for (size_t i = 0; i < expected.size(); ++i)
+            if (expected[i] != kAny) EXPECT_EQ(expected[i], PenOf(*m, pixels[36 + i])) << "pixel " << 36 + i;
+      }
+}
+}
+
+TEST(Compendium_9, ModeSplittingPixelsWithAnR3Jit)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+      CheckJitSplits(type, false);
+}
+
+// DISABLED : 9.3.4.4 says that on CRTC 2 the R3.JIT HSYNC ends on its last pixel and shows one more pixel (39),
+// but the R3.JIT chronograms of 14.5.4.2 (p141) end the black of CRTC 2 on the same pixel as CRTC 0 (40), as
+// the emulation does (GateArray_HSyncBlack.R3Jit). To settle with a measure on a CRTC 2.
+TEST(Compendium_9, DISABLED_ModeSplittingR3JitShowsAnExtraPixelOnCrtc2)
+{
+   CheckJitSplits(CRTC::MC6845, true);
+}
+
 // 9.3.4.5 : CRTC 4 (ASIC 40226), pixels read on the schematics p69-73. The display stops for 32
 // pixels ; the first pixel after the black is one Mode 2 pixel of the 7th byte in the old mode,
 // then 6 new pixels (5 to mode 2), computed with bits already used for the old mode. Positions
@@ -566,42 +728,45 @@ std::vector<int> ExpectedSplitAsic40226(int from, int to, unsigned char b)
    const int old0 = pen0(1, 5, 3, 7), old13 = pen2(3, 7);
    if (from == 2)
    {
+      if (to == 2) return run(Bit(b, 5), { { Bit(b, 4), 1 }, { Bit(b, 3), 1 }, { Bit(b, 2), 1 }, { Bit(b, 1), 1 }, { Bit(b, 0), 1 } });
       if (to == 0) return run(Bit(b, 5), { { (Bit(b, 2) << 2) | (Bit(b, 0) << 1) | Bit(b, 4), 2 }, { (Bit(b, 1) << 2) | Bit(b, 3), 4 } });
       if (to == 1) return run(Bit(b, 5), { { pen2(0, 4), 2 }, { Bit(b, 3), 2 }, { Bit(b, 2), 2 } });
       if (to == 3) return run(Bit(b, 5), { { pen2(0, 4), 2 }, { Bit(b, 3), 4 } });
    }
    if (from == 0)
    {
+      if (to == 0) return run(old0, { { old0, 2 }, { pen0(0, 4, 2, 6), 4 } });
       if (to == 1) return run(old0, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
       if (to == 2) return run(old0, { { Bit(b, 7), 1 }, { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 } });
-      if (to == 3) return run(kAny, { { kAny, 2 }, { pen2(2, 6), 4 } });
+      if (to == 3) return run(old0, { { pen2(3, 7), 2 }, { pen2(2, 6), 4 } });
    }
    if (from == 1)
    {
+      if (to == 1) return run(old13, { { pen2(2, 6), 2 }, { pen2(1, 5), 2 }, { pen2(0, 4), 2 } });
       if (to == 0) return run(old13, { { pen0(0, 4, 2, 6), 2 }, { (Bit(b, 3) << 2) | (Bit(b, 1) << 1) | Bit(b, 5), 4 } });
       if (to == 2) return run(old13, { { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 }, { Bit(b, 2), 1 } });
       if (to == 3) return run(old13, { { pen2(2, 6), 2 }, { pen2(1, 5), 4 } });
    }
    if (from == 3)
    {
+      if (to == 3) return run(old13, { { old13, 2 }, { pen2(2, 6), 4 } });
       if (to == 0) return run(old13, { { pen0(1, 5, 3, 7), 2 }, { pen0(0, 4, 2, 6), 4 } });
-      if (to == 1) return run(kAny, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
+      if (to == 1) return run(old13, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
       if (to == 2) return run(old13, { { Bit(b, 7), 1 }, { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 } });
    }
    return {};
 }
 }
 
-// DISABLED : the shift register of the GATE ARRAY 40010 (loads, divider, mode taken on the pixels
-// 5 / 6) gives 73 of the 77 pixels at best on the ASIC 40226 (with the shift on the position in the
-// byte) : the 2 -> 0 and 2 -> 3 splits differ on their pixels 3 and 4. To check against the schematics.
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
+// The ASIC 40226 has no divider of its own : the shifts follow the position in the byte, one mode for the
+// decoder and the shift, taken on the 4th Mode 2 pixel (see GateArray::ShiftRegisterBlock). Every couple of
+// modes of the tables p69-73, same mode included.
+TEST(Compendium_9, ModeSplittingPixelsCrtc4)
 {
    const unsigned char byte = 0xB4;
    for (int from = 0; from < 4; ++from)
       for (int to = 0; to < 4; ++to)
       {
-         if (from == to) continue;
          SCOPED_TRACE(testing::Message() << "mode " << from << " -> " << to);
          Machine m(CRTC::AMS40226);
          Prepare(m, from, byte);

@@ -392,7 +392,9 @@ const unsigned char kShiftPeriod[4] = { 4, 2, 1, 4 };
 // out of the shift register. 'buffer' is nullptr out of the screen : the register runs all the same.
 // - Mode 2 is one pixel early (9.1) : its bytes are loaded one pixel earlier than in the other modes ;
 // - a mode changed during the HSYNC reaches the decoder on the pixel 5, the divider on the pixel 6 :
-//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ;
+//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ; the ASIC
+//   40226 has no divider : its shifts follow the position in the byte, its mode changes on the pixel 3
+//   (9.3.4.5) ;
 // - a written ink is taken on the pixel 8 of the output whatever the mode ; on the ASIC 40226, the
 //   pixel 7 in Mode 2 (9.2.2).
 void GateArray::ShiftRegisterBlock(int* buffer)
@@ -404,21 +406,43 @@ void GateArray::ShiftRegisterBlock(int* buffer)
    bool loaded = false;
    for (int p = 0; p < 16; ++p)
    {
-      if (p == 5) sr_mode_ = target;
-      if (p == 6) sr_div_mode_ = target;
       const int q = p & 7;
       if (q == 0) loaded = false;
-      if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+      if (asic_40226)
       {
-         sr_ = bytes[p >> 3];
-         sr_div_ = 0;
-         sr_shown_ = shown[p >> 3];
-         loaded = true;
+         // ASIC 40226 (9.3.4.5) : no divider of its own, the shift follows the position c in the byte of the
+         // modes 0, 1, 3 (c = 0 on its load) : the register shifts before each pixel whose c is a multiple of
+         // the period of the mode of the pixel that ends. One mode for the decoder and the shift, taken after
+         // the shift on the pixel 3 of the block (4th Mode 2 pixel, c = 2 ; 9.3.4.1)
+         const int c = (q + 7) & 7;
+         if (!loaded && ((q == 0 && sr_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (c % kShiftPeriod[sr_mode_] == 0)
+         {
+            sr_ <<= 1;
+         }
+         if (p == 3) sr_mode_ = sr_div_mode_ = target;
       }
-      else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+      else
       {
-         sr_ <<= 1;
-         sr_div_ = 0;
+         if (p == 5) sr_mode_ = target;
+         if (p == 6) sr_div_mode_ = target;
+         if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_div_ = 0;
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+         {
+            sr_ <<= 1;
+            sr_div_ = 0;
+         }
       }
       if (buffered_ink_available_ && p >= ((asic_40226 && sr_mode_ == 2) ? 7 : 8))
          monitor_->RecomputeColors();
@@ -565,6 +589,14 @@ void GateArray::TickSignals()
    // The mode is taken during the HSYNC of the GATE ARRAY (at most 6 us), from its 2nd microsecond : an
    // HSYNC of 1 us does not change it (9.3.1). A write during such a microsecond is taken at its end.
    // (An older note said that taking it after the 1st microsecond broke "Imperial Mahjong".)
+   // The mode latch is enabled from H06 = 2, at the end of the 2nd character of the HSYNC (like SIG_GA_HSYNC,
+   // 16.2.2) : a fall of the pin inside that character (R3.JIT on the 2nd microsecond) resets H06 before, the
+   // mode is not taken (9.3.4.1 : 1.25 us is not enough, 2.25 us is)
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   if (hsync_counter_ == 2 && (quarters & 0x1) != 0 && (quarters & 0x8) == 0)
+   {
+      mode_window_ = false;
+   }
    if (mode_window_ && activation_mode_ != 0)
    {
       activation_mode_--;
@@ -683,7 +715,9 @@ unsigned int GateArray::TickVideo()
          {
             // The GATE ARRAY takes DISPEN for each of the 2 bytes of the character (17.6, 18.3.2)
             half_border_ = (dispen_buffered_ != dispen_buffered_h_);
-            switch (buffered_screen_mode_)
+            // Mode 3 is decoded as mode 0 with the 2 upper bits of the pen forced to 0 (9.1 : 0 0 A1 A0)
+            const unsigned int pen_mask = (buffered_screen_mode_ == 3) ? 0x3 : 0xF;
+            switch ((plus_ && buffered_screen_mode_ == 3) ? 0 : buffered_screen_mode_)
             {
             case 0:
             {
@@ -714,7 +748,7 @@ unsigned int GateArray::TickVideo()
                   {
                      int col;
                      #define PUTPIXEL(i)\
-                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];\
+                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & pen_mask];\
                         buffer_to_display[i*4] = col;\
                         buffer_to_display[i*4+1] = col;\
                         buffer_to_display[i*4+2] = col;\
@@ -876,17 +910,6 @@ unsigned int GateArray::TickVideo()
                   END_OF_DISPLAY
                }
 
-            }
-            case 3:
-            {
-               if (plus_)
-               {
-                  // Sprite
-                  if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
-                  DrawSprites(buffer_to_display);
-
-                  END_OF_DISPLAY
-               }
             }
             }
          }

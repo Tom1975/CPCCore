@@ -75,11 +75,11 @@ pas de comportement à vérifier).
 | 9.1 | Pixelisation : ordre des bits par mode (0, 1, 2, 3) | ✅ | `Compendium_9.PixelBitsOfEachMode` |
 | 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | ✅ | `Compendium_9.Mode2PixelsAreOnePixelEarlyOnTheGateArray40010`, CPC+ aligné : `PixelsOfEveryModeAlignedOnTheCpcPlus` |
 | 9.2.1 | Pixels parasites bord/mode 2 | ➖ | défaut d'alimentation, non émulé |
-| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226` |
-| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (mode pris de la 2e à la 6e µs de la HSYNC-GA) |
-| 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
-| 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |
-| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). **DISABLED** : `ModeSplittingPixelsCrtc4` (ASIC 40226 : 73/77 pixels au mieux, 2→0 et 2→3 à revérifier) |
+| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226`, `InkTakenOnEveryInstructionModeAndType` (OUTI / OUT (C),r8 / OUT (n),A × modes 0-3 × CRTC 0-4 ; a révélé le mode 3 non affiché sur CPC+) |
+| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (CRTC 0-4 ; mode pris de la 2e à la 6e µs de la HSYNC-GA) |
+| 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` (les 10 lignes du schéma, C0vs 45 à 54) |
+| 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` (les 10 lignes, C0vs 45 à 54) |
+| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). §9.3.4.1 R3.JIT : `Compendium_9.ModeChangeWithAnR3Jit` (2e µs : pas de changement, 3e µs : changement ; modèle : le latch du mode est validé quand H06 atteint 2, une chute de la broche pendant le 2e caractère de la HSYNC le remet à 0). §9.3.4.4 R3.JIT : `Compendium_9.ModeSplittingPixelsWithAnR3Jit` (CRTC 0/1/2, 16 couples de modes dont X→X : pixels 36-39 noirs, 40 dans le nouveau mode, schémas p65-68). Divergence : `DISABLED_ModeSplittingR3JitShowsAnExtraPixelOnCrtc2` (§9.3.4.4 : pixel 39 visible sur CRTC 2 ; chronogrammes p141 : fin du noir identique CRTC 0/2, suivie par l'émulation). GA 40007/40008 (bits à 1, HSYNC +1 pixel) : non émulé, seul le 40010 l'est. CRTC 4 : `Compendium_9.ModeSplittingPixelsCrtc4` (ASIC 40226, les 16 couples des tableaux p69-73 ; modèle propre à l'ASIC : pas de diviseur, décalages suivant la position dans l'octet, un seul mode décodeur/décalage basculé au 4e Pixel-M2). CRTC 3 (40489) : compendium muet (« à voir pour le 3 ») |
 
 ## 10. Registre R9
 
@@ -91,14 +91,14 @@ pas de comportement à vérifier).
 | 10.3.2 | CRTC 1 | ✅ | `CRTC_Crtc1.R9WrittenDuringTheLine` |
 | 10.3.3 | CRTC 2 (débordement de C9, R9 lié à la dernière ligne) | ✅ | débordement : `Compendium_10.R9BelowC9` ; R9 écrit pendant / après la HSYNC (dernière ligne, §12.4.2) : `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 10.3.4 | CRTC 3/4 : comparaison C9 ≥ R9, pas de débordement | ✅ | `CRTC_AsicVertical.C9CannotOverflow` |
-| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | ✅ | `Compendium_10.R9TablesPages79And80` (les 6 tableaux, 8 cas, R9 écrit sur C0=10 ; CRTC 2 du tableau R9 0→n non fixé par le compendium : exclu), `Compendium_10.R9BelowC9` |
+| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | 🟡 | `Compendium_10.R9TablesPages79And80` (les 6 tableaux, 8 cas, chaque branche des notes : R9 écrit sur C0=0, 1, 2, 10 et 42 > R1 ; non joués : CRTC 2 pendant la HSYNC et CRTC 2 du tableau R9 0→n, résultats non donnés), `Compendium_10.R9BelowC9`. Divergence : `DISABLED_Crtc0Table79Case8WrittenOnC0Below2` — la note (\*\*\*) du tableau 1 case 8 (CRTC 0, C0<2 : C9=0, C4+1) contredit §10.3.1.2, §12.2 et la note (\*\*) du tableau 6 ; l'émulation suit le texte. À trancher par une mesure sur CRTC 0 |
 
 ## 11. Registre R5
 
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 11.1 | R5 sur 5 bits, ligne interlace en plus | ✅ | `Compendium_11.R5KeepsFiveBits`, `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame` |
-| 11.2.1-11.2.2 | Ajustement CRTC 0 | ✅ | `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`, `R5IsSampledUntilC0Equals2` |
+| 11.2.1-11.2.2 | Ajustement CRTC 0 | ✅ | `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`, `R5IsSampledUntilC0Equals2`, `Compendium_11.Crtc0R4R9WrittenOnTheLastLineOfAnAdjustment` (exemples 2 et 3 p83 : R4 ou R9 écrit après C0=2, et R9 sur C0=R0) |
 | 11.2.3-11.2.4 | Ajustement CRTC 1 | ✅ | `CRTC_Crtc1.AdjustmentUsesC5`, `R4WrittenOnTheLastLine` |
 | 11.2.5 | Ajustement CRTC 2 (C4++ à chaque C9=R9, R4/R9 pris pendant l'additionnel) | ✅ | `CRTC_Compendium.Crtc2AdjustmentUsesC5`, `Compendium_11.Crtc2R4R9WrittenOnTheLastLineCountDuringTheAdjustment` |
 | 11.2.6 | Ajustement CRTC 3/4 | ✅ | `CRTC_AsicVertical.AdjustmentKeepsC4AtR4` |
@@ -125,7 +125,7 @@ pas de comportement à vérifier).
 | 12.2.1 | RLAL CRTC 0 | ✅ | `CRTC_Crtc0Vertical.LineToLineRupture` |
 | 12.3 | CRTC 1 (+ RLAL) | ✅ | `CRTC_Crtc1.R4WrittenOnTheLastLine`, `Compendium_12.Crtc1R4EqualsC4BeforeTheLastLineOfTheRow`, `Compendium_12.LineToLineRuptureCrtc134` |
 | 12.4 | CRTC 2 | ✅ | voir 12.4.1-12.4.2 |
-| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé) |
+| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé), `Compendium_10.R9TablesPages79And80` (R9 écrit sur C0=0 : ignoré par l'évaluation de C0=0, pris par l'évaluation sur mise à jour), `Compendium_12.Crtc2LastLineEvaluationOnC0Zero` (R4 sur C0=0 pris, R9 non ; GDL inactive sur la 1re ligne avant la HSYNC, réarmée après) |
 | 12.4.2 | RLAL CRTC 2 | ✅ | `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 12.5 | CRTC 3/4 (+ exception CRTC 3 : R4=0 avec « ROM select » simultané) | ✅ | `CRTC_AsicVertical.C4Overflows`, RLAL : `Compendium_12.LineToLineRuptureCrtc134` ; exception CRTC 3 (I/O avec ROM select prise 1 µs plus tôt) : `Compendium_12.Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier` |
 
@@ -134,7 +134,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 13.1 | C0 de 0 à R0 | ✅ | `CRTC_HorizontalCounter.WrapsFromR0BackToZero` |
-| 13.2.1 | CRTC 0 : les 3 premières µs | ✅ | `Compendium_13.Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds` (R9 écrit sur C0=0/1/2, lignes C9=7 et C9=0), `CRTC_Crtc0Vertical.R4WrittenOnC0Equals0Or1OfTheLastLine`, `R5IsSampledUntilC0Equals2` |
+| 13.2.1 | CRTC 0 : les 3 premières µs | ✅ | `Compendium_13.Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds` (R9 écrit sur C0=0/1/2, lignes C9=7 et C9=0 : sur C0=1 la ligne devient la première ligne additionnelle, §10.3.1.2), `CRTC_Crtc0Vertical.R4WrittenOnC0Equals0Or1OfTheLastLine`, `R5IsSampledUntilC0Equals2`, `Dumps_Disk.OverflowPreview2Crtc0` (R.V.I. Overflow, R0=1) |
 | 13.2.2 | Gel de VSYNC | ✅ | `CRTC_Crtc0Vertical.VSyncFrozenByAShortLine` |
 | 13.2.3-13.2.4 | Gel de ligne additionnelle, gel de C9 | ✅ | `CRTC_R0Zero.*` |
 | 13.2.5 | R0=1 | ✅ | `CRTC_Crtc0Vertical.R0EqualsOneAlternatesC4` |
@@ -142,10 +142,10 @@ pas de comportement à vérifier).
 | 13.2.7 | RVLL CRTC 0 | ✅ | `Compendium_13.Crtc0RvllHiddenTwoMicrosecondLines` (tableau 1 p113), `Crtc0RvllWithR2Zero` (tableau 2). Relevé : chaque écriture de R0 tombe sur C0=0 de la ligne qu'elle dimensionne |
 | 13.3 | CRTC 1 : R0 libre (R0=0 normal) ; bug OUTI | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine`. Bug OUTI (C0 déborde « dans certains cas ») : ➖ non déterministe |
 | 13.3.1 | RVI (tableaux p116-118) | ✅ | `Compendium_13.Crtc1Rvi` (64 transitions), `AsicRvi` (lignes de compatibilité CRTC 3/4). Coquille : ligne C9 1→7 (3/4), R0.1 vaut 50 d'après sa séquence C0, pas 49 |
-| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1). À faire : R2=0 obligatoire |
+| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | ✅ | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1), `Compendium_13.Crtc2ShortLinesNeedR2AboveZero` (R0=3 : R2=0 garde le border, R2=1 non, CRTC 0 non) |
 | 13.4.1 | RVLL CRTC 2 | ✅ | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs), `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15) |
 | 13.5 | CRTC 3/4 : R0=0 sans effet de bord | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine` |
-| 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | 🟡 | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`. À faire : chronogrammes p124-125 par type |
+| 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | ✅ | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`, `Compendium_13.R0UpdateChronograms` (5 types : R0 écrit pendant C0=R0 pris à temps, sur le C0=0 suivant trop tard ; R0=0→10 pendant un C0=0). La colonne de l'I/O dans OUT/OUTI : §4.4 |
 | 13.7.1 | CRTC 1 : RFD par R0 prolongé (§13.7.1.2) | 🟡 | `Compendium_13.Crtc1LastLineCancelledDuringALengthenedR0GivesARfd` (R9 annulé pendant la prolongation : pas de fin de frame, ligne suivante sur R12/R13). À faire, besoin d'une référence CPC réel (CRTC 1) : (a) alternance « 1 frame sur 2 » de la répétition (variante R9) — dans l'émulation la ligne suivante repart de R12/R13 à chaque frame car C4==R4 garde l'état de rechargement (§17.4.2) ; (b) variante R4 (C9==R9, C4≠R4) — R12/R13 jamais pris dans l'émulation, « 1 frame sur 2 » + « C4 non remis à 0 » selon le compendium ; (c) R0 par OUTI (§13.7.1.1) |
 | 13.7.2 | CRTC 0 : R0 agrandi à C0=1 de la dernière ligne | ✅ | `CRTC_Crtc0Vertical.R0EnlargedOnC0Equals1OfALastLine` |
 | 13.8.1-13.8.3 | Offset selon C0 (écrans de 4, 2, 1 µs) | ✅ | `Compendium_13.OffsetOnEveryShortLineCrtc134`, `Crtc0R0ZeroNeverTakesTheOffset`, `CRTC_Crtc0Vertical.R0EqualsOneAlternatesC4`. Chronogrammes fins p128-131 non relevés |
@@ -161,7 +161,7 @@ pas de comportement à vérifier).
 | 14.4 | HSYNC et position écran (tables C-HSYNC p135) | 🟡 | `GateArray_CHSync.*`. À faire : décalage de l'image par valeur de R3l < 6 |
 | 14.5.1 | R3 modifié pendant la HSYNC, CRTC 0/2 (débordement de C3l, 0 à atteindre) | ✅ | `Compendium_14.R3lBelowC3lOverflows`, `CRTC_HSyncReentrancy.WritingR3lZeroDuringHSync` |
 | 14.5.2 | CRTC 1 (R3l=0 annule la HSYNC) | ✅ | `CRTC_HSyncReentrancy.WritingR3lZeroDuringHSync`, `CRTC_Jit.R3ZeroDuringTheHSync` |
-| 14.5.3 | CRTC 3/4 | 🟡 | débordement : `Compendium_14.R3lBelowC3lOverflows`. À faire : pas de R3.JIT sur 3/4 |
+| 14.5.3 | CRTC 3/4 | ✅ | débordement : `Compendium_14.R3lBelowC3lOverflows` ; pas de R3.JIT (§14.5.4.4, chronogramme p142) : `GateArray_HSyncBlack.NoR3JitOnTheAsic` (R3l=C3l pris sur sa µs → fin comme si programmé avant, OUTI et OUT (C),r8). Modèle : comparateur de fin continu, broche via la bascule synchronisée sur l'affichage |
 | 14.5.4 | R3.JIT | ✅ | `CRTC_Jit.*`, `GateArray_CHSync.R3JitMovesTheEndByATState` |
 | 14.6 | Absence de HSYNC (R3l=0) | ✅ | `CRTC_HSyncReentrancy.NoHSyncEndWithR3lZeroOnCrtc01`, `CRTC_SyncWidths.HSyncWidthOnThePin` |
 | 14.7.1 | Démarrage HSYNC CRTC 0/1/2 (R2.JIT) | ✅ | `CRTC_Jit.R2Jit*`, `GateArray_CHSync.R2JitKeepsTheCHSync` |
@@ -181,10 +181,10 @@ pas de comportement à vérifier).
 | 15.3.4 | CRTC 1/2 (CRTC 1 : 2e C-HSYNC, CRTC 2 : non) | 🟡 | `CRTC_HSyncReentrancy.Crtc1OverflowsWithAnInvisibleRestart`. À faire : C-HSYNC côté GA |
 | 15.3.5 | CRTC 3/4 | ✅ | `CRTC_HSyncReentrancy.Crtc234Overflow` |
 | 15.4.1-15.4.3 | VSYNC pendant la HSYNC, CRTC 0/1/3/4 (sans problème) | ✅ | `Compendium_15.VSyncDuringTheHSync` |
-| 15.4.4 | CRTC 2 : VSYNC fantôme | ✅ | `CRTC_Compendium.Crtc2GhostVSync`, `Crtc2NoGhostVSyncWithR2Zero` |
+| 15.4.4 | CRTC 2 : VSYNC fantôme | ✅ | `CRTC_Compendium.Crtc2GhostVSync`, `Crtc2NoGhostVSyncWithR2Zero`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (bornes du chronogramme p156) |
 | 15.5.1 | DISPEN pendant la HSYNC, CRTC 0/1/3/4 | ✅ | `Compendium_15.BorderLiftedDuringTheHSync` |
 | 15.5.2 | CRTC 2 | ✅ | `CRTC_Compendium.Crtc2BorderNotLiftedDuringHSync` |
-| 15.6 | CRTC 2 et HSYNC (récapitulatif, HSYNC qui déborde → C4 déborde) | 🟡 | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`. À faire : 2 HSYNC/ligne |
+| 15.6 | CRTC 2 et HSYNC (récapitulatif, HSYNC qui déborde → C4 déborde) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Compendium_15.Crtc2HSyncExamples` (les 3 exemples p158 : R2=50/R3l=14 VSYNC fantôme, R3l=15 border + C4 déborde, R2=0 border + VSYNC). Modèle : la sortie HSYNC active sur C0=0 (débutée avant ou sur C0=0) inhibe l'évaluation DL ; DLP échantillonne le comparateur du dernier caractère de la HSYNC, avant le front qui fait avancer les compteurs |
 | 15.7.1-15.7.2 | Changer R2 sans perdre la synchro moniteur | ❌ | test moniteur : R2 46↔50 avec R0 temporaire, image stable |
 
 ## 16. Registre R7
@@ -199,10 +199,10 @@ pas de comportement à vérifier).
 | 16.2.4 | Tolérances du moniteur | ❌ | |
 | 16.2.5 | Interactions CRTC/GA (nouvelle VSYNC CRTC pendant V26 → V26 remis à 0 ; CRTC 3/4 : C-VSYNC tant que la VSYNC CRTC est active) | 🟡 | `Compendium_16.ASecondCrtcVSyncRestartsTheTwentySixLines` (46 lignes sur CRTC 0/1/2, 26 sur 3/4, exemple p168). À faire : C-VSYNC moniteur des CRTC 3/4 |
 | 16.3 | Protection de VSYNC (1) et (2) | ✅ | `CRTC_VerticalSync.RewritingR7DoesNotRestartTheVSync`, `CRTC_AsicVertical.InfiniteVSyncWithoutProtection` |
-| 16.4.1 | Conditions CRTC 0 (VSYNC bloquée, gel C3h) | ✅ | `CRTC_Crtc0Vertical.R7WrittenDuringALine`, `VSyncCounterFrozenWithR0Zero`, `VSyncFrozenByAShortLine` |
-| 16.4.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1VSyncStartedDuringALine` |
-| 16.4.3 | CRTC 2 (évaluée à toutes les valeurs de C0/C9) | ✅ | `Compendium_16.Crtc2R7WrittenDuringALine` |
-| 16.4.4 | CRTC 3/4 | ✅ | `CRTC_AsicVertical.R7WrittenWithC4StartsNoVSync` |
+| 16.4.1 | Conditions CRTC 0 (VSYNC bloquée, gel C3h) | ✅ | `CRTC_Crtc0Vertical.R7WrittenDuringALine`, `VSyncCounterFrozenWithR0Zero`, `VSyncFrozenByAShortLine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1VSyncStartedDuringALine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.3 | CRTC 2 (évaluée à toutes les valeurs de C0/C9) | ✅ | `Compendium_16.Crtc2R7WrittenDuringALine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (fantôme écrit de C0=R2 à R2+R3l-1, réelle sur R2-1 et R2+R3l : chronogramme p156), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.4 | CRTC 3/4 | ✅ | `CRTC_AsicVertical.R7WrittenWithC4StartsNoVSync`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
 | 16.5.1-16.5.4 | VSYNC différée (interlace) | ✅ | `CRTC_Compendium.InterlaceMidVSync`, `IvmVSyncDelayedOnOddC4` |
 | 16.6 | VSYNC sans limites (scroll vertical par la 2e HSYNC) | ❌ | test moniteur |
 | 16.7 | Le bon moment | ➖ | |
@@ -216,8 +216,8 @@ pas de comportement à vérifier).
 | 17.2.2 | R1 > R0 : lignes répétées | ✅ | `CRTC_Compendium.R1GreaterThanR0RepeatsTheRows` |
 | 17.3 | Mise à jour dynamique de R1 (2e égalité C0=R1 recharge VMA') | ✅ | `Compendium_17.SecondC0EqualsR1LoadsVmaPrimeAgain` (0/1/3/4) |
 | 17.4.1 | VMA'/VMA quand C4=0, CRTC 0/3/4 | ✅ | `Compendium_17.FirstRowAtR12R13AndR1AboveR0` |
-| 17.4.2 | CRTC 1 | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter` |
-| 17.4.3 | CRTC 2 (+ bug AND VMA' avec R1=0) | 🟡 | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine`. À faire : bug AND (non modélisé) |
+| 17.4.2 | CRTC 1 | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter`, `Compendium_17.R1WrittenAroundC0EqualsR1` (R1.JIT : R1 écrit sur C0=R1 retire le chargement de VMA', chronogramme p185) |
+| 17.4.3 | CRTC 2 (+ bug AND VMA' avec R1=0) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine`, `Compendium_17.R1WrittenAroundC0EqualsR1` (R1 écrit sur C0=R1 trop tard, chronogramme p186), `Compendium_17.Crtc2R1ZeroOnTheFrameStartOnlyAndsTheOffset` (bug AND : VMA = VMA de la dernière ligne AND R12/R13 ; R1 repassé à 50 sur C0=55 : première ligne = dernière ligne). Modèle : R12/R13 → VMA' par une impulsion AND puis une impulsion OR, gardées par DL, qui retombe entre les deux sur C0=0 |
 | 17.5.1-17.5.2 | Prise en compte de R1=0 | 🟡 | CRTC 0/1/2 : `Compendium_17.R1ZeroTakenForTheNextLineUpToAnIoOnC0EqualsR0` (OUT(C),r8 débuté sur &3B..&3D pris, &3E trop tard). **DISABLED** : `R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic` (CRTC 3/4 : le départ &3C donne encore le border dans l'émulation ; 1 µs de plus que le décalage ASIC de 4.4.3, non compris) |
 | 17.6.1 | R1=R0 et C0=R0 : 1 µs de border | ✅ | `Compendium_17.R1EqualsR0GivesOneBorderMicrosecond`, `CRTC_SkewDispTmg.R1EqualsR0` |
 | 17.6.2 | R1>R0 et C0=R0 : octet de border CRTC 0/2 | ✅ | `CRTC_Compendium.BorderByteWhenR1GreaterThanR0`, `Crtc0R0ZeroAlternatesBytes` |
@@ -231,7 +231,7 @@ pas de comportement à vérifier).
 | 18.2.3 | CRTC 1 | ✅ | `CRTC_Crtc1.R6ZeroBorder` |
 | 18.2.4 | CRTC 3/4 (testé au début de la ligne) | ✅ | `CRTC_AsicVertical.R6TestedAtTheLineStartOnly` |
 | 18.3.2 | Conflits R6=0, CRTC 0/2 | ✅ | `CRTC_Compendium.R6ZeroOnTheFirstLine`, `R6ZeroConflictResolvedOnC0EqualsR1` |
-| 18.3.3 | CRTC 1 (exception sur le dernier caractère du frame) | 🟡 | `CRTC_Crtc1.R6ZeroBorder`. À faire : exception du dernier caractère |
+| 18.3.3 | CRTC 1 (exception sur le dernier caractère du frame) | ✅ | `CRTC_Crtc1.R6ZeroBorder`, `Compendium_18.Crtc1R6ZeroOnTheLastCharacterOfTheFrame` (R6=0 écrit jusqu'à C0=R0 de la dernière ligne : border annulable ; sur C0=0 de la 1re ligne : définitif) |
 | 18.3.4 | CRTC 3/4 (R6=0 sans traitement spécial) | ✅ | `Compendium_18.AsicR6Zero` |
 
 ## 19. Registre R8
@@ -243,19 +243,19 @@ pas de comportement à vérifier).
 | 19.2.2 | BORDER OFF | ✅ | `Compendium_19.BorderOffDuringALine` |
 | 19.2.3 | Délai +1/+2 | ✅ | `CRTC_SkewDispTmg.DelaysTheBorderOnCrtc034`, `R1EqualsR0`, `NoSkewOnCrtc12` |
 | 19.2.4 | Absence de condition C0=R1 (R1>R0) avec skew | ✅ | `Compendium_19.SkewDelaysTheR0BorderByWholeCharacters` (la ligne de retard SKEW est cadencée par caractère : le border de C0=R0 retardé occupe tout le caractère 0 ou 1) |
-| 19.2.5 | Désintégration du border CRTC 0 | ✅ | `CRTC_SkewDispTmg.Crtc0BorderDisintegration` |
+| 19.2.5 | Désintégration du border CRTC 0 | 🟡 | `CRTC_SkewDispTmg.Crtc0BorderDisintegration`, `Compendium_19.Crtc0BorderDisintegrationChronograms` (§19.2.5.1-19.2.5.3, 6 lignes des chronogrammes p197-198). Divergence : `DISABLED_Crtc0ComboBorder` (§19.2.5.4 : R8=#10 écrit sur C0=R1 trop tard pour ce caractère, alors qu'au §19.2.5.2 R8=#00 écrit sur C0=0 est immédiat ; chronogrammes à la µs, mesure à l'octet nécessaire) |
 | 19.3.1-19.3.2 | Interlace : IS / IVM | ✅ | `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame`, `InterlaceVideoModeAlternatesTheLines` |
 | 19.3.3-19.3.4 | Restrictions, fonction mal aimée (interlace activé en temps réel) | ✅ | texte surtout didactique ; VSYNC plus tôt en IVM sur 0/1/3/4, pas sur 2 : `Compendium_28.IvmVSyncTwiceAsEarly` ; activation en cours de frame : tests §19.5-19.7 (`CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`, `InterlaceMidVSync`, `InterlaceParityFrozenByR6`) |
-| 19.4.1-19.4.4 | Programmation verticale en interlace par type | 🟡 | `CRTC_Compendium.InterlaceVideoModeAlternatesTheLines`. À faire : R9=N-2 (0, 3/4), N-1 (1, 2), R9=0 en IVM |
+| 19.4.1-19.4.4 | Programmation verticale en interlace par type | ✅ | `CRTC_Compendium.InterlaceVideoModeAlternatesTheLines` (N=8 : R9=6 sur CRTC 0, 3, 4, R9=7 sur CRTC 1), `Compendium_19.VerticalProgrammingInIvmByType` (R9=0 sur CRTC 0, 3, 4 : 1 ligne par frame ; CRTC 2 R9=7 : 8 lignes par frame, VMA change après 4 lignes ; CRTC 2 R9=6 : 7 lignes, C9=7 sur les frames impairs) |
 | 19.5.2 | Parité CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6`, `IvmVSyncDelayedOnOddC4` |
-| 19.5.3 | Parité CRTC 1 (tables p211-212) | 🟡 | `CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`. À faire : tables complètes |
+| 19.5.3 | Parité CRTC 1 (tables p211-212) | ✅ | `CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`, `Compendium_19.Crtc1ParityTables` (les 16 cas : ParitéFrame × C4.0 × R9.0 × C9.0, C9.0 à la 3e µs, après on, après off, ParitéFrame finale). Modèle : C9.0 est la bascule ParitéC9 ; 3e µs à l'I/O, 4e µs sur le caractère suivant |
 | 19.5.4 | Parité CRTC 2 (SPLITC9) | ✅ | `Compendium_19.Crtc2SplitC9` |
 | 19.5.5 | Parité CRTC 3/4 | ✅ | `CRTC_Compendium.IvmVSyncDelayedOnOddC4` |
 | 19.6.1 | Ligne additionnelle interlace CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6` |
 | 19.6.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1InterlaceLineAfterR5` |
-| 19.6.3 | CRTC 2 (+ bug IVM coupé pendant la ligne additionnelle) | 🟡 | `CRTC_Compendium.InterlaceParityFrozenByR6`. À faire : bug (non modélisé) |
+| 19.6.3 | CRTC 2 (+ bug IVM coupé pendant la ligne additionnelle) | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6`, `Compendium_11.Crtc2InterlaceSwitchedOffDuringTheInterlaceLine` (IVM coupé pendant la ligne additionnelle : C4 continue), `Compendium_19.Crtc2IvmOnTheFirstLineOfAnOddFrame` (IVM activé sur la ligne 0 d'un frame impair, C0=0/10/63 : nouvelle ligne 0, C9 d'adresse impair ; frame pair : pas d'effet). Modèle : bascule FE (fin de frame sans ligne additionnelle) ; pendant la ligne suivante, interlace && ParitéR6 la décode comme ligne additionnelle |
 | 19.6.4 | CRTC 3/4 | ✅ | `CRTC_Compendium.InterlaceAdditionalLineCounters` |
-| 19.7 | MID-VSYNC (ordre parité/VSYNC avec R7=0 : 0/1/2 vs 3/4) | 🟡 | `CRTC_Compendium.InterlaceMidVSync`. À faire : cas R7=0 |
+| 19.7 | MID-VSYNC (ordre parité/VSYNC avec R7=0 : 0/1/2 vs 3/4) | ✅ | `CRTC_Compendium.InterlaceMidVSync`, `Compendium_19.MidVSyncWithR7Zero` (R7=0 : CRTC 0/1/2 MID-VSYNC sur le nouveau frame pair, CRTC 3/4 sur le nouveau frame impair) |
 | 19.8.1 | Comptage IVM CRTC 0 | ✅ | `CRTC_Compendium.Crtc0Ivm*` |
 | 19.8.2 | Comptage IVM CRTC 1 | ✅ | `Compendium_19.Crtc1IvmCounting` (R9 impair) |
 | 19.8.3 | Comptage IVM CRTC 2 | ✅ | `CRTC_Compendium.Crtc2IvmCounter` |
@@ -266,9 +266,9 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 20.1-20.2 | Calcul du pointeur vidéo | ✅ | `Compendium_20.AddressOfTheVideoRam` (voir §6.1.4) |
-| 20.3.1 | Mise à jour CRTC 0 (C4=C9=C0=0) | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
-| 20.3.2 | CRTC 1 (à chaque C0=0 tant que C4=0) | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter` |
-| 20.3.3 | CRTC 2 (à C0=R1 de la dernière ligne) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine` |
+| 20.3.1 | Mise à jour CRTC 0 (C4=C9=C0=0) | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart`, `Compendium_20.OffsetWrittenAroundItsLoad` (chronogrammes p242-243, CRTC 0-4 : R12 pris sur C0=63, trop tard sur C0=0 ; CRTC 1 pris sur C0=0 ; CRTC 2 pris sur C0=R1, trop tard sur R1+1 ; ASIC : µs de prise = 4e µs de l'OUT) |
+| 20.3.2 | CRTC 1 (à chaque C0=0 tant que C4=0) | ✅ | `CRTC_Crtc1.OffsetOnEachLineOfTheFirstCharacter`, `Compendium_20.OffsetWrittenAroundItsLoad` (modèle : latch VMA transparent pendant C0=0) |
+| 20.3.3 | CRTC 2 (à C0=R1 de la dernière ligne) | ✅ | `CRTC_Compendium.Crtc2OffsetTakenAtR1OfTheLastLine`, `Compendium_20.OffsetWrittenAroundItsLoad` (modèle : latch VMA' transparent pendant C0=R1) |
 | 20.3.4 | CRTC 3/4 | ✅ | `Compendium_20.OffsetTakenAtTheFrameStart` |
 | 20.4 | Délais de prise en compte (renvoi §13.8 ; « 8 µs » entre R13 et R12, §13.6/§24.1) | ✅ | §13.8 pour la prise en compte. Les « 8 µs » ne sont pas un délai du CRTC mais la durée des instructions : `Z80_IoTiming.R13ThenR12AtTheEighthMicrosecond` (R13 à la 3e µs, R12 à la 10e : 7 µs d'écart, R12 dans la 8e µs) |
 | 20.5 | Overscan bits (R12 bits 3-2 = 11 → retenue sur la page) | ✅ | `Compendium_20.OverscanBitsCarryIntoThePage` |
@@ -279,8 +279,8 @@ pas de comportement à vérifier).
 |---|---|---|---|
 | 21.2.1-21.2.3 | Lecture du contenu des registres | ✅ | `CRTC_RegisterRead.Crtc0/Crtc1/Crtc2/Crtc34UseAThreeBitTable` |
 | 21.3.2 | Status CRTC 0/2 (haute impédance) | 🟡 | `CRTC_RegisterRead.StatusPort` |
-| 21.3.3 | Status CRTC 1 (bit 5) | ✅ | `CRTC_Crtc1.StatusBorderR6` |
-| 21.3.4 | Status CRTC 3/4 | ✅ | `CRTC_Compendium.AsicStatus1`, `AsicStatus2` |
+| 21.3.3 | Status CRTC 1 (bit 5) | ✅ | `CRTC_Crtc1.StatusBorderR6`, `Compendium_21.Crtc1StatusBorderR6AroundTheLineStart` (chronogramme p247 : lecture sur C0=61/62/63 → ancien état, sur C0=0 → nouveau, deux transitions) |
+| 21.3.4 | Status CRTC 3/4 | ✅ | `CRTC_Compendium.AsicStatus1`, `AsicStatus2`, `Compendium_21.AsicStatus1OnEveryPosition` (bits 4 et 7 sur chaque C0), `Compendium_21.AsicStatus2OnEveryPosition` (bits 0, 1, 2, 5, 7 sur chaque C0 de 5 lignes) |
 | 21.4 | Pas de dummy register sur CPC | ✅ | registre 31 : `CRTC_RegisterRead.Crtc0` / `Crtc2` (0), `Crtc1` (non nul), `Crtc34UseAThreeBitTable` (R15) |
 
 ## 22-25. Autres registres, fullscreen, trucs et astuces, temps fixe
@@ -322,14 +322,14 @@ Chaque méthode est un test de synthèse : elle doit distinguer les types comme 
 |---|---|---|---|
 | 28.1.1 | Débordement de C4/C9 (R4=36, R9=7, R5=16 : VSYNC perdue au-delà de R7=36/37/38) | ✅ | `Compendium_11.VSyncDuringTheAdjustment` |
 | 28.1.2 | VSYNC pendant la HSYNC | ✅ | `CRTC_Compendium.Crtc2GhostVSync` |
-| 28.1.3 | Prise en compte de la VSYNC (R7=C4 avec C0>0) | 🟡 | tests §16.4. À faire : test de synthèse par type |
+| 28.1.3 | Prise en compte de la VSYNC (R7=C4 avec C0>0) | ✅ | tests §16.4, `Compendium_28.VSyncLineCounterWhenR7IsWrittenDuringALine` (CRTC 0 : compteur à 0, R3h débuts de ligne ; CRTC 1 : à 1, 15 ; CRTC 3/4 : pas de VSYNC ; CRTC 2 non donné) |
 | 28.1.4 | Longueur de la VSYNC | ✅ | `CRTC_SyncWidths.VSyncLinesOnThePin` |
 | 28.1.5 | Longueur de la HSYNC (R3=0) | ✅ | `CRTC_SyncWidths.HSyncWidthOnThePin` |
 | 28.1.6 | Border, visuellement | ✅ | tests §15.5, §17.6, §18.3, §19.2 |
 | 28.1.7 | Mode interlace (R9=6/7 → VSYNC 2× plus vite sur 0/1) | ✅ | `Compendium_28.IvmVSyncTwiceAsEarly` |
 | 28.1.8 | Status &BE00 | ✅ | `CRTC_RegisterRead.StatusPort`, `CRTC_Crtc1.StatusBorderR6` |
 | 28.1.9 | Lecture &BF00 | ✅ | `CRTC_RegisterRead.*` |
-| 28.1.10 | Status R10/R11 (bit 3 de STATUS 2 : CRTC 3 vs 4) | 🟡 | `CRTC_Compendium.AsicStatus2` |
+| 28.1.10 | Status R10/R11 (bit 3 de STATUS 2 : CRTC 3 vs 4) | 🟡 | `CRTC_Compendium.AsicStatus2`, `Compendium_21.AsicStatus1OnEveryPosition`, `AsicStatus2OnEveryPosition`. Bit 3 CRTC 3 vs 4 : le compendium est au conditionnel (« sous réserve de tests complémentaires »), rien à affirmer |
 
 ## 29. Identification CPC
 

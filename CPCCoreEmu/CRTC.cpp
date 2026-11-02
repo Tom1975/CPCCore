@@ -152,7 +152,6 @@ void CRTC::Reset()
    last_line_ = false;
    adjust_ = false;
    adjust_confirmed_ = false;
-   last_line_seen_ = false;
    adjust_end_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
@@ -187,6 +186,8 @@ void CRTC::Reset()
    last_line_eq_ = false;
    dlp_ = false;
    gdl_reenabled_ = false;
+   frame_end_no_extra_ = false;
+   r8_parity_pending_ = 0;
    vsync_ghost_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
@@ -398,8 +399,22 @@ void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 // R3 written : C3l==R3l ends the HSYNC
 void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators()) return;
    const unsigned char r3l = registers_list_[3] & 0x0F;
+   if (type_crtc_ == AMS40489 || type_crtc_ == AMS40226)
+   {
+      // CRTC 3, 4 : the end comparator acts as soon as R3l changes, but the pin goes through the register
+      // that synchronises it with the display (ClockHSyncPin) : R3l written with C3l ends the HSYNC on the
+      // next character edge, as if programmed before, no R3.JIT (14.5.4.4). R3l = 0 is 16 us
+      if (hsync_ && horinzontal_pulse_ != 0 && horinzontal_pulse_ == r3l)
+      {
+         hsync_ = false;
+         horinzontal_pulse_ = 0;
+         // The register samples the internal HSYNC on the edge that ends the character
+         hsync_pin_stage_ = false;
+      }
+      return;
+   }
+   if (!HSyncPinFollowsComparators()) return;
    // CRTC 0 (15.3.3) : on C0=R2+R3l with C0==R2 again, the end comparator (C3l==R3l) inhibits the start.
    // R3l rewritten on this character releases it : the HSYNC starts again on the T-state of the I/O (as
    // an R2.JIT), C3l is not reset and goes on counting (overflow up to the new R3l).
@@ -686,6 +701,30 @@ void CRTC::Out (unsigned short address, unsigned char data, unsigned int t_state
 // Next window : a pending I/O is taken at the start of the next character
 void CRTC::ClockBusInterface()
 {
+   // CRTC 1, 4th microsecond of an OUT on R8 that switched the Interlace Video Mode (19.5.3, tables p211-212) :
+   // - on : with ParitéFrame even, ParitéC9 = C4.0 and not R9.0 ; ParitéFrame = ParitéFrame and (ParitéC9 xor
+   //   (C4.0 and not R9.0)) ;
+   // - off : ParitéFrame = ParitéC9.
+   if (r8_parity_pending_ != 0)
+   {
+      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
+      unsigned int parity_frame = even_field_ ? 0 : 1;
+      unsigned int parity_c9 = parity_c9_ ? 1 : 0;
+      if (r8_parity_pending_ == 1)
+      {
+         if (parity_frame == 0)
+            parity_c9 = c4_odd_r9_even;
+         parity_frame = parity_frame & (parity_c9 ^ c4_odd_r9_even);
+      }
+      else
+      {
+         parity_frame = parity_c9;
+      }
+      parity_c9_ = (parity_c9 != 0);
+      vlc_ = (vlc_ & 0x1E) | parity_c9;
+      even_field_ = (parity_frame == 0);
+      r8_parity_pending_ = 0;
+   }
    if (io_pending_)
    {
       io_pending_ = false;
@@ -760,21 +799,14 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
                   const bool ivm_after = InterlaceVideo();
                   if (type_crtc_ == UM6845R && ivm_before != ivm_after)
                   {
+                     // CRTC 1, 3rd microsecond of the OUT (the I/O) : ParitéC9 = C9.0 xor (C4.0 and not R9.0). The bit 0
+                     // of C9 is the ParitéC9 flip-flop (C9 carries the parity, 19.8.2) : it changes with it, in the middle
+                     // of the line. The 4th microsecond is clocked on the next character (ClockBusInterface)
                      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
-                     unsigned int parity_frame = even_field_ ? 0 : 1;
-                     unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
-                     if (ivm_after)
-                     {
-                        if (parity_frame == 0)
-                           parity_c9 = c4_odd_r9_even;
-                        parity_frame = parity_frame & (parity_c9 ^ c4_odd_r9_even);
-                     }
-                     else
-                     {
-                        parity_frame = parity_c9;
-                     }
+                     const unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
                      parity_c9_ = (parity_c9 != 0);
-                     even_field_ = (parity_frame == 0);
+                     vlc_ = (vlc_ & 0x1E) | parity_c9;
+                     r8_parity_pending_ = ivm_after ? 1 : 2;
                   }
                   else if ((type_crtc_ == AMS40489 || type_crtc_ == AMS40226) && (previous_value & 0x01) == 0 && InterlaceOn())
                   {
@@ -791,6 +823,19 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
             case 12:
             case 13:
                {
+               // The VMA (CRTC 1) and VMA' (CRTC 2) load latches are transparent while their enable is active :
+               // R12/R13 written then reach their output at once (20.3.2, 20.3.3). CRTC 0, 3, 4 load on the edge.
+               const unsigned short offset = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+               if (type_crtc_ == UM6845R && hcc_ == 0 && vma_reload_)
+               {
+                  // CRTC 1 : C0=0 of a line that starts from R12/R13
+                  ma_ = offset;
+               }
+               else if (type_crtc_ == MC6845 && hcc_ == registers_list_[1] && registers_list_[1] != 0 && last_line_)
+               {
+                  // CRTC 2 : C0=R1 of the last line (with R1=0, the last line state falls during C0=0, 17.4.3)
+                  bu_ = offset;
+               }
                break;
                }
             }

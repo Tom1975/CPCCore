@@ -16,6 +16,9 @@
 // - vma_reload_         VMA is loaded from R12/R13 at each line start instead of VMA' : set by a new
 //                       frame or a R.F.D., cleared at the line end after C0==R1 && C9==R9 (or C9==R9 alone
 //                       when R1>R0), unless C4==R4 at that line end (17.4.2, 11.2.4, 11.6).
+// - ff3_ / r6_eq_prev_  BORDER R6 flip-flop : reset by the rising edge of C4 == R6, set by the frame start, which
+//                       wins when both come together (18.2.3, 18.3.3). R6 = 0 also forces the border while it
+//                       stays 0 (DispEn).
 // - status_border_r6_   status bit 5, updated at the line end (21.3.3).
 // - last_line_sampled_  last_line_ already sampled on this line : R0 lengthened on the last line which is
 //                       then cancelled gives a R.F.D. (13.7.1.2).
@@ -35,6 +38,18 @@ void CRTC::ClockTick1 ()
    bool ff4_reset = false;
 
    const bool interlace_video = ((registers_list_[8] & 0x3) == 0x3);
+
+   // VMA' is a register loaded on the clock edge that ends the character C0 == R1 of the last line of a
+   // character (C9 == R9), with the VMA of that character : R1 written during that character removes the load
+   // (R1.JIT, 17.4.2, chronogram p185). After a R.F.D. the test takes ParitéC9 in place of the bit 0 of C9
+   // until the frame end : with the wrong parity it fails, VMA' is not updated and VMA keeps being loaded
+   // from R12/R13 (11.6.1)
+   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
+   if ( hcc_ == registers_list_[1] && r1_c9_test )
+   {
+      bu_ = ma_;
+      vma_reload_clear_ = true;
+   }
 
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
@@ -163,16 +178,6 @@ void CRTC::ClockTick1 ()
       last_line_sampled_ = true;
    }
 
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17). After a R.F.D. the test
-   // takes ParitéC9 in place of the bit 0 of C9 until the frame end : with the wrong parity it fails, VMA'
-   // is not updated and VMA keeps being loaded from R12/R13 (11.6.1)
-   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
-   if ( hcc_ == registers_list_[1] && r1_c9_test )
-   {
-      bu_ = ma_;
-      vma_reload_clear_ = true;
-   }
-
    // VSYNC (16.3, 16.4.2) : R7 is ignored during a VSYNC ; a new one needs the C4==R7 equality to change
    if (vcc_ == registers_list_[7])
    {
@@ -196,10 +201,15 @@ void CRTC::ClockTick1 ()
    }
 
 
-   if (vcc_ == registers_list_[6])
+   // BORDER R6 (18.2.3) : its flip-flop is reset by the rising edge of the C4 == R6 comparator and set by the frame
+   // start. When the edge comes on the frame start (R6 = 0 written up to C0 = R0 of the last line) the set wins :
+   // the display is allowed again, the border then only comes from R6 = 0 and a R6 != C4 cancels it (18.3.3)
+   const bool r6_eq = (vcc_ == registers_list_[6]);
+   if (r6_eq && !r6_eq_prev_)
    {
       ff3_reset = true;
    }
+   r6_eq_prev_ = r6_eq;
 
    // Flip flop computations
    if (hcc_ == 0)
@@ -229,13 +239,13 @@ void CRTC::ClockTick1 ()
       ff1_ = false;
    }
 
-   if ( ff3_reset && !ff3_set)
-   {
-      ff3_ = false;
-   }
-   else if ( !ff3_reset && ff3_set)
+   if (ff3_set)
    {
       ff3_ = true;
+   }
+   else if (ff3_reset)
+   {
+      ff3_ = false;
    }
 
    if ( ff4_reset && !ff4_set)
