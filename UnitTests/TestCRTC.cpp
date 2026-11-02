@@ -3976,6 +3976,47 @@ TEST(Compendium_20, OffsetTakenAtTheFrameStart)
    }
 }
 
+// 19.5.3 : CRTC 1, tables p211-212 : OUT R8,3 then OUT R8,0 (I/O on C0 = 4 and 8) on a line of given ParitéFrame,
+// C4.0, R9.0 and C9.0. C9.0 is ParitéC9 : on the I/O microsecond (3rd of the OUT) ParitéC9 = C9.0 xor (C4.0 and
+// not R9.0) ; on the next one (4th), IVM on : with ParitéFrame even, ParitéC9 = C4.0 and not R9.0, ParitéFrame =
+// ParitéFrame and (ParitéC9 xor (C4.0 and not R9.0)) ; IVM off : ParitéFrame = ParitéC9.
+// Expected : C9.0 on the I/O microsecond of the on, after the on, after the off ; ParitéFrame at the end.
+TEST(Compendium_19, Crtc1ParityTables)
+{
+   struct { int frame, c4, r9, c9; int c9_3rd, c9_on, c9_off, frame_end; } const cases[] = {
+      // ParitéFrame even (p211)
+      { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 1, 1, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, 1, 1, 1, 0, 0, 0 },
+      { 0, 1, 0, 0, 1, 1, 0, 0 }, { 0, 1, 0, 1, 0, 1, 0, 0 }, { 0, 1, 1, 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1, 0, 0, 0 },
+      // ParitéFrame odd (p212)
+      { 1, 0, 0, 0, 0, 0, 0, 0 }, { 1, 0, 0, 1, 1, 1, 1, 1 }, { 1, 0, 1, 0, 0, 0, 0, 0 }, { 1, 0, 1, 1, 1, 1, 1, 1 },
+      { 1, 1, 0, 0, 1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 0, 1, 1 }, { 1, 1, 1, 0, 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "ParitéFrame " << c.frame << ", C4.0 " << c.c4 << ", R9.0 " << c.r9 << ", C9.0 " << c.c9);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, c.r9 ? 5 : 4);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      bool found = false;
+      for (int i = 0; i < 4 && !found; ++i)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 2 + c.c4, c.c9));
+         found = ((crtc.even_field_ ? 0 : 1) == c.frame);
+      }
+      ASSERT_TRUE(found);
+      AdvanceUntilHccEquals(crtc, 4);
+      WriteRegisterAt(crtc, 8, 3, kOutCR8);
+      EXPECT_EQ(c.c9_3rd, crtc.vlc_ & 1) << "3rd microsecond of OUT R8,3";
+      AdvanceUntilHccEquals(crtc, 7);
+      EXPECT_EQ(c.c9_on, crtc.vlc_ & 1) << "after OUT R8,3";
+      AdvanceUntilHccEquals(crtc, 8);
+      WriteRegisterAt(crtc, 8, 0, kOutCR8);
+      AdvanceUntilHccEquals(crtc, 11);
+      EXPECT_EQ(c.c9_off, crtc.vlc_ & 1) << "after OUT R8,0";
+      EXPECT_EQ(c.frame_end, crtc.even_field_ ? 0 : 1) << "ParitéFrame";
+   }
+}
+
 // 20.3.1-20.3.4 : chronograms p242-243. R12 = &10 (R13 = 0), then R12 = &30 by OUT (C),r8 taken on C0 = p (the
 // dark cell : the I/O microsecond, on the ASIC the 4th microsecond of the OUT, 4.4.3) :
 // - CRTC 0, 3, 4 : on C0 = 63 of the last line, taken by the frame start ; on C0 = 0 of the first line, too late ;

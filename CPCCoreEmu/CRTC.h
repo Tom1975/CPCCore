@@ -103,6 +103,7 @@ public:
    bool dlp_;                   // "Dernière Ligne Précédente"
    bool gdl_reenabled_;         // "Gestion Dernière Ligne" re-enabled on the last HSYNC character
    bool vsync_ghost_;           // GHOST VSYNC : counted, but the pin is not raised
+   unsigned char r8_parity_pending_;  // CRTC 1 : 4th microsecond of an OUT R8 that switched the IVM (1 : on, 2 : off)
    bool frame_end_no_extra_;    // the previous line end ended the frame without additional interlace line
    // CRTC 3/4
    unsigned char frame_counter_; // frames counter : STATUS 2 bit 3 toggles every 16 frames (21.3.4.2)

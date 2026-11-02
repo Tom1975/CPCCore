@@ -248,7 +248,7 @@ pas de comportement à vérifier).
 | 19.3.3-19.3.4 | Restrictions, fonction mal aimée (interlace activé en temps réel) | ✅ | texte surtout didactique ; VSYNC plus tôt en IVM sur 0/1/3/4, pas sur 2 : `Compendium_28.IvmVSyncTwiceAsEarly` ; activation en cours de frame : tests §19.5-19.7 (`CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`, `InterlaceMidVSync`, `InterlaceParityFrozenByR6`) |
 | 19.4.1-19.4.4 | Programmation verticale en interlace par type | ✅ | `CRTC_Compendium.InterlaceVideoModeAlternatesTheLines` (N=8 : R9=6 sur CRTC 0, 3, 4, R9=7 sur CRTC 1), `Compendium_19.VerticalProgrammingInIvmByType` (R9=0 sur CRTC 0, 3, 4 : 1 ligne par frame ; CRTC 2 R9=7 : 8 lignes par frame, VMA change après 4 lignes ; CRTC 2 R9=6 : 7 lignes, C9=7 sur les frames impairs) |
 | 19.5.2 | Parité CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6`, `IvmVSyncDelayedOnOddC4` |
-| 19.5.3 | Parité CRTC 1 (tables p211-212) | 🟡 | `CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`. À faire : tables complètes |
+| 19.5.3 | Parité CRTC 1 (tables p211-212) | ✅ | `CRTC_Compendium.Crtc1IvmOnOffFixesTheParity`, `Compendium_19.Crtc1ParityTables` (les 16 cas : ParitéFrame × C4.0 × R9.0 × C9.0, C9.0 à la 3e µs, après on, après off, ParitéFrame finale). Modèle : C9.0 est la bascule ParitéC9 ; 3e µs à l'I/O, 4e µs sur le caractère suivant |
 | 19.5.4 | Parité CRTC 2 (SPLITC9) | ✅ | `Compendium_19.Crtc2SplitC9` |
 | 19.5.5 | Parité CRTC 3/4 | ✅ | `CRTC_Compendium.IvmVSyncDelayedOnOddC4` |
 | 19.6.1 | Ligne additionnelle interlace CRTC 0 | ✅ | `CRTC_Compendium.InterlaceParityFrozenByR6` |

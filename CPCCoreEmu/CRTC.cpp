@@ -187,6 +187,7 @@ void CRTC::Reset()
    dlp_ = false;
    gdl_reenabled_ = false;
    frame_end_no_extra_ = false;
+   r8_parity_pending_ = 0;
    vsync_ghost_ = false;
    vertical_adjust_counter_ = 0;
    sscr_bit_8_ = 1;
@@ -700,6 +701,30 @@ void CRTC::Out (unsigned short address, unsigned char data, unsigned int t_state
 // Next window : a pending I/O is taken at the start of the next character
 void CRTC::ClockBusInterface()
 {
+   // CRTC 1, 4th microsecond of an OUT on R8 that switched the Interlace Video Mode (19.5.3, tables p211-212) :
+   // - on : with ParitéFrame even, ParitéC9 = C4.0 and not R9.0 ; ParitéFrame = ParitéFrame and (ParitéC9 xor
+   //   (C4.0 and not R9.0)) ;
+   // - off : ParitéFrame = ParitéC9.
+   if (r8_parity_pending_ != 0)
+   {
+      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
+      unsigned int parity_frame = even_field_ ? 0 : 1;
+      unsigned int parity_c9 = parity_c9_ ? 1 : 0;
+      if (r8_parity_pending_ == 1)
+      {
+         if (parity_frame == 0)
+            parity_c9 = c4_odd_r9_even;
+         parity_frame = parity_frame & (parity_c9 ^ c4_odd_r9_even);
+      }
+      else
+      {
+         parity_frame = parity_c9;
+      }
+      parity_c9_ = (parity_c9 != 0);
+      vlc_ = (vlc_ & 0x1E) | parity_c9;
+      even_field_ = (parity_frame == 0);
+      r8_parity_pending_ = 0;
+   }
    if (io_pending_)
    {
       io_pending_ = false;
@@ -774,21 +799,14 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
                   const bool ivm_after = InterlaceVideo();
                   if (type_crtc_ == UM6845R && ivm_before != ivm_after)
                   {
+                     // CRTC 1, 3rd microsecond of the OUT (the I/O) : ParitéC9 = C9.0 xor (C4.0 and not R9.0). The bit 0
+                     // of C9 is the ParitéC9 flip-flop (C9 carries the parity, 19.8.2) : it changes with it, in the middle
+                     // of the line. The 4th microsecond is clocked on the next character (ClockBusInterface)
                      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
-                     unsigned int parity_frame = even_field_ ? 0 : 1;
-                     unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
-                     if (ivm_after)
-                     {
-                        if (parity_frame == 0)
-                           parity_c9 = c4_odd_r9_even;
-                        parity_frame = parity_frame & (parity_c9 ^ c4_odd_r9_even);
-                     }
-                     else
-                     {
-                        parity_frame = parity_c9;
-                     }
+                     const unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
                      parity_c9_ = (parity_c9 != 0);
-                     even_field_ = (parity_frame == 0);
+                     vlc_ = (vlc_ & 0x1E) | parity_c9;
+                     r8_parity_pending_ = ivm_after ? 1 : 2;
                   }
                   else if ((type_crtc_ == AMS40489 || type_crtc_ == AMS40226) && (previous_value & 0x01) == 0 && InterlaceOn())
                   {
