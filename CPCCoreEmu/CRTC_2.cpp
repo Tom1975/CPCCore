@@ -10,12 +10,12 @@
 // - last_line_ (DL)         evaluated at the end of character 0 : C4==R4 with the current R4, but C9==R9
 //                           sampled at the start of the character (c9_eq_r9_at_start_ : a R9 written on
 //                           C0=0 is seen too late). Refused if the previous line was already a last line
-//                           (DLP) or if a HSYNC starts on C0=0. During the line it is also set by a rising
+//                           (DLP) or if the HSYNC output is active on C0=0. During the line it is also set by a rising
 //                           edge of C4==R4 && C9==R9 (register write) if GDL is active, outside the HSYNC ;
 //                           the comparator sees the new R9 of a write on C0=0 from the next character, which
 //                           gives that edge there.
 //                           Once true, it cannot be cancelled in the line.
-// - dlp_ (DLP)              C4==R4 && C9==R9 on the last character of the HSYNC.
+// - dlp_ (DLP)              C4==R4 && C9==R9 during the last character of the HSYNC.
 // - gdl_reenabled_          set on the last HSYNC character when C4!=R4 || C9!=R9 : GDL ("Gestion Dernière
 //                           Ligne") is active except on the first line of a frame (C4=C9=0), unless re-enabled.
 // - VMA'                    loaded on C0==R1 with R12/R13 if DL, else with VMA if C9==R9. VMA is loaded with
@@ -191,7 +191,10 @@ void CRTC::ClockTick2 ()
 
    if (c0_reset)
    {
-      hsync_on_line_start_ = hsync_started;
+      // HSYNC output active during the character C0=0, started on it or before (15.6 : R2 = 50, R3l = 15 on
+      // R0 = 63 cancels the last line as R2 = 0 does). It inhibits the "Derniere Ligne" evaluation of C0=0,
+      // as it inhibits the border lift (15.5)
+      hsync_on_line_start_ = hsync_;
    }
 
    ///////////////////////////////
@@ -208,12 +211,15 @@ void CRTC::ClockTick2 ()
       // R4 / R9 written outside the HSYNC (15.6)
       last_line_ = true;
    }
+   // Comparator output during the character that ends on this edge
+   const bool line_eq_in_previous_char = last_line_eq_;
    last_line_eq_ = line_eq;
 
    if (hsync_ended)
    {
-      // Last character of the HSYNC
-      if (line_eq)
+      // DLP is clocked by the edge that ends the last HSYNC character : it samples the comparator output of
+      // that character, before the counters move (a HSYNC ending on C0=R0 samples the line that ends, 15.6)
+      if (line_eq_in_previous_char)
       {
          dlp_ = true;
       }

@@ -3419,6 +3419,65 @@ TEST(Compendium_16, Crtc2R7WrittenDuringALine)
    EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
 }
 
+// 15.6 : the three examples of p158 on CRTC 2 (R0 = 63), over 4 frames (C4 overflows up to 127 before
+// it meets R7 = 30 again) :
+// - R2 = 50, R3l = 14 : the HSYNC covers C0 = 63, the position before C0 = 0 : GHOST VSYNC, display kept ;
+// - R2 = 50, R3l = 15 : the HSYNC covers C0 = 0 : border kept, no VSYNC, the last line is cancelled (C4 overflows) ;
+// - R2 = 0, R3l = 6 : border kept, C4 overflows, but the VSYNC condition is seen early enough : VSYNC present.
+TEST(Compendium_15, Crtc2HSyncExamples)
+{
+   struct { unsigned char r2, r3; bool vsync, display, overflow; } const cases[] = {
+      { 50, 0x8E, false, true, false }, { 50, 0x8F, false, false, true }, { 0, 0x86, true, false, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R2 = " << int(c.r2) << ", R3l = " << (c.r3 & 0x0F));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      WriteRegister(crtc, 2, c.r2);
+      WriteRegister(crtc, 3, c.r3);
+      AdvanceMicroseconds(crtc, 19968);
+      bool vsync = false, display = false;
+      int max_c4 = 0;
+      for (int i = 0; i < 4 * 19968; ++i)
+      {
+         Advance(crtc);
+         vsync |= sig.v_sync_;
+         display |= crtc.DispEn();
+         max_c4 = std::max<int>(max_c4, crtc.vcc_);
+      }
+      EXPECT_EQ(c.vsync, vsync);
+      EXPECT_EQ(c.display, display);
+      EXPECT_EQ(c.overflow, max_c4 > 38) << "max C4 = " << max_c4;
+   }
+}
+
+// 13.4 : CRTC 2 with lines of 4 us (R0 = 3, R4 = R9 = 0) : R2 must be > 0, or the HSYNC covers C0 = 0
+// and the border is never lifted (15.5). CRTC 0 lifts it.
+TEST(Compendium_13, Crtc2ShortLinesNeedR2AboveZero)
+{
+   struct { CRTC::TypeCRTC type; unsigned char r2; bool display; } const cases[] = {
+      { CRTC::MC6845, 0, false }, { CRTC::MC6845, 1, true }, { CRTC::HD6845S, 0, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " R2 = " << int(c.r2));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, c.type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 0, 3);
+      WriteRegister(crtc, 1, 2);
+      WriteRegister(crtc, 2, c.r2);
+      WriteRegister(crtc, 3, 0x81);
+      WriteRegister(crtc, 4, 0);
+      WriteRegister(crtc, 9, 0);
+      AdvanceMicroseconds(crtc, 19968);
+      bool display = false;
+      for (int i = 0; i < 1000; ++i) { Advance(crtc); display |= crtc.DispEn(); }
+      EXPECT_EQ(c.display, display);
+   }
+}
+
 // 16.4.1-16.4.4 : R7 = C4 written during the character C0 = p of a line C4 = 10 (C9 = 0 or 3), for every type
 // (R2 = 46, R3l = 14 : HSYNC from C0 = 46 to 59) :
 // - CRTC 0 : on C0 < 2 the VSYNC is blocked, later it starts at once (16.4.1.1) ;

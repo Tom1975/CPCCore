@@ -98,7 +98,7 @@ public:
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
-   bool hsync_on_line_start_;   // a HSYNC started on C0=0
+   bool hsync_on_line_start_;   // HSYNC output active on C0=0
    bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
    bool dlp_;                   // "Dernière Ligne Précédente"
    bool gdl_reenabled_;         // "Gestion Dernière Ligne" re-enabled on the last HSYNC character

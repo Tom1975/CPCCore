@@ -142,7 +142,7 @@ pas de comportement à vérifier).
 | 13.2.7 | RVLL CRTC 0 | ✅ | `Compendium_13.Crtc0RvllHiddenTwoMicrosecondLines` (tableau 1 p113), `Crtc0RvllWithR2Zero` (tableau 2). Relevé : chaque écriture de R0 tombe sur C0=0 de la ligne qu'elle dimensionne |
 | 13.3 | CRTC 1 : R0 libre (R0=0 normal) ; bug OUTI | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine`. Bug OUTI (C0 déborde « dans certains cas ») : ➖ non déterministe |
 | 13.3.1 | RVI (tableaux p116-118) | ✅ | `Compendium_13.Crtc1Rvi` (64 transitions), `AsicRvi` (lignes de compatibilité CRTC 3/4). Coquille : ligne C9 1→7 (3/4), R0.1 vaut 50 d'après sa séquence C0, pas 49 |
-| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | 🟡 | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1). À faire : R2=0 obligatoire |
+| 13.4 | CRTC 2 : traitements inhibés pendant la HSYNC, ½ µs de border avant C0=0, R0 libre | ✅ | `CRTC_Compendium.Crtc2*`, `Compendium_13.Crtc2R0ZeroCountsNormally` (R0=0 posé hors dernière ligne, cf. §12.4.1), `Compendium_13.Crtc2ShortLinesNeedR2AboveZero` (R0=3 : R2=0 garde le border, R2=1 non, CRTC 0 non) |
 | 13.4.1 | RVLL CRTC 2 | ✅ | `Compendium_13.Crtc2Rvll` (lignes cachées ≥ 2 µs), `Crtc2RvllOneMicrosecondLines` (lignes cachées de 1 µs, C9 5-15) |
 | 13.5 | CRTC 3/4 : R0=0 sans effet de bord | ✅ | `Compendium_13.R0ZeroIsANormalOneMicrosecondLine` |
 | 13.6.1-13.6.3 | Chronogrammes de mise à jour de R0 | ✅ | `CRTC_R0Zero.Crtc0KeepsR0ZeroAndC0StaysAtZero`, `Compendium_13.R0UpdateChronograms` (5 types : R0 écrit pendant C0=R0 pris à temps, sur le C0=0 suivant trop tard ; R0=0→10 pendant un C0=0). La colonne de l'I/O dans OUT/OUTI : §4.4 |
@@ -184,7 +184,7 @@ pas de comportement à vérifier).
 | 15.4.4 | CRTC 2 : VSYNC fantôme | ✅ | `CRTC_Compendium.Crtc2GhostVSync`, `Crtc2NoGhostVSyncWithR2Zero`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (bornes du chronogramme p156) |
 | 15.5.1 | DISPEN pendant la HSYNC, CRTC 0/1/3/4 | ✅ | `Compendium_15.BorderLiftedDuringTheHSync` |
 | 15.5.2 | CRTC 2 | ✅ | `CRTC_Compendium.Crtc2BorderNotLiftedDuringHSync` |
-| 15.6 | CRTC 2 et HSYNC (récapitulatif, HSYNC qui déborde → C4 déborde) | 🟡 | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`. À faire : 2 HSYNC/ligne |
+| 15.6 | CRTC 2 et HSYNC (récapitulatif, HSYNC qui déborde → C4 déborde) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Compendium_15.Crtc2HSyncExamples` (les 3 exemples p158 : R2=50/R3l=14 VSYNC fantôme, R3l=15 border + C4 déborde, R2=0 border + VSYNC). Modèle : la sortie HSYNC active sur C0=0 (débutée avant ou sur C0=0) inhibe l'évaluation DL ; DLP échantillonne le comparateur du dernier caractère de la HSYNC, avant le front qui fait avancer les compteurs |
 | 15.7.1-15.7.2 | Changer R2 sans perdre la synchro moniteur | ❌ | test moniteur : R2 46↔50 avec R0 temporaire, image stable |
 
 ## 16. Registre R7
