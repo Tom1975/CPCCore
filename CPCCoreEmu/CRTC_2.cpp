@@ -19,7 +19,9 @@
 // - gdl_reenabled_          set on the last HSYNC character when C4!=R4 || C9!=R9 : GDL ("Gestion Dernière
 //                           Ligne") is active except on the first line of a frame (C4=C9=0), unless re-enabled.
 // - VMA'                    loaded on C0==R1 with R12/R13 if DL, else with VMA if C9==R9. VMA is loaded with
-//                           VMA' at each line start, the first line of a frame included (17.4.3).
+//                           VMA' at each line start, the first line of a frame included (17.4.3). R12/R13
+//                           reach VMA' by an AND strobe then an OR strobe : with R1=0 on a frame start, DL
+//                           falls between them and only the AND is done (17.4.3, AND bug).
 // - vsync_ghost_            a VSYNC condition met during a character on which the HSYNC output is active (a
 //                           condition reached on C0=0 is seen on the edge that ends the previous character, so a
 //                           HSYNC spanning C0=0 hides it) starts a GHOST VSYNC : C3h counts the lines,
@@ -138,11 +140,14 @@ void CRTC::ClockTick2 ()
          even_field_ = !parity_r6_;
       }
 
-      // With R1=0, VMA' is loaded (with the DL state of the line that ends) before VMA=VMA' (17.4.3)
+      // With R1=0, VMA' is loaded (with the DL state of the line that ends) before VMA=VMA' (17.4.3).
+      // VMA' takes R12/R13 by two strobes of the C0=R1 character, both gated by DL : an AND (clears the bits
+      // at 0) then an OR (sets the bits at 1). On C0=0 the DL state changes between them : on the first line
+      // of a frame only the AND is done, on the VMA' loaded with VMA on C0=0 of the last line (AND bug)
       if (registers_list_[1] == 0)
       {
          if (last_line_)
-            bu_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+            bu_ &= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
          else if (vlc_ == registers_list_[9])
             bu_ = ma_;
       }

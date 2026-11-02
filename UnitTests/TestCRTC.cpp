@@ -3419,6 +3419,40 @@ TEST(Compendium_16, Crtc2R7WrittenDuringALine)
    EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
 }
 
+// 17.4.3 : CRTC 2, AND bug. VMA' is loaded with R12/R13 by an AND (bits at 0 cleared) then an OR (bits at 1
+// set), both on C0 = R1 while the last line state holds. With R1 = 0 on the first line of a frame, the last line
+// state falls on C0 = 0 between the two : only the AND is done, on the VMA' loaded with VMA on C0 = 0 of the
+// last line. R12/R13 = &2C55 written on C0 = 10 of the last line ; with R1 = 40 it is taken as it is.
+// R1 = 0 then 50 written on C0 = 55 of the last line : no C0 = R1 while the last line state holds, VMA' keeps
+// VMA of the last line, the first line repeats it.
+TEST(Compendium_17, Crtc2R1ZeroOnTheFrameStartOnlyAndsTheOffset)
+{
+   struct { unsigned char r1; int r1_late; } const cases[] = { { 0, -1 }, { 40, -1 }, { 0, 50 } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R1 = " << int(c.r1) << ", then " << c.r1_late);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      ASSERT_TRUE(ReachLine(crtc, 38, 6));
+      AdvanceUntilHccEquals(crtc, 50);
+      WriteRegister(crtc, 1, c.r1);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_EQ(Line(38, 7), Line(crtc.vcc_, crtc.vlc_));
+      const unsigned short vma_last = crtc.ma_;
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 12, 0x2C);
+      WriteRegister(crtc, 13, 0x55);
+      if (c.r1_late >= 0)
+      {
+         AdvanceUntilHccEquals(crtc, 55);
+         WriteRegister(crtc, 1, (unsigned char)c.r1_late);
+      }
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      const unsigned short expected = (c.r1_late >= 0) ? vma_last : (c.r1 == 0) ? (vma_last & 0x2C55) : 0x2C55;
+      EXPECT_EQ(expected, crtc.ma_) << std::hex << "VMA last line = " << vma_last;
+   }
+}
+
 // 15.6 : the three examples of p158 on CRTC 2 (R0 = 63), over 4 frames (C4 overflows up to 127 before
 // it meets R7 = 30 again) :
 // - R2 = 50, R3l = 14 : the HSYNC covers C0 = 63, the position before C0 = 0 : GHOST VSYNC, display kept ;
