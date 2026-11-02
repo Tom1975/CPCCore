@@ -2964,6 +2964,32 @@ TEST(GateArray_HSyncBlack, R3Jit)
    }
 }
 
+// 14.5.4.4 : no R3.JIT on CRTC 3, 4 (chronogram p142, CRTC 4 ; CRTC 3 : like the CRTC 4). R3l written with C3l on the
+// microsecond where the ASIC takes it (C0 = R2 + R3l : 5th microsecond of OUTI, 4th of OUT (C),r8 whose I/O is one
+// microsecond before) ends the HSYNC as if R3l had been programmed before : 16 / 32 pixels of black for R3l = 1 / 2.
+TEST(GateArray_HSyncBlack, NoR3JitOnTheAsic)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (int r3l : { 1, 2 })
+      {
+         for (unsigned int t_state : { kOuti, kOutCR8 })
+         {
+            SCOPED_TRACE(testing::Message() << TypeName(type) << ", R3l = " << r3l << (t_state == kOuti ? ", OUTI" : ", OUT (C),r8"));
+            CRTC crtc; CSig sig;
+            HSyncLineSetup(crtc, sig, type, 46, 0x8E);
+            const int taken = 46 + r3l;
+            const int io = (t_state == kOuti) ? taken : taken - 1;
+            const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+               if (c0 == io) WriteRegisterAt(crtc, 3, (unsigned char)(0x80 | r3l), t_state);
+            });
+            EXPECT_EQ(18, run.start);
+            EXPECT_EQ(16 * r3l, run.length);
+         }
+      }
+   }
+}
+
 // R3l > 6 : the black lasts the whole CRTC HSYNC (14.3), not only the 6 us of the monitor signal.
 TEST(GateArray_HSyncBlack, BlackForTheWholeHSync)
 {

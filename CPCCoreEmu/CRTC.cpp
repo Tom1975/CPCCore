@@ -398,8 +398,22 @@ void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 // R3 written : C3l==R3l ends the HSYNC
 void CRTC::HSyncEndComparatorChanged(unsigned int t_state)
 {
-   if (!HSyncPinFollowsComparators()) return;
    const unsigned char r3l = registers_list_[3] & 0x0F;
+   if (type_crtc_ == AMS40489 || type_crtc_ == AMS40226)
+   {
+      // CRTC 3, 4 : the end comparator acts as soon as R3l changes, but the pin goes through the register
+      // that synchronises it with the display (ClockHSyncPin) : R3l written with C3l ends the HSYNC on the
+      // next character edge, as if programmed before, no R3.JIT (14.5.4.4). R3l = 0 is 16 us
+      if (hsync_ && horinzontal_pulse_ != 0 && horinzontal_pulse_ == r3l)
+      {
+         hsync_ = false;
+         horinzontal_pulse_ = 0;
+         // The register samples the internal HSYNC on the edge that ends the character
+         hsync_pin_stage_ = false;
+      }
+      return;
+   }
+   if (!HSyncPinFollowsComparators()) return;
    // CRTC 0 (15.3.3) : on C0=R2+R3l with C0==R2 again, the end comparator (C3l==R3l) inhibits the start.
    // R3l rewritten on this character releases it : the HSYNC starts again on the T-state of the I/O (as
    // an R2.JIT), C3l is not reset and goes on counting (overflow up to the new R3l).

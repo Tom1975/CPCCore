@@ -161,7 +161,7 @@ pas de comportement à vérifier).
 | 14.4 | HSYNC et position écran (tables C-HSYNC p135) | 🟡 | `GateArray_CHSync.*`. À faire : décalage de l'image par valeur de R3l < 6 |
 | 14.5.1 | R3 modifié pendant la HSYNC, CRTC 0/2 (débordement de C3l, 0 à atteindre) | ✅ | `Compendium_14.R3lBelowC3lOverflows`, `CRTC_HSyncReentrancy.WritingR3lZeroDuringHSync` |
 | 14.5.2 | CRTC 1 (R3l=0 annule la HSYNC) | ✅ | `CRTC_HSyncReentrancy.WritingR3lZeroDuringHSync`, `CRTC_Jit.R3ZeroDuringTheHSync` |
-| 14.5.3 | CRTC 3/4 | 🟡 | débordement : `Compendium_14.R3lBelowC3lOverflows`. À faire : pas de R3.JIT sur 3/4 |
+| 14.5.3 | CRTC 3/4 | ✅ | débordement : `Compendium_14.R3lBelowC3lOverflows` ; pas de R3.JIT (§14.5.4.4, chronogramme p142) : `GateArray_HSyncBlack.NoR3JitOnTheAsic` (R3l=C3l pris sur sa µs → fin comme si programmé avant, OUTI et OUT (C),r8). Modèle : comparateur de fin continu, broche via la bascule synchronisée sur l'affichage |
 | 14.5.4 | R3.JIT | ✅ | `CRTC_Jit.*`, `GateArray_CHSync.R3JitMovesTheEndByATState` |
 | 14.6 | Absence de HSYNC (R3l=0) | ✅ | `CRTC_HSyncReentrancy.NoHSyncEndWithR3lZeroOnCrtc01`, `CRTC_SyncWidths.HSyncWidthOnThePin` |
 | 14.7.1 | Démarrage HSYNC CRTC 0/1/2 (R2.JIT) | ✅ | `CRTC_Jit.R2Jit*`, `GateArray_CHSync.R2JitKeepsTheCHSync` |
