@@ -322,14 +322,14 @@ Chaque méthode est un test de synthèse : elle doit distinguer les types comme 
 |---|---|---|---|
 | 28.1.1 | Débordement de C4/C9 (R4=36, R9=7, R5=16 : VSYNC perdue au-delà de R7=36/37/38) | ✅ | `Compendium_11.VSyncDuringTheAdjustment` |
 | 28.1.2 | VSYNC pendant la HSYNC | ✅ | `CRTC_Compendium.Crtc2GhostVSync` |
-| 28.1.3 | Prise en compte de la VSYNC (R7=C4 avec C0>0) | 🟡 | tests §16.4. À faire : test de synthèse par type |
+| 28.1.3 | Prise en compte de la VSYNC (R7=C4 avec C0>0) | ✅ | tests §16.4, `Compendium_28.VSyncLineCounterWhenR7IsWrittenDuringALine` (CRTC 0 : compteur à 0, R3h débuts de ligne ; CRTC 1 : à 1, 15 ; CRTC 3/4 : pas de VSYNC ; CRTC 2 non donné) |
 | 28.1.4 | Longueur de la VSYNC | ✅ | `CRTC_SyncWidths.VSyncLinesOnThePin` |
 | 28.1.5 | Longueur de la HSYNC (R3=0) | ✅ | `CRTC_SyncWidths.HSyncWidthOnThePin` |
 | 28.1.6 | Border, visuellement | ✅ | tests §15.5, §17.6, §18.3, §19.2 |
 | 28.1.7 | Mode interlace (R9=6/7 → VSYNC 2× plus vite sur 0/1) | ✅ | `Compendium_28.IvmVSyncTwiceAsEarly` |
 | 28.1.8 | Status &BE00 | ✅ | `CRTC_RegisterRead.StatusPort`, `CRTC_Crtc1.StatusBorderR6` |
 | 28.1.9 | Lecture &BF00 | ✅ | `CRTC_RegisterRead.*` |
-| 28.1.10 | Status R10/R11 (bit 3 de STATUS 2 : CRTC 3 vs 4) | 🟡 | `CRTC_Compendium.AsicStatus2` |
+| 28.1.10 | Status R10/R11 (bit 3 de STATUS 2 : CRTC 3 vs 4) | 🟡 | `CRTC_Compendium.AsicStatus2`, `Compendium_21.AsicStatus1OnEveryPosition`, `AsicStatus2OnEveryPosition`. Bit 3 CRTC 3 vs 4 : le compendium est au conditionnel (« sous réserve de tests complémentaires »), rien à affirmer |
 
 ## 29. Identification CPC
 

@@ -3654,6 +3654,38 @@ TEST(Compendium_16, R7WrittenWithC4OnEveryPosition)
    }
 }
 
+// 28.1.3 : VSYNC started by R7 = C4 written with C0 > 0 (C0 = 20 of C4 = 10, C9 = 3 ; R3h = 8) : its line counter
+// starts from 0 on CRTC 0 (8 more line starts : R3h lines after the current one), from 1 on CRTC 1 (16 lines fixed :
+// 15 more line starts) ; no VSYNC on CRTC 3, 4. CRTC 2 : not given by 28.1.3 (see 16.4.3).
+TEST(Compendium_28, VSyncLineCounterWhenR7IsWrittenDuringALine)
+{
+   struct { CRTC::TypeCRTC type; int line_starts; } const cases[] = {
+      { CRTC::HD6845S, 8 }, { CRTC::UM6845R, 15 }, { CRTC::AMS40489, -1 }, { CRTC::AMS40226, -1 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 20);
+      WriteRegister(crtc, 7, 10);
+      if (c.line_starts < 0)
+      {
+         EXPECT_FALSE(VSyncSeen(crtc, sig, 20 * 64));
+         continue;
+      }
+      ASSERT_TRUE(VSyncSeen(crtc, sig, 2));
+      int line_starts = 0;
+      for (int i = 0; i < 40 * 64 && sig.v_sync_; ++i)
+      {
+         Advance(crtc);
+         if (crtc.hcc_ == 0 && sig.v_sync_) ++line_starts;
+      }
+      EXPECT_EQ(c.line_starts, line_starts);
+   }
+}
+
 // 16.4 : on every CRTC, R7 can be written with the next C4 up to the last microsecond before it : R7 = C4 + 1
 // written on C0 = R0 of the line C9 = R9 starts the VSYNC on the first line of C4 = R7.
 TEST(Compendium_16, R7WrittenOnTheLastMicrosecondBeforeC4)
