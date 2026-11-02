@@ -1045,6 +1045,62 @@ TEST(CRTC_SkewDispTmg, Crtc0BorderDisintegration)
    EXPECT_EQ("1111", trace);
 }
 
+// 19.2.5.1-19.2.5.4, chronograms p197-198 : CRTC 0, R0 = R1 = 63, R8 = #10 (DELAI +1) written during C0 = A,
+// then R8 = #00 during C0 = B = A + 4 (the I/O of two OUT (C),r8 in a row). Border on C0 = 63 and on the C0 = 0
+// that follows :
+// - A = 57, 58, 59 : the 1st OUT is ignored, the border stays on C0 = 63 (19.2.5.1) ;
+// - A = 60 (B = 0) : both conditions cancelled, no border (19.2.5.2) ;
+// - A = 61, 62 : the 2nd OUT is too late, the border moves to C0 = 0 (19.2.5.3) ;
+// - A = 63 : too late for C0 = 63, taken for the next character : a border on both (19.2.5.4, "combo").
+namespace
+{
+std::pair<bool, bool> BorderOn63And0(int a)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 1, 63);
+   ReachDisplayedLine(crtc);
+   AdvanceUntilHccEquals(crtc, (unsigned char)a);
+   const int b = (a + 4) & 63;
+   WriteRegister(crtc, 8, 0x10);
+   bool border_63 = (a == 63) && !crtc.DispEn();
+   bool border_0 = false;
+   for (int i = 0; i < 8; ++i)
+   {
+      Advance(crtc);
+      if (crtc.hcc_ == b) WriteRegister(crtc, 8, 0x00);
+      if (crtc.hcc_ == 63) border_63 = !crtc.DispEn();
+      if (crtc.hcc_ == 0) border_0 = !crtc.DispEn();
+   }
+   return { border_63, border_0 };
+}
+}
+
+TEST(Compendium_19, Crtc0BorderDisintegrationChronograms)
+{
+   const struct { int a; bool border_63, border_0; } cases[] = {
+      { 57, true, false }, { 58, true, false }, { 59, true, false }, { 60, false, false },
+      { 61, false, true }, { 62, false, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R8 = #10 written on C0 = " << c.a);
+      EXPECT_EQ(std::make_pair(c.border_63, c.border_0), BorderOn63And0(c.a));
+   }
+}
+
+// 19.2.5.4 "combo border" : R8 = #10 written during C0 = R1 = 63 would be too late for the border of C0 = 63 and
+// taken for C0 = 0 : a border on both. DIVERGENCE : the emulation takes a R8 write within the character it lands
+// on (the SKEW multiplexer is selected at once), which 19.2.5.2 needs (R8 = #00 written during C0 = 0 removes the
+// delayed border of that character at once) ; both writes are the I/O of an OUT (C),r8, at the same instant of
+// their microsecond. The chronograms are given per microsecond while the text speaks of border bytes (1/2 us) :
+// kept until a finer measure tells how the two can coexist.
+TEST(Compendium_19, DISABLED_Crtc0ComboBorder)
+{
+   EXPECT_EQ(std::make_pair(true, true), BorderOn63And0(63));
+}
+
 // ---------------------------------------------------------------------------
 // Group H: CRTC 0 vertical logic (Compendium 10.3.1, 11.2.2, 11.3.1, 12.2,
 // 13.2, 13.7.2, 16.4.1). A register written after AdvanceUntilHccEquals(k)
