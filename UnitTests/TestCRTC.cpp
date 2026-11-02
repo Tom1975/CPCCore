@@ -4200,3 +4200,45 @@ TEST(Compendium_13, Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds)
       }
    }
 }
+
+// 13.6.1-13.6.3, chronograms p124-125, every type : R0 = &3F rewritten with &7F during the character
+// C0 = R0 is taken in time (C0 goes on to &40) ; landing on the C0 = 0 that follows it is too late (C0 = 0).
+// R0 = 0 (C0 stays on 0) rewritten with 10 during a C0 = 0 : C0 goes to 1 on the next character. (The column
+// of the I/O in each instruction is the I/O microsecond of 4.4, tested there.)
+TEST(Compendium_13, R0UpdateChronograms)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         AdvanceUntilHccEquals(crtc, 0x3F);
+         WriteRegister(crtc, 0, 0x7F);
+         Advance(crtc);
+         EXPECT_EQ(0x40, crtc.hcc_);
+      }
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         AdvanceUntilHccEquals(crtc, 0x3F);
+         Advance(crtc);
+         ASSERT_EQ(0, crtc.hcc_);
+         WriteRegister(crtc, 0, 0x7F);
+         Advance(crtc);
+         EXPECT_EQ(1, crtc.hcc_);
+      }
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         WriteRegister(crtc, 0, 0);
+         for (int i = 0; i < 3; ++i) { Advance(crtc); ASSERT_EQ(0, crtc.hcc_); }
+         WriteRegister(crtc, 0, 10);
+         Advance(crtc);
+         EXPECT_EQ(1, crtc.hcc_);
+      }
+   }
+}
