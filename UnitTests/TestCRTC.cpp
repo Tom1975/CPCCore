@@ -3338,6 +3338,62 @@ TEST(Compendium_16, Crtc2R7WrittenDuringALine)
    EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
 }
 
+// 16.4.1-16.4.4 : R7 = C4 written during the character C0 = p of a line C4 = 10 (C9 = 0 or 3), for every type
+// (R2 = 46, R3l = 14 : HSYNC from C0 = 46 to 59) :
+// - CRTC 0 : on C0 < 2 the VSYNC is blocked, later it starts at once (16.4.1.1) ;
+// - CRTC 1 : it starts at once (16.4.2) ;
+// - CRTC 2 : it starts at once, except when written from C0 = R2 to C0 = R2 + R3l - 1 : a GHOST VSYNC, no pin
+//   (16.4.3 ; the chronogram p156 places the last ghost on C0 = 59 and a real VSYNC on C0 = 60 = R2 + R3l) ;
+// - CRTC 3, 4 : the VSYNC starts only on C4 = R7, C9 = 0, C0 = 0 : none with C0 > 0 or C9 > 0 (16.4.4).
+// "At once" : the pin is up within 2 us. Not played : CRTC 3, 4 written on C0 = 0 of C9 = 0 (not given).
+TEST(Compendium_16, R7WrittenWithC4OnEveryPosition)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      for (int c9 : { 0, 3 })
+      {
+         for (int p : { 0, 1, 2, 5, 30, 45, 46, 59, 60, 61 })
+         {
+            const int g = (type == CRTC::HD6845S) ? 0 : (type == CRTC::UM6845R) ? 1 : (type == CRTC::MC6845) ? 2 : 3;
+            if (g == 3 && p == 0 && c9 == 0) continue;
+            SCOPED_TRACE(testing::Message() << TypeName(type) << " R7 = C4 written on C0 = " << p << " of C9 = " << c9);
+            CRTC crtc; CSig sig;
+            TypedScreen(crtc, sig, type, 38, 0, 7);
+            ASSERT_TRUE(ReachLine(crtc, 10, c9));
+            if (p > 0) AdvanceUntilHccEquals(crtc, (unsigned char)p);   // ReachLine stops on C0 = 0
+            ASSERT_FALSE(sig.v_sync_);
+            WriteRegister(crtc, 7, 10);
+            bool at_once = true;
+            if (g == 0) at_once = (p >= 2);
+            if (g == 2) at_once = (p < 46 || p >= 46 + 14);
+            if (g == 3) at_once = false;
+            if (at_once)
+               EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+            else
+               EXPECT_FALSE(VSyncSeen(crtc, sig, 8 * 64));
+         }
+      }
+   }
+}
+
+// 16.4 : on every CRTC, R7 can be written with the next C4 up to the last microsecond before it : R7 = C4 + 1
+// written on C0 = R0 of the line C9 = R9 starts the VSYNC on the first line of C4 = R7.
+TEST(Compendium_16, R7WrittenOnTheLastMicrosecondBeforeC4)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 7, 11);
+      EXPECT_FALSE(sig.v_sync_);
+      EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+      EXPECT_EQ(11, crtc.vcc_);
+   }
+}
+
 // 17.3 : a second C0 = R1 on the line C9 = R9 (R1 rewritten after C0 went past it) loads VMA' again :
 // R1 40 -> 50 on C0 = 45 : the next character row starts 50 characters further.
 TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)

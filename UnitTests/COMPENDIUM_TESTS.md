@@ -181,7 +181,7 @@ pas de comportement à vérifier).
 | 15.3.4 | CRTC 1/2 (CRTC 1 : 2e C-HSYNC, CRTC 2 : non) | 🟡 | `CRTC_HSyncReentrancy.Crtc1OverflowsWithAnInvisibleRestart`. À faire : C-HSYNC côté GA |
 | 15.3.5 | CRTC 3/4 | ✅ | `CRTC_HSyncReentrancy.Crtc234Overflow` |
 | 15.4.1-15.4.3 | VSYNC pendant la HSYNC, CRTC 0/1/3/4 (sans problème) | ✅ | `Compendium_15.VSyncDuringTheHSync` |
-| 15.4.4 | CRTC 2 : VSYNC fantôme | ✅ | `CRTC_Compendium.Crtc2GhostVSync`, `Crtc2NoGhostVSyncWithR2Zero` |
+| 15.4.4 | CRTC 2 : VSYNC fantôme | ✅ | `CRTC_Compendium.Crtc2GhostVSync`, `Crtc2NoGhostVSyncWithR2Zero`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (bornes du chronogramme p156) |
 | 15.5.1 | DISPEN pendant la HSYNC, CRTC 0/1/3/4 | ✅ | `Compendium_15.BorderLiftedDuringTheHSync` |
 | 15.5.2 | CRTC 2 | ✅ | `CRTC_Compendium.Crtc2BorderNotLiftedDuringHSync` |
 | 15.6 | CRTC 2 et HSYNC (récapitulatif, HSYNC qui déborde → C4 déborde) | 🟡 | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`. À faire : 2 HSYNC/ligne |
@@ -199,10 +199,10 @@ pas de comportement à vérifier).
 | 16.2.4 | Tolérances du moniteur | ❌ | |
 | 16.2.5 | Interactions CRTC/GA (nouvelle VSYNC CRTC pendant V26 → V26 remis à 0 ; CRTC 3/4 : C-VSYNC tant que la VSYNC CRTC est active) | 🟡 | `Compendium_16.ASecondCrtcVSyncRestartsTheTwentySixLines` (46 lignes sur CRTC 0/1/2, 26 sur 3/4, exemple p168). À faire : C-VSYNC moniteur des CRTC 3/4 |
 | 16.3 | Protection de VSYNC (1) et (2) | ✅ | `CRTC_VerticalSync.RewritingR7DoesNotRestartTheVSync`, `CRTC_AsicVertical.InfiniteVSyncWithoutProtection` |
-| 16.4.1 | Conditions CRTC 0 (VSYNC bloquée, gel C3h) | ✅ | `CRTC_Crtc0Vertical.R7WrittenDuringALine`, `VSyncCounterFrozenWithR0Zero`, `VSyncFrozenByAShortLine` |
-| 16.4.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1VSyncStartedDuringALine` |
-| 16.4.3 | CRTC 2 (évaluée à toutes les valeurs de C0/C9) | ✅ | `Compendium_16.Crtc2R7WrittenDuringALine` |
-| 16.4.4 | CRTC 3/4 | ✅ | `CRTC_AsicVertical.R7WrittenWithC4StartsNoVSync` |
+| 16.4.1 | Conditions CRTC 0 (VSYNC bloquée, gel C3h) | ✅ | `CRTC_Crtc0Vertical.R7WrittenDuringALine`, `VSyncCounterFrozenWithR0Zero`, `VSyncFrozenByAShortLine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.2 | CRTC 1 | ✅ | `CRTC_Compendium.Crtc1VSyncStartedDuringALine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.3 | CRTC 2 (évaluée à toutes les valeurs de C0/C9) | ✅ | `Compendium_16.Crtc2R7WrittenDuringALine`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (fantôme écrit de C0=R2 à R2+R3l-1, réelle sur R2-1 et R2+R3l : chronogramme p156), `R7WrittenOnTheLastMicrosecondBeforeC4` |
+| 16.4.4 | CRTC 3/4 | ✅ | `CRTC_AsicVertical.R7WrittenWithC4StartsNoVSync`, `Compendium_16.R7WrittenWithC4OnEveryPosition` (C0=0..61, C9=0 et 3), `R7WrittenOnTheLastMicrosecondBeforeC4` |
 | 16.5.1-16.5.4 | VSYNC différée (interlace) | ✅ | `CRTC_Compendium.InterlaceMidVSync`, `IvmVSyncDelayedOnOddC4` |
 | 16.6 | VSYNC sans limites (scroll vertical par la 2e HSYNC) | ❌ | test moniteur |
 | 16.7 | Le bon moment | ➖ | |

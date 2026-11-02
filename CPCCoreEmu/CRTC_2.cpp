@@ -20,8 +20,9 @@
 //                           Ligne") is active except on the first line of a frame (C4=C9=0), unless re-enabled.
 // - VMA'                    loaded on C0==R1 with R12/R13 if DL, else with VMA if C9==R9. VMA is loaded with
 //                           VMA' at each line start, the first line of a frame included (17.4.3).
-// - vsync_ghost_            a VSYNC condition met from C0=R2 to C0=R2+R3l (the HSYNC and the character that
-//                           ends it), except on the line start, starts a GHOST VSYNC : C3h counts the lines,
+// - vsync_ghost_            a VSYNC condition met during a character on which the HSYNC output is active (a
+//                           condition reached on C0=0 is seen on the edge that ends the previous character, so a
+//                           HSYNC spanning C0=0 hides it) starts a GHOST VSYNC : C3h counts the lines,
 //                           no new VSYNC is accepted, but the pin stays low (15.4.4).
 // - the border is not lifted on C0=0 while a HSYNC is active (15.5).
 //
@@ -159,8 +160,10 @@ void CRTC::ClockTick2 ()
    const bool line_eq = (vcc_ == registers_list_[4]) && c9_eq_r9_seen;
 
    ///////////////////////////////
-   // VSYNC (15.4.4, 16.3, 16.4.3) : evaluated on every C0, before the HSYNC starts on this character
-   const bool hsync_window = hsync_in_previous_char || (hcc_ == registers_list_[2] && hcc_ != 0);
+   // VSYNC (15.4.4, 16.3, 16.4.3) : evaluated on every C0. A condition met during a character on which the HSYNC
+   // output was active starts a GHOST VSYNC (chronogram p156 : R7 = C4 written on C0 = R2 - 1 gives a real
+   // VSYNC, on C0 = R2 to R2 + R3l - 1 a ghost one, on C0 = R2 + R3l a real one again)
+   const bool hsync_window = hsync_in_previous_char;
    if (vcc_ == registers_list_[7])
    {
       if ( v_no_sync_ && (!ff4_ || ff4_reset))
