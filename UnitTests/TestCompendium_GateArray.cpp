@@ -246,6 +246,26 @@ TEST(Compendium_9, InkOnePixelEarlierInMode2OnTheAsic40226)
    EXPECT_EQ(7, FirstPixelWithTheNewInk(CRTC::AMS40226, "6128", 2, InkInstruction::kOutCR8));
 }
 
+// 9.2.2 : the three schematics of each GATE ARRAY (OUTI, OUT (C),r8, OUT (n),A), every mode (0 to 3), every
+// type : the new colour is drawn from the 2nd byte of the I/O microsecond ; CRTC 4 (ASIC 40226) one Mode 2
+// pixel earlier in mode 2 only.
+TEST(Compendium_9, InkTakenOnEveryInstructionModeAndType)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128" },
+   };
+   const InkInstruction instructions[] = { InkInstruction::kOuti, InkInstruction::kOutCR8, InkInstruction::kOutNA };
+   for (const auto& m : machines)
+      for (int mode = 0; mode < 4; ++mode)
+         for (InkInstruction instruction : instructions)
+         {
+            SCOPED_TRACE(testing::Message() << "CRTC type " << (int)m.type << ", mode " << mode << ", instruction " << (int)instruction);
+            const int expected = (m.type == CRTC::AMS40226 && mode == 2) ? 7 : 8;
+            EXPECT_EQ(expected, FirstPixelWithTheNewInk(m.type, m.config, mode, instruction));
+         }
+}
+
 /////////////////////////////////////////////////////////////
 // 9.3 : graphic mode
 
@@ -281,11 +301,15 @@ int ModeAfterAWriteOn(CRTC::TypeCRTC type, int write_c0, unsigned char r3 = 0x8E
 }
 }
 
-// 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least.
+// 9.3.1 : the mode is changed during the HSYNC of the GATE ARRAY, which must last 2 us at least, on every CPC.
 TEST(Compendium_9, ModeChangeNeedsAHSyncOfTwoMicroseconds)
 {
-   EXPECT_EQ(2, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x81));
-   EXPECT_EQ(0, ModeAfterAWriteOn(CRTC::HD6845S, 40, 0x82));
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      EXPECT_EQ(2, ModeAfterAWriteOn(type, 40, 0x81));
+      EXPECT_EQ(0, ModeAfterAWriteOn(type, 40, 0x82));
+   }
 }
 
 // 9.3.2 : CRTC 0, 1, 2, R2 = 46, R3 = 14 : the new mode is taken for the next line when the write
@@ -296,9 +320,9 @@ TEST(Compendium_9, ModeChangeWindowCrtc012)
    for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
    {
       SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 45));
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 51));
-      EXPECT_EQ(2, ModeAfterAWriteOn(type, 52));
+      // The 10 rows of the schematic p53 : writes on C0vs 45 to 54
+      for (int write_c0 = 45; write_c0 <= 54; ++write_c0)
+         EXPECT_EQ(write_c0 <= 51 ? 0 : 2, ModeAfterAWriteOn(type, write_c0)) << "write on C0vs " << write_c0;
    }
 }
 
@@ -308,8 +332,68 @@ TEST(Compendium_9, ModeChangeWindowCrtc34)
    for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
    {
       SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
-      EXPECT_EQ(0, ModeAfterAWriteOn(type, 52));
-      EXPECT_EQ(2, ModeAfterAWriteOn(type, 53));
+      // The 10 rows of the schematic p53 : writes on C0vs 45 to 54
+      for (int write_c0 = 45; write_c0 <= 54; ++write_c0)
+         EXPECT_EQ(write_c0 <= 52 ? 0 : 2, ModeAfterAWriteOn(type, write_c0)) << "write on C0vs " << write_c0;
+   }
+}
+
+namespace
+{
+// Mode on C0 = 10 of the line after kLine : mode 2 screen, R3l = 3, mode 0 asked on C0 = 10 of kLine, then
+// R3l = 'r3l' written by OUT (C),C with its I/O (3rd microsecond) on C0vs = 46 + 'r3l', the microsecond where
+// C3l = r3l : R3.JIT, the HSYNC ends 0.25 us after r3l microseconds. r3l < 0 : no R3 write.
+int ModeAfterAnR3Jit(CRTC::TypeCRTC type, int r3l)
+{
+   for (int attempt = 0; attempt < 16; ++attempt)
+   {
+      Machine m(type);
+      Prepare(m, 2, 0x00);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::WriteCrtc(3, 0x83));
+      z80::Append(p, { 0x01, 0x03, 0xBC, 0xED, 0x49 });   // LD BC,&BC03 : OUT (C),C
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      if (!m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine && m.Crtc().hcc_ == 10; }, 4 * 20000)) return -1;
+      const int write_c0 = 46 + r3l;
+      p = { z80::kDi };
+      z80::Append(p, RmrMode(0));
+      if (r3l >= 0)
+      {
+         if (!m.CyclesUntil([&]() { return m.Crtc().hcc_ == 12; }, 4 * 200)) return -1;
+         // From C0 = 12 + 5 (DI, RMR), to the OUT (C),C of R3 : NOPs, then LD BC (3 us)
+         const int nops = write_c0 - 2 - 3 - 17 + (attempt / 2) - 4;
+         p.insert(p.end(), std::max(0, nops), z80::kNop);
+         p.insert(p.end(), attempt & 1, z80::kNop);
+         z80::Append(p, { 0x01, (unsigned char)(0x80 | r3l), 0xBD });   // LD BC,&BD8r
+      }
+      const unsigned short at = (unsigned short)(kProgram + p.size());
+      if (r3l >= 0) z80::Append(p, { 0xED, 0x49 });                  // OUT (C),C
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      if (r3l >= 0)
+      {
+         int line = -1;
+         const int start = m.InstructionStart(at, &line);
+         if (line != kLine || start + 2 != write_c0) continue;
+      }
+      if (!m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine + 1 && m.Crtc().hcc_ == 10; }, 4 * 200)) return -1;
+      return m.Ga().buffered_screen_mode_;
+   }
+   return -1;
+}
+}
+
+// 9.3.4.1 : CRTC 0, 1, 2 : a R3.JIT does not shorten the period the mode change needs : on the 2nd microsecond
+// of the HSYNC (1.25 us) the mode does not change, on the 3rd one (2.25 us) it does.
+TEST(Compendium_9, ModeChangeWithAnR3Jit)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      EXPECT_EQ(0, ModeAfterAnR3Jit(type, -1));
+      EXPECT_EQ(2, ModeAfterAnR3Jit(type, 1));
+      EXPECT_EQ(0, ModeAfterAnR3Jit(type, 2));
    }
 }
 

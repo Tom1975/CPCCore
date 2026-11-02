@@ -75,11 +75,11 @@ pas de comportement à vérifier).
 | 9.1 | Pixelisation : ordre des bits par mode (0, 1, 2, 3) | ✅ | `Compendium_9.PixelBitsOfEachMode` |
 | 9.1 | Mode 2 en avance d'1 pixel (GA 40007/40008/40010, ASIC 40226 ; pas ASIC 40489) | ✅ | `Compendium_9.Mode2PixelsAreOnePixelEarlyOnTheGateArray40010`, CPC+ aligné : `PixelsOfEveryModeAlignedOnTheCpcPlus` |
 | 9.2.1 | Pixels parasites bord/mode 2 | ➖ | défaut d'alimentation, non émulé |
-| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226` |
-| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (mode pris de la 2e à la 6e µs de la HSYNC-GA) |
-| 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` |
-| 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` |
-| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). **DISABLED** : `ModeSplittingPixelsCrtc4` (ASIC 40226 : 73/77 pixels au mieux, 2→0 et 2→3 à revérifier) |
+| 9.2.2 | Instant de prise en compte d'une encre : 2e octet du caractère affiché pendant la µs de l'I/O, quel que soit le mode (CRTC 4 : 1 pixel plus tôt en mode 2) | ✅ | `Compendium_9.InkTakenOnTheSecondByteOfTheIoMicrosecond`, `InkTakenOnTheSecondByteOfTheIoMicrosecondOnTheCpcPlus` (sans couleur intermédiaire), `InkOnePixelEarlierInMode2OnTheAsic40226`, `InkTakenOnEveryInstructionModeAndType` (OUTI / OUT (C),r8 / OUT (n),A × modes 0-3 × CRTC 0-4 ; a révélé le mode 3 non affiché sur CPC+) |
+| 9.3.1 | Changement de mode : pris pendant la HSYNC-GA (≥ 2 µs), registre mis à jour à la 3e µs de l'OUT | ✅ | `Compendium_9.ModeChangeNeedsAHSyncOfTwoMicroseconds` (CRTC 0-4 ; mode pris de la 2e à la 6e µs de la HSYNC-GA) |
+| 9.3.2 | Fenêtre de changement de mode CRTC 0/1/2 (écriture ≤ C0vs 51 avec R2=46, R3=14) | ✅ | `Compendium_9.ModeChangeWindowCrtc012` (les 10 lignes du schéma, C0vs 45 à 54) |
+| 9.3.3 | Fenêtre de changement de mode CRTC 3/4 (écriture ≤ C0vs 52) | ✅ | `Compendium_9.ModeChangeWindowCrtc34` (les 10 lignes, C0vs 45 à 54) |
+| 9.3.4 | Mode splitting : pixels « malaxés » (ancien mode sur 1 pixel M2, puis bits réutilisés) | 🟡 | Registre à décalage du GA (chargement, diviseur, mode au pixel 5/6) : `Compendium_9.ModeSplittingPixelsCrtc0/1/2` (§9.3.4.3, GA 40010). §9.3.4.1 R3.JIT : `Compendium_9.ModeChangeWithAnR3Jit` (2e µs : pas de changement, 3e µs : changement ; modèle : le latch du mode est validé quand H06 atteint 2, une chute de la broche pendant le 2e caractère de la HSYNC le remet à 0). À faire : pixels en R3.JIT (§9.3.4.4). **DISABLED** : `ModeSplittingPixelsCrtc4` (ASIC 40226 : 73/77 pixels au mieux, 2→0 et 2→3 à revérifier) |
 
 ## 10. Registre R9
 
