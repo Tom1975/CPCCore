@@ -3770,6 +3770,44 @@ TEST(Compendium_12, Crtc2LastLineStaysPreviousWithoutHSync)
    EXPECT_EQ(0, crtc.vlc_);
 }
 
+// 12.4.1, CRTC 2 :
+// - on C0 = 0 the last line comparison takes the new R4 but the R9 of the line start : on the last line
+//   C4 = R4 = 38, C9 = R9 = 7, R4 = 10 written on C0 = 0 cancels it (C4 + 1, no offset), R9 = 0 written on
+//   C0 = 0 does not (frame end, offset) ;
+// - "Gestion Derniere Ligne" is inactive on the first line of a frame (C4 = C9 = 0) : R4 = R9 = 0 written
+//   before the HSYNC does not make it a last line (C9 == R9 : C4 + 1) ; written after the last HSYNC character,
+//   which re-enabled it (C4 != R4 there), the line becomes a last line : frame end, but after C0 = R1, so
+//   VMA' was not loaded from R12/R13 (no offset, 17.4.3).
+TEST(Compendium_12, Crtc2LastLineEvaluationOnC0Zero)
+{
+   const struct { const char* what; int c4, c9; int p; int reg; unsigned char value; Line next; bool offset; } cases[] = {
+      { "R4 written on C0 = 0", 38, 7, 0, 4, 10, Line(39, 0), false },
+      { "R9 written on C0 = 0", 38, 7, 0, 9, 0, Line(0, 0), true },
+      { "R4 = R9 = 0 written on C0 = 10 of the first line", 0, 0, 10, -1, 0, Line(1, 0), false },
+      { "R4 = R9 = 0 written on C0 = 61 of the first line", 0, 0, 61, -1, 0, Line(0, 0), false },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(c.what);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+      if (c.p > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c.p);   // ReachLine stops on C0 = 0
+      SetOffset(crtc);
+      if (c.reg < 0)
+      {
+         WriteRegister(crtc, 4, 0);
+         WriteRegister(crtc, 9, 0);
+      }
+      else
+      {
+         WriteRegister(crtc, (unsigned char)c.reg, c.value);
+      }
+      EXPECT_EQ(c.next, NextLine(crtc));
+      EXPECT_EQ(c.offset, crtc.ma_ == kOffset);
+   }
+}
+
 namespace
 {
 // RVI row : C9 of the visible line, its R0 (R0.1), R9, C9 of the next visible line ; the hidden

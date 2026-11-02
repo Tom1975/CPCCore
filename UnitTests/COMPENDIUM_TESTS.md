@@ -125,7 +125,7 @@ pas de comportement à vérifier).
 | 12.2.1 | RLAL CRTC 0 | ✅ | `CRTC_Crtc0Vertical.LineToLineRupture` |
 | 12.3 | CRTC 1 (+ RLAL) | ✅ | `CRTC_Crtc1.R4WrittenOnTheLastLine`, `Compendium_12.Crtc1R4EqualsC4BeforeTheLastLineOfTheRow`, `Compendium_12.LineToLineRuptureCrtc134` |
 | 12.4 | CRTC 2 | ✅ | voir 12.4.1-12.4.2 |
-| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé), `Compendium_10.R9TablesPages79And80` (R9 écrit sur C0=0 : ignoré par l'évaluation de C0=0, pris par l'évaluation sur mise à jour) |
+| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé), `Compendium_10.R9TablesPages79And80` (R9 écrit sur C0=0 : ignoré par l'évaluation de C0=0, pris par l'évaluation sur mise à jour), `Compendium_12.Crtc2LastLineEvaluationOnC0Zero` (R4 sur C0=0 pris, R9 non ; GDL inactive sur la 1re ligne avant la HSYNC, réarmée après) |
 | 12.4.2 | RLAL CRTC 2 | ✅ | `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 12.5 | CRTC 3/4 (+ exception CRTC 3 : R4=0 avec « ROM select » simultané) | ✅ | `CRTC_AsicVertical.C4Overflows`, RLAL : `Compendium_12.LineToLineRuptureCrtc134` ; exception CRTC 3 (I/O avec ROM select prise 1 µs plus tôt) : `Compendium_12.Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier` |
 
