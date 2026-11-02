@@ -1121,6 +1121,45 @@ TEST(CRTC_Crtc0Vertical, R5IsSampledUntilC0Equals2)
    }
 }
 
+// 11.2.2, examples p83 : last line C4 = R4 = 38, C9 = R9 = 7, with an additional management (R5 > 0).
+// - R4 written between C0 = 2 and C0 = R0 : C4 != R4, C9 is compared with R5 instead of R9 and counts on ;
+//   the frame ends after the line C9 + 1 == R5 (example 2) ;
+// - R9 written between C0 = 2 and C0 = R0 - 1 : C9 != R9, C9 counts on, C4 is kept (38, 8) (example 3) ;
+// - R9 written exactly on C0 = R0 : C9 was compared with the old R9 for C4 (C4 + 1), then C4 != R4 and C9
+//   is compared with R5 : both are incremented (39, 8).
+TEST(Compendium_11, Crtc0R4R9WrittenOnTheLastLineOfAnAdjustment)
+{
+   {
+      SCOPED_TRACE("example 2 : R4 written on C0 = 10");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 4, 10);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+      EXPECT_EQ(Line(38, 9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("example 3 : R9 written on C0 = 10");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R9 written on C0 = R0");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(39, 8), NextLine(crtc));
+   }
+}
+
 // 12.2 : on the last line, R4 written on C0 = 0 cancels the last line ; written
 // on C0 = 1 it starts the additional management (the line becomes the first
 // additional line : C4 kept, C9 compared with R5). SAFETY NET.

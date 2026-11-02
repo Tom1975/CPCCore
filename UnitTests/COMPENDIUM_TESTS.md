@@ -98,7 +98,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 11.1 | R5 sur 5 bits, ligne interlace en plus | ✅ | `Compendium_11.R5KeepsFiveBits`, `CRTC_Compendium.InterlaceAddsALineEveryOtherFrame` |
-| 11.2.1-11.2.2 | Ajustement CRTC 0 | ✅ | `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`, `R5IsSampledUntilC0Equals2` |
+| 11.2.1-11.2.2 | Ajustement CRTC 0 | ✅ | `CRTC_Crtc0Vertical.AdjustmentCountsC9UpToR5`, `R5IsSampledUntilC0Equals2`, `Compendium_11.Crtc0R4R9WrittenOnTheLastLineOfAnAdjustment` (exemples 2 et 3 p83 : R4 ou R9 écrit après C0=2, et R9 sur C0=R0) |
 | 11.2.3-11.2.4 | Ajustement CRTC 1 | ✅ | `CRTC_Crtc1.AdjustmentUsesC5`, `R4WrittenOnTheLastLine` |
 | 11.2.5 | Ajustement CRTC 2 (C4++ à chaque C9=R9, R4/R9 pris pendant l'additionnel) | ✅ | `CRTC_Compendium.Crtc2AdjustmentUsesC5`, `Compendium_11.Crtc2R4R9WrittenOnTheLastLineCountDuringTheAdjustment` |
 | 11.2.6 | Ajustement CRTC 3/4 | ✅ | `CRTC_AsicVertical.AdjustmentKeepsC4AtR4` |

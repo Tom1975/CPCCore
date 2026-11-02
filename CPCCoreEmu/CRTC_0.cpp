@@ -26,8 +26,9 @@
 //                     (R5=0), confirmed otherwise (13.2.1). With R0<2 it is never cancelled (13.2.5).
 //                     R4 or R9 written on C0 = 1 of a last line : armed by the C0 = 0 sample, confirmed
 //                     on C0 = 2, the line becomes the first additional line (C4 kept, C9 counts on :
-//                     10.3.1.2, 12.2, table p80 R9 0 -> n). The note (***) of table p79 case 8 (C9 = 0,
-//                     C4 + 1) disagrees with this text : not followed.
+//                     10.3.1.2, 12.2, table p80 R9 0 -> n), as R4 or R9 written after C0 = 2 on a last
+//                     line with R5 > 0 (11.2.2, examples 2 and 3). The note (***) of table p79 case 8
+//                     (C9 = 0, C4 + 1) disagrees with these : not followed.
 // - adjust_confirmed_ C9 no longer returns to 0 on R9 (11.2.2). Once C4 differs from R4, C9 is compared
 //                     with R5 instead of R9 and C4 is kept.
 // - adjust_end_       next C9 == R5, sampled at the end of characters 0 to 2 : R5 written later on the
