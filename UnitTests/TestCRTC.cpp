@@ -2089,6 +2089,85 @@ TEST(CRTC_Compendium, AsicStatus1)
    }
 }
 
+// 21.3.4.1 : STATUS 1 on every C0 of a line : bit 4 = 0 on C0 = R2 + R3l (60) only ; bit 7 = 0 when VMA.Lsb = &FF
+// (C0 < R0) or when VMA'.Lsb = &00 (C0 = R0). R12/R13 = &30D8 : on C4 = 0, VMA.Lsb = &FF on C0 = 39 ; on C9 = R9
+// VMA' = VMA of C0 = R1 = &3100 : its Lsb is &00 on C0 = R0.
+TEST(Compendium_21, AsicStatus1OnEveryPosition)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (int c9 : { 3, 7 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", C4 = 0, C9 = " << c9);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 12, 0x30);
+         WriteRegister(crtc, 13, 0xD8);
+         AdvanceMicroseconds(crtc, 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, c9));
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            const unsigned char s = ReadStatus(crtc, 10);
+            EXPECT_EQ(c0 == 60, (s & 0x10) == 0);
+            EXPECT_EQ(c0 == 39 || (c0 == 63 && c9 == 7), (s & 0x80) == 0);
+         }
+      }
+   }
+}
+
+// 21.3.4.2 : STATUS 2 on every C0 of the lines C4 = R4, R6 - 1, R7 - 1 (C9 = R9), and C9 = 0, 3 :
+// bits 0, 1, 2 = 0 on C0 = R0 of their line ; bit 5 = 0 while C9 = R9 ; bit 7 = 1 on (C9 = R9, C0 = R0) and on
+// (C9 = 0, C0 < R0).
+TEST(Compendium_21, AsicStatus2OnEveryPosition)
+{
+   struct { int c4, c9; } const lines[] = { { 38, 7 }, { 24, 7 }, { 29, 7 }, { 10, 0 }, { 10, 3 } };
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (const auto& l : lines)
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", C4 = " << l.c4 << ", C9 = " << l.c9);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         ASSERT_TRUE(ReachLine(crtc, l.c4, l.c9));
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            const unsigned char s = ReadStatus(crtc, 11);
+            const bool last_char = (l.c9 == 7 && c0 == 63);
+            EXPECT_EQ(last_char && l.c4 == 38, (s & 0x01) == 0);
+            EXPECT_EQ(last_char && l.c4 == 24, (s & 0x02) == 0);
+            EXPECT_EQ(last_char && l.c4 == 29, (s & 0x04) == 0);
+            EXPECT_EQ(l.c9 == 7, (s & 0x20) == 0);
+            EXPECT_EQ(last_char || (l.c9 == 0 && c0 < 63), (s & 0x80) != 0);
+         }
+      }
+   }
+}
+
+// 21.3.3 : CRTC 1, status bit 5 (BORDER R6), chronogram p247 : IN A,(C) reads on its 4th microsecond ; read on
+// C0 = 61, 62, 63 (&3D..&3F) of the line before, the old state ; on C0 = 0 of the line C4 = R6, C9 = 0 the new one
+// (1), and of the line C4 = C9 = 0 (0).
+TEST(Compendium_21, Crtc1StatusBorderR6AroundTheLineStart)
+{
+   struct { int c4, c9; unsigned char before, after; } const cases[] = { { 24, 7, 0x00, 0x20 }, { 38, 7, 0x20, 0x00 } };
+   for (const auto& c : cases)
+   {
+      for (int c0 : { 61, 62, 63, 0 })
+      {
+         SCOPED_TRACE(testing::Message() << "line C4 = " << c.c4 << ", read on C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Crtc1Screen(crtc, sig, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+         AdvanceUntilHccEquals(crtc, (unsigned char)(c0 == 0 ? 63 : c0));
+         if (c0 == 0) Advance(crtc);
+         EXPECT_EQ(c0 == 0 ? c.after : c.before, crtc.In(0xBE00) & 0x20);
+      }
+   }
+}
+
 // STATUS 2 : bit 0 = 0 on C4 = R4, C9 = R9, C0 = R0 ; bit 4 always 1 ; bit 5 =
 // 0 while C9 = R9 ; bit 6 always 0.
 TEST(CRTC_Compendium, AsicStatus2)

@@ -279,8 +279,8 @@ pas de comportement à vérifier).
 |---|---|---|---|
 | 21.2.1-21.2.3 | Lecture du contenu des registres | ✅ | `CRTC_RegisterRead.Crtc0/Crtc1/Crtc2/Crtc34UseAThreeBitTable` |
 | 21.3.2 | Status CRTC 0/2 (haute impédance) | 🟡 | `CRTC_RegisterRead.StatusPort` |
-| 21.3.3 | Status CRTC 1 (bit 5) | ✅ | `CRTC_Crtc1.StatusBorderR6` |
-| 21.3.4 | Status CRTC 3/4 | ✅ | `CRTC_Compendium.AsicStatus1`, `AsicStatus2` |
+| 21.3.3 | Status CRTC 1 (bit 5) | ✅ | `CRTC_Crtc1.StatusBorderR6`, `Compendium_21.Crtc1StatusBorderR6AroundTheLineStart` (chronogramme p247 : lecture sur C0=61/62/63 → ancien état, sur C0=0 → nouveau, deux transitions) |
+| 21.3.4 | Status CRTC 3/4 | ✅ | `CRTC_Compendium.AsicStatus1`, `AsicStatus2`, `Compendium_21.AsicStatus1OnEveryPosition` (bits 4 et 7 sur chaque C0), `Compendium_21.AsicStatus2OnEveryPosition` (bits 0, 1, 2, 5, 7 sur chaque C0 de 5 lignes) |
 | 21.4 | Pas de dummy register sur CPC | ✅ | registre 31 : `CRTC_RegisterRead.Crtc0` / `Crtc2` (0), `Crtc1` (non nul), `Crtc34UseAThreeBitTable` (R15) |
 
 ## 22-25. Autres registres, fullscreen, trucs et astuces, temps fixe
