@@ -231,7 +231,7 @@ pas de comportement à vérifier).
 | 18.2.3 | CRTC 1 | ✅ | `CRTC_Crtc1.R6ZeroBorder` |
 | 18.2.4 | CRTC 3/4 (testé au début de la ligne) | ✅ | `CRTC_AsicVertical.R6TestedAtTheLineStartOnly` |
 | 18.3.2 | Conflits R6=0, CRTC 0/2 | ✅ | `CRTC_Compendium.R6ZeroOnTheFirstLine`, `R6ZeroConflictResolvedOnC0EqualsR1` |
-| 18.3.3 | CRTC 1 (exception sur le dernier caractère du frame) | 🟡 | `CRTC_Crtc1.R6ZeroBorder`. À faire : exception du dernier caractère |
+| 18.3.3 | CRTC 1 (exception sur le dernier caractère du frame) | ✅ | `CRTC_Crtc1.R6ZeroBorder`, `Compendium_18.Crtc1R6ZeroOnTheLastCharacterOfTheFrame` (R6=0 écrit jusqu'à C0=R0 de la dernière ligne : border annulable ; sur C0=0 de la 1re ligne : définitif) |
 | 18.3.4 | CRTC 3/4 (R6=0 sans traitement spécial) | ✅ | `Compendium_18.AsicR6Zero` |
 
 ## 19. Registre R8

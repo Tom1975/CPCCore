@@ -1638,6 +1638,31 @@ TEST(CRTC_Crtc1, R6ZeroBorder)
    }
 }
 
+// 18.2.3, 18.3.3 : CRTC 1, the exception on the last character of the frame. R6 = 0 written up to C0 = R0 of the
+// last line : C4 = R6 = 0 is met on the frame start, which allows the display again ; the border then only comes
+// from R6 = 0, and R6 = 25 written on the first line cancels it. Written on C0 = 0 of the first line, C4 = R6 = 0
+// makes it definitive until the next frame.
+TEST(Compendium_18, Crtc1R6ZeroOnTheLastCharacterOfTheFrame)
+{
+   for (int on_the_last_character : { 1, 0 })
+   {
+      SCOPED_TRACE(on_the_last_character ? "R6 = 0 written on C0 = R0 of the last line" : "R6 = 0 written on C0 = 0 of the first line");
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      if (on_the_last_character) WriteRegister(crtc, 6, 0);
+      Advance(crtc);
+      ASSERT_EQ(0, crtc.vcc_);
+      ASSERT_EQ(0, crtc.hcc_);
+      if (!on_the_last_character) WriteRegister(crtc, 6, 0);
+      AdvanceUntilHccEquals(crtc, 5);
+      WriteRegister(crtc, 6, 25);
+      Advance(crtc);
+      EXPECT_EQ(on_the_last_character != 0, crtc.DispEn());
+   }
+}
+
 // 21.3.3 : &BE00 bit 5 is the BORDER R6 state, updated at the line end. SAFETY NET.
 TEST(CRTC_Crtc1, StatusBorderR6)
 {

@@ -16,6 +16,9 @@
 // - vma_reload_         VMA is loaded from R12/R13 at each line start instead of VMA' : set by a new
 //                       frame or a R.F.D., cleared at the line end after C0==R1 && C9==R9 (or C9==R9 alone
 //                       when R1>R0), unless C4==R4 at that line end (17.4.2, 11.2.4, 11.6).
+// - ff3_ / r6_eq_prev_  BORDER R6 flip-flop : reset by the rising edge of C4 == R6, set by the frame start, which
+//                       wins when both come together (18.2.3, 18.3.3). R6 = 0 also forces the border while it
+//                       stays 0 (DispEn).
 // - status_border_r6_   status bit 5, updated at the line end (21.3.3).
 // - last_line_sampled_  last_line_ already sampled on this line : R0 lengthened on the last line which is
 //                       then cancelled gives a R.F.D. (13.7.1.2).
@@ -198,10 +201,15 @@ void CRTC::ClockTick1 ()
    }
 
 
-   if (vcc_ == registers_list_[6])
+   // BORDER R6 (18.2.3) : its flip-flop is reset by the rising edge of the C4 == R6 comparator and set by the frame
+   // start. When the edge comes on the frame start (R6 = 0 written up to C0 = R0 of the last line) the set wins :
+   // the display is allowed again, the border then only comes from R6 = 0 and a R6 != C4 cancels it (18.3.3)
+   const bool r6_eq = (vcc_ == registers_list_[6]);
+   if (r6_eq && !r6_eq_prev_)
    {
       ff3_reset = true;
    }
+   r6_eq_prev_ = r6_eq;
 
    // Flip flop computations
    if (hcc_ == 0)
@@ -231,13 +239,13 @@ void CRTC::ClockTick1 ()
       ff1_ = false;
    }
 
-   if ( ff3_reset && !ff3_set)
-   {
-      ff3_ = false;
-   }
-   else if ( !ff3_reset && ff3_set)
+   if (ff3_set)
    {
       ff3_ = true;
+   }
+   else if (ff3_reset)
+   {
+      ff3_ = false;
    }
 
    if ( ff4_reset && !ff4_set)

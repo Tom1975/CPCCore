@@ -107,7 +107,7 @@ public:
    unsigned char frame_counter_; // frames counter : STATUS 2 bit 3 toggles every 16 frames (21.3.4.2)
    // Interlace (19.5 to 19.7) : even_field_ is ParitéFrame (true = even frame)
    bool parity_r6_;             // CRTC 0/2 ParitéR6 (true = odd) : loaded with !ParitéFrame when C4 reaches R6
-   bool r6_eq_prev_;            // previous C4==R6, for the rising edge loading ParitéR6
+   bool r6_eq_prev_;            // previous C4==R6 : CRTC 0/2 rising edge loading ParitéR6, CRTC 1 rising edge of BORDER R6
    bool vsync_mid_pending_;     // MID-VSYNC : the VSYNC starts when C0 reaches R0/2
    bool interlace_line_;        // CRTC 3/4 : additional interlace line in progress (C9 forced to 0)
    bool parity_c9_;             // CRTC 1/3/4 ParitéC9 (true = odd) : bit 0 of C9 in Interlace Video Mode
