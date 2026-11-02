@@ -2336,6 +2336,46 @@ TEST(CRTC_Compendium, InterlaceVideoModeAlternatesTheLines)
    }
 }
 
+// 19.4.1, 19.4.3, 19.4.4 : vertical programming in Interlace Video Mode (R8 = 3), address C9 of the lines of the row
+// C4 = 5 on 2 consecutive frames :
+// - CRTC 0, 3, 4, R9 = 0 : 1 line per frame (2 lines in all) ;
+// - CRTC 2, R9 = N - 1 = 7 : 8 lines on each frame, VMA changes after 4 lines (C9.IVM, 19.8.3) ;
+// - CRTC 2, R9 = 6 : an odd number of lines (7) on each frame, the line C9 = 7 is displayed on the odd frames.
+TEST(Compendium_19, VerticalProgrammingInIvmByType)
+{
+   struct { CRTC::TypeCRTC type; unsigned char r9; const char* even; const char* odd; } const cases[] = {
+      { CRTC::HD6845S, 0, "0", "1" }, { CRTC::AMS40489, 0, "0", "1" }, { CRTC::AMS40226, 0, "0", "1" },
+      { CRTC::MC6845, 7, "02460246", "13571357" }, { CRTC::MC6845, 6, "0246024", "1357135" },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << ", R9 = " << int(c.r9));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, c.type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 8, 3);
+      WriteRegister(crtc, 9, c.r9);
+      AdvanceMicroseconds(crtc, 3 * 19968);
+      for (int frame = 0; frame < 2; ++frame)
+      {
+         const std::string rows = RowAddressC9s(crtc, 5);
+         // even_field_ : ParitéFrame of the frame of the row (still in it, on C4 = 6)
+         EXPECT_EQ(crtc.even_field_ ? c.even : c.odd, rows) << "frame " << frame;
+      }
+   }
+   // CRTC 2, R9 = 7 : VMA changes after 4 lines
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 8, 3);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   ASSERT_TRUE(ReachLine(crtc, 5, crtc.even_field_ ? 0 : 1));
+   std::vector<unsigned short> starts;
+   while (crtc.vcc_ == 5) { starts.push_back(crtc.ma_); AdvanceUntilHccEquals(crtc, 0); }
+   ASSERT_EQ(8u, starts.size());
+   for (int i = 0; i < 8; ++i) EXPECT_EQ(starts[0] + (i < 4 ? 0 : 40), starts[i]) << "line " << i;
+}
+
 // --- Interlace Video Mode, details (second batch) ------------------------------
 
 // 19.8.1 (table p222) : on CRTC 0 the IVM state set by R8 is taken when C0
