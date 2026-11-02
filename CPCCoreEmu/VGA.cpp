@@ -392,7 +392,9 @@ const unsigned char kShiftPeriod[4] = { 4, 2, 1, 4 };
 // out of the shift register. 'buffer' is nullptr out of the screen : the register runs all the same.
 // - Mode 2 is one pixel early (9.1) : its bytes are loaded one pixel earlier than in the other modes ;
 // - a mode changed during the HSYNC reaches the decoder on the pixel 5, the divider on the pixel 6 :
-//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ;
+//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ; the ASIC
+//   40226 has no divider : its shifts follow the position in the byte, its mode changes on the pixel 3
+//   (9.3.4.5) ;
 // - a written ink is taken on the pixel 8 of the output whatever the mode ; on the ASIC 40226, the
 //   pixel 7 in Mode 2 (9.2.2).
 void GateArray::ShiftRegisterBlock(int* buffer)
@@ -404,21 +406,43 @@ void GateArray::ShiftRegisterBlock(int* buffer)
    bool loaded = false;
    for (int p = 0; p < 16; ++p)
    {
-      if (p == 5) sr_mode_ = target;
-      if (p == 6) sr_div_mode_ = target;
       const int q = p & 7;
       if (q == 0) loaded = false;
-      if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+      if (asic_40226)
       {
-         sr_ = bytes[p >> 3];
-         sr_div_ = 0;
-         sr_shown_ = shown[p >> 3];
-         loaded = true;
+         // ASIC 40226 (9.3.4.5) : no divider of its own, the shift follows the position c in the byte of the
+         // modes 0, 1, 3 (c = 0 on its load) : the register shifts before each pixel whose c is a multiple of
+         // the period of the mode of the pixel that ends. One mode for the decoder and the shift, taken after
+         // the shift on the pixel 3 of the block (4th Mode 2 pixel, c = 2 ; 9.3.4.1)
+         const int c = (q + 7) & 7;
+         if (!loaded && ((q == 0 && sr_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (c % kShiftPeriod[sr_mode_] == 0)
+         {
+            sr_ <<= 1;
+         }
+         if (p == 3) sr_mode_ = sr_div_mode_ = target;
       }
-      else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+      else
       {
-         sr_ <<= 1;
-         sr_div_ = 0;
+         if (p == 5) sr_mode_ = target;
+         if (p == 6) sr_div_mode_ = target;
+         if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_div_ = 0;
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+         {
+            sr_ <<= 1;
+            sr_div_ = 0;
+         }
       }
       if (buffered_ink_available_ && p >= ((asic_40226 && sr_mode_ == 2) ? 7 : 8))
          monitor_->RecomputeColors();

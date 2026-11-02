@@ -728,42 +728,45 @@ std::vector<int> ExpectedSplitAsic40226(int from, int to, unsigned char b)
    const int old0 = pen0(1, 5, 3, 7), old13 = pen2(3, 7);
    if (from == 2)
    {
+      if (to == 2) return run(Bit(b, 5), { { Bit(b, 4), 1 }, { Bit(b, 3), 1 }, { Bit(b, 2), 1 }, { Bit(b, 1), 1 }, { Bit(b, 0), 1 } });
       if (to == 0) return run(Bit(b, 5), { { (Bit(b, 2) << 2) | (Bit(b, 0) << 1) | Bit(b, 4), 2 }, { (Bit(b, 1) << 2) | Bit(b, 3), 4 } });
       if (to == 1) return run(Bit(b, 5), { { pen2(0, 4), 2 }, { Bit(b, 3), 2 }, { Bit(b, 2), 2 } });
       if (to == 3) return run(Bit(b, 5), { { pen2(0, 4), 2 }, { Bit(b, 3), 4 } });
    }
    if (from == 0)
    {
+      if (to == 0) return run(old0, { { old0, 2 }, { pen0(0, 4, 2, 6), 4 } });
       if (to == 1) return run(old0, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
       if (to == 2) return run(old0, { { Bit(b, 7), 1 }, { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 } });
-      if (to == 3) return run(kAny, { { kAny, 2 }, { pen2(2, 6), 4 } });
+      if (to == 3) return run(old0, { { pen2(3, 7), 2 }, { pen2(2, 6), 4 } });
    }
    if (from == 1)
    {
+      if (to == 1) return run(old13, { { pen2(2, 6), 2 }, { pen2(1, 5), 2 }, { pen2(0, 4), 2 } });
       if (to == 0) return run(old13, { { pen0(0, 4, 2, 6), 2 }, { (Bit(b, 3) << 2) | (Bit(b, 1) << 1) | Bit(b, 5), 4 } });
       if (to == 2) return run(old13, { { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 }, { Bit(b, 2), 1 } });
       if (to == 3) return run(old13, { { pen2(2, 6), 2 }, { pen2(1, 5), 4 } });
    }
    if (from == 3)
    {
+      if (to == 3) return run(old13, { { old13, 2 }, { pen2(2, 6), 4 } });
       if (to == 0) return run(old13, { { pen0(1, 5, 3, 7), 2 }, { pen0(0, 4, 2, 6), 4 } });
-      if (to == 1) return run(kAny, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
+      if (to == 1) return run(old13, { { pen2(3, 7), 2 }, { pen2(2, 6), 2 }, { pen2(1, 5), 2 } });
       if (to == 2) return run(old13, { { Bit(b, 7), 1 }, { Bit(b, 6), 1 }, { Bit(b, 5), 1 }, { Bit(b, 4), 1 }, { Bit(b, 3), 1 } });
    }
    return {};
 }
 }
 
-// DISABLED : the shift register of the GATE ARRAY 40010 (loads, divider, mode taken on the pixels
-// 5 / 6) gives 73 of the 77 pixels at best on the ASIC 40226 (with the shift on the position in the
-// byte) : the 2 -> 0 and 2 -> 3 splits differ on their pixels 3 and 4. To check against the schematics.
-TEST(Compendium_9, DISABLED_ModeSplittingPixelsCrtc4)
+// The ASIC 40226 has no divider of its own : the shifts follow the position in the byte, one mode for the
+// decoder and the shift, taken on the 4th Mode 2 pixel (see GateArray::ShiftRegisterBlock). Every couple of
+// modes of the tables p69-73, same mode included.
+TEST(Compendium_9, ModeSplittingPixelsCrtc4)
 {
    const unsigned char byte = 0xB4;
    for (int from = 0; from < 4; ++from)
       for (int to = 0; to < 4; ++to)
       {
-         if (from == to) continue;
          SCOPED_TRACE(testing::Message() << "mode " << from << " -> " << to);
          Machine m(CRTC::AMS40226);
          Prepare(m, from, byte);
