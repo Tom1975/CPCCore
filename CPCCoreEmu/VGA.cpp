@@ -565,6 +565,14 @@ void GateArray::TickSignals()
    // The mode is taken during the HSYNC of the GATE ARRAY (at most 6 us), from its 2nd microsecond : an
    // HSYNC of 1 us does not change it (9.3.1). A write during such a microsecond is taken at its end.
    // (An older note said that taking it after the 1st microsecond broke "Imperial Mahjong".)
+   // The mode latch is enabled from H06 = 2, at the end of the 2nd character of the HSYNC (like SIG_GA_HSYNC,
+   // 16.2.2) : a fall of the pin inside that character (R3.JIT on the 2nd microsecond) resets H06 before, the
+   // mode is not taken (9.3.4.1 : 1.25 us is not enough, 2.25 us is)
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   if (hsync_counter_ == 2 && (quarters & 0x1) != 0 && (quarters & 0x8) == 0)
+   {
+      mode_window_ = false;
+   }
    if (mode_window_ && activation_mode_ != 0)
    {
       activation_mode_--;
@@ -683,7 +691,9 @@ unsigned int GateArray::TickVideo()
          {
             // The GATE ARRAY takes DISPEN for each of the 2 bytes of the character (17.6, 18.3.2)
             half_border_ = (dispen_buffered_ != dispen_buffered_h_);
-            switch (buffered_screen_mode_)
+            // Mode 3 is decoded as mode 0 with the 2 upper bits of the pen forced to 0 (9.1 : 0 0 A1 A0)
+            const unsigned int pen_mask = (buffered_screen_mode_ == 3) ? 0x3 : 0xF;
+            switch ((plus_ && buffered_screen_mode_ == 3) ? 0 : buffered_screen_mode_)
             {
             case 0:
             {
@@ -714,7 +724,7 @@ unsigned int GateArray::TickVideo()
                   {
                      int col;
                      #define PUTPIXEL(i)\
-                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];\
+                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & pen_mask];\
                         buffer_to_display[i*4] = col;\
                         buffer_to_display[i*4+1] = col;\
                         buffer_to_display[i*4+2] = col;\
@@ -876,17 +886,6 @@ unsigned int GateArray::TickVideo()
                   END_OF_DISPLAY
                }
 
-            }
-            case 3:
-            {
-               if (plus_)
-               {
-                  // Sprite
-                  if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
-                  DrawSprites(buffer_to_display);
-
-                  END_OF_DISPLAY
-               }
             }
             }
          }
