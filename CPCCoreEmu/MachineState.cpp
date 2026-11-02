@@ -972,7 +972,7 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->hsync_ended_on_r2_ ? 1 : 0);      // added later : optional when read
    out.push_back(c->hsync_end_c3l_);
    out.push_back(c->last_line_sampled_ ? 1 : 0);      // added later : optional when read
-   out.push_back(c->last_line_seen_ ? 1 : 0);         // added later : optional when read
+   out.push_back(0);                                  // reserved (a CRTC 0 state no longer used) : optional when read
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -1070,7 +1070,7 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
       c->hsync_end_c3l_ = p[at++];
    }
    c->last_line_sampled_ = (size - at >= 1) ? (p[at++] != 0) : false;
-   c->last_line_seen_ = (size - at >= 1) ? (p[at++] != 0) : false;
+   if (size - at >= 1) at++;                          // reserved
 
    return (at == size);
 }

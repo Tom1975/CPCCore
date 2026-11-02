@@ -91,7 +91,7 @@ pas de comportement à vérifier).
 | 10.3.2 | CRTC 1 | ✅ | `CRTC_Crtc1.R9WrittenDuringTheLine` |
 | 10.3.3 | CRTC 2 (débordement de C9, R9 lié à la dernière ligne) | ✅ | débordement : `Compendium_10.R9BelowC9` ; R9 écrit pendant / après la HSYNC (dernière ligne, §12.4.2) : `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 10.3.4 | CRTC 3/4 : comparaison C9 ≥ R9, pas de débordement | ✅ | `CRTC_AsicVertical.C9CannotOverflow` |
-| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | ✅ | `Compendium_10.R9TablesPages79And80` (les 6 tableaux, 8 cas, R9 écrit sur C0=10 ; CRTC 2 du tableau R9 0→n non fixé par le compendium : exclu), `Compendium_10.R9BelowC9` |
+| 10.3 | Tableaux p79-80 (R9 7→0 selon C9, C4=R4 ou non, R9 0→n) | 🟡 | `Compendium_10.R9TablesPages79And80` (les 6 tableaux, 8 cas, chaque branche des notes : R9 écrit sur C0=0, 1, 2, 10 et 42 > R1 ; non joués : CRTC 2 pendant la HSYNC et CRTC 2 du tableau R9 0→n, résultats non donnés), `Compendium_10.R9BelowC9`. Divergence : `DISABLED_Crtc0Table79Case8WrittenOnC0Below2` — la note (\*\*\*) du tableau 1 case 8 (CRTC 0, C0<2 : C9=0, C4+1) contredit §10.3.1.2, §12.2 et la note (\*\*) du tableau 6 ; l'émulation suit le texte. À trancher par une mesure sur CRTC 0 |
 
 ## 11. Registre R5
 
@@ -125,7 +125,7 @@ pas de comportement à vérifier).
 | 12.2.1 | RLAL CRTC 0 | ✅ | `CRTC_Crtc0Vertical.LineToLineRupture` |
 | 12.3 | CRTC 1 (+ RLAL) | ✅ | `CRTC_Crtc1.R4WrittenOnTheLastLine`, `Compendium_12.Crtc1R4EqualsC4BeforeTheLastLineOfTheRow`, `Compendium_12.LineToLineRuptureCrtc134` |
 | 12.4 | CRTC 2 | ✅ | voir 12.4.1-12.4.2 |
-| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé) |
+| 12.4.1 | Concept de dernière ligne (DL, GDL, DLP) | ✅ | `CRTC_Compendium.Crtc2HSyncOnC0ZeroCancelsTheLastLine`, `Crtc2PreviousLastLine`, `Compendium_12.Crtc2LastLineStaysPreviousWithoutHSync` (absence de HSYNC : DLP figé), `Compendium_10.R9TablesPages79And80` (R9 écrit sur C0=0 : ignoré par l'évaluation de C0=0, pris par l'évaluation sur mise à jour) |
 | 12.4.2 | RLAL CRTC 2 | ✅ | `CRTC_Compendium.Crtc2LineToLineRupture` |
 | 12.5 | CRTC 3/4 (+ exception CRTC 3 : R4=0 avec « ROM select » simultané) | ✅ | `CRTC_AsicVertical.C4Overflows`, RLAL : `Compendium_12.LineToLineRuptureCrtc134` ; exception CRTC 3 (I/O avec ROM select prise 1 µs plus tôt) : `Compendium_12.Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier` |
 
@@ -134,7 +134,7 @@ pas de comportement à vérifier).
 | § | Sujet | Statut | Tests / à faire |
 |---|---|---|---|
 | 13.1 | C0 de 0 à R0 | ✅ | `CRTC_HorizontalCounter.WrapsFromR0BackToZero` |
-| 13.2.1 | CRTC 0 : les 3 premières µs | ✅ | `Compendium_13.Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds` (R9 écrit sur C0=0/1/2, lignes C9=7 et C9=0), `CRTC_Crtc0Vertical.R4WrittenOnC0Equals0Or1OfTheLastLine`, `R5IsSampledUntilC0Equals2` |
+| 13.2.1 | CRTC 0 : les 3 premières µs | ✅ | `Compendium_13.Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds` (R9 écrit sur C0=0/1/2, lignes C9=7 et C9=0 : sur C0=1 la ligne devient la première ligne additionnelle, §10.3.1.2), `CRTC_Crtc0Vertical.R4WrittenOnC0Equals0Or1OfTheLastLine`, `R5IsSampledUntilC0Equals2`, `Dumps_Disk.OverflowPreview2Crtc0` (R.V.I. Overflow, R0=1) |
 | 13.2.2 | Gel de VSYNC | ✅ | `CRTC_Crtc0Vertical.VSyncFrozenByAShortLine` |
 | 13.2.3-13.2.4 | Gel de ligne additionnelle, gel de C9 | ✅ | `CRTC_R0Zero.*` |
 | 13.2.5 | R0=1 | ✅ | `CRTC_Crtc0Vertical.R0EqualsOneAlternatesC4` |

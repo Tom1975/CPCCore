@@ -11,7 +11,9 @@
 //                           sampled at the start of the character (c9_eq_r9_at_start_ : a R9 written on
 //                           C0=0 is seen too late). Refused if the previous line was already a last line
 //                           (DLP) or if a HSYNC starts on C0=0. During the line it is also set by a rising
-//                           edge of C4==R4 && C9==R9 (register write) if GDL is active, outside the HSYNC.
+//                           edge of C4==R4 && C9==R9 (register write) if GDL is active, outside the HSYNC ;
+//                           the comparator sees the new R9 of a write on C0=0 from the next character, which
+//                           gives that edge there.
 //                           Once true, it cannot be cancelled in the line.
 // - dlp_ (DLP)              C4==R4 && C9==R9 on the last character of the HSYNC.
 // - gdl_reenabled_          set on the last HSYNC character when C4!=R4 || C9!=R9 : GDL ("Gestion Dernière
@@ -151,7 +153,10 @@ void CRTC::ClockTick2 ()
       c9_eq_r9_at_start_ = C9EqualsR9();
    }
 
-   const bool line_eq = (vcc_ == registers_list_[4]) && C9EqualsR9();
+   // C4==R4 && C9==R9 comparator. During the character C0==0 its R9 input is still the R9 of the line start :
+   // a R9 written on C0==0 changes its output on the next character only (12.4.1)
+   const bool c9_eq_r9_seen = (prev == 0 && !c0_reset) ? c9_eq_r9_at_start_ : C9EqualsR9();
+   const bool line_eq = (vcc_ == registers_list_[4]) && c9_eq_r9_seen;
 
    ///////////////////////////////
    // VSYNC (15.4.4, 16.3, 16.4.3) : evaluated on every C0, before the HSYNC starts on this character
@@ -193,7 +198,7 @@ void CRTC::ClockTick2 ()
    // is evaluated before the next line starts, see above)
    if (prev == 0 && !c0_reset)
    {
-      last_line_ = (vcc_ == registers_list_[4]) && c9_eq_r9_at_start_ && !dlp_ && !hsync_on_line_start_;
+      last_line_ = line_eq && !dlp_ && !hsync_on_line_start_;
    }
    else if (!c0_reset && !last_line_ && line_eq && !last_line_eq_ && !hsync_ && (!first_line || gdl_reenabled_))
    {

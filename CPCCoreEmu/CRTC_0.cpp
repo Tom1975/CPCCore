@@ -24,10 +24,10 @@
 // - adjust_           additional management, armed as soon as last_line_ is sampled true. At the end of
 //                     character 2 it is cancelled if it is the last line and no line is to be added
 //                     (R5=0), confirmed otherwise (13.2.1). With R0<2 it is never cancelled (13.2.5).
-//                     Armed on a last line, it has programmed the end of that line : C9 returns to 0 and
-//                     C4 is incremented once, even when R9 written on C0 = 1 cancelled the last line, as
-//                     long as C4 == R4 (last_line_seen_, 12.2, table p79 case 8 ; with C4 != R4 the line is
-//                     the first additional line : C4 kept, C9 compared with R5).
+//                     R4 or R9 written on C0 = 1 of a last line : armed by the C0 = 0 sample, confirmed
+//                     on C0 = 2, the line becomes the first additional line (C4 kept, C9 counts on :
+//                     10.3.1.2, 12.2, table p80 R9 0 -> n). The note (***) of table p79 case 8 (C9 = 0,
+//                     C4 + 1) disagrees with this text : not followed.
 // - adjust_confirmed_ C9 no longer returns to 0 on R9 (11.2.2). Once C4 differs from R4, C9 is compared
 //                     with R5 instead of R9 and C4 is kept.
 // - adjust_end_       next C9 == R5, sampled at the end of characters 0 to 2 : R5 written later on the
@@ -69,17 +69,11 @@ void CRTC::ClockTick0 ()
          // C4 is kept : the adjustment ends when the next C9 reaches R5
          new_frame = c9_managed_ && adjust_end_;
       }
-      else if (c4_increment_ || (adjust_ && last_line_seen_))
+      else if (c4_increment_)
       {
          vcc_ = (vcc_ + 1) & 0x7F;
       }
       c4_increment_ = false;
-   }
-   // The end of a line on which the additional management was armed by a last line : C9 returns to 0
-   const bool programmed_c9_reset = line_end_ && adjust_ && last_line_seen_ && !r5_mode;
-   if (line_end_)
-   {
-      last_line_seen_ = false;
    }
 
    ///////////////////////////////
@@ -121,7 +115,7 @@ void CRTC::ClockTick0 ()
          }
 
          // C9 : returns to 0 on R9, except in a confirmed additional management compared with R5
-         if ((c9_eq_r9 || programmed_c9_reset) && !(r5_mode && adjust_confirmed_))
+         if (c9_eq_r9 && !(r5_mode && adjust_confirmed_))
             vlc_ = 0;
          else
             vlc_ = (vlc_ + 1) & 0x1F;
@@ -165,7 +159,6 @@ void CRTC::ClockTick0 ()
       if (last_line_)
       {
          adjust_ = true;
-         last_line_seen_ = true;
       }
    }
 
