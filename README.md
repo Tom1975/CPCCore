@@ -18,6 +18,8 @@ Used by:
 - [Build](#build)
 - [Unit tests](#unit-tests)
 - [CMake options](#cmake-options)
+- [References](#references)
+- [Acknowledgements](#acknowledgements)
 
 ---
 
@@ -93,3 +95,20 @@ Run (Windows):
 | `GENERATE_UNITTESTS` | `OFF` | Build the unit test binary |
 | `GENERATE_BENCHMARK` | `OFF` | Build the benchmark binary |
 | `CMAKE_POLICY_VERSION_MINIMUM` | — | Set to `3.5` when building with CMake 4.x |
+
+---
+
+## References
+
+- **The Amstrad CPC CRTC Compendium** by Longshot (Serge Querné) / [Logon System](http://www.logonsystem.eu), version 1.11 (08/2026), licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  It is the reference for the CRTC emulation (the five CRTC types: HD6845S/UM6845, UM6845R, MC6845, AMS40489 and the CPC+ ASIC), and for the related timings of the Gate Array, the Z80 I/O and the interrupts.
+  The code comments cite its chapters (for example "13.2.1"), and the unit tests follow it chapter by chapter: [`UnitTests/COMPENDIUM_TESTS.md`](UnitTests/COMPENDIUM_TESTS.md) lists each paragraph, its status and the tests that cover it.
+  Attribution, as the licence requires: technical information on the CRTC from « Amstrad CPC CRTC Compendium » by Longshot (CC BY-NC-ND).
+- **SHAKER**, the CRTC benchmark by Logon System, and its results portal: [shaker.logonsystem.eu](https://shaker.logonsystem.eu).
+
+---
+
+## Acknowledgements
+
+- **Longshot (Serge Querné) and Logon System**, for the Amstrad CPC CRTC Compendium and SHAKER: years of measurements on real machines, without which an accurate CRTC emulation would not be possible.
+- Everyone who ran SHAKER on their own CPC and shared the results.
