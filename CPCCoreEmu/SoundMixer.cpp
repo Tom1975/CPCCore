@@ -278,6 +278,8 @@ void SoundMixer::StartMixer()
 {
 #ifndef NO_MULTITHREAD
    finished_ = false;
+   // No sound output (as in Init) : nothing to run
+   if (sound_ == nullptr || worker_thread_ != nullptr) return;
    worker_thread_ = new std::thread(PrepareBuffer, this);
 #else
    finished_ = false;
@@ -433,13 +435,11 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
 
 void SoundMixer::PrepareBufferThread()
 {
+   // The driver takes all its buffers back : the one being filled before is no longer ours
    sound_->Reinit();
 
-   if (current_wav_buffer_ == nullptr)
-   {
-      current_wav_buffer_ = sound_->GetFreeBuffer();
-      current_wav_index_ = 0;
-   }
+   current_wav_buffer_ = sound_->GetFreeBuffer();
+   current_wav_index_ = 0;
    Loop();
 }
 
