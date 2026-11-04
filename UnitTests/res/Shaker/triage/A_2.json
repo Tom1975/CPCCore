@@ -1,0 +1,440 @@
+{
+ "0001": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0002": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0003": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0004": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0005": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0009": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000B": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "000C": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "000D": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "000E": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "000F": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0010": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0011": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0012": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0013": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0014": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0015": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0016": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0017": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0018": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0019": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "001A": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "001B": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "001C": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "001D": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "001E": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "001F": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0020": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0021": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0022": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0023": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0024": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0025": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0026": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0027": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0028": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0029": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002A": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002B": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002C": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002D": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002E": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "002F": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0030": {
+  "verdict": "ok",
+  "why": "mêmes barres, coupures et repères que la photo ; vérifié aussi contre Amspirit 0.953 (identique)"
+ },
+ "0031": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0032": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0033": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0034": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0035": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0036": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code (variante de l'écran précédent) : rien pour comparer"
+ },
+ "0086": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0087": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0088": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0089": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "008C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00B4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00B5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00B6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00B7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00BD": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00BE": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00BF": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C0": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C1": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C2": {
+  "verdict": "moniteur",
+  "why": "rectangles au bon endroit compte tenu de la déformation ; seul le décalage AFC du moniteur diffère (comme sur CRTC 0/1)"
+ },
+ "00C4": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C5": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C6": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C7": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C8": {
+  "verdict": "moniteur",
+  "why": "rectangles au bon endroit compte tenu de la déformation ; seul le décalage AFC du moniteur diffère (comme sur CRTC 0/1)"
+ },
+ "00C9": {
+  "verdict": "moniteur",
+  "why": "rectangles au bon endroit compte tenu de la déformation ; seul le décalage AFC du moniteur diffère (comme sur CRTC 0/1)"
+ },
+ "00CA": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "03AC": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
+ },
+ "00C3": {
+  "verdict": "ko",
+  "why": "Sugarbox affiche une ligne de test de plus (« UPD R9=0, UPD R4=0 … » et son résultat) et donne 3F=01 à la ligne « UPD R4=1 … (01=C4 Ovf) », la photo 3F=00"
+ },
+ "0092": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0093": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0094": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0095": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0096": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0097": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0098": {
+  "verdict": "ko",
+  "why": "R1=0 STORY 3 : Sugarbox répète le texte « CRTC 2 R1 STORIES… » en bas à droite et « 1,0/OUT R1,40) » en bas à gauche, et n'affiche pas la rangée de damiers noirs sous les bandes ; la photo et les 5 émulateurs n'ont pas ce texte et ont le damier",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.8,
+    "w": 1,
+    "h": 0.2,
+    "note": "texte en trop"
+   },
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.28,
+    "w": 1,
+    "h": 0.1,
+    "note": "damier absent"
+   }
+  ]
+ },
+ "0099": {
+  "verdict": "ko",
+  "why": "R1>R0, R1=0 sur C0=0 : machine réelle écran blanc avec une bande sombre en haut ; Sugarbox bloc noir plein de lignes de texte (comme sur CRTC 0/1)"
+ },
+ "009A": {
+  "verdict": "ko",
+  "why": "R1=63 sur C0=63 : photo bruit bordeaux plein écran avec une bande blanche verticale à gauche ; Sugarbox fond noir sans la bande (comme sur CRTC 0/1)"
+ },
+ "009B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009C": {
+  "verdict": "ko",
+  "why": "1re ligne pointillée : la répartition du noir dans les segments diffère de la photo (Sugarbox : segments 1-2, 6, 8-10, 12-22) ; même défaut que sur CRTC 0 (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.0,
+    "y": 0.12,
+    "w": 1,
+    "h": 0.06,
+    "note": "1re ligne pointillée"
+   }
+  ]
+ },
+ "009D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A6": {
+  "verdict": "ok",
+  "why": "même structure que les 5 émulateurs (bande blanche en haut, reste noir) ; la photo est floutée/retouchée autour de la bande"
+ },
+ "00A7": {
+  "verdict": "ok",
+  "why": "zone blanche pleine avec le titre en haut à gauche, comme la photo (cadrée sur la zone affichée) et les 5 émulateurs"
+ },
+ "00AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AE": {
+  "verdict": "ko",
+  "why": "R6=R4+1/FF en V.ADJ : la photo et les 5 émulateurs affichent le titre « CRTC 2 R6 STORIES -LAST LINE- » en haut de la grande zone blanche ; Sugarbox ne l'affiche pas",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.08,
+    "y": 0.15,
+    "w": 0.8,
+    "h": 0.08,
+    "note": "titre absent"
+   }
+  ]
+ },
+ "008A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "008B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}
