@@ -324,31 +324,32 @@ public:
       return 0;
    }
 
+   // Gives back to the opcodes of one prefix the behaviour SetCustomOpcode replaced. The key of
+   // custom_commands is the prefixed opcode (0xED3F) : only its low byte indexes the table.
    template<OpcodeType type>
    void ClearCustom()
    {
-      for (auto & it: custom_commands)
+      ListFunction* fetch = nullptr;
+      unsigned int prefix = 0;
+      switch (type)
       {
-         ListFunction* fetch;
-         switch (type)
+      case None: fetch = &fetch_func; prefix = 0x0000; break;
+      case CB: fetch = &fetch_func_cb_; prefix = 0xCB00; break;
+      case ED: fetch = &fetch_func_ed_; prefix = 0xED00; break;
+      case DD: fetch = &fetch_func_dd_; prefix = 0xDD00; break;
+      case FD: fetch = &fetch_func_fd_; prefix = 0xFD00; break;
+      }
+      for (auto it = custom_commands.begin(); it != custom_commands.end(); )
+      {
+         if ((it->first & 0xFF00) == prefix)
          {
-         case None:
-            fetch = &fetch_func;
-            break;
-         case CB:
-            fetch = &fetch_func_cb_;
-            break;
-         case ED:
-            fetch = &fetch_func_ed_;
-            break;
-         case DD:
-            fetch = &fetch_func_dd_;
-            break;
-         case FD:
-            fetch = &fetch_func_fd_;
-            break;
+            (*fetch)[it->first & 0xFF] = it->second;
+            it = custom_commands.erase(it);
          }
-         (*fetch)[it.first] = it.second;
+         else
+         {
+            ++it;
+         }
       }
    }
 
@@ -387,6 +388,8 @@ public:
          break;
       }
       custom_opcode_decoder_ = func;
+      // Already custom : keep the original behaviour, or CustomOpcode would call itself
+      if ((*fetch)[opcode] == &Z80::CustomOpcode) return;
       Func old_f = (*fetch)[opcode];
       custom_commands[replaced_opcode] = old_f;
       (*fetch)[opcode] = &Z80::CustomOpcode;
