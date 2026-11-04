@@ -234,8 +234,20 @@ std::string ReadFile(const fs::path& p)
 // The scripts of module A in Shaker_CSL.zip still name the disk and the program of SHAKER 2.6
 // ('shaker26.dsk', RUN"SHAKE26A"), which are not on the 2.7 disk. Everything else is run as
 // distributed. Each change is listed in the report.
-std::string FixScript(std::string text, std::vector<std::string>& changes)
+//
+// CRTC 3 is the CRTC of the ASIC : the scripts run on a 6128 Plus (SHAKER tells CRTC 3 from 4 by the
+// ASIC). Its cartridge starts on a menu : f1 (keypad) selects BASIC before the disk is inserted.
+std::string FixScript(std::string text, int crtc, std::vector<std::string>& changes)
 {
+   if (crtc == 3)
+   {
+      const size_t pos = text.find("disk_insert");
+      if (pos != std::string::npos)
+      {
+         text.insert(pos, "key_output '\\(FN1)'\nwait 2000000\n");
+         changes.push_back("6128 Plus : key_output '\\(FN1)' (cartridge menu, BASIC) before disk_insert");
+      }
+   }
    const std::pair<const char*, const char*> fixes[] = {
       { "'shaker26.dsk'", "'shaker27.dsk'" },
       { "RUN\"SHAKE26A\"", "RUN\"SHAKE27A\"" },
@@ -275,7 +287,8 @@ TEST_P(ShakerSuite, MatchesReference)
       / std::string(1, c.module) / std::to_string(c.crtc);
    const fs::path out_dir = fs::absolute("screens");
 
-   // Machine : CPC 6128 FR, as the scripts were written for (AMSpiriT, 6128 FR)
+   // Machine : CPC 6128 FR, as the scripts were written for (AMSpiriT, 6128 FR) ; 6128 Plus FR for
+   // CRTC 3, the CRTC of its ASIC
    EmulatorEngine machine;
    ShakerDisplay display;
    DirectoriesImp directories;
@@ -287,7 +300,7 @@ TEST_P(ShakerSuite, MatchesReference)
    machine.SetConfigurationManager(&conf);
    machine.Init(&display, &sound);
    machine.GetMem()->Initialisation();
-   machine.LoadConfiguration("6128", TestWorkspace::Fixture("TestConf.ini").c_str());
+   machine.LoadConfiguration(c.crtc == 3 ? "6128PLUS" : "6128", TestWorkspace::Fixture("TestConf.ini").c_str());
    machine.Reinit();
    machine.SetFixedSpeed(true);
    // As the CPC of the SHAKER photos : no printer, BUSY (PPI port B bit 6) reads 1 (tests AI)
@@ -300,7 +313,7 @@ TEST_P(ShakerSuite, MatchesReference)
    csl.SetWaitTimeout(60ull * 1000 * 1000);  // a wait_ssm that never comes : 60 s, then error
 
    std::vector<std::string> changes;
-   const std::string text = FixScript(ReadFile(script), changes);
+   const std::string text = FixScript(ReadFile(script), c.crtc, changes);
 
    const auto start = std::chrono::steady_clock::now();
    const bool script_ok = csl.RunText(text, script);

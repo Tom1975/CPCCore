@@ -1,0 +1,598 @@
+{
+ "0001": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0002": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0003": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0004": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0005": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0007": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code"
+ },
+ "0008": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code"
+ },
+ "0009": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000B": {
+  "verdict": "ko",
+  "why": "colonne parasite à droite et haut des barres courbé : le CRTC 3 envoie des synchros que la PLL du moniteur suit (déformation), la photo est droite (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.1,
+    "w": 1,
+    "h": 0.1,
+    "note": "haut des barres courbé"
+   },
+   {
+    "on": "sb",
+    "x": 0.9,
+    "y": 0,
+    "w": 0.1,
+    "h": 1,
+    "note": "colonne parasite"
+   }
+  ]
+ },
+ "000C": {
+  "verdict": "ko",
+  "why": "colonne parasite à droite et haut des barres courbé : le CRTC 3 envoie des synchros que la PLL du moniteur suit (déformation), la photo est droite (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.1,
+    "w": 1,
+    "h": 0.1,
+    "note": "haut des barres courbé"
+   },
+   {
+    "on": "sb",
+    "x": 0.9,
+    "y": 0,
+    "w": 0.1,
+    "h": 1,
+    "note": "colonne parasite"
+   }
+  ]
+ },
+ "000D": {
+  "verdict": "ko",
+  "why": "colonne parasite à droite et haut des barres courbé : le CRTC 3 envoie des synchros que la PLL du moniteur suit (déformation), la photo est droite (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.1,
+    "w": 1,
+    "h": 0.1,
+    "note": "haut des barres courbé"
+   },
+   {
+    "on": "sb",
+    "x": 0.9,
+    "y": 0,
+    "w": 0.1,
+    "h": 1,
+    "note": "colonne parasite"
+   }
+  ]
+ },
+ "000E": {
+  "verdict": "ko",
+  "why": "colonne parasite à droite et haut des barres courbé : le CRTC 3 envoie des synchros que la PLL du moniteur suit (déformation), la photo est droite (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0,
+    "y": 0.1,
+    "w": 1,
+    "h": 0.1,
+    "note": "haut des barres courbé"
+   },
+   {
+    "on": "sb",
+    "x": 0.9,
+    "y": 0,
+    "w": 0.1,
+    "h": 1,
+    "note": "colonne parasite"
+   }
+  ]
+ },
+ "000F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0010": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0011": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0012": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0013": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0014": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0015": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0016": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0017": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0018": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0019": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0020": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0021": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0022": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0023": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0024": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0025": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0026": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0027": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0028": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0029": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0030": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0031": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0032": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0033": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0034": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0035": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0036": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0038": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0039": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "007F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0080": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0081": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0082": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0083": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0084": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0085": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0086": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0087": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0088": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0089": {
+  "verdict": "ok",
+  "why": "mêmes positions ; couleurs des bandes rendues différemment par le moniteur de la photo (validé utilisateur)"
+ },
+ "008C": {
+  "verdict": "ok",
+  "why": "même motif ; le texte final diffère, probablement une version de SHAKER différente sur la photo (26 contre 27) (validé utilisateur)"
+ },
+ "00AF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00B4": {
+  "verdict": "doute",
+  "why": "pas de photo sur machine réelle pour ce code"
+ },
+ "00B5": {
+  "verdict": "ko",
+  "why": "R3=0 sur la 3e zone (OUT R2,#0A) : la photo montre la zone R3=0 (barres colorées, bloc noir incliné en dessous, bas de l'écran décalé), Sugarbox seulement les barres jaunes, comme #00AF ; il ne la montre qu'avec R2=#0B (#00B7, #00BC)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.1,
+    "y": 0.15,
+    "w": 0.8,
+    "h": 0.6,
+    "note": "zone R3=0 absente"
+   }
+  ]
+ },
+ "00B6": {
+  "verdict": "ko",
+  "why": "R3=0 sur la 3e zone (OUT R2,#0A) : la photo montre la zone R3=0 (barres colorées, bloc noir incliné en dessous, bas de l'écran décalé), Sugarbox seulement les barres jaunes, comme #00AF ; il ne la montre qu'avec R2=#0B (#00B7, #00BC)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.1,
+    "y": 0.15,
+    "w": 0.8,
+    "h": 0.6,
+    "note": "zone R3=0 absente"
+   }
+  ]
+ },
+ "00B7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00BD": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00BE": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00BF": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C0": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C1": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C2": {
+  "verdict": "moniteur",
+  "why": "deux C-HSYNC en plus : la photo montre une forte déformation du moniteur (bandes en chevron), Sugarbox deux rectangles en place ; seul le moniteur diffère"
+ },
+ "00C4": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C5": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C6": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C7": {
+  "verdict": "ko",
+  "why": "OUT R3,#03 pendant la HSYNC : la photo n'affiche aucun rectangle noir (grille et étiquettes continues), Sugarbox affiche le rectangle jusqu'à 1E",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.3,
+    "y": 0.2,
+    "w": 0.4,
+    "h": 0.35,
+    "note": "rectangle en trop"
+   }
+  ]
+ },
+ "00C8": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C9": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00CA": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "03AC": {
+  "verdict": "ok",
+  "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
+ },
+ "00C3": {
+  "verdict": "ko",
+  "why": "Sugarbox affiche une ligne de test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 … » et son résultat), comme sur les autres CRTC"
+ },
+ "0092": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0093": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0094": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0095": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0096": {
+  "verdict": "ko",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,7 chez Sugarbox et 4,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.05,
+    "y": 0.25,
+    "w": 0.9,
+    "h": 0.15,
+    "note": "adresses +80"
+   }
+  ]
+ },
+ "0097": {
+  "verdict": "ko",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,6,7 chez Sugarbox et 4,5,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.05,
+    "y": 0.25,
+    "w": 0.9,
+    "h": 0.15,
+    "note": "adresses +80"
+   }
+  ]
+ },
+ "0098": {
+  "verdict": "ko",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 6,7 chez Sugarbox et 5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.05,
+    "y": 0.25,
+    "w": 0.9,
+    "h": 0.15,
+    "note": "adresses +80"
+   }
+  ]
+ },
+ "0099": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}
