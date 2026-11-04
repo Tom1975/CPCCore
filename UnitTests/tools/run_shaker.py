@@ -96,12 +96,14 @@ def fetch_real(real_dir, jobs):
     print(f"{len(todo) - len(errors)} downloaded in {real_dir}")
 
 
-TRIAGE = {"ok": ("sûrement OK", "ok"), "doute": ("douteux", "warn"), "ko": ("sûrement KO", "bad")}
+# "moniteur" : the CPC is right, the picture differs only by the monitor emulation (line AFC, ...)
+TRIAGE = {"ok": ("sûrement OK", "ok"), "moniteur": ("OK malgré le moniteur", "mon"),
+          "doute": ("douteux", "warn"), "ko": ("sûrement KO", "bad")}
 
 
 def load_triage(source, case):
     """Visual pre-sort of the screenshots against the real hardware photos : res/Shaker/triage/<case>.json,
-    {HHLL: {verdict: ok|doute|ko, why}}. A hint for the validation, never a validation by itself."""
+    {HHLL: {verdict: ok|moniteur|doute|ko, why}}. A hint for the validation, never a validation by itself."""
     f = source / "res" / "Shaker" / "triage" / f"{case}.json"
     return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
 
@@ -241,12 +243,12 @@ def revoke(work, source, specs):
 
 
 CSS = """
-:root { --bg:#fff; --fg:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --ok:#1a7f37; --bad:#c62828; --warn:#b26a00; --card:#f5f5f7; }
-@media (prefers-color-scheme: dark) { :root { --bg:#161618; --fg:#f2f2f2; --muted:#a1a1a6; --line:#3a3a3c; --ok:#4cc26a; --bad:#ff6b6b; --warn:#f0b04a; --card:#202022; } }
+:root { --bg:#fff; --fg:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --ok:#1a7f37; --bad:#c62828; --warn:#b26a00; --mon:#1f5fbf; --card:#f5f5f7; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161618; --fg:#f2f2f2; --muted:#a1a1a6; --line:#3a3a3c; --ok:#4cc26a; --bad:#ff6b6b; --warn:#f0b04a; --mon:#7aa7ff; --card:#202022; } }
 body { background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, sans-serif; margin:0 auto; max-width:1400px; padding:16px 16px 96px; }
 h1 { font-size:22px; } h2 { font-size:18px; margin-top:32px; border-bottom:1px solid var(--line); padding-bottom:4px; }
 table { border-collapse:collapse; } td, th { border:1px solid var(--line); padding:6px 10px; text-align:center; }
-.ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); } .muted { color:var(--muted); }
+.ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); } .mon { color:var(--mon); } .muted { color:var(--muted); }
 .big { font-size:18px; }
 .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(560px, 1fr)); gap:12px; }
 .shot { background:var(--card); border-radius:8px; padding:8px; }
@@ -301,7 +303,7 @@ function crt(img) {
 document.querySelectorAll('.crt img.sb').forEach(i => i.complete ? crt(i) : i.addEventListener('load', () => crt(i)));
 // Sort and filter of the screenshots, inside each case
 const RANK_V = { different: 0, missing: 0, unreadable: 0, new: 2, same: 4 };
-const RANK_T = { ko: 0, doute: 1, ok: 2, '': 1.5 };
+const RANK_T = { ko: 0, doute: 1, moniteur: 1.8, ok: 2, '': 1.5 };
 function rank(d) { return RANK_V[d.dataset.verdict] < 1 ? 0 : d.dataset.verdict === 'same' ? 9 : 1 + RANK_T[d.dataset.triage]; }
 function keep(d, f) {
   const realKo = RANK_V[d.dataset.verdict] < 1, t = d.dataset.triage;

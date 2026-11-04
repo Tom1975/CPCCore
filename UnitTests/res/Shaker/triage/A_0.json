@@ -492,134 +492,49 @@
   "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
  },
  "00BD": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00BE": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00BF": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C0": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C1": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C2": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
+  "verdict": "moniteur",
+  "why": "deux C-HSYNC en plus par ligne : les bandes sont au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de +37 px chez Sugarbox, +11 sur la photo et chez Amspirit). Test Monitor.DISABLED_R2UpdatedTwiceDuringHsync… (validé utilisateur)",
   "zones": [
    {
     "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
+    "x": 0.0,
+    "y": 0.3,
+    "w": 1.0,
+    "h": 0.35,
+    "note": "bande décalée de +37 px"
    },
    {
     "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
+    "x": 0.1,
+    "y": 0.33,
+    "w": 0.8,
+    "h": 0.35,
+    "note": "+11 px"
    }
   ]
  },
@@ -646,179 +561,77 @@
   ]
  },
  "00C4": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C5": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C6": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C7": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "00C8": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
+  "verdict": "moniteur",
+  "why": "R3=#04, C-HSYNC plus courte : le rectangle est au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de −10 px chez Sugarbox, ≈ −3 px sur la photo ; coin haut-gauche presque carré sur la photo) (validé utilisateur)",
   "zones": [
    {
     "on": "sb",
-    "x": 0.25,
+    "x": 0.2,
     "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin arrondi, −10 px"
    },
    {
     "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
+    "x": 0.3,
+    "y": 0.2,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin presque carré, ≈ −3 px"
    }
   ]
  },
  "00C9": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
+  "verdict": "moniteur",
+  "why": "R3=#05, C-HSYNC plus courte : le rectangle est au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de −12 px chez Sugarbox, ≈ −6 px sur la photo ; coin haut-gauche presque carré sur la photo) (validé utilisateur)",
   "zones": [
    {
     "on": "sb",
-    "x": 0.25,
+    "x": 0.2,
     "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin arrondi, −12 px"
    },
    {
     "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
+    "x": 0.3,
+    "y": 0.2,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin presque carré, ≈ −6 px"
    }
   ]
  },
  "00CA": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  },
  "03AC": {
-  "verdict": "doute",
-  "why": "contenu identique (largeur et position du rectangle noir, étiquettes à la grille) ; manque l'effet moniteur de la photo : coin haut-droit du rectangle biseauté, damier en « //// », encoche du cadre blanc à gauche. Amspirit 0.953/lite et Syntax Error le reproduisent, WinApe et CPC-EC non (effet de la PLL HSYNC du moniteur, non modélisé)",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.25,
-    "y": 0.28,
-    "w": 0.25,
-    "h": 0.36,
-    "note": "coin carré, damier droit"
-   },
-   {
-    "on": "real",
-    "x": 0.28,
-    "y": 0.22,
-    "w": 0.5,
-    "h": 0.5,
-    "note": "coin biseauté, damier incliné"
-   }
-  ]
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
  }
 }
