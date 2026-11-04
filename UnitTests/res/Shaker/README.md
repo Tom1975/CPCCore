@@ -42,6 +42,14 @@ python3 UnitTests/tools/run_shaker.py --unittests <build>/CPCCore/UnitTests/unit
 
 Options : `--cases A_0,E_2`, `--report-only`.
 
+**CI** (`.github/workflows/build_ubuntu.yml`, étape *Shaker*) : la suite tourne à chaque PR vers
+`master` / `develop` et échoue si une référence change. Le rapport est archivé (artefact
+`Shaker_report`), sans les photos : pour les voir, le télécharger dans `<build>/.../test-work/shaker_report`
+puis lancer `--fetch-real` et `--report-only` en local.
+
+Pré-tri visuel (`triage/<case>.json`) : `ok`, `moniteur` (le CPC est juste, seul l'effet moniteur
+diffère de la photo), `doute`, `ko`. Seuls les `ok` validés deviennent des références.
+
 Un script CSL quelconque peut tourner sans fenêtre :
 `CPCCORE_CSL_SCRIPT=fichier.csl unitTests --gtest_filter=Csl.RunScriptFromEnvironment`.
 
