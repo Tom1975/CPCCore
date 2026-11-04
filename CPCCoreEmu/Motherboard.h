@@ -116,6 +116,9 @@ public:
    CSig* GetSig() { return &signals_; }
    Z80* GetProc() { return &z80_; };
    IPrinterPort* GetPrinter() { return printer_; };
+   // Printer cable plugged or not : unplugged, nothing drives BUSY and the PPI reads it high
+   // (port B bit 6, PPI8255::ComposePortB)
+   void ConnectPrinter(bool connected) { signals_.printer_port_ = connected ? printer_ : nullptr; }
    PlayCity* GetPlayCity() { return &play_city_; }
    DMA* GetDMA(int i) { return &dma_[i]; }
    IKeyboardHandler * GetKeyboardHandler() { return keyboardhandler_; }

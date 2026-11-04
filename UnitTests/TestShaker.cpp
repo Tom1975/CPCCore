@@ -290,6 +290,8 @@ TEST_P(ShakerSuite, MatchesReference)
    machine.LoadConfiguration("6128", TestWorkspace::Fixture("TestConf.ini").c_str());
    machine.Reinit();
    machine.SetFixedSpeed(true);
+   // As the CPC of the SHAKER photos : no printer, BUSY (PPI port B bit 6) reads 1 (tests AI)
+   machine.GetMotherboard()->ConnectPrinter(false);
 
    CslScript csl(&machine, &display);
    csl.SetDiskDir(shaker_dir);
