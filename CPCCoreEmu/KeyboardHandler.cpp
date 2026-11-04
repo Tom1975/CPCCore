@@ -365,6 +365,39 @@ void KeyboardHandler::CharReleased(char c)
    CharAction(c, false);
 }
 
+void KeyboardHandler::KeyAction(unsigned int line, unsigned int bit, bool pressed)
+{
+   if (line >= 10 || bit >= 8) return;
+   if (pressed) keyboard_lines_cached_[line] &= ~(1 << bit);
+   else keyboard_lines_cached_[line] |= (1 << bit);
+   if (register_replaced_ != nullptr) *register_replaced_ = true;
+}
+
+bool KeyboardHandler::FindCharKey(char c, unsigned int& line, unsigned int& bit, bool& shift) const
+{
+   static const unsigned int order[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 };
+   for (int pass = 0; pass < 2; pass++)
+   {
+      for (unsigned int l : order)
+      {
+         for (unsigned int b = 0; b < 8; b++)
+         {
+            const Key& k = keyboard_map_[l][b];
+            const bool plain = (k.c == c) || (pass == 1 && k.c_alt == c);
+            const bool upper = (k.c_upper == c) || (pass == 1 && k.c_upper_alt == c);
+            if (plain || upper)
+            {
+               line = l;
+               bit = b;
+               shift = !plain;
+               return true;
+            }
+         }
+      }
+   }
+   return false;
+}
+
 void KeyboardHandler::CharAction (char c, bool bPressed)
 {
    // Lookup table

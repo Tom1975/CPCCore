@@ -1148,6 +1148,44 @@ EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opco
    return result;
 }
 
+// Runs exactly nb_cycles 4 MHz ticks, with the scheduler specialised for the
+// plugged components. The components carry their pending time to the next call,
+// so successive calls are equivalent to one long run.
+void EmulatorEngine::RunOptimized(unsigned int nb_cycles)
+{
+   const bool tape = current_settings_->TapePlugged();
+   const bool fdc = current_settings_->FDCPlugged();
+   const bool expansions = motherboard_.GetSig()->nb_expansion_ != 0;
+
+   if (tape)
+   {
+      if (fdc)
+         expansions ? motherboard_.StartOptimizedPlus<true, true, true>(nb_cycles) : motherboard_.StartOptimizedPlus<true, true, false>(nb_cycles);
+      else
+         expansions ? motherboard_.StartOptimizedPlus<true, false, true>(nb_cycles) : motherboard_.StartOptimizedPlus<true, false, false>(nb_cycles);
+   }
+   else
+   {
+      if (fdc)
+         expansions ? motherboard_.StartOptimizedPlus<false, true, true>(nb_cycles) : motherboard_.StartOptimizedPlus<false, true, false>(nb_cycles);
+      else
+         expansions ? motherboard_.StartOptimizedPlus<false, false, true>(nb_cycles) : motherboard_.StartOptimizedPlus<false, false, false>(nb_cycles);
+   }
+}
+
+// Headless run of an exact emulated duration (scripts, tests) : the pending
+// actions and snapshots are handled as in RunTimeSlice, but nothing waits for
+// the real time.
+void EmulatorEngine::RunCycles(unsigned int nb_cycles)
+{
+   GetProc()->stop_on_fetch_ = true;
+   old_stop_on_fetch_ = true;
+   HandleActions();
+   motherboard_.run_ = true;
+   RunOptimized(nb_cycles);
+   HandleSnapshots();
+}
+
 // Old run routine.
 int EmulatorEngine::RunTimeSlice (bool bNotDbg )
 {
@@ -1166,62 +1204,7 @@ int EmulatorEngine::RunTimeSlice (bool bNotDbg )
       motherboard_.run_ = true;
 
       run_time = time_slice_ * 4000;
-      //if (motherboard_.IsPLUS())
-      if(current_settings_->TapePlugged())
-      {
-         if (current_settings_->FDCPlugged())
-         {
-            if (motherboard_.GetSig()->nb_expansion_ == 0)
-            {
-               motherboard_.StartOptimizedPlus<true, true, false>(run_time);
-            }
-            else
-            {
-               motherboard_.StartOptimizedPlus<true, true, true>(run_time);
-            }
-            
-         }
-         else
-         {
-            if (motherboard_.GetSig()->nb_expansion_ == 0)
-            {
-               motherboard_.StartOptimizedPlus<true, false, false>(run_time);
-            }
-            else
-            {
-               motherboard_.StartOptimizedPlus<true, false, true>(run_time);
-            }
-            
-         }
-            
-      }
-      else
-      {
-         if (current_settings_->FDCPlugged())
-         {
-            if (motherboard_.GetSig()->nb_expansion_ == 0)
-            {
-               motherboard_.StartOptimizedPlus<false, true, false>(run_time);
-            }
-            else
-            {
-               motherboard_.StartOptimizedPlus<false, true, true>(run_time);
-            }
-
-         }
-         else
-         {
-            if (motherboard_.GetSig()->nb_expansion_ == 0)
-            {
-               motherboard_.StartOptimizedPlus<false, false, false>(run_time);
-            }
-            else
-            {
-               motherboard_.StartOptimizedPlus<false, false, true>(run_time);
-            }
-
-         }
-      }
+      RunOptimized(run_time);
    }
    else
    {
