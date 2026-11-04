@@ -37,6 +37,39 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
+// Horizontal deflection of the CTM644 (service manual of the CPC664 : IC401 is a Sanyo LA7800, sync
+// separator and line oscillator). The line oscillator is locked to the C-HSYNC by an AFC loop :
+//  - comparison signal : a sawtooth built by integrating the line flyback pulse. It rises during the
+//    flyback (12 us) and falls back during the trace (52 us). Its rising edge crosses zero at the
+//    position where the centre of the C-HSYNC settles (ACCC 14.4 : a C-HSYNC 1 us shorter moves the
+//    picture by 0.5 us, the loop follows the centre of the pulse).
+//  - phase comparator : while the C-HSYNC is present, it passes the sawtooth value to the loop filter
+//    (gated current). Every pulse counts, wherever it falls on the line : a second C-HSYNC in the middle
+//    of the line (R2 or R3 updated during the HSYNC, ACCC 15.3) brings the value of the trace part of
+//    the sawtooth, and the loop moves the picture until the main pulse compensates for it (ACCC 15.7 :
+//    the monitor takes several lines to settle). A short pulse brings little charge : with R3l=2 the
+//    monitor hardly sees it (ACCC 14.4).
+//  - loop filter (lag-lead network) : a proportional part that moves the phase of the next flyback,
+//    and an integrating part (the capacitor) that holds the oscillator frequency.
+// The charge brought during a line is sampled at the start of the next flyback.
+static const int kNominalLine = 1024;      // 64 us : free running line (H-Hold set to 15625 Hz)
+static const int kFlyback = 192;           // 12 us : line sync + back porch
+static const double kLockCentre = 36.0;    // C-HSYNC centre in the locked state, in pixels after the flyback start (H-phase)
+static const double kLoopProportional = 0.3;
+static const double kLoopIntegral = 0.01;
+static const double kLockRange = 64.0;     // Pull-in range of the oscillator, in pixels per line
+
+// Sawtooth of the AFC comparison, as a function of the position in the line (pixels since the flyback start)
+static double AfcSawtooth(double position)
+{
+   // Value at the centre of the pixel
+   double u = std::fmod(position + 0.5 - (kLockCentre - kFlyback / 2.0), (double)kNominalLine);
+   if (u < 0) u += kNominalLine;
+   if (u < kFlyback)
+      return -1.0 + 2.0 * u / kFlyback;
+   return 1.0 - 2.0 * (u - kFlyback) / (kNominalLine - kFlyback);
+}
+
 Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), horizontal_position_(0)
 {
    playback_ = nullptr;
@@ -46,7 +79,6 @@ Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), h
    video_buffer_ = nullptr;
    screen_ = nullptr;
 
-   hsync_total_ = 0;
 
    // Look up table
    for (i = 0; i < 0x100; i++)
@@ -185,12 +217,6 @@ void Monitor::Reset()
    x_ = 0;
    y_ = 0;
 
-   expected_hbl_ = 0;
-
-   tmp_sync_count_ = 0;
-
-   hsync_found_ = false;
-   hsync_count_ = 0;
 
    // 1024 pixels is :
    // 832 displaybale
@@ -216,11 +242,14 @@ void Monitor::Reset()
 
    }
 
-   hsync_total_ = horizontal_total_;
-   horizontal_synchronisation_ = 0;
-
-   x_total_ = 832;
-   offset_ = 0;
+   x_total_ = kNominalLine - line_sync_;
+   next_flyback_x_ = x_total_;
+   flyback_pending_ = true;
+   line_position_ = 0;
+   afc_charge_ = 0;
+   afc_integral_ = 0;
+   line_fraction_ = 0;
+   flyback_phase_ = 0;
 
    horizontal_state_ = vertical_state_ = DISPLAY;
 
@@ -235,10 +264,30 @@ Monitor::~Monitor(void)
 {
 }
 
-// C-HSYNC handled pixel by pixel : shortest pulse taken by the monitor, and shift of the pulse centre so that
-// a standard screen (R3l >= 6) stays where it was with the former block-based synchronisation.
-static const int kMinChsync = 16;
-static const int kChsyncCentreShift = -3;
+void Monitor::FlybackStart()
+{
+   // Charge of the line, as a phase error in pixels : a 64 pixels pulse whose centre is 'd' pixels late
+   // brings 64 * 2d / kFlyback
+   const double error = afc_charge_ * kFlyback / (2.0 * 64);
+   afc_charge_ = 0;
+   afc_integral_ += kLoopIntegral * error;
+   if (afc_integral_ > kLockRange) afc_integral_ = kLockRange;
+   if (afc_integral_ < -kLockRange) afc_integral_ = -kLockRange;
+   double period = kNominalLine + afc_integral_ + kLoopProportional * error;
+   if (period < kNominalLine - kLockRange) period = kNominalLine - kLockRange;
+   if (period > kNominalLine + kLockRange) period = kNominalLine + kLockRange;
+   // The flyback can only start on a pixel, the nearest one to its true start : the true start of this
+   // flyback is 'flyback_phase_' pixels (-0.5 to 0.5) after the pixel where it starts, the comparator
+   // works on the true position
+   flyback_phase_ = line_fraction_;
+   line_fraction_ += period;
+   const int whole = (int)std::floor(line_fraction_ + 0.5);
+   line_fraction_ -= whole;
+   // The beam position x_ restarts at the end of the line sync : the next flyback starts at period - line sync
+   next_flyback_x_ = whole - line_sync_;
+   flyback_pending_ = false;
+   line_position_ = 0;
+}
 
 void Monitor::Tick( )
 {
@@ -249,144 +298,30 @@ void Monitor::Tick( )
       // Display : Monitor Part
    {
       x_ += NBPIXELADDED;
-   /*
-   The output HSYNC duration is actually MIN(0, MAX(4, (REG3 and #0f) - 2).
-   The PLL in the monitor adjusts until the monitor HSYNC occurs in the centre of the HSYNC signal provided by the Gate Array.
-   Therefore, if the REG3 value is #86 the HSYNC duration will be 4, the centre is 2 MODE 1 characters into the HSYNC,
-   but if the value is #85 the HSYNC duration will be 3 and the centre is 1.5 MODE 1 characters into the HSYNC
-   (ie. 0.5 MODE 1 characters earlier, resulting in the screen being shifted right by 1 MODE 2 character.
-   */
 
-   // Horizontal synchronisation on the C-HSYNC of the GATE ARRAY, pixel by pixel (16.2.2) : the PLL locks
-   // the line on the centre of the pulse. Pulses shorter than 1 us are too short for the monitor (14.4).
+   // AFC phase comparator, pixel by pixel on the C-HSYNC of the GATE ARRAY (16.2.2)
    const unsigned short chsync_mask = gate_array_->chsync_mask_;
    for (int pixel = 0; pixel < NBPIXELADDED; ++pixel)
    {
-      const bool sync = ((chsync_mask >> pixel) & 1) != 0;
-      // Position of this pixel on the line
-      const int x = x_ - NBPIXELADDED + pixel + kChsyncCentreShift - horizontal_position_;
-      ++hsync_count_;
-      if (!sync)
+      // Flyback start : the beam reaches x_total_ (it can be the first pixel of the next block, already in SYNC)
+      if (flyback_pending_ && (horizontal_state_ != DISPLAY || x_ - NBPIXELADDED + pixel >= x_total_))
       {
-         // End ?
-         if (hsync_found_)
-         {
-            if (horizontal_synchronisation_ >= kMinChsync)
-            {
-               if (hsync_total_ > 896 && hsync_total_ < 1024)
-               {
-                  // Total length computation
-                  if (x_total_ != hsync_total_)
-                  {
-                     //m_XTotal = m_HsyncTotal;
-
-                     if (x_total_ < hsync_total_)
-                     {
-                        ++x_total_;
-                     }
-                     else if (x_total_ > hsync_total_)
-                     {
-                        --x_total_;
-                     }
-                  }
-
-                  {
-                     // Adjust : Where is exactly X ?
-                     //
-
-                     // Offset to synchronize Gate Array sync and real monitor sync
-                     expected_hbl_ = x - (horizontal_synchronisation_ + line_sync_) / 2;
-
-                     if (expected_hbl_ < 0)
-                     {
-                        expected_hbl_ += hsync_total_ + (line_sync_);
-                     }
-
-                     // HERE �!!!!!
-                     //int offset = abs((line_sync_ - horizontal_synchronisation_) / 2);
-                     int tot = (expected_hbl_ - hsync_total_);
-
-                     if ((expected_hbl_ - hsync_total_ < 2)
-                        && (expected_hbl_ - hsync_total_ > -2)
-                        )
-                     {
-                        offset_ = 0;
-                     }
-                     else
-                     {
-                        if (tot < 0)
-                        {
-                           if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
-                           {
-                              offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_)) * -1;
-                           }
-                           else
-                           {
-                              offset_ = (int)sqrt((float)(hsync_total_ - expected_hbl_));
-                           }
-                        }
-                        else
-                        {
-                           if (abs(tot) < ((hsync_total_ + (line_sync_) / 2) / 2))
-                           {
-                              offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_));
-                           }
-                           else
-                           {
-                              offset_ = (int)sqrt((float)(expected_hbl_ - hsync_total_)) * -1;
-                           }
-                        }
-                     }
-                  }
-               }
-               else
-               {
-                  offset_ = 0;
-               }
-               hsync_found_ = false;
-               horizontal_synchronisation_ = 0;
-            }
-            else
-            {
-               hsync_found_ = false;
-               // Forget about it....
-               hsync_count_ = tmp_sync_count_ + horizontal_synchronisation_ - 1;
-               horizontal_synchronisation_ = 0;
-            }
-         }
+         FlybackStart();
       }
-      else
+      if ((chsync_mask >> pixel) & 1)
       {
-         if (hsync_found_ == false)
-         {
-            tmp_sync_count_ = hsync_count_;
-            // New total adjust
-
-            int tmp = hsync_count_ - (line_sync_);
-            if (tmp > 1088)
-               tmp = tmp & 0x3ff;
-            hsync_total_ = tmp;
-
-
-            if (hsync_total_ < 0)
-            {
-               hsync_total_ += hsync_total_ + (line_sync_);
-            }
-
-            hsync_count_ = 0;
-            hsync_found_ = true;
-         }
-         ++horizontal_synchronisation_;
+         afc_charge_ += AfcSawtooth(line_position_ - flyback_phase_ - horizontal_position_);
       }
+      ++line_position_;
    }
 
    if (horizontal_state_ == DISPLAY)
    {
-      if (x_ >= x_total_ + offset_)  // 832 (52 car)
+      if (x_ >= x_total_)  // 832 (52 car)
       {
          // Set to sync
          horizontal_state_ = SYNC;
-         horizontal_hold_count_ = line_sync_ - (x_ - (x_total_ + offset_));
+         horizontal_hold_count_ = line_sync_ - (x_ - x_total_);
       }
    }
    else
@@ -493,6 +428,9 @@ void Monitor::Tick( )
          if (horizontal_hold_count_ < 0)
          {
             horizontal_state_ = DISPLAY;
+            // The AFC loop has computed the next flyback during this flyback (FlybackStart)
+            x_total_ = next_flyback_x_;
+            flyback_pending_ = true;
          }
       }
    }

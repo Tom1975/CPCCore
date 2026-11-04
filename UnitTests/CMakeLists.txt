@@ -67,6 +67,7 @@ add_executable( unitTests
                      TestCRTC.cpp
                      TestDemoSnapshots.cpp
                      TestShaker.cpp
+                     TestMonitor.cpp
                      TestCompendium_Interrupts.cpp
                      TestCompendium_Io.cpp
                      TestCompendium_Z80.cpp

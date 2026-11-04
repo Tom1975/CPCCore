@@ -53,16 +53,22 @@ public:
 
    ///////////////////////////
    // Sync attributes
-   int tmp_sync_count_;
    int line_sync_;
-   int hsync_total_;
-   bool hsync_found_;
+   // Beam position x_ where the next line flyback starts (current line), and the one the AFC loop
+   // computed for the line after
    int x_total_;
-   int expected_hbl_;
-   int offset_;
-   int hsync_count_;
+   int next_flyback_x_;
+   bool flyback_pending_;
+   // AFC loop : position since the flyback start, charge of the phase comparator during the line,
+   // integral part of the loop filter, fraction of pixel carried from line to line, true start of the
+   // current flyback after its first pixel
+   int line_position_;
+   double afc_charge_;
+   double afc_integral_;
+   double line_fraction_;
+   double flyback_phase_;
+   void FlybackStart();
    MonitorState horizontal_state_;
-   int horizontal_synchronisation_;
    int horizontal_position_;
    int horizontal_hold_count_;
    bool syncv_;
