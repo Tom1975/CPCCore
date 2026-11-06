@@ -1,0 +1,22 @@
+{
+ "03FA": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FB": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FC": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FD": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0406": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site et pas de valeur attendue sur la page"
+ }
+}

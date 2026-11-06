@@ -1,0 +1,886 @@
+{
+ "00FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0100": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0101": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0102": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0103": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0104": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0105": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0106": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0107": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0108": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0109": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "010A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010B": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "010C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0110": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0111": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0112": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0113": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0114": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0115": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0116": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0117": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0118": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0119": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011A": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011C": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011E": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0120": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0121": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0122": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0123": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0124": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0125": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "013B": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "013C": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "013D": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "013E": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "013F": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "017F": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0180": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0181": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0182": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0183": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0184": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0185": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0186": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0187": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0188": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0189": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "018A": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "018B": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "018C": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "018D": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "018E": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "03EF": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "03F0": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0126": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0127": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0128": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0129": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "012A": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "012B": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "012C": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "012D": {
+  "verdict": "doute",
+  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+ },
+ "012E": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "012F": {
+  "verdict": "doute",
+  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+ },
+ "0130": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0131": {
+  "verdict": "doute",
+  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+ },
+ "0132": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0133": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0134": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0135": {
+  "verdict": "doute",
+  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+ },
+ "0136": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0137": {
+  "verdict": "doute",
+  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+ },
+ "0138": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "0139": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "013A": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "03ED": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "03EE": {
+  "verdict": "doute",
+  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+ },
+ "01C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0192": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0193": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0194": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0195": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0196": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0197": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0198": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0199": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019A": {
+  "verdict": "doute",
+  "why": "page encore en train de se caler au moment du code (2 trames mêlées) ; photo stable, Amspirit-lite aussi en transition. Délai de table 3 images"
+ },
+ "019B": {
+  "verdict": "doute",
+  "why": "photo : page pâle avec du texte en haut ; Amspirit-lite : tout noir ; Sugarbox : noir, titre et bruit. Page en transition"
+ },
+ "019C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0200": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0201": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0202": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0203": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0204": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0205": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0206": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0207": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0208": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0209": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0210": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0211": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0212": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0213": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0214": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0215": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CB": {
+  "verdict": "ko",
+  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+ },
+ "01CC": {
+  "verdict": "ko",
+  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+ },
+ "01CD": {
+  "verdict": "ko",
+  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+ },
+ "01CE": {
+  "verdict": "ko",
+  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+ },
+ "01CF": {
+  "verdict": "ko",
+  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+ },
+ "01F0": {
+  "verdict": "ko",
+  "why": "SHAKER KILLER : photo #CC partout (#C4 sur quelques lignes) ; Sugarbox #C4 WRONG partout, VERY BAD TRIP (corrigé : classé OK à tort, valeurs illisibles sur planche)"
+ },
+ "01F1": {
+  "verdict": "ko",
+  "why": "3 lignes #0502 WRONG (attendu et photo #0D02) (corrigé : classé OK à tort, valeurs illisibles sur planche)"
+ },
+ "01F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E3": {
+  "verdict": "doute",
+  "why": "texte coloré chez Sugarbox alors que photo et Amspirit-lite ont le texte normal ; le texte coloré est juste sur #01E0 #01E1 #01E4 #01E5. La page change d'une image à l'autre"
+ },
+ "01E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D7": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site pour ce code"
+ },
+ "01D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0217": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0218": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0219": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021B": {
+  "verdict": "ko",
+  "why": "zone rayée haute et 2e bloc de texte chez Sugarbox ; photo et Amspirit-lite : une seule ligne pointillée sous le titre, puis tout bleu"
+ },
+ "021C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0220": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0221": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0222": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0223": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0224": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0225": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0226": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0227": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0228": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0229": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "03FA": {
+  "verdict": "ko",
+  "why": "autocontrôle : C0io=#03 #0084 (exp #0004) ; C0io=#3D #3E #3F #0081 (exp #0001)"
+ },
+ "03FB": {
+  "verdict": "ko",
+  "why": "autocontrôle : C0io=#3F #0031 (exp #0051) et #0511 (exp #0001)"
+ },
+ "03FC": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FD": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0403": {
+  "verdict": "ok",
+  "why": "autocontrôle : Y (Y expected)"
+ },
+ "0404": {
+  "verdict": "ok",
+  "why": "autocontrôle : Y (Y expected)"
+ },
+ "0405": {
+  "verdict": "ko",
+  "why": "autocontrôle : #001F (exp #0001), #003F (exp #001F), #FFFF (exp #0001), #FFFF (exp #001F)"
+ },
+ "0407": {
+  "verdict": "ko",
+  "why": "autocontrôle, ligne 04 : #00FE (exp #0032), WRONG affiché par la page"
+ },
+ "0408": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0409": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "040A": {
+  "verdict": "doute",
+  "why": "la page demande de vérifier l'absence de scintillement : une seule capture ne le dit pas"
+ }
+}

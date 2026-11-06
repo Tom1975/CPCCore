@@ -1,0 +1,438 @@
+{
+ "02E3": {
+  "verdict": "ko",
+  "why": "TEST INT ON INST DEC DE : photo #59 (attendu #59), Sugarbox #58"
+ },
+ "02E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E6": {
+  "verdict": "ko",
+  "why": "DEC DE : photo #0759 puis #0779/#077A, Sugarbox #0758 et alternance décalée"
+ },
+ "02E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FD": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0300": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0301": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0302": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0303": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0304": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0305": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0306": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0307": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0308": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0309": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0310": {
+  "verdict": "moniteur",
+  "why": "haut de page et décalage de la zone : effet moniteur plus marqué sur la photo ; contenu identique"
+ },
+ "0311": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0312": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0313": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0314": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0315": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0316": {
+  "verdict": "ko",
+  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+ },
+ "0317": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0318": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0319": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031A": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031B": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031C": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031D": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031E": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "031F": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0320": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0321": {
+  "verdict": "ko",
+  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+ },
+ "0322": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0323": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0324": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0325": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0326": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0327": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0328": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0329": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "032A": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "032B": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "032C": {
+  "verdict": "ko",
+  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+ },
+ "032D": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "032E": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "032F": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0330": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0331": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0332": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0333": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0334": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0335": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0336": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0337": {
+  "verdict": "ko",
+  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+ },
+ "0338": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "0339": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033A": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033B": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033C": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033D": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033E": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "033F": {
+  "verdict": "moniteur",
+  "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
+ },
+ "037F": {
+  "verdict": "ko",
+  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+ },
+ "0380": {
+  "verdict": "ko",
+  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+ },
+ "0381": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0382": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0383": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0384": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0385": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0386": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0387": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0388": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0389": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038A": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038B": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038C": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038D": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038E": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038F": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0390": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0391": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0392": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ }
+}

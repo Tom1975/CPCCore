@@ -1,0 +1,602 @@
+{
+ "02E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EA": {
+  "verdict": "doute",
+  "why": "photo #DE/#DF, Sugarbox #5E/#5F : seul le bit 7 du port B diffère, comme #02CD (C_3). La photo CRTC 4 donne bien #5F/#5E, reste identique"
+ },
+ "02EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EE": {
+  "verdict": "doute",
+  "why": "texte différent : photo VSYNC STRETCH TEST C, Sugarbox VSYNC STRETCHING (version de SHAKER différente ?) ; ligne pointillée sur la photo, pleine chez Sugarbox"
+ },
+ "02EF": {
+  "verdict": "doute",
+  "why": "texte différent : photo VSYNC STRETCH TEST C, Sugarbox VSYNC STRETCHING (version de SHAKER différente ?) ; ligne pointillée sur la photo, pleine chez Sugarbox"
+ },
+ "02F0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FD": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0300": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0301": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0302": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0303": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0304": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0305": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0306": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0307": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0308": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0309": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030E": {
+  "verdict": "moniteur",
+  "why": "barres droites sur la photo, en biais chez Sugarbox ; même contenu"
+ },
+ "030F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0310": {
+  "verdict": "moniteur",
+  "why": "haut de page et décalage de la zone : effet moniteur plus marqué sur la photo ; contenu identique"
+ },
+ "0311": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0314": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0315": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0316": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0317": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0318": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0319": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031A": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031B": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031C": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031D": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031E": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "031F": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0320": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0321": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0322": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0323": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0324": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0325": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0326": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0327": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0328": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0329": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032A": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032B": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032C": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032D": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032E": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "032F": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0330": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0331": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0332": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0333": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0334": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0335": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0336": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0337": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0338": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "0339": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033A": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033B": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033C": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033D": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033E": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "033F": {
+  "verdict": "ko",
+  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+ },
+ "037F": {
+  "verdict": "ko",
+  "why": "grands rectangles noirs de la photo absents chez Sugarbox (de petites pointes noires ou une bande blanche à la place)"
+ },
+ "0380": {
+  "verdict": "ko",
+  "why": "grands rectangles noirs de la photo absents chez Sugarbox (de petites pointes noires ou une bande blanche à la place)"
+ },
+ "0381": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0382": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0383": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0384": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0385": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0386": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0387": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0388": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0389": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038A": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038B": {
+  "verdict": "doute",
+  "why": "bande rouge pointillée chez Sugarbox, pleine sur la photo et sur CRTC 4"
+ },
+ "038C": {
+  "verdict": "doute",
+  "why": "bande rouge pointillée chez Sugarbox, pleine sur la photo et sur CRTC 4"
+ },
+ "038D": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038E": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038F": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0390": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0391": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0392": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "03BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03BD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03BE": {
+  "verdict": "ko",
+  "why": "registres trouvés : photo R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E ; Sugarbox R3=#0C R4=#00 R5=#00 R6=#00 R7=#00"
+ },
+ "03BF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C0": {
+  "verdict": "ko",
+  "why": "STATUS 1 BIT 5, STATUS 2 BIT 0, STATUS 2 BIT 4 : WRONG chez Sugarbox, OK sur la photo"
+ },
+ "03C1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C8": {
+  "verdict": "ko",
+  "why": "STATUS 1 BIT 5 : photo rouge avec colonne jaune, Sugarbox tout jaune"
+ },
+ "03C9": {
+  "verdict": "ko",
+  "why": "STATUS 1 BIT 5 variante R3=#7E : trait vertical sur la photo, absent chez Sugarbox"
+ },
+ "03CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CB": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03CC": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D2": {
+  "verdict": "ko",
+  "why": "STATUS 1 BIT 5 en IVM : marques obliques sur la photo, absentes chez Sugarbox"
+ },
+ "03D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D4": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DD": {
+  "verdict": "ko",
+  "why": "STATUS 2 BIT 4 variante R4=37 : photo rouge, Sugarbox jaune"
+ },
+ "03DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E1": {
+  "verdict": "ko",
+  "why": "STATUS 2 BIT 4 en IVM : photo tramée, Sugarbox jaune uni"
+ },
+ "03E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

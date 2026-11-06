@@ -1,0 +1,486 @@
+{
+ "00E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E9": {
+  "verdict": "ko",
+  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+ },
+ "00EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00ED": {
+  "verdict": "ko",
+  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+ },
+ "00EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F1": {
+  "verdict": "ko",
+  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+ },
+ "00F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F5": {
+  "verdict": "ko",
+  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+ },
+ "00F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D2": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D4": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D6": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D8": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DA": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DC": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DE": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E0": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E2": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "00E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E4": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "03E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E6": {
+  "verdict": "ko",
+  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+ },
+ "01C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0192": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0193": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0194": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0195": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0196": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0197": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0198": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "0199": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "019A": {
+  "verdict": "ko",
+  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+ },
+ "019B": {
+  "verdict": "doute",
+  "why": "colonnes larges chez Sugarbox et Amspirit-lite ; photo : bloc central moins large. Page en transition"
+ },
+ "019C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0200": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0201": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0202": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0203": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0204": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0205": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0206": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0207": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0208": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0209": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0210": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0211": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0212": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0213": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0214": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0215": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F0": {
+  "verdict": "ko",
+  "why": "SHAKER KILLER : photo #CC partout (#C4 sur quelques lignes) ; Sugarbox #C4 WRONG partout, VERY BAD TRIP"
+ },
+ "01F1": {
+  "verdict": "ko",
+  "why": "3 lignes #0502 WRONG (attendu et photo #0D02)"
+ },
+ "01F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DE": {
+  "verdict": "moniteur",
+  "why": "photo déformée par le moniteur (coins du rectangle) ; texte et rectangle cohérents"
+ },
+ "01DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E2": {
+  "verdict": "moniteur",
+  "why": "photo déformée par le moniteur (coins du rectangle) ; texte et rectangle cohérents"
+ },
+ "01E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

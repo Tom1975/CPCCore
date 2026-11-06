@@ -50,6 +50,11 @@ puis lancer `--fetch-real` et `--report-only` en local.
 Pré-tri visuel (`triage/<case>.json`) : `ok`, `moniteur` (le CPC est juste, seul l'effet moniteur
 diffère de la photo), `doute`, `ko`. Seuls les `ok` validés deviennent des références.
 
+Les références des modules B à E viennent du pré-tri, sans relecture à la main pour l'instant : elles
+fixent un état stable et servent à détecter les régressions, pas à certifier que l'écran est juste. Le
+pré-tri a lu les valeurs au zoom seulement sur les pages suspectes. Le module E n'a pas de photo sur le
+site : ses `ok` reposent sur les valeurs attendues affichées par la page.
+
 Un script CSL quelconque peut tourner sans fenêtre :
 `CPCCORE_CSL_SCRIPT=fichier.csl unitTests --gtest_filter=Csl.RunScriptFromEnvironment`.
 
