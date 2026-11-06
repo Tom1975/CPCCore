@@ -25,7 +25,7 @@ class ICslHost
 public:
    virtual ~ICslHost() = default;
 
-   // A screenshot is asked : the host saves the last complete frame, under 'path' plus the
+   // A screenshot is asked : the host saves the screen as it stands now, under 'path' plus the
    // extension of its image format.
    virtual void RequestScreenshot(const std::filesystem::path& path) = 0;
 

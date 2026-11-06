@@ -39,9 +39,9 @@ namespace
 {
 ////////////////////////////////////////////////////////
 /// Headless display : no window, no OpenGL. It keeps the frame the monitor draws, and is the
-/// CSL host : a screenshot asked is the last complete frame when the request comes. SHAKER emits
-/// its codes from a table (frames to wait, code) : #01DA to #01DC, or the series #0314 onward, name
-/// one precise frame, and this is the one the photos of the real CPC show.
+/// CSL host : a screenshot asked is taken at once, "immediately after reading the #HH byte" (SSM
+/// 1.2) : the lines of the running frame already finished, and below them the previous frame, as
+/// the screen stands at that moment. The line being drawn still shows the previous frame.
 class ShakerDisplay : public IDisplay, public ICslHost
 {
 public:
@@ -70,7 +70,11 @@ public:
    void SyncOnFrame(bool) override {}
    void StartSync() override {}
    void WaitVbl() override {}
-   int* GetVideoBuffer(int y) override { return &buffer_[(size_t)kWidth * y * 2]; }
+   int* GetVideoBuffer(int y) override
+   {
+      current_line_ = y;
+      return &buffer_[(size_t)kWidth * y * 2];
+   }
    void Reset() override { std::fill(buffer_.begin(), buffer_.end(), 0); }
    void FullScreenToggle() override {}
    void ForceFullScreen(bool) override {}
@@ -114,7 +118,10 @@ protected:
       image.create(kWidth, kLines);
       std::vector<sf::Uint8> rgba((size_t)kWidth * kLines * 4);
       for (int y = 0; y < kLines; y++)
-         memcpy(&rgba[(size_t)y * kWidth * 4], &complete_frame_[(size_t)kWidth * y * 2], kWidth * 4);
+      {
+         const std::vector<int>& frame = y < current_line_ ? buffer_ : complete_frame_;
+         memcpy(&rgba[(size_t)y * kWidth * 4], &frame[(size_t)kWidth * y * 2], kWidth * 4);
+      }
       image.create(kWidth, kLines, rgba.data());
       std::error_code ec;
       fs::create_directories(path.parent_path(), ec);
@@ -124,6 +131,7 @@ protected:
 
    std::vector<int> buffer_;
    std::vector<int> complete_frame_;
+   int current_line_ = 0;
    std::vector<std::string> errors_;
    std::ostringstream log_;
 };
@@ -671,24 +679,26 @@ TEST(Csl, EdFfBelongsToSsmOnlyWhileAScriptRuns)
    EXPECT_FALSE(m.machine.GetMotherboard()->run_);  // the break stopped the run loop
 }
 
-// A screenshot asked is the frame completed before the request, not the one being drawn
-TEST(Csl, ScreenshotIsTheLastCompleteFrame)
+// A screenshot is the screen when asked : finished lines of the running frame, previous frame below
+TEST(Csl, ScreenshotTakesTheFinishedLinesOverThePreviousFrame)
 {
    ShakerDisplay display;
-   const int kComplete = 0xFF112233;
-   *display.GetVideoBuffer(0) = kComplete;
+   const int kPrevious = (int)0xFF112233;
+   const int kRunning = (int)0xFF445566;
+   for (int y = 0; y < 3; y++) *display.GetVideoBuffer(y) = kPrevious;
    display.VSync(true);
-   *display.GetVideoBuffer(0) = (int)0xFF445566;
+   // Line 0 is finished, line 1 is being drawn, line 2 is not reached
+   *display.GetVideoBuffer(0) = kRunning;
+   *display.GetVideoBuffer(1) = kRunning;
 
-   const fs::path path = fs::absolute("last_complete_frame");
+   const fs::path path = fs::absolute("screenshot_running_frame");
    display.RequestScreenshot(path);
    sf::Image image;
    ASSERT_TRUE(image.loadFromFile(ShakerDisplay::PngPath(path).string()));
-   const sf::Color pixel = image.getPixel(0, 0);
    // Bytes in memory : R, G, B, A
-   EXPECT_EQ(0x33, pixel.r);
-   EXPECT_EQ(0x22, pixel.g);
-   EXPECT_EQ(0x11, pixel.b);
+   EXPECT_EQ(0x66, image.getPixel(0, 0).r);
+   EXPECT_EQ(0x33, image.getPixel(0, 1).r);
+   EXPECT_EQ(0x33, image.getPixel(0, 2).r);
 }
 
 // csl_load without following the chain ends the script and names the next one

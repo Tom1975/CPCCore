@@ -20,8 +20,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03A5": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "doute",
+  "why": "colonne étroite saumon, référence acceptée (utilisateur) ; la couleur de cette colonne change d'une image à l'autre et la photo ne la départage pas. Doute : photos à refaire sur la machine réelle"
  },
  "0007": {
   "verdict": "doute",
@@ -468,12 +468,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0096": {
-  "verdict": "doute",
-  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0097": {
-  "verdict": "doute",
-  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0098": {
   "verdict": "ok",

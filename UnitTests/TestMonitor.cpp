@@ -44,7 +44,11 @@ public:
    void SyncOnFrame(bool) override {}
    void StartSync() override {}
    void WaitVbl() override {}
-   int* GetVideoBuffer(int y) override { return &buffer_[(size_t)kWidth * y * 2]; }
+   int* GetVideoBuffer(int y) override
+   {
+      current_line_ = y;
+      return &buffer_[(size_t)kWidth * y * 2];
+   }
    void Reset() override { std::fill(buffer_.begin(), buffer_.end(), 0); }
    void FullScreenToggle() override {}
    void ForceFullScreen(bool) override {}
@@ -64,7 +68,8 @@ public:
    void SetCurrentPart(int, int) override {}
    int GetDnDPart() override { return 0; }
 
-   // A frame asked is the last complete frame (as the SHAKER screenshots)
+   // A frame asked is the screen when asked (as the SHAKER screenshots) : the finished lines of the
+   // running frame, and below them the previous frame
    void VSync(bool) override { complete_frame_ = buffer_; }
 
    void RequestScreenshot(const fs::path& path) override
@@ -75,7 +80,10 @@ public:
       frame.resize((size_t)kWidth * kLines);
       if (complete_frame_.empty()) return;
       for (int y = 0; y < kLines; y++)
-         std::copy_n(&complete_frame_[(size_t)kWidth * y * 2], kWidth, &frame[(size_t)kWidth * y]);
+      {
+         const std::vector<int>& source = y < current_line_ ? buffer_ : complete_frame_;
+         std::copy_n(&source[(size_t)kWidth * y * 2], kWidth, &frame[(size_t)kWidth * y]);
+      }
    }
 
    std::map<std::string, std::vector<int>> frames_;
@@ -83,6 +91,7 @@ public:
 private:
    std::vector<int> buffer_;
    std::vector<int> complete_frame_;
+   int current_line_ = 0;
 };
 
 // SHAKER module A on CRTC 0, test T, screens #00BD to #00C2

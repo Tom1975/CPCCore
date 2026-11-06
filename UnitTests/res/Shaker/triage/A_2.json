@@ -324,12 +324,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0096": {
-  "verdict": "doute",
-  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0097": {
-  "verdict": "doute",
-  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0098": {
   "verdict": "ko",
