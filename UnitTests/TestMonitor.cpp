@@ -64,40 +64,25 @@ public:
    void SetCurrentPart(int, int) override {}
    int GetDnDPart() override { return 0; }
 
-   // A frame asked is the first complete frame after the request (as the SHAKER screenshots)
-   void VSync(bool) override
-   {
-      for (auto it = pending_.begin(); it != pending_.end();)
-      {
-         if (++it->frames_ended == 2)
-         {
-            std::vector<int>& frame = frames_[it->code];
-            frame.resize((size_t)kWidth * kLines);
-            for (int y = 0; y < kLines; y++)
-               std::copy_n(&buffer_[(size_t)kWidth * y * 2], kWidth, &frame[(size_t)kWidth * y]);
-            it = pending_.erase(it);
-         }
-         else
-         {
-            ++it;
-         }
-      }
-   }
+   // A frame asked is the last complete frame (as the SHAKER screenshots)
+   void VSync(bool) override { complete_frame_ = buffer_; }
 
    void RequestScreenshot(const fs::path& path) override
    {
       // <emulator>_<crtc>_<HHLL>
       const std::string name = path.filename().string();
-      pending_.push_back({ name.substr(name.size() - 4), 0 });
+      std::vector<int>& frame = frames_[name.substr(name.size() - 4)];
+      frame.resize((size_t)kWidth * kLines);
+      if (complete_frame_.empty()) return;
+      for (int y = 0; y < kLines; y++)
+         std::copy_n(&complete_frame_[(size_t)kWidth * y * 2], kWidth, &frame[(size_t)kWidth * y]);
    }
-   bool IsScreenshotPending() override { return !pending_.empty(); }
 
    std::map<std::string, std::vector<int>> frames_;
 
 private:
-   struct Request { std::string code; int frames_ended; };
    std::vector<int> buffer_;
-   std::vector<Request> pending_;
+   std::vector<int> complete_frame_;
 };
 
 // SHAKER module A on CRTC 0, test T, screens #00BD to #00C2

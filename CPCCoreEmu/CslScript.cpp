@@ -252,13 +252,6 @@ bool CslScript::RunText(const std::string& text, const fs::path& origin)
          break;
    }
 
-   // A screenshot asked by the last instructions is still to be taken
-   if (ok && nesting_ == 0 && host_)
-   {
-      Instruction flush{ 0, "(end of script)", "", {} };
-      WaitUntil([this]() { return !host_->IsScreenshotPending(); }, flush, "the last screenshot", 64);
-   }
-
    script_ = previous_script;
    return ok;
 }
@@ -604,11 +597,6 @@ bool CslScript::Execute(const Instruction& ins)
          ssm_wait_ = false;
          consume();
       }
-      // SSM : the screenshot is taken "immediately after reading the #HH byte". Here it is the first
-      // complete frame after the code : the script goes on once it is taken, or the next key would
-      // already change the screen it shows (SHAKER leaves the page ~90 ms after the key)
-      if (ok && host_)
-         ok = WaitUntil([this]() { return !host_->IsScreenshotPending(); }, ins, "the screenshot of the SSM code", 64);
       return ok;
    }
    if (n == "screenshot" || n == "snapshot")

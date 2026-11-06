@@ -63,4 +63,7 @@ Un script CSL quelconque peut tourner sans fenêtre :
   longue, module C test 7, dure environ 64 s).
 - `wait_ssm0000` / `wait_ssm` se terminent aussitôt si le code est arrivé depuis le `wait_ssm`
   précédent : SHAKER envoie `#0000` dès qu'il lit la touche, avant que le script n'attende.
+- Capture : la norme SSM dit « immédiatement après l'octet `#HH` ». Le code arrive en cours d'image :
+  la capture est la dernière image complète à cet instant. C'est celle que montrent les photos sur les
+  pages qui affichent une valeur image par image (`#01DA`-`#01DC`, série `#0314` et suivantes).
 - Le site SHAKER n'a pas de photos du module E.

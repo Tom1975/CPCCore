@@ -25,11 +25,9 @@ class ICslHost
 public:
    virtual ~ICslHost() = default;
 
-   // A screenshot is asked : the host saves the first complete frame that starts after the
-   // request, under 'path' plus the extension of its image format.
+   // A screenshot is asked : the host saves the last complete frame, under 'path' plus the
+   // extension of its image format.
    virtual void RequestScreenshot(const std::filesystem::path& path) = 0;
-   // A screenshot asked is not saved yet
-   virtual bool IsScreenshotPending() = 0;
 
    // One line of the script log (instruction executed, error)
    virtual void Log(const std::string& /*line*/) {}
