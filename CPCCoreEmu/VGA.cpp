@@ -171,7 +171,6 @@ void GateArray::Reset()
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
    sr_mode_ = sr_div_mode_ = screen_mode_;
-   activation_mode_ = 2;
 
    hsync_counter_ = 0;
    h_old_sync_ = false;
@@ -597,13 +596,13 @@ void GateArray::TickSignals()
    {
       mode_window_ = false;
    }
-   if (mode_window_ && activation_mode_ != 0)
+   // Mode latch (40010-simplified, sheet VideoControl, U1003, U1004), open while SIG_GA_HSYNC is high. The sheet
+   // draws an edge triggered flip-flop on the end of SIG_GA_HSYNC : it gives the same windows (9.3.1 to 9.3.3)
+   // and the same pixels with a R3.NJIT, but moves the change 4 pixels later with a R3.JIT, when the schematics
+   // say it does not move (9.3.4.4). A latch that lets the mode through agrees with both : to measure.
+   if (mode_window_)
    {
-      activation_mode_--;
-      if (activation_mode_ == 0)
-      {
-         buffered_screen_mode_ = screen_mode_;
-      }
+      buffered_screen_mode_ = screen_mode_;
    }
    if (hsync_)
    {
@@ -989,7 +988,6 @@ void GateArray::TickIO()
          else
          {
             screen_mode_ = data & 0x3;
-            activation_mode_ = 1;
 
             // l'indiquer � la m�moire
             memory_->SetInfROMConnected((data & 0x4) ? false : true);
