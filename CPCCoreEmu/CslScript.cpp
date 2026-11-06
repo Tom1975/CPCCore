@@ -583,15 +583,32 @@ bool CslScript::Execute(const Instruction& ins)
       // The code may come before the wait starts : SHAKER sends #0000 as soon as it reads the
       // key the previous key_output pressed. A code received since the previous wait_ssm ends
       // the wait at once (the standard does not say; the SHAKER scripts rely on it).
-      const bool already = ssm_since_wait_.count((uint16_t)code) != 0;
-      ssm_since_wait_.clear();
-      if (already) return true;
-      ssm_wait_ = true;
-      ssm_wait_code_ = (uint16_t)code;
-      ssm_wait_hit_ = false;
-      const bool ok = WaitUntil([this]() { return ssm_wait_hit_; }, ins, "the SSM code", 64);
-      ssm_wait_ = false;
-      ssm_since_wait_.clear();
+      // A code ends the wait, the codes that came after it stay for the next wait_ssm : SHAKER sends
+      // #01DA, #01DB, #01DC one frame apart and the script waits for them in turn.
+      auto consume = [this, code]()
+      {
+         auto it = std::find(ssm_since_wait_.begin(), ssm_since_wait_.end(), (uint16_t)code);
+         if (it == ssm_since_wait_.end()) return false;
+         ssm_since_wait_.erase(ssm_since_wait_.begin(), it + 1);
+         return true;
+      };
+      const bool already = consume();
+      if (!already) ssm_since_wait_.clear();
+      bool ok = true;
+      if (!already)
+      {
+         ssm_wait_ = true;
+         ssm_wait_code_ = (uint16_t)code;
+         ssm_wait_hit_ = false;
+         ok = WaitUntil([this]() { return ssm_wait_hit_; }, ins, "the SSM code", 64);
+         ssm_wait_ = false;
+         consume();
+      }
+      // SSM : the screenshot is taken "immediately after reading the #HH byte". Here it is the first
+      // complete frame after the code : the script goes on once it is taken, or the next key would
+      // already change the screen it shows (SHAKER leaves the page ~90 ms after the key)
+      if (ok && host_)
+         ok = WaitUntil([this]() { return !host_->IsScreenshotPending(); }, ins, "the screenshot of the SSM code", 64);
       return ok;
    }
    if (n == "screenshot" || n == "snapshot")
@@ -661,17 +678,18 @@ bool CslScript::Execute(const Instruction& ins)
 ////////////////////////////////////////////////////////
 /// SSM
 ///
-/// The "neutral" ED opcodes of the standard (no effect on a Z80A but time). ED ED is left out :
-/// it is a prefix again, not an SSM byte. ED FF is left out too : it is the emulator break of
-/// the debugger, and SSM uses it only in the reserved codes #FFxx.
+/// The "neutral" ED opcodes of the standard (no effect on a Z80A but time). ED ED is one of them :
+/// code #00ED is ED ED ED 00. ED FE and ED FF belong to the reserved codes #FFxx. ED FF
+/// is the emulator break otherwise (debugger, BRK of RASM) : a script owns it for its lifetime.
 void CslScript::EnableSsm()
 {
    auto neutral = [](unsigned int v)
    {
       return v <= 0x3F || (v >= 0x7F && v <= 0x9F) || (v >= 0xA4 && v <= 0xA7) || (v >= 0xAC && v <= 0xAF)
-         || (v >= 0xB4 && v <= 0xB7) || (v >= 0xBC && v <= 0xBF) || (v >= 0xC0 && v <= 0xFD && v != 0xED);
+         || (v >= 0xB4 && v <= 0xB7) || (v >= 0xBC && v <= 0xBF) || v >= 0xC0;
    };
    Z80* z80 = engine_->GetProc();
+   z80->SetEmuBreakEnabled(false);
    for (unsigned int v = 0; v < 0x100; v++)
    {
       if (neutral(v))
@@ -683,6 +701,7 @@ void CslScript::EnableSsm()
 void CslScript::DisableSsm()
 {
    engine_->GetProc()->ClearCustom<Z80::ED>();
+   engine_->GetProc()->SetEmuBreakEnabled(true);
 }
 
 void CslScript::OnEdOpcode(unsigned int opcode)
@@ -716,7 +735,7 @@ void CslScript::OnSsmCode(uint16_t code)
 
    if (ssm_wait_ && code == ssm_wait_code_)
       ssm_wait_hit_ = true;
-   ssm_since_wait_.insert(code);
+   ssm_since_wait_.push_back(code);
 
    // #0000 synchronises a script, #FFxx are reserved : no screenshot
    if (code != 0x0000 && (code & 0xFF00) != 0xFF00 && host_)

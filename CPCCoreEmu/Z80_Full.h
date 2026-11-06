@@ -173,6 +173,7 @@ public:
 
    bool IsBreak(){return break_;}
    void AckBreak(){break_ = false;}
+   void SetEmuBreakEnabled(bool enabled){emu_break_enabled_ = enabled;}
 
 
    // Don't use : Force an inline usage for more efficiency
@@ -281,6 +282,9 @@ public:
 
    bool new_instruction_;
    bool break_;
+   // ED FF stops the emulator (debugger, BRK of RASM). Off while something else owns the opcode : SSM
+   // reads it as the high byte of its #FFxx codes
+   bool emu_break_enabled_ = true;
 
    // Inner helper attributes
    unsigned int counter_;

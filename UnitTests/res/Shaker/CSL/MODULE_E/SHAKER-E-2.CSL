@@ -11,35 +11,24 @@ disk_insert 'shaker27.dsk'
 key_delay 70000 70000 400000
 key_output 'RUN"SHAKE27E"\(RET)'
 wait 10000000
-
-
+;
 ; R5 STORIES 2ND ROUND 
 key_output '1'
-wait 3000000		; 3fa
+wait_ssm 0x03FA
 key_output ' ' 
-wait_ssm0000
-wait 5000000		; 3fb
+wait_ssm 0x03FB
 key_output ' ' 
-wait_ssm0000
-wait 5000000		; 3fc
+wait_ssm 0x03FC
 key_output ' ' 
-wait_ssm0000
-wait 8000000		; 3fd
+wait_ssm 0x03FD
 key_output ' ' 
-wait_ssm0000
-
-wait 100000
-
+;
+wait 2000000
 ; CRTC 2 : LAST LINE/HSYNC MECH.
 key_output '7' 
-wait 26000000		; 40b
+wait_ssm 0x040B
 key_output ' ' 
-wait_ssm0000
-wait 4000000		; 40c
+wait_ssm 0x040C
 key_output ' ' 
-wait_ssm0000
-wait 2000000
-
-
 ;
 csl_load 'SHAKER-E-4'

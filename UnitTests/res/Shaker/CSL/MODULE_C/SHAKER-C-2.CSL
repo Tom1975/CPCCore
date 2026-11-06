@@ -1,6 +1,6 @@
 ;
 ; Fichier de script CSL 
-; Execution du module SHAKE26C du DSK SHAKER26.DSK en CRTC 2
+; Execution du module SHAKE27C du DSK SHAKER27.DSK en CRTC 2
 ; Le module genere des instructions au format SSM
 ; Correctif 15.08.2024 Remarque de Thomas Harte cls_load au lieu de csl_load
 ;
@@ -10,146 +10,131 @@ reset
 wait 3000000
 disk_insert 'shaker27.dsk'
 key_delay 70000 70000 400000
-key_output 'RUN"SHAKE27C.BIN"\(RET)'
+key_output 'RUN"SHAKE27C"\(RET)'
 wait 10000000
 ;
 ; test 5 Parity Check Select CRTC 0, 2
 key_output '5'
-wait 10000000		
-key_output ' '
-wait 1000000 ; menu  
+wait_ssm 0x029E
+key_output ' ' 
 
 ; C9 IVM Switch
 key_output '6'
-wait 1200000		; 29f
+wait_ssm 0x029F
 key_output ' '
-wait 1200000		; 2a4
+wait_ssm 0x02A4
 key_output ' '
-wait 1200000		; 2a5
+wait_ssm 0x02A5
 key_output ' '
-wait 1200000		; 2a6
+wait_ssm 0x02A6
 key_output ' '
-wait 1200000		; 2a7
+wait_ssm 0x02A7
 key_output ' '
-wait 1200000		; 2ac
+wait_ssm 0x02AC
 key_output ' '
-wait 1200000		; 2ad
+wait_ssm 0x02AD
 key_output ' '
-wait 1200000		; 2ae
+wait_ssm 0x02AE
 key_output ' '
-wait 1200000		; 2af
+wait_ssm 0x02AF
 key_output ' '
-wait 1200000		; 2b4
+wait_ssm 0x02B4
 key_output ' '
-wait 1200000		; 2b5
+wait_ssm 0x02B5
 key_output ' '
-wait 1200000		; 2b6
+wait_ssm 0x02B6
 key_output ' '
-wait 1200000		; 2b7
+wait_ssm 0x02B7
 key_output ' '
-wait 1200000		; 2bc
+wait_ssm 0x02BC
 key_output ' '
-wait 1200000		; 2bd
+wait_ssm 0x02BD
 key_output ' '
-wait 1200000		; 2be
-key_output ' ' 
-wait 1000000 ; menu 
-
+wait_ssm 0x02BE
+key_output ' '
 
 ; test prevu pour CRTC 2 mais disp autre crc  Last Line cond
 key_output '7'
-wait 64000000
-key_output ' ' 
-wait 1000000 ; menu 
+wait_ssm 0x02BF
+key_output ' '
 ;
 ; add line on parity bug
 key_output '8'
-wait 2000000		; 2c0
+wait_ssm 0x02C0
 key_output ' '
-wait 2000000		; 2c1
+wait_ssm 0x02C1
 key_output ' '
-wait 2000000		; 2c2
+wait_ssm 0x02C2
 key_output ' '
-wait 2000000		; 2c3
+wait_ssm 0x02C3
 key_output ' '
-wait 2000000		; 2c4
+wait_ssm 0x02C4
 key_output ' '
-wait 2000000		; 2c5
+wait_ssm 0x02C5
 key_output ' '
-wait 2000000		; 2c6
+wait_ssm 0x02C6
 key_output ' '
-wait 1000000 ; menu 
 
 ; add line rq & trigger
 key_output '9'
-wait 2000000		; 2c7
+wait_ssm 0x02C7		; 2c7
 key_output ' '
-wait 300000000
+wait_ssm 0x02C8		; 2c8 deadlock sur certains emulateurs
 key_output ' '
 
 ; test crtc 2 vma' sur R1=0
 key_output 'T'
-wait 1100000
-key_output ' ' 
-wait 1200000
-key_output ' ' 
-wait 1200000
-key_output ' ' 
-wait 1200000
-key_output ' ' 
-wait 1000000 ; menu
+wait_ssm 0x02CF
+key_output ' '
+wait_ssm 0x02D0
+key_output ' '
+wait_ssm 0x02D1
+key_output ' '
+wait_ssm 0x02D2
+key_output ' '
 
 ; crtc 2 ghost vsync vs Last Line (others crtc welcome)
 key_output '\(RET)'
-wait 5000000
+wait_ssm 0x02CD
 key_output ' '
-wait 2000000
+wait_ssm 0x02CE
 key_output ' '
-wait 1000000 ; menu
 
 ; Add Line R5 on last line
 key_output 'E'
-wait 20000000
+wait_ssm 0x02C9
 key_output ' '
-wait 10000000
+wait_ssm 0x02CA
 key_output ' '
-wait 1000000 ; menu
 
 ; Add line R8
 key_output 'P'
-wait 20000000
+wait_ssm 0x02CB
 key_output ' '
-wait 1000000 ; menu
 
 ; r5 additional line in interlace mode
 key_output 'S'
-wait 2000000
+wait_ssm 0x02D3
 key_output ' '
-wait 1000000 ; menu
 
-; CRTC 2 Interlace vsync nightmare (2 1er test uniqu CRTC1)
+; CRTC 0,3,4 Interlace vsync nightmare (2 1er test uniqu CRTC1)
 key_output 'O'
-wait 6000000	; cvstot
+wait_ssm 0x02D6  ; cvstot
 key_output ' '
-wait 2000000	; parity00 2d8
-wait 8000000	; 2d9
+wait_ssm 0x02D7
 key_output ' '
-wait 10000000	; cvms_a	; 2da
+;wait_ssm 0x02D8 ; parity00 2d8
+;wait_ssm 0x02D9
 key_output ' '
-wait 10000000	; cvms_b  ; 2db
+wait_ssm 0x02DA ; cvms_a	; 2da
 key_output ' '
-wait 10000000	; cvms_b  ; 2dc
+wait_ssm 0x02DB ; cvms_b  ; 2db
 key_output ' '
-wait 10000000	; cvms_c  ; 2dd
+wait_ssm 0x02DC ; cvms_b  ; 2dc
 key_output ' '
-wait 10000000	; cvms_c  ; 2de
+wait_ssm 0x02DD ; cvms_c  ; 2dd
 key_output ' '
-wait 10000000	; menu
-
-; R9/R4 UPD LAST LIMIT
-key_output 'R'
-wait 5000000		; 3ad
+wait_ssm 0x02DE ; cvms_c  ; 2de
 key_output ' '
-wait 10000000	; menu
 
 csl_load 'SHAKER-C-4'

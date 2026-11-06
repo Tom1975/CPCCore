@@ -4,9 +4,9 @@ SHAKER (Longshot / Logon System, https://shaker.logonsystem.eu) teste le CRTC et
 
 | Fichier | Contenu |
 |---|---|
-| `shaker27.dsk` | SHAKER 2.7, modules SHAKE27A à SHAKE27E |
+| `shaker27.dsk` | SHAKER 2.7, modules SHAKE27A à SHAKE27E (livraison CSLSSM d'octobre 2026, module E révisé) |
 | `shaker24.dsk`, `shaker_addon.dsk` | anciennes versions |
-| `CSL/MODULE_x/SHAKER-x-n.CSL` | scripts CSL officiels (`Shaker_CSL.zip`) : module x, CRTC n |
+| `CSL/MODULE_x/SHAKER-x-n.CSL` | scripts CSL officiels (livraison CSLSSM, synchronisés par `wait_ssm`) : module x, CRTC n |
 | `CSL/*.pdf` | normes CSL 1.5 et SSM 1.2 |
 | `reference/<module>/<crtc>/*.png` | captures validées à la main d'après les photos sur machine réelle du site SHAKER |
 
@@ -55,10 +55,12 @@ Un script CSL quelconque peut tourner sans fenêtre :
 
 ## Écarts avec les scripts distribués
 
-- Module A : les scripts nomment encore `shaker26.dsk` et `RUN"SHAKE26A"`, absents du disque 2.7.
-  Le test les remplace par `shaker27.dsk` / `SHAKE27A` (le rapport le signale).
+- CRTC 3 : c'est le CRTC de l'ASIC, les scripts tournent sur un 6128 Plus FR. Le test ajoute
+  `key_output '\(FN1)'` avant `disk_insert` (menu de la cartouche → BASIC) ; le rapport le signale.
+- Clavier : SHAKER lit la matrice ; son « Z » (base R9) est la ligne 8 bit 7, marquée W sur l'AZERTY du
+  6128 FR. Le test remplace `key_output 'Z'` par `key_output 'W'` ; le rapport le signale.
+- `wait_ssm` : la norme ne fixe pas de délai ; le test abandonne après 5 min émulées (la page la plus
+  longue, module C test 7, dure environ 64 s).
 - `wait_ssm0000` / `wait_ssm` se terminent aussitôt si le code est arrivé depuis le `wait_ssm`
   précédent : SHAKER envoie `#0000` dès qu'il lit la touche, avant que le script n'attende.
 - Le site SHAKER n'a pas de photos du module E.
-- E_0 et E_1 s'interrompent : la page `#0405` (E_0) arrive vers 4,2 s au lieu de 3 s, la page
-  `#03FC` (E_1) vers 6 s au lieu de 5 s (écart de timing de l'émulation, à expliquer).

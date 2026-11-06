@@ -68,8 +68,8 @@ public:
    virtual void CharReleased (char c) ;
    // Presses or releases the key at (line, bit) of the matrix, whatever the layout
    void KeyAction (unsigned int line, unsigned int bit, bool pressed);
-   // Key that types 'c' with the current layout : the main keyboard first (lines 2 to 9), then
-   // the keypad and function keys (lines 0 and 1). 'shift' tells if SHIFT goes with it.
+   // Key that types 'c' with the current layout : the main keyboard first, then the keypad and
+   // function keys (lines 0 and 1, f4 on line 2 bit 4). 'shift' tells if SHIFT goes with it.
    bool FindCharKey (char c, unsigned int& line, unsigned int& bit, bool& shift) const;
 
    virtual void SendScanCode ( unsigned int, bool pressed );

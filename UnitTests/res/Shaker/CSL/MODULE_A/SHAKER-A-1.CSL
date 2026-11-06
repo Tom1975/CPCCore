@@ -1,297 +1,297 @@
 ;
 ; Fichier de script CSL 
-; Execution du module SHAKE26A du DSK SHAKER26.DSK en CRTC 1
+; Execution du module SHAKE27A du DSK SHAKER27.DSK en CRTC 1
 ; Le module genere des instructions au format SSM
 ;
 csl_version 1.0
 crtc_select 1
 reset
 wait 3000000 
-disk_insert 'shaker26.dsk'
+disk_insert 'shaker27.dsk'
 key_delay 70000 70000 400000
-key_output 'RUN"SHAKE26A"\(RET)'
+key_output 'RUN"SHAKE27A"\(RET)'
 wait 10000000
 ;
-; test 1
-key_output '1'		
-wait 800000			; fin affichage 1er ecran & ssm 595215
+;
+; test 1		; Update VRAM Versus CRTC (79 tests)
+key_output '1'	
+wait_ssm 0x0001		
 key_output ' ' 
-wait 800000			; fin affichage 2nd ecran & ssm 659451
+wait_ssm 0x0002		
 key_output ' '
-wait 800000			; fin affichage 3eme ecran & ssm 627963
+wait_ssm 0x0003		
 key_output ' '
-wait 800000			; fin affichage 4eme ecran & ssm 698883
+wait_ssm 0x0004		
 key_output ' '
-wait 800000			; fin affichage 5eme ecran & ssm 551415
+wait_ssm 0x0005		
 key_output ' '
-wait 1000000		; retour menu
 ; 
-; test 2
-key_output '2'	
-wait 800000			; 519961 crt 0 1 ecran 
-wait 800000 		; 2 ecrans 
-key_output ' '  
-wait 800000			;
-key_output ' '  
-wait 800000			; 723923
+; test 2		; Skew Disp On R0 rupture (4 test)
+key_output '2'
+wait_ssm 0x03A5
+wait_ssm 0x03A6
 key_output ' '
-wait 800000			; 599040
+wait_ssm 0x03A7
 key_output ' '
-wait 1000000		; retour menu
+wait_ssm 0x0009
+key_output ' '
+wait_ssm 0x000A
+key_output ' '
 ;
-; test 3
+; test 3	; CRTC 2 RVMB (22 TST) comp autres CRTC
 key_output '3'
-wait 800000		; 596058
-wait 1500000	; 1337856
+wait_ssm 0x000B		; 2 ecrans
+wait_ssm 0x000C		
+key_output ' '
+wait_ssm 0x000D		
+wait_ssm 0x000E		
 key_output ' ' 
-wait 800000		; 730624
-wait 1500000	; 1337856
+wait_ssm 0x000F		
+wait_ssm 0x0010		
 key_output ' ' 
-wait 800000		; 750685
-wait 800000	  ; 698880
+wait_ssm 0x0011
+wait_ssm 0x0012
 key_output ' ' 
-wait 800000		; 750592
-wait 800000	  ; 698880
+wait_ssm 0x0013
+wait_ssm 0x0014
 key_output ' ' 
-wait 800000		; 750592
-wait 800000	  ; 698880
+wait_ssm 0x0015
+wait_ssm 0x0016
 key_output ' ' 
-wait 800000		; 750592
-wait 800000	  ; 698880
+wait_ssm 0x0017
+wait_ssm 0x0018
 key_output ' ' 
-wait 800000		; 710656
-wait 800000	  ; 698880
+wait_ssm 0x0019
+wait_ssm 0x001A
 key_output ' ' 
-wait 800000		; 726016
-wait 800000	  ; 698880
+wait_ssm 0x001B
+wait_ssm 0x001C
 key_output ' ' 
-wait 800000		; 726952
-wait 800000	  ; 698880
+wait_ssm 0x001D
+wait_ssm 0x001E
 key_output ' ' 
-wait 1000000	; 845824
-wait 800000	  ; 698880
+wait_ssm 0x001F
+wait_ssm 0x0020
 key_output ' ' 
-wait 800000		; 666112
-wait 800000	  ; 698880
+wait_ssm 0x0021
+wait_ssm 0x0022
 key_output ' ' 
-wait 800000		; 666112
-wait 800000	  ; 698880
+wait_ssm 0x0023
+wait_ssm 0x0024
 key_output ' ' 
-wait 800000		; 706048
-wait 800000	  ; 698880
+wait_ssm 0x0025
+wait_ssm 0x0026
 key_output ' ' 
-wait 800000		; 610816
-wait 800000	  ; 698880
+wait_ssm 0x0027
+wait_ssm 0x0028
 key_output ' ' 
-wait 800000		; 610816
-wait 800000	  ; 698880
+wait_ssm 0x0029
+wait_ssm 0x002A
 key_output ' ' 
-wait 800000		; 610816
-wait 800000	  ; 698880
+wait_ssm 0x002B
+wait_ssm 0x002C
 key_output ' ' 
-wait 800000		; 730624
-wait 800000	  ; 698880
+wait_ssm 0x002D
+wait_ssm 0x002E
 key_output ' ' 
-wait 900000		; 745984
-wait 800000	  ; 698880
+wait_ssm 0x002F
+wait_ssm 0x0030
 key_output ' ' 
-wait 900000		; 805888
-wait 800000	  ; 698880
+wait_ssm 0x0031
+wait_ssm 0x0032
 key_output ' ' 
-wait 1000000	; 865792
-wait 800000	  ; 698880
+wait_ssm 0x0033
+wait_ssm 0x0034
 key_output ' ' 
-wait 800000		; 686080
-wait 800000	  ; 698880
+wait_ssm 0x0035
+wait_ssm 0x0036
 key_output ' ' 
-wait 800000		; 686080
-wait 800000	  ; 698880
-key_output ' ' 
-wait 10000000
 ;
+; test 4 : Update CRTC R0 TIMING (17 tst)
 key_output '4' 
-wait 8000000	; 6743019
+wait_ssm 0x0037
 key_output ' ' 
-wait 1000000
 ;
+;
+; r13 update in 4 usec frame (R0=3) (5tst)
 key_output '5'
-wait 800000		; 434016
+wait_ssm 0x0038
+key_output ' '
+wait_ssm 0x0039
+key_output ' '
+wait_ssm 0x003A
+key_output ' '
+wait_ssm 0x003B
+key_output ' '
+wait_ssm 0x003C
 key_output ' ' 
-wait 800000		; 547328
-key_output ' ' 
-wait 800000		; 567296
-key_output ' ' 
-wait 800000		; 587264
-key_output ' ' 
-wait 800000		; 607232
-key_output ' ' 
-wait 1000000
 ;
+; R13 update in 2 usec frame (R0=1) 5 Tst
 key_output '6'
-wait 800000	; 473960
-key_output ' ' 
-wait 800000	; 607232
-key_output ' ' 
-wait 800000	; 627200
-key_output ' ' 
-wait 800000	; 647168
-key_output ' ' 
-wait 800000	; 667136
-key_output ' ' 
-wait 1000000
+wait_ssm 0x003D
+key_output ' '
+wait_ssm 0x003E
+key_output ' '
+wait_ssm 0x003F
+key_output ' '
+wait_ssm 0x007F
+key_output ' '
+wait_ssm 0x0080
+key_output ' '
 ;
+; R13 update in 1 usec frame (R0=0) 5 tst
 key_output '7'
-wait 800000		; 473957
-key_output ' ' 
-wait 800000		; 667072
-key_output ' ' 
-wait 800000		; 527296
-key_output ' ' 
-wait 800000		; 547264
-key_output ' ' 
-wait 800000		; 567232
-key_output ' ' 
-wait 1000000
+wait_ssm 0x0081
+key_output ' '
+wait_ssm 0x0082
+key_output ' '
+wait_ssm 0x0083
+key_output ' '
+wait_ssm 0x0084
+key_output ' '
+wait_ssm 0x0085
+key_output ' '
 ;
+;
+; Gate Array Pixellisation
 key_output '8'
-wait 800000		; 431083
-key_output ' ' 
-wait 1000000
+wait_ssm 0x0086
+key_output ' '
 ;
+; Gate Array Inkerisation
 key_output '9'
-wait 800000		; 474048
-key_output ' ' 
-wait 800000		; 559104
-key_output ' ' 
-wait 800000		; 598363
-key_output ' ' 
-wait 1000000
+wait_ssm 0x0087
+key_output ' '
+wait_ssm 0x0088
+key_output ' '
+wait_ssm 0x0089
+key_output ' '
 ;
+; Gate Array Moderisation
 key_output 'E'
-wait 800000		; 514468
+wait_ssm 0x008C
 key_output ' ' 
-wait 1000000
 ;
+; Gfx Mode update according Hsync Delay (2.1.0) 
 key_output 'R'
-wait 800000		; 592695
-wait 1200000	; 998400
+wait_ssm 0x00AF
+wait_ssm 0x00B4
 key_output ' ' 
-wait 800000		; 599040
-wait 1200000  ; 998400
+wait_ssm 0x00B5
+wait_ssm 0x00B6
 key_output ' ' 
-wait 800000		; 658944
-wait 1200000  ; 998400
-key_output ' ' 
-wait 1000000
+wait_ssm 0x00B7
+wait_ssm 0x00BC
+key_output ' '
 ;
+;
+; R2 update during and after Hsync (6 tst)
 key_output 'T'
-wait 800000		; 531832
-key_output ' ' 
-wait 800000		; 579072
-key_output ' ' 
-wait 800000		; 579072
-key_output ' ' 
-wait 800000		; 579072
-key_output ' ' 
-wait 800000		; 579072
-key_output ' ' 
-wait 800000		; 638976
-key_output ' ' 
-wait 1000000
+wait_ssm 0x00BD
+key_output ' '
+wait_ssm 0x00BE
+key_output ' '
+wait_ssm 0x00BF
+key_output ' '
+wait_ssm 0x00C0
+key_output ' '
+wait_ssm 0x00C1
+key_output ' '
+wait_ssm 0x00C2
+key_output ' '
 ;
+; R3 Update during Hsync (8 tst)
 key_output 'Y'
-wait 800000		; 511931
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000		; 619008
-key_output ' ' 
-wait 800000	; ???
-key_output ' ' 
-wait 1000000
+wait_ssm 0x00C4
+key_output ' '
+wait_ssm 0x00C5
+key_output ' '
+wait_ssm 0x00C6
+key_output ' '
+wait_ssm 0x00C7
+key_output ' '
+wait_ssm 0x00C8
+key_output ' '
+wait_ssm 0x00C9
+key_output ' '
+wait_ssm 0x00CA
+key_output ' '
+wait_ssm 0x03AC
+key_output ' '
 ;
+;
+; R4 & R9 Checkings
 key_output 'U'
-wait 14000000	; 11803953+1007210
+wait_ssm 0x00C3
 key_output ' '
-wait 1000000
 ;
+; Vsync Conditions (413 test) 
 key_output 'I'
-wait 2200000	; 2013010
+wait_ssm 0x008D
 key_output ' '
-wait 2200000	; 2315008
+wait_ssm 0x008E
 key_output ' '
-wait 5000000	; 4233216
+wait_ssm 0x008F
 key_output ' '
-wait 35000000	; 31301630
+wait_ssm 0x0090
 key_output ' '
-wait 2000000	; 1557507
+wait_ssm 0x0091		; Lost and Dead Vsync
 key_output ' '
-wait 1000000
 ;
+;
+; R1 stories (8 tst)
 key_output 'O'
-wait 800000		; 576098
+wait_ssm 0x0092
 key_output ' '
-wait 800000		; 698880
+wait_ssm 0x0093
 key_output ' '
-wait 800000		; 698880
+wait_ssm 0x0094
 key_output ' '
-wait 800000		; 599040
+wait_ssm 0x0095
 key_output ' '
-wait 800000		; 497671
+wait_ssm 0x0096
 key_output ' '
-wait 800000		; 469504
+wait_ssm 0x0097
 key_output ' '
-wait 800000		; 522696
+wait_ssm 0x0098
 key_output ' '
-wait 800000		; 547978
+wait_ssm 0x0099
 key_output ' '
-wait 800000		; 579072
-; crtc 1
-;key_output ' '
-;wait 800000		; 482251
-;key_output ' '
-;wait 800000		; 599552
-;key_output ' '
-;wait 800000		; 599552
-;key_output ' '
-;wait 800000		; 599552
-;key_output ' '
-;wait 800000		; 519680
+wait_ssm 0x009A
 key_output ' '
-wait 1000000
 ;
+; R6 Stories (13 tst)
 key_output 'P'
-wait 450000		; 427222
-wait 5200000	; 5111808
+wait_ssm 0x009B
+wait_ssm 0x009C
+wait_ssm 0x009D
 key_output ' '
-wait 800000		; 529408
+wait_ssm 0x009E
 key_output ' '
-wait 800000		; 489472
+wait_ssm 0x009F
 key_output ' '
-wait 800000		; 449536
+wait_ssm 0x00A4
 key_output ' '
-wait 800000		; 509440
+wait_ssm 0x00A5
 key_output ' '
-wait 800000		; 587307
+wait_ssm 0x00A6
 key_output ' '
-wait 800000		; 479104
+wait_ssm 0x00A7
 key_output ' '
-wait 800000		; 479360
+wait_ssm 0x00AC
 key_output ' '
-wait 800000		; 490944
+wait_ssm 0x00AD
 key_output ' '
-wait 800000		; 638464
+wait_ssm 0x00AE
 key_output ' '
-wait 800000		; 619008
+wait_ssm 0x039C ; spec crt 1
 key_output ' '
-wait 1000000
-
+wait_ssm 0x039D ; spec crt 1
+key_output ' '
+wait_ssm 0x039E ; spec crt 1
+key_output ' '
+wait_ssm 0x039F ; spec crt 1
+key_output ' '
+wait_ssm 0x03A4 ; spec crt 1
+;
 csl_load 'SHAKER-A-2'

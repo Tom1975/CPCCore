@@ -159,8 +159,14 @@ const char* VerdictName(Verdict v)
    }
 }
 
-// Number of pixels that differ, or -1 if an image cannot be read / sizes differ. A non-null
-// 'diff' receives an image of the differences (red where the pixels differ).
+// Part of a 1024 x 312 screenshot a real monitor shows (CPCCoreEmu/Monitor.cpp, as VISIBLE in
+// tools/run_shaker.py) : per line 128 px of back porch, 832 displayable px, 64 px of line sync ;
+// 288 displayable lines from line 16. Outside it (retrace), the picture depends on the instant the
+// script presses the keys, not on what the CPC shows : it is not compared.
+constexpr unsigned int kVisibleX = 128, kVisibleY = 16, kVisibleW = 832, kVisibleH = 288;
+
+// Number of pixels that differ in the visible window, or -1 if an image cannot be read / sizes
+// differ. A non-null 'diff' receives an image of the differences (red where the pixels differ).
 long ComparePng(const fs::path& a, const fs::path& b, const fs::path& diff)
 {
    sf::Image ia, ib;
@@ -173,7 +179,9 @@ long ComparePng(const fs::path& a, const fs::path& b, const fs::path& diff)
    std::vector<sf::Uint8> out((size_t)w * h * 4);
    for (size_t i = 0; i < (size_t)w * h; i++)
    {
-      const bool same = memcmp(pa + i * 4, pb + i * 4, 3) == 0;
+      const unsigned int x = (unsigned int)(i % w), y = (unsigned int)(i / w);
+      const bool visible = x >= kVisibleX && x < kVisibleX + kVisibleW && y >= kVisibleY && y < kVisibleY + kVisibleH;
+      const bool same = !visible || memcmp(pa + i * 4, pb + i * 4, 3) == 0;
       if (!same) ++count;
       // Faded picture, differences in red
       out[i * 4 + 0] = same ? pa[i * 4 + 0] / 4 : 255;
@@ -231,12 +239,11 @@ std::string ReadFile(const fs::path& p)
    return ss.str();
 }
 
-// The scripts of module A in Shaker_CSL.zip still name the disk and the program of SHAKER 2.6
-// ('shaker26.dsk', RUN"SHAKE26A"), which are not on the 2.7 disk. Everything else is run as
-// distributed. Each change is listed in the report.
-//
-// CRTC 3 is the CRTC of the ASIC : the scripts run on a 6128 Plus (SHAKER tells CRTC 3 from 4 by the
-// ASIC). Its cartridge starts on a menu : f1 (keypad) selects BASIC before the disk is inserted.
+// The scripts are run as distributed (CSL 1.5, wait_ssm), with two changes listed in the report :
+// - CRTC 3 is the CRTC of the ASIC, the scripts run on a 6128 Plus (SHAKER tells CRTC 3 from 4 by the
+//   ASIC). Its cartridge starts on a menu : f1 (keypad) selects BASIC before the disk is inserted.
+// - SHAKER reads the matrix : its "Z" key (R9 base) is line 8 bit 7, the key marked W on the AZERTY of
+//   the 6128 FR. The key marked Z (line 7 bit 3) is read by nothing, the script would be stuck.
 std::string FixScript(std::string text, int crtc, std::vector<std::string>& changes)
 {
    if (crtc == 3)
@@ -248,22 +255,15 @@ std::string FixScript(std::string text, int crtc, std::vector<std::string>& chan
          changes.push_back("6128 Plus : key_output '\\(FN1)' (cartridge menu, BASIC) before disk_insert");
       }
    }
-   const std::pair<const char*, const char*> fixes[] = {
-      { "'shaker26.dsk'", "'shaker27.dsk'" },
-      { "RUN\"SHAKE26A\"", "RUN\"SHAKE27A\"" },
-   };
-   for (const auto& f : fixes)
+   const std::string key_z = "key_output 'Z'", key_w = "key_output 'W'";
+   size_t count = 0;
+   for (size_t pos = text.find(key_z); pos != std::string::npos; pos = text.find(key_z, pos + key_w.size()))
    {
-      size_t pos = 0, count = 0;
-      while ((pos = text.find(f.first, pos)) != std::string::npos)
-      {
-         text.replace(pos, strlen(f.first), f.second);
-         pos += strlen(f.second);
-         ++count;
-      }
-      if (count != 0)
-         changes.push_back(std::string(f.first) + " -> " + f.second + " (x" + std::to_string(count) + ")");
+      text.replace(pos, key_z.size(), key_w);
+      ++count;
    }
+   if (count != 0)
+      changes.push_back("AZERTY : key_output 'Z' -> 'W', line 8 bit 7 read by SHAKER (x" + std::to_string(count) + ")");
    return text;
 }
 
@@ -310,7 +310,9 @@ TEST_P(ShakerSuite, MatchesReference)
    csl.SetDiskDir(shaker_dir);
    csl.SetScreenshotDir(out_dir);
    csl.SetFollowCslLoad(false);              // one script per test : the chain runs in parallel
-   csl.SetWaitTimeout(60ull * 1000 * 1000);  // a wait_ssm that never comes : 60 s, then error
+   // A wait_ssm that never comes : error after 5 min emulated (the CSL norm sets no limit ; the longest
+   // SHAKER page, module C test 7, takes about 64 s)
+   csl.SetWaitTimeout(300ull * 1000 * 1000);
 
    std::vector<std::string> changes;
    const std::string text = FixScript(ReadFile(script), c.crtc, changes);
@@ -520,6 +522,42 @@ TEST(Csl, ParsesTextsWithOtherQuotes)
    EXPECT_EQ("254", p[3].args[2]);
 }
 
+// key_output types a digit with the key of the main keyboard : on the AZERTY of the 6128 FR, SHIFT +
+// the digit key. The keypad types the digits without SHIFT, and f4 is on line 2 (the other keypad
+// keys on lines 0 and 1) : '4' gave f4, and the SHAKER menus, which read the main key, ignored it.
+TEST(Csl, DigitsAreTypedOnTheMainKeyboard)
+{
+   CslMachine m;
+   const KeyboardHandler* kb = m.machine.GetKeyboardHandler();
+   // CPC matrix : '1' 8.0, '2' 8.1, '3' 7.1, '4' 7.0, '5' 6.1, '6' 6.0, '7' 5.1, '8' 5.0, '9' 4.1, '0' 4.0
+   const unsigned int expected[10][2] = { {4, 0}, {8, 0}, {8, 1}, {7, 1}, {7, 0}, {6, 1}, {6, 0}, {5, 1}, {5, 0}, {4, 1} };
+   for (int d = 0; d < 10; d++)
+   {
+      unsigned int line = 0, bit = 0;
+      bool shift = false;
+      ASSERT_TRUE(kb->FindCharKey((char)('0' + d), line, bit, shift)) << d;
+      EXPECT_EQ(expected[d][0], line) << d;
+      EXPECT_EQ(expected[d][1], bit) << d;
+      EXPECT_TRUE(shift) << d;
+   }
+}
+
+// SHAKER reads the "Z" of its menu at line 8 bit 7 : the key marked W on the 6128 FR
+TEST(Csl, ShakerZKeyIsTheFrenchW)
+{
+   CslMachine m;
+   const KeyboardHandler* kb = m.machine.GetKeyboardHandler();
+   unsigned int line = 0, bit = 0;
+   bool shift = false;
+   ASSERT_TRUE(kb->FindCharKey('W', line, bit, shift));
+   EXPECT_EQ(8u, line);
+   EXPECT_EQ(7u, bit);
+   std::vector<std::string> changes;
+   EXPECT_EQ("key_output 'W'\t; base\nkey_output 'X'\nkey_output 'W'\n",
+      FixScript("key_output 'Z'\t; base\nkey_output 'X'\nkey_output 'Z'\n", 1, changes));
+   EXPECT_EQ(1u, changes.size());
+}
+
 TEST(Csl, WaitRunsEmulatedTime)
 {
    CslMachine m;
@@ -594,6 +632,61 @@ TEST(Csl, SsmHalvesMustFollowEachOther)
    EXPECT_EQ(0x3D3E, csl.SsmEvents()[0].code);
 }
 
+// Three codes in a row, the script waits for them in turn : ending the wait of the first one must
+// not lose the next ones (module B, #01DA #01DB #01DC one frame apart)
+TEST(Csl, WaitSsmKeepsTheCodesThatFollow)
+{
+   CslMachine m;
+   CslHostStub host;
+   CslScript csl(&m.machine, &host);
+   csl.SetWaitTimeout(100000);
+   ASSERT_TRUE(csl.RunText("reset\nwait 3000000\n", "t.csl"));
+   const unsigned char bytes[] = { 0xED, 0xDA, 0xED, 0x01, 0xED, 0xDB, 0xED, 0x01, 0xED, 0xDC, 0xED, 0x01, 0x18, 0xFE };
+   for (unsigned int i = 0; i < sizeof(bytes); i++) m.machine.GetMem()->Set(0x4000 + i, bytes[i]);
+   m.machine.GetProc()->PrepareForFetch(0x4000);
+   EXPECT_TRUE(csl.RunText("wait 100\nwait_ssm 0x01DA\nwait_ssm 0x01DB\nwait_ssm 0x01DC\n", "t.csl")) << csl.Error().ToString();
+   EXPECT_EQ(3u, csl.SsmEvents().size());
+}
+
+// ED is a byte of the standard like any other : #00ED is ED ED ED 00, #ED01 is ED 01 ED ED
+TEST(Csl, SsmCodesCanHoldTheByteEd)
+{
+   for (uint16_t code : { (uint16_t)0x00ED, (uint16_t)0xED01 })
+   {
+      CslMachine m;
+      CslHostStub host;
+      CslScript csl(&m.machine, &host);
+      ASSERT_TRUE(csl.RunText("reset\nwait 3000000\n", "t.csl"));
+      PokeSsm(m.machine, 0x4000, code);
+      m.machine.GetProc()->PrepareForFetch(0x4000);
+      ASSERT_TRUE(csl.RunText("wait 100\n", "t.csl"));
+      ASSERT_EQ(1u, csl.SsmEvents().size());
+      EXPECT_EQ(code, csl.SsmEvents()[0].code);
+   }
+}
+
+// ED FF : SSM reads it as the high byte of #FFxx while a script runs, it stays the emulator break
+// outside (the debugger, BRK of RASM)
+TEST(Csl, EdFfBelongsToSsmOnlyWhileAScriptRuns)
+{
+   CslMachine m;
+   const unsigned char bytes[] = { 0xED, 0xFE, 0xED, 0xFF, 0x18, 0xFE };
+   {
+      CslHostStub host;
+      CslScript csl(&m.machine, &host);
+      ASSERT_TRUE(csl.RunText("reset\nwait 3000000\n", "t.csl"));
+      for (unsigned int i = 0; i < sizeof(bytes); i++) m.machine.GetMem()->Set(0x4000 + i, bytes[i]);
+      m.machine.GetProc()->PrepareForFetch(0x4000);
+      ASSERT_TRUE(csl.RunText("wait 100\n", "t.csl"));
+      ASSERT_EQ(1u, csl.SsmEvents().size());
+      EXPECT_EQ(0xFFFE, csl.SsmEvents()[0].code);
+      EXPECT_TRUE(m.machine.GetMotherboard()->run_);   // the run loop goes on
+   }
+   m.machine.GetProc()->PrepareForFetch(0x4000);
+   m.machine.RunCycles(100 * 16);
+   EXPECT_FALSE(m.machine.GetMotherboard()->run_);  // the break stopped the run loop
+}
+
 // csl_load without following the chain ends the script and names the next one
 TEST(Csl, CslLoadCanStopTheChain)
 {
@@ -617,7 +710,7 @@ TEST(Csl, RunScriptFromEnvironment)
    CslScript csl(&m.machine, &m.display);
    csl.SetDiskDir(fs::path(TestWorkspace::Fixture("res/Shaker/shaker27.dsk")).parent_path());
    csl.SetScreenshotDir(fs::absolute("screens"));
-   csl.SetWaitTimeout(60ull * 1000 * 1000);
+   csl.SetWaitTimeout(300ull * 1000 * 1000);
    std::error_code ec;
    const bool ok = csl.RunFile(fs::absolute(fs::path(file), ec));
    std::ofstream("csl.log", std::ios::binary) << m.display.LogText();

@@ -375,16 +375,21 @@ void KeyboardHandler::KeyAction(unsigned int line, unsigned int bit, bool presse
 
 bool KeyboardHandler::FindCharKey(char c, unsigned int& line, unsigned int& bit, bool& shift) const
 {
-   static const unsigned int order[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 };
-   for (int pass = 0; pass < 2; pass++)
+   // The key of the main keyboard first : the keypad (lines 0 and 1, and f4 on line 2 bit 4) types
+   // the digits without SHIFT, but a program reading the matrix waits for the main key (an AZERTY
+   // '4' is SHIFT + the key of line 7 bit 0, not f4). Pass 0 : main keyboard, 1 : with the alternate
+   // characters, 2 : keypad as a last resort.
+   auto keypad = [](unsigned int l, unsigned int b) { return l <= 1 || (l == 2 && b == 4); };
+   for (int pass = 0; pass < 3; pass++)
    {
-      for (unsigned int l : order)
+      for (unsigned int l = 0; l < 10; l++)
       {
          for (unsigned int b = 0; b < 8; b++)
          {
+            if (keypad(l, b) != (pass == 2)) continue;
             const Key& k = keyboard_map_[l][b];
-            const bool plain = (k.c == c) || (pass == 1 && k.c_alt == c);
-            const bool upper = (k.c_upper == c) || (pass == 1 && k.c_upper_alt == c);
+            const bool plain = (k.c == c) || (pass >= 1 && k.c_alt == c);
+            const bool upper = (k.c_upper == c) || (pass >= 1 && k.c_upper_alt == c);
             if (plain || upper)
             {
                line = l;

@@ -14,53 +14,35 @@ wait 10000000
 ;
 ; R5 STORIES 2ND ROUND 
 key_output '1'
-wait 3000000		; 3fa
+wait_ssm 0x03FA
 key_output ' ' 
-wait_ssm0000
-wait 5000000		; 3fb
+wait_ssm 0x03FB
 key_output ' ' 
-wait_ssm0000
-wait 5000000		; 3fc
+wait_ssm 0x03FC
 key_output ' ' 
-wait_ssm0000
-wait 8000000		; 3fd
+wait_ssm 0x03FD
 key_output ' ' 
-wait_ssm0000
-
-wait 100000
-
 ;
 ;
 ; CRTC 0 : C4/C9 COUNTER LOGIC
 key_output '3'
-wait 6000000		; 403
+wait_ssm 0x0403
 key_output ' ' 
-wait_ssm0000
-wait 3000000		; 404
-key_output ' '
-wait_ssm0000
-wait 3000000		; 405
-key_output ' '
-wait_ssm0000
-
-wait 100000
+wait_ssm 0x0404		; Youhou!!
+key_output ' ' 
+wait_ssm 0x0405
+key_output ' ' 
 
 ; CRTC 0 : C9 COMPARATOR R9/R5 SWITCH MECH
 key_output '6'
-wait 6000000		; 407
+wait_ssm 0x0407
 key_output ' ' 
-wait_ssm0000
-wait 3000000		; 408
-key_output ' '
-wait_ssm0000
-wait 3000000		; 409
-key_output ' '
-wait_ssm0000
-wait 4000000       ; 40A
-
-wait 100000
-
+wait_ssm 0x0408
+key_output ' ' 
+wait_ssm 0x0409
+key_output ' ' 
+wait_ssm 0x040A
+key_output ' ' 
 
 ;
-
-csl_load 'SHAKER-E-1.CSL'
+csl_load 'SHAKER-E-1'

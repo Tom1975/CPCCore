@@ -15,7 +15,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -168,5 +167,5 @@ protected:
    bool ssm_wait_ = false;           // a wait_ssm is running
    uint16_t ssm_wait_code_ = 0;
    bool ssm_wait_hit_ = false;
-   std::set<uint16_t> ssm_since_wait_;   // codes received since the last wait_ssm
+   std::vector<uint16_t> ssm_since_wait_;   // codes received since the last wait_ssm, in order
 };
