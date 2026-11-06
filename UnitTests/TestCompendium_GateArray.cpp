@@ -161,16 +161,17 @@ namespace
 {
 enum class InkInstruction { kOuti, kOutCR8, kOutNA };
 
-// Pen 0 (screen of 0) gets a new colour by 'instruction' on kLine. Returns the position of the
-// first pixel with the new colour, in Mode 2 pixels from the start of the block drawn during the
-// microsecond of the I/O (3rd microsecond of OUT (C),r8 and OUT (n),A, 5th of OUTI).
-int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, InkInstruction instruction)
+// Pen 'pen' gets a new colour by 'instruction' on 'on_line' (pen 0 on a screen of 0, pen &10 on a line of
+// border). Returns the position of the first pixel with the new colour, in Mode 2 pixels from the start of the
+// block drawn during the microsecond of the I/O (3rd microsecond of OUT (C),r8 and OUT (n),A, 5th of OUTI).
+int FirstPixelWithTheNewColour(CRTC::TypeCRTC type, const char* config, int mode, InkInstruction instruction,
+                               unsigned char pen, int on_line)
 {
    Machine m(type, config);
    Prepare(m, mode, 0x00);
-   if (!m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == kLine && m.Crtc().hcc_ == 5; }, 4 * 20000)) return -100;
+   if (!m.CyclesUntil([&]() { return m.Crtc().vcc_ * 8 + m.Crtc().vlc_ == on_line && m.Crtc().hcc_ == 5; }, 4 * 20000)) return -100;
    std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::OutGateArray(0x00));   // PENR : pen 0
+   z80::Append(p, z80::OutGateArray(pen));    // PENR
    int io_microsecond = 3;
    switch (instruction)
    {
@@ -212,6 +213,33 @@ int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, I
    }
    return -102;
 }
+
+int FirstPixelWithTheNewInk(CRTC::TypeCRTC type, const char* config, int mode, InkInstruction instruction)
+{
+   return FirstPixelWithTheNewColour(type, config, mode, instruction, 0x00, kLine);
+}
+
+const int kBorderLine = 210;               // a line of border (C4 = 26, C9 = 2)
+}
+
+// 9.2 : the inks and the border are updated the same way : both registers are written by the same strobe of the
+// GATE ARRAY 40010 (40010-simplified, sheet Registers, U401) and reach the colour register through the same path.
+// Every mode, every instruction, every type.
+TEST(Compendium_9, BorderTakenLikeTheInksOnEveryInstructionModeAndType)
+{
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128" },
+   };
+   const InkInstruction instructions[] = { InkInstruction::kOuti, InkInstruction::kOutCR8, InkInstruction::kOutNA };
+   for (const auto& m : machines)
+      for (int mode = 0; mode < 4; ++mode)
+         for (InkInstruction instruction : instructions)
+         {
+            SCOPED_TRACE(testing::Message() << "CRTC type " << (int)m.type << ", mode " << mode << ", instruction " << (int)instruction);
+            const int expected = (m.type == CRTC::AMS40226 && mode == 2) ? 7 : 8;
+            EXPECT_EQ(expected, FirstPixelWithTheNewColour(m.type, m.config, mode, instruction, 0x10, kBorderLine));
+         }
 }
 
 // 9.2.2 : CRTC 0, 1, 2 (GATE ARRAY 40010) : the new colour is drawn from the 2nd byte of the

@@ -412,7 +412,10 @@ unsigned int Memory::UpdateAsicPalette(unsigned char color_index, unsigned char 
       // Border
       asic_io_[0x2420] = (b | (r << 4));
       asic_io_[0x2421] = (g);
-      for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40] | 0xFF000000;
+      if (to_inks)
+      {
+         for (int i = 0; i < NB_BYTE_BORDER; i++)monitor_->gate_array_->video_border_[i] = ListeColorsIndex[hardware_color | 0x40] | 0xFF000000;
+      }
    }
    return 0;
 }

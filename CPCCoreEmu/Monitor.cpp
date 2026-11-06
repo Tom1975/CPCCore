@@ -158,6 +158,13 @@ void Monitor::RecomputeColors()
 {
    gate_array_->buffered_ink_available_ = false;
    unsigned int p = gate_array_->buffered_pen_;
+   if ((p & 0x10) != 0)
+   {
+      // Pen 16 : the border register (9.2)
+      for (int i = 0; i < NB_BYTE_BORDER; i++) gate_array_->video_border_[i] = gate_array_->buffered_ink_ | 0xFF000000;
+      gate_array_->border_reg_ = gate_array_->buffered_ink_reg_;
+      return;
+   }
    if (gate_array_->ink_list_[p] != gate_array_->buffered_ink_)
    {
       // PLUS : Update the ASIC Palette

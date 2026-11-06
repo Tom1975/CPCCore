@@ -951,39 +951,31 @@ void GateArray::TickIO()
          break;
       case 0x40:  // INKR
       case 0x60:  // INKR
-         // TODO : Decaller le changement de couleur par 8 pixels (9 sur 40010 en mode 2)
-         if ((pen_r_ & 0x10) == 0x10)
+         // The border and the 16 inks are written by the same strobe (40010-simplified, sheet Registers, U401) and
+         // reach the colour register through the same path : same position on the screen (9.2)
+         if (monitor_->screen_->IsDisplayed())
          {
-            // Border
-            //monitor_->SetBorder ( ListeColorsIndex [data & 0x5F] );
+            // The new colour is displayed from the 2nd byte of the character of this microsecond
+            // (9.2.2) : the colours are changed when the block is drawn, the palette of the ASIC now.
+            // A colour still pending (written out of the screen, or twice in the microsecond) first
+            if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+            const bool border = (pen_r_ & 0x10) == 0x10;
+            memory_->UpdateAsicPalette(border ? 17 : pen_r_, data - 0x40, false);
+            buffered_pen_     = border ? 0x10 : pen_r_;
+            buffered_ink_     = ListeColorsIndex[data & 0x5F];
+            buffered_ink_reg_ = data & 0x5F;
+            buffered_ink_available_ = true;
+         }
+         else if ((pen_r_ & 0x10) == 0x10)
+         {
             for (int i = 0; i < NB_BYTE_BORDER; i++)video_border_[i] = ListeColorsIndex[data & 0x5F];
             border_reg_ = data & 0x5F;
             memory_->UpdateAsicPalette(17, data - 0x40);
          }
          else
          {
-            if (monitor_->screen_->IsDisplayed())
-            {
-               // The new colour is displayed from the 2nd byte of the character of this microsecond
-               // (9.2.2) : the inks are changed when the block is drawn, the palette of the ASIC now.
-               // An ink still pending (written out of the screen, or twice in the microsecond) first
-               if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-               memory_->UpdateAsicPalette(pen_r_, data - 0x40, false);
-               buffered_pen_     = pen_r_;
-               buffered_ink_     = ListeColorsIndex[data & 0x5F];
-               buffered_ink_reg_ = data & 0x5F;
-               buffered_ink_available_ = true;
-               /*if ( m_bSpeed)
-               {
-                  monitor_->RecomputeColors ();
-               }*/
-            }
-            else
-            {
-               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
-               ink_regs_[pen_r_] = data & 0x5F;
-            }
-
+            ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
+            ink_regs_[pen_r_] = data & 0x5F;
          }
 
          break;
