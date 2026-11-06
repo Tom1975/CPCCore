@@ -517,8 +517,9 @@ bool CRTC::C9EqualsR9() const
    {
    case HD6845S:
       // C9 counts the lines of one field and the address uses C9.VMA = 2 x C9 | ParitéC9 : the character
-      // ends when C9.VMA reaches R9 rounded to the parity, i.e. C9 == (R9 + 1 - ParitéC9) / 2 (19.8.1)
-      return vlc_ == ((r9 + 1 - ParityC9Crtc0()) >> 1);
+      // ends when C9.VMA reaches R9 rounded to the parity, i.e. C9 == (R9 + 1 - ParitéC9) / 2. The comparator
+      // takes C9 x 2 on 5 bits : its high bit is lost, C9 = 3 and C9 = 19 both match R9 = 6 (19.8.1)
+      return (vlc_ & 0x0F) == (((r9 + 1 - ParityC9Crtc0()) >> 1) & 0x0F);
    case UM6845R:
       // C9 carries the parity and counts by 2 : compared without its bit 0, after adding !R9.0 (19.8.2)
       return ((vlc_ + ((r9 & 1) ? 0 : 1)) & 0x1E) == (r9 & 0x1E);

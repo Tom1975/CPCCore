@@ -91,9 +91,12 @@ void CRTC::ClockTick1 ()
       bool new_frame = false;
       if (adjust_)
       {
-         // C5 counts the additional lines ; R5=0 does not end them (11.3.2)
+         // C5 counts the additional lines ; R5=0 does not end them : C5 loops, and C4 is still compared with R4
+         // to return to 0 (11.3.2)
          vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
          new_frame = (adjust_lines != 0 && vertical_adjust_counter_ == adjust_lines);
+         if (adjust_lines == 0 && last_line_)
+            new_frame = true;
       }
       else if (last_line_)
       {

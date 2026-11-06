@@ -3961,6 +3961,54 @@ TEST(Compendium_19, Crtc1IvmCounting)
    EXPECT_TRUE(c9s == "0246" || c9s == "1357") << c9s;
 }
 
+// 19.8.1 : CRTC 0, R8 = 3 written with R9 = 6 on C9 = 4 : C9 overflows. C9 x 2 is compared with R9 on
+// 5 bits, its high bit is lost : the character ends on C9 = 19 (38 & 31 = 6), not after C9 wrapped to 3.
+TEST(Compendium_19, Crtc0IvmOverflowEndsOnTheLostHighBit)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 38, 0, 6);
+   ASSERT_TRUE(ReachLine(crtc, 5, 4));
+   WriteRegister(crtc, 8, 3);
+   int last = 4;
+   for (auto line = NextLine(crtc); line.first == 5 && line.second != 0; line = NextLine(crtc))
+   {
+      EXPECT_EQ(last + 1, line.second);
+      last = line.second;
+      ASSERT_LE(last, 31);
+   }
+   EXPECT_EQ(19, last);
+   EXPECT_EQ(6, crtc.vcc_);
+}
+
+// 11.3.2 : CRTC 1, R5 written to 0 during the additional lines : C4 does not return to 0 at their end, it
+// goes on and is still compared with R4. Once back on R4, the next frame starts and is a normal one : a R5
+// written during it gives the additional lines at its end. The compendium says the additional state stays
+// active ; the photos of SHAKER (#02D3, #00D7) only match if this return to 0 ends it.
+TEST(Compendium_11, Crtc1R5WrittenToZeroDuringTheAdjustment)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 4, 38);
+   WriteRegister(crtc, 5, 4);
+   WriteRegister(crtc, 9, 7);
+   AdvanceMicroseconds(crtc, 2 * 128 * 64);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   EXPECT_EQ(std::make_pair(39, 0), NextLine(crtc));
+   WriteRegister(crtc, 5, 0);
+   for (int i = 0; i < 16; ++i)
+      EXPECT_NE(0, NextLine(crtc).first);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   EXPECT_EQ(std::make_pair(0, 0), NextLine(crtc));
+
+   ASSERT_TRUE(ReachLine(crtc, 10, 0));
+   WriteRegister(crtc, 5, 4);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   for (int c9 = 0; c9 < 4; ++c9)
+      EXPECT_EQ(std::make_pair(39, c9), NextLine(crtc));
+   EXPECT_EQ(std::make_pair(0, 0), NextLine(crtc));
+}
+
 // 19.8.4 : CRTC 3, 4 in IVM (R9 = N - 2 = 6) : C9 += 2 | parity : rows C9 = 0, 2, 4, 6 or 1, 3, 5,
 // 7 ; the parity of the frame changes at every frame.
 TEST(Compendium_19, AsicIvmCounting)
