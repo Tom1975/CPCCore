@@ -24,8 +24,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03A6": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "doute",
+  "why": "référence acceptée (utilisateur) : 2 colonnes étroites comme la photo, 1re vert clair OK ; 2e saumon alors que la photo est sombre (Amspirit 0.953 et lite-1.15 = saumon comme Sugarbox ; WinApe et CPC-EC : page fausse). À mesurer sur le 6128 CRTC 1"
  },
  "03A7": {
   "verdict": "ok",
@@ -732,12 +732,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0096": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "doute",
+  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
  },
  "0097": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "doute",
+  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
  },
  "0098": {
   "verdict": "ok",

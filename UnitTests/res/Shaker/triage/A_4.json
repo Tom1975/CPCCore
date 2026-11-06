@@ -468,12 +468,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0096": {
-  "verdict": "ok",
-  "why": "étiquettes (Ln)AT #C000+(n×80) identiques à la photo (5/6/7), contrairement au CRTC 3"
+  "verdict": "doute",
+  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
  },
  "0097": {
-  "verdict": "ok",
-  "why": "étiquettes (Ln)AT #C000+(n×80) identiques à la photo (5/6/7), contrairement au CRTC 3"
+  "verdict": "doute",
+  "why": "référence retirée : la dernière image complète précède l'effet visible sur la photo (coin bleu), délai de table 2 images ; question posée à Longshot"
  },
  "0098": {
   "verdict": "ok",
