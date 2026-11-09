@@ -508,6 +508,9 @@ void GateArray::TickSignals()
       // of the HSYNC, it wins over the increment of its end (27.2)
       if (!r52_reset_held_)
          interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
+      // Interrupt acknowledge in progress (IRQACK_RST, see CSig::irq_ack_hold_) : bit 5 stays at 0 (27.7.1)
+      if (sig_handler_->irq_ack_hold_ != 0)
+         interrupt_counter_ &= 0x1F;
 
       // Plus ?
       if (plus_ && memory_->GetPRI() != 0)

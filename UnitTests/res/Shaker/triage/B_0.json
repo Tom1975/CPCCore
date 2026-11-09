@@ -592,12 +592,12 @@
   "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
  },
  "01F0": {
-  "verdict": "ko",
-  "why": "SHAKER KILLER : photo #CC partout (#C4 sur quelques lignes) ; Sugarbox #C4 WRONG partout, VERY BAD TRIP (corrigé : classé OK à tort, valeurs illisibles sur planche)"
+  "verdict": "ok",
+  "why": "SHAKER KILLER : #CC partout, #C4 sur ED A1, 2B, FD 2B, ED 57, ED 5F comme la photo, depuis le maintien de IRQACK_RST"
  },
  "01F1": {
-  "verdict": "ko",
-  "why": "3 lignes #0502 WRONG (attendu et photo #0D02) (corrigé : classé OK à tort, valeurs illisibles sur planche)"
+  "verdict": "ok",
+  "why": "R52 BIT 5 RESET : toutes les lignes = Exp (#0D02 compris), depuis le maintien de IRQACK_RST"
  },
  "01F2": {
   "verdict": "ok",

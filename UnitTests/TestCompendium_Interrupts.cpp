@@ -363,6 +363,26 @@ TEST(Compendium_27, RmrResetOnTheLastMicrosecondOfTheHSyncWins)
    EXPECT_EQ(0, R52AfterHSyncEndWithResetAt(kR2 + 14 - 1));
 }
 
+// 27.7.1 : R52 = 31 and the end of the HSYNC during the acknowledge of an interrupt. IRQACK_RST of the GATE ARRAY
+// (40010-simplified, sheet VSync, U819 to U827) holds bit 5 of R52 at 0 from IORQ_n and M1_n low until M1_n goes
+// high : the increment brings R52 to 0, the next interrupt is 52 lines later. After M1_n goes high, R52 = 32 and the
+// next interrupt is 20 lines later. SHAKER #01F1 (R52 BIT 5 RESET, every alignment of three instructions) and #01F0
+// (SHAKER KILLER) give the positions on a real CPC.
+TEST(Compendium_27, HSyncEndDuringTheAcknowledgeKeepsBit5OfR52AtZero)
+{
+   for (bool acknowledge : { true, false })
+   {
+      SCOPED_TRACE(acknowledge ? "during the acknowledge" : "after it");
+      Machine m(CRTC::HD6845S);
+      ASSERT_TRUE(UntilPosition(m, kVSyncLine + 12, kR2 + 12));
+      m.Ga().interrupt_counter_ = 31;
+      m.Sig().irq_ack_raster_ = true;
+      m.Sig().HoldInterruptAcknowledge(acknowledge ? 255 : 0);
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Ga().interrupt_counter_ != 31; }, 4 * 64), 0);
+      EXPECT_EQ(acknowledge ? 0 : 32, m.Ga().interrupt_counter_);
+   }
+}
+
 /////////////////////////////////////////////////////////////
 // 27.7.2 : reliability of the interrupts
 

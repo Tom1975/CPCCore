@@ -416,12 +416,12 @@
   "why": "bande noire qui coupe les barres et 3e ligne de texte absente ; photo et 4 émulateurs stables"
  },
  "01F0": {
-  "verdict": "ko",
-  "why": "SHAKER KILLER : photo #CC partout ; Sugarbox #C4 WRONG sur toute la page, VERY BAD TRIP"
+  "verdict": "ok",
+  "why": "SHAKER KILLER : #CC partout, #C4 sur ED A1, 2B, FD 2B, ED 57, ED 5F comme la photo, depuis le maintien de IRQACK_RST"
  },
  "01F1": {
-  "verdict": "ko",
-  "why": "3 lignes #0502 WRONG (attendu et photo #0D02)"
+  "verdict": "ok",
+  "why": "R52 BIT 5 RESET : toutes les lignes = Exp (#0D02 compris), depuis le maintien de IRQACK_RST"
  },
  "01F2": {
   "verdict": "ok",

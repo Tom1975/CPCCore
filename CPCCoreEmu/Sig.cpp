@@ -21,6 +21,8 @@ CSig::CSig(void) : plus_(false), interrupt_io_data_(0xFF)
    dispen_ = false;
    req_int_ = req_nmi_ = false;
    int_delay_ = 0;
+   irq_ack_hold_ = 0;
+   irq_ack_raster_ = false;
    int_ = 0;
    nmi_ = 0;
    hsync_raise_ = false;
@@ -48,6 +50,8 @@ void CSig::Reset ()
    dispen_ = false;
    req_int_ = req_nmi_ = false;
    int_delay_ = 0;
+   irq_ack_hold_ = 0;
+   irq_ack_raster_ = false;
    int_ = 0;
    nmi_ = 0;
    hsync_raise_ = false;
@@ -70,6 +74,8 @@ void CSig::Propagate()
    req_int_ = false;
    if (int_delay_ != 0 && --int_delay_ == 0)
       int_ = true;
+   if (irq_ack_hold_ != 0)
+      --irq_ack_hold_;
 
    nmi_ |= req_nmi_;
    req_nmi_ = false;
@@ -113,6 +119,7 @@ void CSig::AcqInt ()
 {
    req_int_ = false;
    int_ = 0;
+   irq_ack_raster_ = int_is_raster_;
    // DCSR : Reset to 0
 
    if (plus_)
