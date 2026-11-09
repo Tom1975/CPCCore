@@ -193,6 +193,38 @@ void GateArray::Reset()
    vsync_black_end_in_ = -1;
 }
 
+// T-state of this microsecond from which the Z80A sees INT after the end of the HSYNC, the GATE ARRAY handling it at the
+// start of the microsecond (TickSignals).
+// - INT : the HSYNC pin clocks the ripple counter R52 (40010-simplified, sheet VSync, U801, U815 to U835) ; its clear at
+//   52 (U807, U816, U831) or the bit 5 going down clocks U836, which pulls INT_n down. No clock samples this path :
+//   INT_n falls a few gate delays after the HSYNC pin.
+// - The pin falls on the pixel given by the CRTC (HSyncPinEdge) : in this microsecond for an end on the clock (0 to 3
+//   for the CRTC 0, 1, 2 ; ASIC : the register of 1 us, then 2 pixels), in the previous one for an end by an R3 write.
+// - The Z80A samples INT on the rising edge of its clock that starts the last T-state of an instruction (Zilog UM0080,
+//   27.7.2). The T-state t of the microsecond spans the pixels 4t-4 to 4t (an I/O on the T-state t acts on the pixel
+//   4t, see HSyncPinEdge) : it sees INT if it starts strictly after the pin edge.
+// On CRTC 0, 1, 2 (pixel 4, 5) the T-state 2 starts on the edge and misses INT, the T-state 3 sees it : the last T-state
+// of DEC DE misses it, the one of ADD HL,DE or CP (HL) sees it (27.7.2, SHAKER #02E3). On CRTC 3, 4 (pixel 2), DEC DE sees
+// it.
+unsigned char GateArray::InterruptVisibleTState() const
+{
+   int pixel = crtc_->HSyncPinEdge(false, 0);
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   for (unsigned int q = 1; q < 4; ++q)
+   {
+      // Pin high on the quarter q-1 and low on the quarter q of the previous microsecond : ended by an R3 write
+      if (((quarters >> (q - 1)) & 1) != 0 && ((quarters >> q) & 1) == 0)
+      {
+         pixel = static_cast<int>(crtc_->HSyncPinEdge(false, q)) - 16;
+         break;
+      }
+   }
+   // First T-state t whose start 4t-4 is strictly after the edge. The edge of an R3 write is handled at the start of
+   // the next microsecond : INT is not seen before its T-state 1.
+   const int t = (pixel >= 0) ? (pixel / 4 + 2) : ((pixel - 3) / 4 + 2);
+   return static_cast<unsigned char>(t < 1 ? 1 : t);
+}
+
 void GateArray::RequestRasterInterrupt()
 {
    if (unlocked_)
@@ -203,7 +235,7 @@ void GateArray::RequestRasterInterrupt()
    {
       sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
    }
-   sig_handler_->InterruptRaster();
+   sig_handler_->InterruptRaster(InterruptVisibleTState());
    sig_handler_->int_is_gate_array_ = true;
    interrupt_raised_ = true;
 }
@@ -999,6 +1031,7 @@ void GateArray::TickIO()
                interrupt_counter_ = 0;
                r52_reset_held_ = true;
                sig_handler_->req_int_ = false;
+               sig_handler_->int_delay_ = 0;
                sig_handler_->int_ = false;
                //m_Sig->AcqInt ();
 

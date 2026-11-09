@@ -42,6 +42,7 @@ public:
    void Reset ();
    // R52 asks the Z80 for an interrupt
    void RequestRasterInterrupt();
+   unsigned char InterruptVisibleTState() const;
    // Power on : the colour latches, which the RESET line does not touch, start from 0
    void PowerOn ();
 
