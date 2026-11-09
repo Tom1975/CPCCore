@@ -1,7 +1,7 @@
 {
  "02E3": {
-  "verdict": "ko",
-  "why": "TEST INT ON INST DEC DE : photo #59 (attendu #59), Sugarbox #58"
+  "verdict": "ok",
+  "why": "TEST INT ON INST DEC DE : #59 comme la photo, depuis le modèle INT (GateArray::InterruptVisibleTState, 0097e4e)"
  },
  "02E4": {
   "verdict": "ok",
@@ -12,8 +12,8 @@
   "why": "CP (HL) #00 : photo #0759, Sugarbox #0758. Les photos CRTC 0 et 2 donnent #0758 : valeur qui change selon la machine (page SK 2 UNRELIABLE)"
  },
  "02E6": {
-  "verdict": "ko",
-  "why": "DEC DE : photo #0759 puis #0779/#077A, Sugarbox #0758 et alternance décalée"
+  "verdict": "ok",
+  "why": "INT Z80A DEC DE : #00=#0759 comme la photo, depuis le modèle INT (0097e4e)"
  },
  "02E7": {
   "verdict": "ok",
