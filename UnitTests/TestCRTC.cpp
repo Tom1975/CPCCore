@@ -3684,6 +3684,43 @@ TEST(Compendium_15, Crtc2HSyncExamples)
    }
 }
 
+// 15.5 against two photos of SHAKER, CRTC 2 : divergence, to measure on a CRTC 2.
+// - SHAKER D3 (2 CSYNC RELATIVE, #0316 #0321 #032C #0337, module D) : R0 = 63, R1 = 40, a second HSYNC from
+//   R2 = #3B to #3E that ends on C0 = 1, on each line of a band. The photo keeps the text, as on CRTC 0 and 1 :
+//   the border set on C0 = R1 is lifted on C0 = 0 during the HSYNC (this test). #037F and #0380 (module D,
+//   CSYNC MULTIPLES) look the same.
+// - SHAKER A3 (RVMB, #000B to #001E, module A, validated against the photo and Amspirit) : R0 = 3, R1 = 3, a HSYNC
+//   of 14 characters started on C0 = 1 covers C0 = 0 of the next short lines : the photo keeps a yellow border
+//   margin, which only the rule of 15.5 gives (the border is not lifted on C0 = 0 during a HSYNC).
+// No model tried explains both : a lift on C0 = 0 in all cases loses the A3 margin (1456 pixels on 12 screens),
+// inhibited only for a HSYNC started on C0 = 0 too, frozen during the whole HSYNC keeps D3 wrong. A difference
+// left : the border of C0 = R1 is set during the HSYNC in A3, out of it in D3.
+// The HSYNC goes from C0 = 60 to C0 = 1 (R3l = 6) ; R2 is set back to 46 on C0 = 2 of the next line.
+TEST(Compendium_15, DISABLED_Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay)
+{
+   for (CRTC::TypeCRTC type : { CRTC::MC6845, CRTC::HD6845S, CRTC::UM6845R })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 50);
+      WriteRegister(crtc, 3, 0x86);
+      WriteRegister(crtc, 2, 60);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_TRUE(sig.h_sync_);
+      AdvanceUntilHccEquals(crtc, 2);
+      WriteRegister(crtc, 2, 46);
+      AdvanceUntilHccEquals(crtc, 10);
+      EXPECT_TRUE(crtc.DispEn());
+      // and the next frames are still displayed
+      AdvanceMicroseconds(crtc, 19968);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      AdvanceUntilHccEquals(crtc, 10);
+      EXPECT_TRUE(crtc.DispEn());
+   }
+}
+
 // 13.4 : CRTC 2 with lines of 4 us (R0 = 3, R4 = R9 = 0) : R2 must be > 0, or the HSYNC covers C0 = 0
 // and the border is never lifted (15.5). CRTC 0 lifts it.
 TEST(Compendium_13, Crtc2ShortLinesNeedR2AboveZero)
