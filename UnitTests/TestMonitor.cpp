@@ -206,8 +206,11 @@ TEST(Monitor, R2UpdatedDuringHsyncMovesTheBandLeftAsOnTheRealCpc)
 
 // #00C2 : OUT R2,#16 : two extra C-HSYNC (464 and 640 pixels after the main one). Photo and Amspirit :
 // the band moves right by 11 pixels M2. The monitor model gives about +37 : with the same sawtooth,
-// #00BD and #00C2 cannot both be right. The suspect is the second C-HSYNC of the GATE ARRAY, whose
-// HSYNC follows the first one after a single character (ACCC 15.3) : to measure on a real CPC.
+// #00BD and #00C2 cannot both be right. Not the GATE ARRAY : its schematic (40010-simplified, sheet VSync,
+// U808 to U824) gives the two full C-HSYNC that Sugarbox sends. The photos of SHAKER D3 (2 CSYNC RELATIVE)
+// show the phase comparator of the LA7800 : an all-or-nothing current, its sign set by the side of the
+// sawtooth zero where the extra pulse falls, its size by the width of the pulse, and two time constants.
+// A linear comparator is wrong by a factor of 2 to 7 there. To measure on a CTM644 : RealCpc/README.md, part 4.
 TEST(Monitor, DISABLED_R2UpdatedTwiceDuringHsyncMovesTheBandRightAsOnTheRealCpc)
 {
    const auto& frames = ShakerTestT();

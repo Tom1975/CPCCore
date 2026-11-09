@@ -55,8 +55,38 @@ Il faudrait un autre CRTC. À garder si l'occasion se présente.
 | 0 | `#01CB` à `#01CF` (module B) | Décrochage dans Sugarbox, photo stable |
 | 0 | `#012D` à `#0137` (module B) | R5 `#07` sur la photo, `#05` dans Sugarbox, avec une photo prise en base 5 et un script en base 7 |
 | 0 | `#0006` (module A) | Référence acceptée avec un doute |
-| 0 | `#00C2` (module A) | Moniteur : deuxième C-HSYNC, +37 contre +11 pixels |
+| 0 | `#00C2` (module A) | Moniteur : +37 contre +11 pixels. Cause : le comparateur du LA7800, voir la partie 4 |
 | 2 | `#0316`, `#0321`, `#032C`, `#0337`, `#037F`, `#0380` (module D) | BORDER à la place du texte. La photo suffit, à garder pour vérifier un correctif |
 | 3, 4 | `#03BE`, `#03C0`, `#03C8` et suivants (module D) | Registres et statuts. Le schéma du 40010 ne couvre pas ces ASIC |
 
 `RESET` qui force la bordure à `#10` (`U409`) n'est pas observable sur un 6128 standard : le firmware la réécrit aussitôt.
+
+## 4. Moniteur CTM644 : mesures à l'oscilloscope
+
+Le moniteur décale l'image quand une ligne porte une C-HSYNC en plus (R2 réécrit pendant la HSYNC). Les photos SHAKER
+D3 « 2 CSYNC RELATIVE » (44 écrans, CRTC 0, 1 et 2 concordants) montrent un comparateur de phase en tout-ou-rien, avec deux
+constantes de temps. Le modèle linéaire de `Monitor.cpp` se trompe d'un facteur 2 à 7. La fiche Sanyo du LA7800
+(`res/Shaker/afc_study/LA7800_Sanyo_ENN725F.pdf`) ne donne ni le courant de l'AFC, ni sa plage linéaire, ni la commande de
+l'oscillateur : il faut les mesurer. Étude, mesures sur photo et simulateurs : `res/Shaker/afc_study/` (non suivi).
+
+Schéma : manuel de service CPC6128 / CTM644 / GT65, page 26 (IC401 = LA7800). Points de mesure :
+
+- **broche 16** (entrée AFC) : dent de scie de comparaison. R406 6,2 kΩ et C403 180 pF depuis l'impulsion de retour, C404 0,039 µF à la masse ;
+- **broche 1** (sortie AFC) : tension d'erreur. C413 0,01 µF ∥ (R418 8,2 kΩ + C414 1 µF), R417 56 kΩ vers la broche 2 ;
+- **broche 14** (entrée synchro) ou sortie C-SYNC du CPC : déclenchement.
+
+Programme : `shaker27.dsk`, `RUN"SHAKE27D"`, touche `3` (2 CSYNC RELATIVE), puis la barre d'espace pour passer d'un écran à
+l'autre (A1 à A11, B1 à B11, C1 à C11, D1 à D11). L'en-tête de l'écran affiche R2 et R3 de la HSYNC supplémentaire.
+
+| # | Écran | Mesure | Ce qu'elle tranche |
+|---|---|---|---|
+| M1 | Un écran sans bande (le menu) | Broche 16 sur une ligne : forme, amplitude crête à crête, créneau pendant le retour ; broche 1 : niveau continu | Forme réelle de la dent de scie (triangle, demi-sinusoïde, part du créneau de C403 ≈ 0,23 calculé) |
+| M2 | A1 (`R2=#35`, bande à gauche) | Broche 1 au passage du haut de l'écran à la bande, sur ~10 lignes, synchro sur la VSYNC + retard | Saut de tension à chaque impulsion supplémentaire : **taille constante** quelle que soit la position (tout-ou-rien) ou **proportionnelle** à la dent de scie |
+| M3 | A8 (`R2=#26`, bande à droite) | Même relevé | Signe opposé, même taille ? |
+| M4 | A1 puis D1 (`R3=#06` puis `#03`) | Même relevé | Charge ∝ largeur de l'impulsion (64 puis 18 pixels) |
+| M5 | A5, A6, A7 (`R2=#22`, `#23`, `#24`) | Broche 16 pendant l'impulsion supplémentaire, et broche 1 | Plage linéaire du comparateur : la bande passe de -17 à +11 pixels sur ces 3 écrans |
+| M6 | A1 | Broche 1 sur toute la bande puis à sa sortie (~70 lignes) | Les deux constantes de temps : saut en 3-4 lignes puis glissement lent sur la photo ; retour en 3-5 lignes à la fin |
+| M7 | A1 | Broche 2 (oscillateur, C415 5 600 pF) en même temps que la broche 1 | Comment la tension de la broche 1 agit sur l'oscillateur (fréquence seule, ou phase aussi) |
+
+Décalages mesurés sur les photos SHAKER (pixels mode 2, + = vers la droite, fin de bande) : A1 -45, A5 -17, A6 -7,
+A7 +10, A8 +26, D1 -13, D8 +9. Sugarbox : voir `Monitor.DISABLED_R2UpdatedTwiceDuringHsyncMovesTheBandRightAsOnTheRealCpc`.
