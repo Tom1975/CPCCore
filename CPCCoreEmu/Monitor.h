@@ -5,6 +5,7 @@
 #include "CRTC.h"
 #include "KeyboardHandler.h"
 #include "IPlayback.h"
+#include "FramePacer.h"
 
 /*#ifdef CPCCOREEMU_EXPORTS
 #define CPCCOREEMU_API __declspec(dllexport)
@@ -32,6 +33,10 @@ public:
    void SetKeyboard(IKeyboardHandler* keyboard){keyboard_ = keyboard;}
 
    void SetScreen ( IDisplay* screen) {screen_ = screen;video_buffer_ = screen_->GetVideoBuffer (0); };
+   // Paces each frame before it is handed to the screen (nullptr : no pacing)
+   void SetFramePacer(FramePacer* frame_pacer) { frame_pacer_ = frame_pacer; }
+   // Emulated time since the last call, in us (the monitor is ticked every us)
+   unsigned int TakeElapsedTime() { const unsigned int elapsed = elapsed_us_; elapsed_us_ = 0; return elapsed; }
    void Reset ();
    void Tick ( );
 
@@ -78,6 +83,8 @@ public:
    int* video_buffer_;
 
    IDisplay*   screen_;
+   FramePacer* frame_pacer_;
+   unsigned int elapsed_us_;
    GateArray* gate_array_;
    Memory* memory_;
    IPlayback* playback_;

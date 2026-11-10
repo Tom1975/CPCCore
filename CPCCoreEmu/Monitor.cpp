@@ -45,6 +45,8 @@ Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), h
 
    video_buffer_ = nullptr;
    screen_ = nullptr;
+   frame_pacer_ = nullptr;
+   elapsed_us_ = 0;
 
    hsync_total_ = 0;
 
@@ -249,6 +251,7 @@ void Monitor::Tick( )
       // Display : Monitor Part
    {
       x_ += NBPIXELADDED;
+      ++elapsed_us_;
    /*
    The output HSYNC duration is actually MIN(0, MAX(4, (REG3 and #0f) - 2).
    The PLL in the monitor adjusts until the monitor HSYNC occurs in the centre of the HSYNC signal provided by the Gate Array.
@@ -454,6 +457,12 @@ void Monitor::Tick( )
                            expected_vertical_sync_start_ = 286;
                      }
 
+                     // The frame leaves when it is due in real time, not when the emulation reaches it
+                     const unsigned int frame_us = TakeElapsedTime();
+                     if (frame_pacer_ != nullptr && frame_pacer_->IsActive())
+                     {
+                        frame_pacer_->FrameEnd(frame_us);
+                     }
                      screen_->VSync();
 
                      // Keyboard validation

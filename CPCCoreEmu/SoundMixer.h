@@ -62,10 +62,20 @@ public:
    void SyncOnSound(bool set);
    void SyncWithSound();
 
+   // Dynamic rate control : the emulation is paced on another clock (the frames), so the sound is
+   // resampled a little faster or slower (0.5% at most, not audible) to keep the device queue
+   // around its target latency : no underrun, no overrun, and a steady latency.
+   void SetDynamicRate(bool on);
+
 protected:
    ILog* log_;
 
    bool sync_on_sound_;
+
+   bool dynamic_rate_;
+   double pending_average_;
+   // Correction of the resampling ratio, from the audio waiting in the device
+   double RateCorrection();
    
    // Filtering on output
    void FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples);

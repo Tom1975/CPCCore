@@ -87,6 +87,8 @@ void SoundBuffer::InitBuffer()
 SoundMixer::SoundMixer() : 
    log_(nullptr),
    sync_on_sound_(true),
+   dynamic_rate_(false),
+   pending_average_(0.0),
    tape_adjust_volume_(0.02),
    start_recording_(false), 
    stop_recording_(false), 
@@ -303,6 +305,8 @@ void SoundMixer::Init(ISound* sound, IExternalSource* tape)
    finished_ = false;
 #endif
    sound_ = sound;
+   // The speed limit can be set before the sound output is known
+   SetDynamicRate(dynamic_rate_);
 #ifndef NO_MULTITHREAD
    if (sound_ != nullptr)
    {
@@ -367,6 +371,10 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
       offset_buffer_to_convert_ += BUFFER_SIZE;
       // From convert_offset_  to 1024
       double div = 125000.0 / sound_->GetSampleRate(); // 44100.0;
+      if (dynamic_rate_)
+      {
+         div *= RateCorrection();
+      }
       double add = 0.0;
       int left = 0, right = 0;
       int total_added = 0;
@@ -639,6 +647,42 @@ void SoundMixer::SyncWithSound()
    {
       sound_->SyncWithSound();
    }
+}
+
+// Target latency of the device queue, with dynamic rate control
+static const double kTargetLatency = 0.060;   // s
+// Largest change of the resampling ratio
+static const double kMaxRateCorrection = 0.005;
+
+void SoundMixer::SetDynamicRate(bool on)
+{
+   if (sound_ != nullptr)
+   {
+      pending_average_ = kTargetLatency * sound_->GetSampleRate();
+      // The stream starts with the target latency ahead : the correction only has to follow the
+      // drift between the clocks, never to build the latency up
+      sound_->SetPrebuffer(on ? static_cast<unsigned int>(pending_average_) : 0);
+   }
+   dynamic_rate_ = on;
+}
+
+double SoundMixer::RateCorrection()
+{
+   const int pending = sound_->GetPendingSamples();
+   if (pending < 0)
+      return 1.0;
+
+   // Called for every buffer of 20 ms : the average follows the queue over ~0.4 s, which smooths
+   // the irregular arrival of the buffers out
+   const double target = kTargetLatency * sound_->GetSampleRate();
+   pending_average_ += (pending - pending_average_) * 0.05;
+
+   double error = (pending_average_ - target) / target;
+   if (error > 1.0) error = 1.0;
+   if (error < -1.0) error = -1.0;
+
+   // Too much audio waiting : more input samples by output sample, so less output
+   return 1.0 + kMaxRateCorrection * error;
 }
 
 // Sound Mixer : The soundmixer tick is 8us (125 khz)
