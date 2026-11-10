@@ -27,9 +27,8 @@ jobs:
       run: cmake --build ${{github.workspace}}\build --config ${{env.BUILD_TYPE}}
 
     - name: Test
-      # The UnitTests directory only: AmstradCoreTests has a failure that
-      # predates this change (GateArray.Clocks, which fails on master too) and
-      # CI has never run that suite.
+      # The UnitTests directory only: from the build root, ctest also lists the
+      # tests of the vendored zlib, which are not built.
       working-directory: ${{github.workspace}}\build\UnitTests
       # One process per test, so they run in parallel.
       run: ctest -j %NUMBER_OF_PROCESSORS% -C ${{env.BUILD_TYPE}} --output-on-failure

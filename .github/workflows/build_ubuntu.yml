@@ -39,9 +39,8 @@ jobs:
         ls -l
 
     - name: Test
-      # The UnitTests directory only: AmstradCoreTests has a failure that
-      # predates this change (GateArray.Clocks, which fails on master too) and
-      # CI has never run that suite.
+      # The UnitTests directory only: from the build root, ctest also lists the
+      # tests of the vendored zlib, which are not built.
       working-directory: ${{github.workspace}}/build/UnitTests
       # One process per test, so they run in parallel.
       run: xvfb-run --auto-servernum ctest -j $(nproc) --output-on-failure
