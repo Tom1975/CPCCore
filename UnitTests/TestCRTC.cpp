@@ -3835,6 +3835,28 @@ TEST(Compendium_16, R7WrittenOnTheLastMicrosecondBeforeC4)
    }
 }
 
+// 16.4.3, SHAKER OUTI STORY #019D (R7 LAST CHANCE 4TH, photos) : R7 = C4 written during the last character of the
+// row (C0 = R0 of the line C9 = R9), the next edge starting the row C4 + 1 :
+// - CRTC 2 : the C4 = R7 comparator sets the VSYNC flip-flop during that character : VSYNC (photo #1F) ;
+// - CRTC 0, 3, 4 : the comparator is taken with the C4 of the next row : no VSYNC (photos #1E).
+// CRTC 1 : not given at this position (the OUTI of SHAKER writes it one character earlier, CRTC::CharacterEdgeCycle).
+TEST(Compendium_16, R7WrittenWithC4OnTheLastCharacterOfTheRow)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 7, 10);
+      if (type == CRTC::MC6845)
+         EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+      else
+         EXPECT_FALSE(VSyncSeen(crtc, sig, 8 * 64));
+   }
+}
+
 // 17.3 : a second C0 = R1 on the line C9 = R9 (R1 rewritten after C0 went past it) loads VMA' again :
 // R1 40 -> 50 on C0 = 45 : the next character row starts 50 characters further.
 TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)

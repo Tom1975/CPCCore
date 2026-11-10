@@ -26,6 +26,9 @@
 //                           condition reached on C0=0 is seen on the edge that ends the previous character, so a
 //                           HSYNC spanning C0=0 hides it) starts a GHOST VSYNC : C3h counts the lines,
 //                           no new VSYNC is accepted, but the pin stays low (15.4.4).
+// - VSYNC flip-flop          set by the C4==R7 comparator output at any time of a character (16.4.3) : during the
+//                           character that ends (R7 = C4 written on the last character of a row) or with the C4
+//                           of the character that starts.
 // - the border is not lifted on C0=0 while a HSYNC is active (15.5).
 // - frame_end_no_extra_ (FE) the frame ended without additional line on the previous line end. During the next
 //                           line, interlace && ParitéR6 decodes it as the additional line : IVM switched on
@@ -44,6 +47,8 @@ void CRTC::ClockTick2 ()
 
    const unsigned char prev = hcc_;
    const bool hsync_in_previous_char = hsync_;
+   // C4==R7 comparator output during the character that ends (see VSYNC below)
+   const bool vsync_eq_in_previous_char = (vcc_ == registers_list_[7]);
 
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
@@ -180,11 +185,15 @@ void CRTC::ClockTick2 ()
    const bool line_eq = (vcc_ == registers_list_[4]) && c9_eq_r9_seen;
 
    ///////////////////////////////
-   // VSYNC (15.4.4, 16.3, 16.4.3) : evaluated on every C0. A condition met during a character on which the HSYNC
-   // output was active starts a GHOST VSYNC (chronogram p156 : R7 = C4 written on C0 = R2 - 1 gives a real
-   // VSYNC, on C0 = R2 to R2 + R3l - 1 a ghost one, on C0 = R2 + R3l a real one again)
+   // VSYNC (15.4.4, 16.3, 16.4.3) : evaluated on every C0. The C4==R7 comparator sets the VSYNC flip-flop as soon
+   // as its output rises ("declenchee immediatement", 16.4.3), not on a clock edge : its output during the
+   // character that ends (C4 of that character, R7 written during it : R7 = C4 written on the last character
+   // of the row, SHAKER OUTI STORY #019D) and its output with the C4 of the character that starts (C4 = R7 reached
+   // on C0 = 0) both count. A condition met during a character on which the HSYNC output was active starts a GHOST
+   // VSYNC (chronogram p156 : R7 = C4 written on C0 = R2 - 1 gives a real VSYNC, on C0 = R2 to R2 + R3l - 1 a ghost
+   // one, on C0 = R2 + R3l a real one again)
    const bool hsync_window = hsync_in_previous_char;
-   if (vcc_ == registers_list_[7])
+   if (vsync_eq_in_previous_char || vcc_ == registers_list_[7])
    {
       if ( v_no_sync_ && (!ff4_ || ff4_reset))
       {

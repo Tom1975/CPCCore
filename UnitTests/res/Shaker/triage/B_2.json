@@ -652,8 +652,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "019D": {
-  "verdict": "ko",
-  "why": "dernière ligne R7 LAST CHANCE 4TH : photo #1F GOOD, Sugarbox #1E WRONG"
+  "verdict": "ok",
+  "why": "OUTI STORY : #27 #14 #26 #27 #1E #1F tous GOOD comme la photo (R7 LAST CHANCE 4TH : le comparateur C4=R7 du CRTC 2 lève la VSYNC pendant le dernier caractère de la rangée, 16.4.3)"
  },
  "01E8": {
   "verdict": "ok",
