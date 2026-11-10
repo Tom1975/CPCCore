@@ -121,6 +121,14 @@ public:
    bool io_pending_;
    unsigned short io_pending_address_;
    unsigned char io_pending_data_;
+   // Character clock edge in the microsecond, in Z80 clock cycles after the start of the microsecond of the
+   // GATE ARRAY (see CharacterEdgeCycle) : edge_pending_ is the edge still to come in this microsecond (0 : none ;
+   // bit 7 : abandoned by a power on), edge_cycle_ the cycle of the last edge
+   unsigned char edge_pending_;
+   unsigned char edge_cycle_;
+   unsigned int CharacterEdgeCycle() const { return (type_crtc_ == UM6845R) ? 2 : 0; }
+   // Power on : the microsecond in progress has no character edge, the CRTC starts again with the next one
+   void AbandonCharacterEdge() { if (edge_pending_ != 0) edge_pending_ |= 0x80; }
    // HSYNC pin level on each quarter of microsecond (bit q = T-state q) of the current / previous
    // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
    unsigned char hsync_quarters_;

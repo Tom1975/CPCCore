@@ -279,49 +279,9 @@ void Motherboard::StartOptimizedPlus(unsigned int nb_cycles)
       if constexpr (tape_present)
          RUN_COMPOSANT_N(tape_, elapsed_time_tape);
 
+      // CRTC clock : end of the microsecond for the GATE ARRAY, then the next character (CRTC::Tick)
       if (elapsed_time_asic <= next_cycle)
-      {
-         // Same CRTC clock as CRTC::Tick() : end of the microsecond for the GATE ARRAY, then the next
-         // character (character logic, bus interface, HSYNC / VSYNC pins)
-         crtc_.gate_array_->TickVideo();
-         crtc_.ClockCharacter();
-         crtc_.gate_array_->TickSignals();
-
-         // Lightgun :
-         // If X/Y is in the current zone => do something
-
-         // Cursor
-         if (crtc_.vlc_ >= crtc_.registers_list_[10] && crtc_.vlc_ <= crtc_.registers_list_[11]
-            && crtc_.ma_ == crtc_.registers_list_[15] + ((crtc_.registers_list_[14] & 0x3F) << 8))
-         {
-            // Set CURSOR
-            if (crtc_.cursor_line_) crtc_.cursor_line_->Tick();
-         }
-
-         if (crtc_.gun_button_ == 1)
-         {
-            if (((((crtc_.gate_array_)->monitor_)->x_ + 16 - crtc_.gun_x_) & 0x7FFFFFFF) < 16
-               && ((crtc_.gate_array_)->monitor_)->y_ * 2 == crtc_.gun_y_
-               )
-            {
-               // Found
-               // GUNSTICK : Joystick down
-               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
-               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
-            }
-         }
-         else
-         {
-            // todo : this rand is too expensive !
-            //if (rand() & 1)
-            {
-               crtc_.registers_list_[16] = (crtc_.ma_ >> 8) & 0x3F;
-               crtc_.registers_list_[17] = (crtc_.ma_ & 0xFF);
-            }
-         }
-
-         elapsed_time_asic += 4;// asic_.crtc_->Tick();
-      }
+         elapsed_time_asic += crtc_.Tick();
 
 
       if constexpr (fdc_present)

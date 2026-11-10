@@ -235,7 +235,9 @@ void GateArray::RequestRasterInterrupt()
    {
       sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
    }
-   sig_handler_->InterruptRaster(InterruptVisibleTState());
+   // Taken on the character edge, edge_cycle_ cycles after the start of the microsecond (CRTC::Tick)
+   const int t = static_cast<int>(InterruptVisibleTState()) - crtc_->edge_cycle_;
+   sig_handler_->InterruptRaster(static_cast<unsigned char>(t < 1 ? 1 : t));
    sig_handler_->int_is_gate_array_ = true;
    interrupt_raised_ = true;
 }

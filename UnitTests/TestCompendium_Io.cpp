@@ -12,6 +12,8 @@
 
 #include "gtest/gtest.h"
 
+#include <set>
+
 using namespace compendium;
 
 namespace
@@ -399,4 +401,55 @@ TEST(Compendium_12, Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier)
    EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", no_rom_select, out_c_0));
    EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40226, "6128PLUS", rom_select, out_c_0));
    EXPECT_EQ(3, WriteMicrosecond(CRTC::HD6845S, "6128", rom_select, out_c_0));
+}
+
+namespace
+{
+// R0 = 19 (lines of 20 us), then 'io' writes R0 = 63 after 'nops' NOP : returns C0 on the microsecond the CRTC takes
+// the write, or -1.
+int C0WhenR0IsWritten(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& io, int nops)
+{
+   Machine m(type, config);
+   if (!UntilPosition(m, 100, 0)) return -1;
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, { 0x01, 0x00, 0xBC, 0xED, 0x49 });   // LD BC,&BC00 : OUT (C),C : select R0
+   z80::Append(p, { 0x01, 0x13, 0xBD, 0xED, 0x49 });   // LD BC,&BD13 : OUT (C),C : R0 = 19
+   z80::Append(p, { 0x21, 0x00, 0x50, 0x36, 0x3F });   // LD HL,&5000 : LD (HL),&3F
+   p.insert(p.end(), nops, z80::kNop);
+   z80::Append(p, io);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   if (m.CyclesUntil([&]() { return m.Crtc().registers_list_[0] == 0x13; }, 4 * 200) < 0) return -1;
+   if (m.CyclesUntil([&]() { return m.Crtc().registers_list_[0] == 0x3F; }, 4 * 200) < 0) return -1;
+   return m.C0OfTheMicrosecond();
+}
+}
+
+// 13.3 remark 3, 13.7.1.1 : R0 written by OUTI (I/O on its 5th us) on CRTC 1 is compared with C0 on the clock edge of
+// the microsecond of the write : on the microsecond where C0 restarts at 0 (C0 = old R0 before it), C0 goes on to old
+// R0 + 1 and the line ends on the new R0. The I/O of OUTI is on the T-state 0 of the microsecond, before the edge of
+// the CRTC 1 (CRTC::CharacterEdgeCycle) ; the one of OUT (C),r8 on the T-state 1, after it, as the edges of the other
+// CRTC. C0 of the microsecond of the write, for each position in the line of 20 us.
+TEST(Compendium_13, Crtc1ComparesC0WithR0WrittenByOuti)
+{
+   const std::vector<unsigned char> outi = { 0x01, 0x00, 0xBE, 0xED, 0xA3 };   // LD BC,&BE00 : OUTI
+   const std::vector<unsigned char> out_c = { 0x01, 0x3F, 0xBD, 0xED, 0x49 };  // LD BC,&BD3F : OUT (C),C
+   std::set<int> line, crtc1_outi;
+   for (int c0 = 0; c0 < 20; ++c0) line.insert(c0);
+   for (int c0 = 1; c0 < 21; ++c0) crtc1_outi.insert(c0);
+   const struct { CRTC::TypeCRTC type; const char* config; } types[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& t : types)
+   {
+      SCOPED_TRACE((int)t.type);
+      std::set<int> by_outi, by_out_c;
+      for (int nops = 0; nops < 20; ++nops)
+      {
+         by_outi.insert(C0WhenR0IsWritten(t.type, t.config, outi, nops));
+         by_out_c.insert(C0WhenR0IsWritten(t.type, t.config, out_c, nops));
+      }
+      EXPECT_EQ(t.type == CRTC::UM6845R ? crtc1_outi : line, by_outi);
+      EXPECT_EQ(line, by_out_c);
+   }
 }

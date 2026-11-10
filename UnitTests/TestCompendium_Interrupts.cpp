@@ -149,7 +149,7 @@ TEST(Compendium_27, InterruptPositionFollowsR3)
          continue;
       }
       ASSERT_TRUE(interrupted);
-      EXPECT_EQ((kR2 + c.after_r2) % 64, m.Crtc().hcc_);
+      EXPECT_EQ((kR2 + c.after_r2) % 64, m.C0OfTheMicrosecond());
    }
 }
 
@@ -402,7 +402,7 @@ int AcknowledgeOnAChainOf(CRTC::TypeCRTC type, const char* config, const std::ve
    m.Run(p);
    if (m.CyclesUntil([&]() { return m.Ga().interrupt_counter_ == 40; }, 4 * 20000) < 0) return -1;
    if (m.CyclesUntil([&]() { return m.Cpu().pc_ == 0x39; }, 4 * 2000) < 0) return -2;
-   return m.Crtc().hcc_;
+   return m.C0OfTheMicrosecond();
 }
 }
 

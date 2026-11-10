@@ -69,20 +69,16 @@ public:
       Cpu().PrepareForFetch(kProgram);
    }
 
-   // One 4 MHz cycle. Also tracks the microsecond boundaries (the CRTC moves C0 on the last cycle of
-   // each microsecond : phase 3) and, when enabled, the 16 pixel blocks drawn by the GATE ARRAY.
+   // One 4 MHz cycle. Also tracks the microsecond boundaries (the GATE ARRAY starts a microsecond on its last
+   // cycle : phase 3 ; the CRTC moves C0 on it, or CRTC::CharacterEdgeCycle cycles later) and, when enabled, the
+   // 16 pixel blocks drawn by the GATE ARRAY.
    void Cycle()
    {
       const unsigned char hcc = Crtc().hcc_;
       const int line_before = Crtc().vcc_ * (Crtc().registers_list_[9] + 1) + Crtc().vlc_;
       engine_->GetMotherboard()->DebugNew(1);
       ++cycles_;
-      if (Crtc().hcc_ != hcc) c0_change_cycle_ = cycles_;
-      if (Phase() == 0)
-      {
-         c0_of_microsecond_ = Crtc().hcc_;
-         line_of_microsecond_ = Crtc().vcc_ * (Crtc().registers_list_[9] + 1) + Crtc().vlc_;
-      }
+      if (Crtc().hcc_ != hcc) c0_change_cycle_ = cycles_ - Crtc().edge_cycle_;
       if (record_blocks_ && Ga().last_block_ != block_pending_.pixels_at)
       {
          // The previous block is final (FinalizeBlock applied the HSYNC / VSYNC black).
@@ -101,8 +97,16 @@ public:
       }
    }
 
-   // Phase of the last cycle in its microsecond (0 to 3, 3 : the CRTC moved C0).
+   // Phase of the last cycle in its microsecond (0 to 3, 3 : the GATE ARRAY started the microsecond).
    int Phase() const { return (int)((cycles_ - c0_change_cycle_ + 3) % 4); }
+
+   // C0 of the microsecond of the last cycle : the character the CRTC moves to on the edge of this microsecond,
+   // which comes 2 cycles after its start on CRTC 1 (CRTC::CharacterEdgeCycle). Runs to that edge.
+   int C0OfTheMicrosecond()
+   {
+      while (Crtc().edge_pending_ != 0) Cycle();
+      return Crtc().hcc_;
+   }
 
    // Runs to the fetch of the instruction at 'address' and returns the C0 of the microsecond it
    // starts on : the emulated Z80 may fetch before the boundary and insert its WAIT cycles in the
@@ -111,8 +115,9 @@ public:
    {
       if (CyclesUntil([&]() { return Cpu().pc_ == address + 1; }, 4 * 20000) < 0) return -1;
       if (Phase() != 0) CyclesUntil([&]() { return Phase() == 0; }, 4);
-      if (line != nullptr) *line = line_of_microsecond_;
-      return c0_of_microsecond_;
+      const int c0 = C0OfTheMicrosecond();
+      if (line != nullptr) *line = Crtc().vcc_ * (Crtc().registers_list_[9] + 1) + Crtc().vlc_;
+      return c0;
    }
 
    // A block of 16 Mode 2 pixels drawn by the GATE ARRAY during the microsecond C0 of 'line' (it
@@ -161,8 +166,6 @@ private:
    std::unique_ptr<EmulatorEngine> engine_;
    unsigned long long cycles_ = 0;
    unsigned long long c0_change_cycle_ = 0;
-   int c0_of_microsecond_ = -1;
-   int line_of_microsecond_ = -1;
    bool record_blocks_ = false;
    Block block_pending_;
    std::vector<Block> blocks_;

@@ -41,7 +41,7 @@
  },
  "02ED": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "début de VSYNC sur R7.JIT par OUTI 1 µs plus tôt depuis le front de caractère du CRTC 1 : marche à 22,75 car. contre ~23,1 mesurés sur la photo (24,75 avant)"
  },
  "02EE": {
   "verdict": "ok",
