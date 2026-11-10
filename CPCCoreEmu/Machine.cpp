@@ -88,6 +88,7 @@ bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
 
    motherboard_.InitMotherbard(log_, &sna_handler_, display_, notifier_, directories_, configuration_manager_);
    sna_handler_.SetMachine(&motherboard_);
+   GetMonitor()->SetFramePacer(&frame_pacer_);
 
    return true;
 }
@@ -858,24 +859,35 @@ void EmulatorEngine::SetSpeedLimit (SpeedLimit speedLimit )
    switch (speed_limit_)
    {
    case E_SOUND_AND_VBL:
+      // One clock : the emulated frames, paced on the real time. The screen (variable refresh rate)
+      // follows the frames, the sound follows by a slight resampling. Nothing waits on the sound,
+      // nor on the display : a late display drops a frame, it does not stall the emulation (and
+      // the sound).
       speed_ = 100;
-      display_->SyncOnFrame(true);
-      sound_mixer_.SyncOnSound(true);
-      break;
+      display_->SyncOnFrame(false);
+      sound_mixer_.SyncOnSound(false);
+      sound_mixer_.SetDynamicRate(true);
+      frame_pacer_.SetActive(true);
       break;
    case E_SOUND:
       speed_ = 100;
       display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(true);
+      sound_mixer_.SetDynamicRate(false);
+      frame_pacer_.SetActive(false);
       break;
    case E_VBL:
       speed_ = 100;
       display_->SyncOnFrame(true);
       sound_mixer_.SyncOnSound(false);
+      sound_mixer_.SetDynamicRate(false);
+      frame_pacer_.SetActive(false);
       break;
    default:
       display_->SyncOnFrame(false);
       sound_mixer_.SyncOnSound(false);
+      sound_mixer_.SetDynamicRate(false);
+      frame_pacer_.SetActive(false);
       break;
    }
 }
@@ -993,6 +1005,19 @@ void EmulatorEngine::HandleSyncro(int run_time)
    case E_FULL:
       break;
    case E_SOUND_AND_VBL:
+      // Each frame is paced by the monitor. A slice without any frame (no vertical sync from the
+      // monitor) is paced here, so the emulation never runs unthrottled.
+      if (frame_pacer_.TakeFrameCount() == 0)
+      {
+         const unsigned int elapsed_us = GetMonitor()->TakeElapsedTime();
+         frame_pacer_.Wait(elapsed_us != 0 ? elapsed_us : run_time / 4);
+      }
+      time_elapsed_end = std::chrono::steady_clock::now();
+      if (time_elapsed_end > time_elapsed_)
+         real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
+      else
+         real_time = std::chrono::milliseconds(0);
+      break;
    case E_SOUND:
       // Sound sync is done is the sound mixer part. 
       sound_mixer_.SyncWithSound();

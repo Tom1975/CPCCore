@@ -78,6 +78,8 @@ Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), h
 
    video_buffer_ = nullptr;
    screen_ = nullptr;
+   frame_pacer_ = nullptr;
+   elapsed_us_ = 0;
 
 
    // Look up table
@@ -305,6 +307,7 @@ void Monitor::Tick( )
       // Display : Monitor Part
    {
       x_ += NBPIXELADDED;
+      ++elapsed_us_;
 
    // AFC phase comparator, pixel by pixel on the C-HSYNC of the GATE ARRAY (16.2.2)
    const unsigned short chsync_mask = gate_array_->chsync_mask_;
@@ -396,6 +399,12 @@ void Monitor::Tick( )
                            expected_vertical_sync_start_ = 286;
                      }
 
+                     // The frame leaves when it is due in real time, not when the emulation reaches it
+                     const unsigned int frame_us = TakeElapsedTime();
+                     if (frame_pacer_ != nullptr && frame_pacer_->IsActive())
+                     {
+                        frame_pacer_->FrameEnd(frame_us);
+                     }
                      screen_->VSync();
 
                      // Keyboard validation
