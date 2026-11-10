@@ -690,18 +690,8 @@
   ]
  },
  "008E": {
-  "verdict": "ko",
-  "why": "R0=2/3 : valeurs justes (bit 0), mais le texte de Sugarbox est déformé (caractères abîmés, traits parasites à droite des lignes) ; photo et émulateurs propres",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.15,
-    "w": 0.9,
-    "h": 0.7,
-    "note": "glyphes abîmés"
-   }
-  ]
+  "verdict": "ok",
+  "why": "R0=2/3 : mêmes valeurs (#5F) et même texte que la photo ; texte propre depuis la capture par lignes terminées (revu 2026-11-10)"
  },
  "008F": {
   "verdict": "ok",
