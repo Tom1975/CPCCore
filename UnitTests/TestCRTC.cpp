@@ -3857,6 +3857,39 @@ TEST(Compendium_16, R7WrittenWithC4OnTheLastCharacterOfTheRow)
    }
 }
 
+// 14.7.2 : CRTC 3, 4, R2.JIT. The start comparator (C0vs == R2) acts as soon as R2 is written with the current C0,
+// and the pin, deferred by one character, is the same as with R2 written before : same start, same length, for
+// R3l = 14 and R3l = 0 (16 us). SHAKER #00B5 / #00B6 (OUT R2,#0A on C0 = #0A, third zone R3 = 0).
+TEST(Compendium_14, Asic34R2WrittenWithC0StartsTheSameHSync)
+{
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      for (unsigned char r3 : { 0x8E, 0x80 })
+      {
+         std::string pins[2];
+         for (int jit = 0; jit < 2; ++jit)
+         {
+            SCOPED_TRACE(testing::Message() << TypeName(type) << " R3 = " << int(r3) << (jit ? " R2.JIT" : ""));
+            CRTC crtc; CSig sig;
+            Screen(crtc, sig, type);
+            WriteRegister(crtc, 3, r3);
+            ASSERT_TRUE(ReachLine(crtc, 5, 2));
+            if (!jit) WriteRegister(crtc, 2, 20);
+            AdvanceUntilHccEquals(crtc, 20);
+            if (jit) WriteRegister(crtc, 2, 20);
+            for (int i = 0; i < 24; ++i)
+            {
+               pins[jit] += sig.h_sync_ ? '1' : '0';
+               Advance(crtc);
+            }
+         }
+         SCOPED_TRACE(testing::Message() << TypeName(type) << " R3 = " << int(r3));
+         EXPECT_EQ(r3 == 0x80 ? "011111111111111110000000" : "011111111111111000000000", pins[0]);
+         EXPECT_EQ(pins[0], pins[1]);
+      }
+   }
+}
+
 // 17.3 : a second C0 = R1 on the line C9 = R9 (R1 rewritten after C0 went past it) loads VMA' again :
 // R1 40 -> 50 on C0 = 45 : the next character row starts 50 characters further.
 TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)

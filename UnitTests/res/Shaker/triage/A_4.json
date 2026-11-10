@@ -376,12 +376,12 @@
   "why": "pas de photo : SHAKER ne définit pas ce test pour le CRTC 4"
  },
  "00B5": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : la photo montre la zone R3=0 (barres colorées, bloc noir, bas décalé) dès R2=#0A ; Sugarbox n'affiche que les barres jaunes (il ne la produit qu'avec R2=#0B, #00B7/#00BC)"
+  "verdict": "ok",
+  "why": "R3=0 sur la 3e zone (OUT R2,#0A sur C0=#0A) : zone R3=0 comme la photo (barres colorées, bloc noir incliné, bas décalé) depuis le comparateur R2 du CRTC 3/4 (14.7.2, 2026-11-10)"
  },
  "00B6": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : la photo montre la zone R3=0 (barres colorées, bloc noir, bas décalé) dès R2=#0A ; Sugarbox n'affiche que les barres jaunes (il ne la produit qu'avec R2=#0B, #00B7/#00BC)"
+  "verdict": "ok",
+  "why": "R3=0 sur la 3e zone (OUT R2,#0A sur C0=#0A) : zone R3=0 comme la photo (barres colorées, bloc noir incliné, bas décalé) depuis le comparateur R2 du CRTC 3/4 (14.7.2, 2026-11-10)"
  },
  "00B7": {
   "verdict": "ok",

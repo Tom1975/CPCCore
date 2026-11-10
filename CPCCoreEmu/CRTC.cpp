@@ -386,6 +386,20 @@ unsigned int CRTC::VSyncBlackEndDelay() const
 // R2 written : C0==R2 starts the HSYNC
 void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 {
+   if (type_crtc_ == AMS40489 || type_crtc_ == AMS40226)
+   {
+      // CRTC 3, 4 : the start comparator (C0vs==R2) acts as soon as R2 changes, but the pin goes through the
+      // register that synchronises it with the display (ClockHSyncPin) : R2 written with C0 starts the internal
+      // HSYNC during this character, the register samples it on the edge that ends the character. The black zone
+      // is not later than with R2 written before, the HSYNC is deferred (14.7.2, R2.JIT ; SHAKER #00B5, #00B6)
+      if (!hsync_ && hcc_ == registers_list_[2] && horizontal_sync_width_ != 0)
+      {
+         hsync_ = true;
+         horinzontal_pulse_ = 0;
+         hsync_pin_stage_ = true;
+      }
+      return;
+   }
    if (!HSyncPinFollowsComparators() || hsync_) return;
    if (hcc_ == registers_list_[2] && horizontal_sync_width_ != 0 && (hsync_quarters_previous_ & 0x08) == 0)
    {
