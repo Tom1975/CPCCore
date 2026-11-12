@@ -1,0 +1,558 @@
+{
+ "00D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E6": {
+  "verdict": "ok",
+  "why": "même image ; la photo affiche #xx (1er passage), Sugarbox le résultat du test précédent du script"
+ },
+ "00E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F5": {
+  "verdict": "ko",
+  "why": "Sugarbox : page coupée en deux avec une bande noire en bas ; photo, Amspirit et Amspirit-lite : colonnes continues jusqu'à la bande bleue"
+ },
+ "00F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0192": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0193": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0194": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0195": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0196": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0197": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0198": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0199": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019B": {
+  "verdict": "doute",
+  "why": "Sugarbox et Amspirit-lite : colonnes hachurées larges ; photo, Amspirit, WinAPE, CPC-EC : trois colonnes fines. Blocs de texte dans un autre ordre. Page en transition"
+ },
+ "019C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0200": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0201": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0202": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0203": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0204": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0205": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0206": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0207": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0208": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0209": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0210": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0211": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0212": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0213": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0214": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0215": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CF": {
+  "verdict": "ko",
+  "why": "page en décrochage (haut bruité, bande noire), photo et 4 émulateurs stables"
+ },
+ "01D0": {
+  "verdict": "ko",
+  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+ },
+ "01D1": {
+  "verdict": "ko",
+  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+ },
+ "01D2": {
+  "verdict": "ko",
+  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+ },
+ "01D3": {
+  "verdict": "ko",
+  "why": "bande noire qui coupe les barres et 3e ligne de texte absente ; photo et 4 émulateurs stables"
+ },
+ "01F0": {
+  "verdict": "ok",
+  "why": "SHAKER KILLER : #CC partout, #C4 sur ED A1, 2B, FD 2B, ED 57, ED 5F comme la photo, depuis le maintien de IRQACK_RST"
+ },
+ "01F1": {
+  "verdict": "ok",
+  "why": "R52 BIT 5 RESET : toutes les lignes = Exp (#0D02 compris), depuis le maintien de IRQACK_RST"
+ },
+ "01F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E3": {
+  "verdict": "doute",
+  "why": "texte coloré chez Sugarbox ; photo, Amspirit et Amspirit-lite : texte normal et colonne noire plus étroite ; même cas que B_0"
+ },
+ "01E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D6": {
+  "verdict": "doute",
+  "why": "zone du haut : texte chez Sugarbox, hexa sur la photo, Amspirit et Amspirit-lite ; corps identique"
+ },
+ "01D7": {
+  "verdict": "ko",
+  "why": "zone du haut en hexa (texte sur la photo) et trou horizontal dans le bloc hexa, absent de la photo"
+ },
+ "01D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019D": {
+  "verdict": "ok",
+  "why": "OUTI STORY : #13 #14 #26 #26 #1E #1F tous GOOD comme la photo (front de caractère du CRTC 1 sur le front descendant de CLK, compendium §13.3 rem. 3)"
+ },
+ "01E6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0216": {
+  "verdict": "ko",
+  "why": "STATUS : photo 20/00 et R31=#7F, Sugarbox 60/40 et R31=#1F (bit 6 en trop, R31 différent) ; C0=#20 au lieu de #22"
+ },
+ "01E8": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox ; carré cyan large sur la photo, étroit chez Sugarbox"
+ },
+ "01E9": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox ; carré cyan étroit sur la photo, large chez Sugarbox"
+ },
+ "01EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EC": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox"
+ },
+ "01ED": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox"
+ },
+ "01EE": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox"
+ },
+ "01EF": {
+  "verdict": "doute",
+  "why": "R4 SYNC #2B sur la photo (lecture floue), #2A chez Sugarbox"
+ },
+ "01DA": {
+  "verdict": "doute",
+  "why": "photo propre en C9=1 ; Sugarbox C9=0 avec du bruit : question posée à Longshot"
+ },
+ "01DB": {
+  "verdict": "doute",
+  "why": "C9=1 sur la photo, C9=0 chez Sugarbox : question posée à Longshot"
+ },
+ "01DC": {
+  "verdict": "doute",
+  "why": "C9=1 sur la photo, C9=0 chez Sugarbox : question posée à Longshot"
+ },
+ "01E7": {
+  "verdict": "ko",
+  "why": "photo et 4 émulateurs : 2 lignes puis page vide (1-B) ; Sugarbox : ligne répétée sur tout l'écran (1-A)"
+ }
+}

@@ -85,7 +85,8 @@ static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
    }
 }
 
-CRTC::CRTC(void) : signals_(nullptr), gate_array_(nullptr), ppi_(nullptr), play_back_(nullptr), log_(nullptr), cursor_line_(nullptr)
+CRTC::CRTC(void) : signals_(nullptr), gate_array_(nullptr), ppi_(nullptr), play_back_(nullptr), log_(nullptr), cursor_line_(nullptr),
+   edge_pending_(0), edge_cycle_(0)
 {
    DefinirTypeCRTC(UM6845R);
 
@@ -385,6 +386,20 @@ unsigned int CRTC::VSyncBlackEndDelay() const
 // R2 written : C0==R2 starts the HSYNC
 void CRTC::HSyncStartComparatorChanged(unsigned int t_state)
 {
+   if (type_crtc_ == AMS40489 || type_crtc_ == AMS40226)
+   {
+      // CRTC 3, 4 : the start comparator (C0vs==R2) acts as soon as R2 changes, but the pin goes through the
+      // register that synchronises it with the display (ClockHSyncPin) : R2 written with C0 starts the internal
+      // HSYNC during this character, the register samples it on the edge that ends the character. The black zone
+      // is not later than with R2 written before, the HSYNC is deferred (14.7.2, R2.JIT ; SHAKER #00B5, #00B6)
+      if (!hsync_ && hcc_ == registers_list_[2] && horizontal_sync_width_ != 0)
+      {
+         hsync_ = true;
+         horinzontal_pulse_ = 0;
+         hsync_pin_stage_ = true;
+      }
+      return;
+   }
    if (!HSyncPinFollowsComparators() || hsync_) return;
    if (hcc_ == registers_list_[2] && horizontal_sync_width_ != 0 && (hsync_quarters_previous_ & 0x08) == 0)
    {
@@ -517,8 +532,9 @@ bool CRTC::C9EqualsR9() const
    {
    case HD6845S:
       // C9 counts the lines of one field and the address uses C9.VMA = 2 x C9 | ParitéC9 : the character
-      // ends when C9.VMA reaches R9 rounded to the parity, i.e. C9 == (R9 + 1 - ParitéC9) / 2 (19.8.1)
-      return vlc_ == ((r9 + 1 - ParityC9Crtc0()) >> 1);
+      // ends when C9.VMA reaches R9 rounded to the parity, i.e. C9 == (R9 + 1 - ParitéC9) / 2. The comparator
+      // takes C9 x 2 on 5 bits : its high bit is lost, C9 = 3 and C9 = 19 both match R9 = 6 (19.8.1)
+      return (vlc_ & 0x0F) == (((r9 + 1 - ParityC9Crtc0()) >> 1) & 0x0F);
    case UM6845R:
       // C9 carries the parity and counts by 2 : compared without its bit 0, after adding !R9.0 (19.8.2)
       return ((vlc_ + ((r9 & 1) ? 0 : 1)) & 0x1E) == (r9 & 0x1E);
@@ -915,10 +931,39 @@ void CRTC::ClockCharacter()
    signals_->v_sync_ = VSyncPin();
 }
 
+// Character clock edge, in Z80 clock cycles after the start of the microsecond of the GATE ARRAY (TickVideo). An I/O
+// on the T-state t of the microsecond reaches the CRTC on the cycle t + 1 (pixel 4t, see HSyncPinEdge).
+// - CRTC 0, 2, 3, 4 : 0. An I/O of the microsecond is taken by the next edge : the decisions of the line end are
+//   registered on the previous edge (CRTC 0 : C0==R0, 13.7.2), or the bus is taken by the edge after the window (ASIC,
+//   4.4.4).
+// - CRTC 1 : 2. It compares C0 with R0 on the edge itself (CRTC_1.cpp), the falling edge of CLK, which ends the window
+//   where CLK is high (pixels 0 to 4, 16.2.2) : its HSYNC pin moves 1 pixel later, on pixel 5 (HSyncPinEdge). The
+//   register written by an I/O on the T-state 0 (OUTI, OUT (n),A : pixel 0) is there before that edge, the one of an
+//   I/O on the T-state 1 (OUT (C),r8 : pixel 4) after it. So OUTI writing R0 on the microsecond where C0 restarts at 0
+//   is compared with C0 = old R0 : C0 overflows to the new R0 (13.3 remark 3, 13.7.1.1, SHAKER #019D OUTI STORY).
+// The GATE ARRAY takes the pins of the character on the edge (TickSignals).
 unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
 {
-   // End of the microsecond for the GATE ARRAY, then the next character
-   gate_array_->TickVideo();
+   if (edge_pending_ == 0)
+   {
+      // End of the microsecond for the GATE ARRAY
+      gate_array_->TickVideo();
+      const unsigned int edge = CharacterEdgeCycle();
+      if (edge != 0)
+      {
+         edge_pending_ = static_cast<unsigned char>(edge);
+         return edge;
+      }
+   }
+   if ((edge_pending_ & 0x80) != 0)
+   {
+      const unsigned int rest = 4 - (edge_pending_ & 0x7F);
+      edge_pending_ = 0;
+      return rest;
+   }
+   // The next character
+   edge_cycle_ = edge_pending_;
+   edge_pending_ = 0;
    ClockCharacter();
    gate_array_->TickSignals();
 
@@ -959,5 +1004,5 @@ unsigned int CRTC::Tick (/*unsigned int nbTicks*/)
    /////////////////////////
    // CUDISP
    // TODO
-   return 4;
+   return 4 - edge_cycle_;
 }

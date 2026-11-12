@@ -991,6 +991,8 @@ unsigned int Z80::DefaultTick()
          nextcycle = 4 - ((counter_ + 3) & 0x3);
          t_ = 6;
          counter_ += nextcycle + 3;
+         // M1 goes high at the start of T3, the T-state before the one that reads the data bus
+         sig_->HoldInterruptAcknowledge(nextcycle + 3);
          return nextcycle + 4;
       }
       case 1:
@@ -1000,6 +1002,8 @@ unsigned int Z80::DefaultTick()
          nextcycle = 4 - ((counter_ + 2) & 0x3);
          t_ = 7;
          counter_ += nextcycle + 4;
+         // M1 goes high at the start of T3 : T3 and T4 are the two last T-states of the acknowledge
+         sig_->HoldInterruptAcknowledge(nextcycle + 3);
          return nextcycle + 5;
 
          //++t_;
@@ -1007,6 +1011,8 @@ unsigned int Z80::DefaultTick()
       case 2:
       {
          InterruptInit();
+         // T1, T2, two Tw (more with WAIT), M1 goes high on T3 (M_M1_INT + 5)
+         sig_->HoldInterruptAcknowledge(0xFF);
 
          /*int nextcycle = 4 - ((counter_ + 2) & 0x3);
          t_ = 7;
@@ -1030,6 +1036,7 @@ unsigned int Z80::DefaultTick()
    case M_M1_INT + 5:
    case M_M1_INT + 6:
    {
+      if (t_ == 5) sig_->irq_ack_hold_ = 0;   // M1 goes high
       if (interrupt_mode_ == 2)
       {
          ++t_; return 1;

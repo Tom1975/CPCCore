@@ -1,0 +1,178 @@
+{
+ "029E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "029F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02A6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02A7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02AE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02AF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02B4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02B5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02B6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02B7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02BD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02BE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02BF": {
+  "verdict": "ko",
+  "why": "valeurs différentes : photo 01 partout sur les lignes de résultat, Sugarbox FF et 00 ; suites Y/N décalées ; 2 lignes R9=7 R4=38 en plus chez Sugarbox"
+ },
+ "02C0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C9": {
+  "verdict": "ko",
+  "why": "2 dernières lignes : Sugarbox #0B20 et #0B1C, photo et attendu #0080"
+ },
+ "02CA": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site pour ce code"
+ },
+ "02CB": {
+  "verdict": "ko",
+  "why": "1re ligne : Sugarbox #0004, photo et attendu #0084 ; ligne R5=0 ON 2ND LINE : Sugarbox #0080, photo et attendu #0004"
+ },
+ "02D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

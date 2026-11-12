@@ -20,6 +20,9 @@ CSig::CSig(void) : plus_(false), interrupt_io_data_(0xFF)
    v_sync_ = false;
    dispen_ = false;
    req_int_ = req_nmi_ = false;
+   int_delay_ = 0;
+   irq_ack_hold_ = 0;
+   irq_ack_raster_ = false;
    int_ = 0;
    nmi_ = 0;
    hsync_raise_ = false;
@@ -46,6 +49,9 @@ void CSig::Reset ()
    v_sync_ = v_sync_wr_ = false;
    dispen_ = false;
    req_int_ = req_nmi_ = false;
+   int_delay_ = 0;
+   irq_ack_hold_ = 0;
+   irq_ack_raster_ = false;
    int_ = 0;
    nmi_ = 0;
    hsync_raise_ = false;
@@ -66,6 +72,10 @@ void CSig::Propagate()
 
    int_ |= req_int_;
    req_int_ = false;
+   if (int_delay_ != 0 && --int_delay_ == 0)
+      int_ = true;
+   if (irq_ack_hold_ != 0)
+      --irq_ack_hold_;
 
    nmi_ |= req_nmi_;
    req_nmi_ = false;
@@ -94,9 +104,14 @@ void CSig::M1()
    }
 }
 
-void CSig::InterruptRaster()
+// INT from the GATE ARRAY, seen by the Z80A from the T-state 'from_t_state' of this microsecond (1 : the next one,
+// as req_int_). Propagate runs after the Z80A on each T-state.
+void CSig::InterruptRaster(unsigned char from_t_state)
 {
-   req_int_ = 1;
+   if (from_t_state > 1)
+      int_delay_ = from_t_state;
+   else
+      req_int_ = 1;
    int_is_raster_ = true;
 }
 
@@ -104,6 +119,7 @@ void CSig::AcqInt ()
 {
    req_int_ = false;
    int_ = 0;
+   irq_ack_raster_ = int_is_raster_;
    // DCSR : Reset to 0
 
    if (plus_)

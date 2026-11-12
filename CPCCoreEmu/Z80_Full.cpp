@@ -338,7 +338,7 @@ unsigned int Z80::Opcode_DD()
 unsigned int  Z80::Opcode_Emu_Break()
 {
    // Break !
-   break_ = true;
+   if (emu_break_enabled_) break_ = true;
 
    // Default ED/FF
    return DefaultFetch();  

@@ -1,0 +1,32 @@
+;
+; Fichier de script CSL 
+; Execution du module SHAKE27E du DSK SHAKER27.DSK en CRTC 3
+; Le module genere des instructions au format SSM
+;
+csl_version 1.0
+crtc_select 3
+reset
+wait 3000000
+disk_insert 'shaker27.dsk'
+key_delay 70000 70000 400000
+key_output 'RUN"SHAKE27E"\(RET)'
+wait 10000000
+;
+; R5 STORIES 2ND ROUND 
+key_output '1'
+wait_ssm 0x03FA
+key_output ' ' 
+wait_ssm 0x03FB
+key_output ' ' 
+wait_ssm 0x03FC
+key_output ' ' 
+wait_ssm 0x03FD
+key_output ' '
+;  
+; C4 OVERFLOW
+key_output '4'
+wait_ssm 0x0406
+key_output ' '
+
+
+reset

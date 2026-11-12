@@ -12,6 +12,7 @@
 #include "gtest/gtest.h"
 
 #include <cstdio>
+#include <set>
 
 using namespace compendium;
 
@@ -148,7 +149,7 @@ TEST(Compendium_27, InterruptPositionFollowsR3)
          continue;
       }
       ASSERT_TRUE(interrupted);
-      EXPECT_EQ((kR2 + c.after_r2) % 64, m.Crtc().hcc_);
+      EXPECT_EQ((kR2 + c.after_r2) % 64, m.C0OfTheMicrosecond());
    }
 }
 
@@ -360,4 +361,77 @@ TEST(Compendium_27, RmrResetOneMicrosecondBeforeTheLastOneOfTheHSync)
 TEST(Compendium_27, RmrResetOnTheLastMicrosecondOfTheHSyncWins)
 {
    EXPECT_EQ(0, R52AfterHSyncEndWithResetAt(kR2 + 14 - 1));
+}
+
+// 27.7.1 : R52 = 31 and the end of the HSYNC during the acknowledge of an interrupt. IRQACK_RST of the GATE ARRAY
+// (40010-simplified, sheet VSync, U819 to U827) holds bit 5 of R52 at 0 from IORQ_n and M1_n low until M1_n goes
+// high : the increment brings R52 to 0, the next interrupt is 52 lines later. After M1_n goes high, R52 = 32 and the
+// next interrupt is 20 lines later. SHAKER #01F1 (R52 BIT 5 RESET, every alignment of three instructions) and #01F0
+// (SHAKER KILLER) give the positions on a real CPC.
+TEST(Compendium_27, HSyncEndDuringTheAcknowledgeKeepsBit5OfR52AtZero)
+{
+   for (bool acknowledge : { true, false })
+   {
+      SCOPED_TRACE(acknowledge ? "during the acknowledge" : "after it");
+      Machine m(CRTC::HD6845S);
+      ASSERT_TRUE(UntilPosition(m, kVSyncLine + 12, kR2 + 12));
+      m.Ga().interrupt_counter_ = 31;
+      m.Sig().irq_ack_raster_ = true;
+      m.Sig().HoldInterruptAcknowledge(acknowledge ? 255 : 0);
+      ASSERT_GE(m.CyclesUntil([&]() { return m.Ga().interrupt_counter_ != 31; }, 4 * 64), 0);
+      EXPECT_EQ(acknowledge ? 0 : 32, m.Ga().interrupt_counter_);
+   }
+}
+
+/////////////////////////////////////////////////////////////
+// 27.7.2 : reliability of the interrupts
+
+namespace
+{
+// C0 when the acknowledge of the interrupt of the HSYNC end at C0 = 60 starts, on a chain of 'op', with 'nops' NOP
+// before it. The Z80A samples INT at the start of the last T cycle of an instruction.
+int AcknowledgeOnAChainOf(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& op, int nops)
+{
+   Machine m(type, config);
+   InstallEiRetHandler(m);
+   std::vector<unsigned char> p = Prologue();
+   p.push_back(z80::kEi);
+   p.insert(p.end(), nops, z80::kNop);
+   // Starts at a line start : R52 reset, the chain lasts over the line of the interrupt
+   for (int i = 0; i < 6000; ++i) p.insert(p.end(), op.begin(), op.end());
+   m.Run(p);
+   if (m.CyclesUntil([&]() { return m.Ga().interrupt_counter_ == 40; }, 4 * 20000) < 0) return -1;
+   if (m.CyclesUntil([&]() { return m.Cpu().pc_ == 0x39; }, 4 * 2000) < 0) return -2;
+   return m.C0OfTheMicrosecond();
+}
+}
+
+// 27.7.2 : INT falls a few gate delays after the HSYNC pin (GateArray::InterruptVisibleTState) and the Z80A samples it at
+// the start of the last T-state of an instruction. On CRTC 0, 1, 2 the pin falls on the start of the last T-state of
+// DEC DE (T6) : DEC DE misses the interrupt and the next one takes it, 2 us later ; the last T-state of CP (HL) and
+// ADD HL,DE (T3) starts after and sees it. On CRTC 3, 4 the pin is 1 us later, 2 pixels into the microsecond : DEC DE sees
+// it, the others take it 1 us later. SHAKER #02E3 gives #59 on CRTC 0, 1, 2 and #58 on CRTC 3, 4. The positions are given
+// for every alignment of the chain with the HSYNC : the Z80 starts it on any microsecond.
+TEST(Compendium_27, InterruptOnTheLastTCycleOfEachInstruction)
+{
+   struct Ops { const char* name; std::vector<unsigned char> op; std::set<int> crtc012; std::set<int> crtc34; };
+   const Ops ops[] = {
+      { "NOP", { 0x00 }, { 2 }, { 3 } },
+      { "DEC DE", { 0x1B }, { 2, 3 }, { 2, 3 } },
+      { "CP (HL)", { 0xBE }, { 2, 3 }, { 3, 4 } },
+      { "ADD HL,DE", { 0x19 }, { 2, 3, 4 }, { 3, 4, 5 } },
+   };
+   const struct { CRTC::TypeCRTC type; const char* config; } machines[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128" },
+   };
+   for (const auto& k : machines)
+      for (const Ops& o : ops)
+      {
+         SCOPED_TRACE(testing::Message() << "CRTC type " << (int)k.type << ", " << o.name);
+         std::set<int> positions;
+         for (int nops = 0; nops < 4; ++nops) positions.insert(AcknowledgeOnAChainOf(k.type, k.config, o.op, nops));
+         const bool asic = (k.type == CRTC::AMS40489 || k.type == CRTC::AMS40226);
+         EXPECT_EQ(asic ? o.crtc34 : o.crtc012, positions);
+      }
 }

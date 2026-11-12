@@ -1,0 +1,386 @@
+;
+; Fichier de script CSL 
+; Execution du module SHAKE27B du DSK SHAKER27.DSK en CRTC 0
+; Le module genere des instructions au format SSM
+;
+csl_version 1.0
+crtc_select 0
+reset
+wait 3000000
+disk_insert 'shaker27.dsk'
+key_delay 70000 70000 400000
+key_output 'RUN"SHAKE27B"\(RET)'
+wait 10000000
+;
+; Test 1 interlace c4/c9 counters R9 base=06 Parity Odd
+key_output '1'
+wait_ssm 0x00FA
+wait_ssm 0x00FC
+key_output ' '
+wait_ssm 0x0100
+key_output ' '
+wait_ssm 0x0102
+key_output ' '
+wait_ssm 0x0104
+key_output ' '
+wait_ssm 0x0106
+key_output ' '
+wait_ssm 0x0108
+key_output ' '
+wait_ssm 0x010A
+key_output ' '
+wait_ssm 0x010C
+key_output ' '
+wait_ssm 0x010E
+key_output ' '
+wait_ssm 0x0110
+key_output ' '
+wait_ssm 0x03EA
+key_output ' '
+; retour au menu
+;
+key_output 'Y'	; bascule sur parity Even (R9 Base=6)
+wait 300000
+;
+key_output '1'
+wait_ssm 0x0111
+wait_ssm 0x0113
+key_output ' '
+wait_ssm 0x0115
+key_output ' '
+wait_ssm 0x0117
+key_output ' '
+wait_ssm 0x0119
+key_output ' '
+wait_ssm 0x011B
+key_output ' '
+wait_ssm 0x011D
+key_output ' '
+wait_ssm 0x011F
+key_output ' '
+wait_ssm 0x0121
+key_output ' '
+wait_ssm 0x0123
+key_output ' '
+wait_ssm 0x0125
+key_output ' '
+wait_ssm 0x03EC
+key_output ' '
+
+key_output 'X'	; Passe sur R9 BASE=7 (parity Even)
+wait 300000
+;
+key_output '1'
+wait_ssm 0x013B
+wait_ssm 0x013D
+key_output ' '
+wait_ssm 0x013F
+key_output ' '
+wait_ssm 0x0180
+key_output ' '
+wait_ssm 0x0182
+key_output ' '
+wait_ssm 0x0184
+key_output ' '
+wait_ssm 0x0186
+key_output ' '
+wait_ssm 0x0188
+key_output ' '
+wait_ssm 0x018A
+key_output ' '
+wait_ssm 0x018C
+key_output ' '
+wait_ssm 0x018E
+key_output ' '
+wait_ssm 0x03F0
+key_output ' '
+; menu
+;
+key_output 'Y'	; bascule sur parity Odd (R9 base=7)
+wait 300000
+key_output '1'
+wait_ssm 0x0126
+wait_ssm 0x0128
+key_output ' '
+wait_ssm 0x012A
+key_output ' '
+wait_ssm 0x012C
+key_output ' '
+wait_ssm 0x012E
+key_output ' '
+wait_ssm 0x0130
+key_output ' '
+wait_ssm 0x0132
+key_output ' '
+wait_ssm 0x0134
+key_output ' '
+wait_ssm 0x0136
+key_output ' '
+wait_ssm 0x0138
+key_output ' '
+wait_ssm 0x013A
+key_output ' '
+wait_ssm 0x03EE
+key_output ' '
+;
+; test 9 INTERLACE VM (garder la foi tu dois, mecreant, mouahahahaha)
+key_output '9'		; En Odd
+wait_ssm 0x01C7
+key_output ' '
+wait_ssm 0x01C8
+key_output ' '
+;
+; mouhahahahaha
+key_output 'Y'		; Repasser en Even
+wait 100000
+key_output '9'		; En even
+wait_ssm 0x01C9
+key_output ' '
+wait_ssm 0x01CA
+key_output ' '
+;
+;; Test 0 (zero) vertical sub pixel scroll 
+key_output '0' 
+wait_ssm 0x00CB	; 1/8
+key_output ' '
+wait_ssm 0x00CC	; 1/16
+key_output ' '
+wait_ssm 0x00CD	; 1/32
+key_output ' '
+wait_ssm 0x00CE	; 1/64
+key_output ' '
+wait_ssm 0x00Cf	; 1/128
+key_output ' '
+;
+; CRTC 2 FIND C0 MIN... (OPEN TEST)
+key_output '4' ; 
+wait_ssm 0x0192
+wait_ssm 0x0193
+key_output ' '
+wait_ssm 0x0194
+key_output ' '
+wait_ssm 0x0195
+key_output ' '
+wait_ssm 0x0196
+key_output ' '
+wait_ssm 0x0197
+key_output ' '
+wait_ssm 0x0198
+key_output ' '
+wait_ssm 0x0199
+key_output ' '
+wait_ssm 0x019A
+key_output ' '
+; menu
+; rlal crtc 2 (OPEN tous crtc)
+key_output '5' 
+wait_ssm 0x019B
+key_output ' '
+wait_ssm 0x019C
+key_output ' '	; Menu
+;
+; R5 STORIES
+key_output '\(RET)'
+wait_ssm 0x01F6
+wait_ssm 0x01F7
+wait_ssm 0x01F8
+wait_ssm 0x01F9
+wait_ssm 0x01FA
+wait_ssm 0x01FB
+wait_ssm 0x01FC
+wait_ssm 0x01FD
+wait_ssm 0x0200
+wait_ssm 0x0201
+key_output ' '
+wait_ssm 0x0202
+wait_ssm 0x0203
+wait_ssm 0x0204
+wait_ssm 0x0205
+wait_ssm 0x0206
+wait_ssm 0x0207
+wait_ssm 0x0208
+wait_ssm 0x0209
+wait_ssm 0x020A
+wait_ssm 0x020B
+key_output ' '
+wait_ssm 0x020C
+wait_ssm 0x020D
+wait_ssm 0x020E
+wait_ssm 0x020F
+wait_ssm 0x0210
+wait_ssm 0x0211
+wait_ssm 0x0212
+wait_ssm 0x0213
+wait_ssm 0x0214
+wait_ssm 0x0215
+key_output ' '
+;
+; Test Bounga 
+key_output '\(FN0)'
+wait_ssm 0x01DD
+key_output ' '
+;
+; Test RVNI LTD
+;
+key_output '\(CAP)'
+wait_ssm 0x01CB
+wait_ssm 0x01CC
+wait_ssm 0x01CD
+wait_ssm 0x01CE
+key_output ' '
+wait_ssm 0x01CF
+key_output ' '
+;	
+; Shaker Killer Don't be afraid. Mouhahahah
+; Interrupt Delay From R2
+;
+key_output 'R'	
+wait_ssm 0x01F0		;  2615301 z80aintb
+key_output ' '
+wait_ssm 0x01F1		; 4692484 r52Reset
+key_output ' '
+wait_ssm 0x01F2		; 7867387 Inter Test IM1
+key_output ' '
+wait_ssm 0x01F3		; 6888966 Inter Test IM2
+key_output ' '
+wait_ssm 0x01F4		; 1711766 R52 Incr
+key_output ' '
+wait_ssm 0x01F5		; 486262 Otir Zone
+key_output ' '
+;
+; R3 JIT (interactif si necessaire)
+key_output 'I'	
+wait_ssm 0x01DE
+key_output ' '	
+wait_ssm 0x01DF
+key_output ' '	
+wait_ssm 0x01E0
+key_output ' '	
+wait_ssm 0x01E1
+key_output ' '	
+wait_ssm 0x01E2
+key_output ' '	
+wait_ssm 0x01E3
+key_output ' '	
+wait_ssm 0x01E4
+key_output ' '	
+wait_ssm 0x01E5
+key_output ' '
+;
+; test crtc 0,1 only
+;
+key_output '\(COP)'
+wait_ssm 0x01D4
+key_output ' '	
+wait_ssm 0x01D5
+key_output ' '	
+wait_ssm 0x01D6
+wait_ssm 0x01D7
+key_output ' '	
+wait_ssm 0x01D8
+key_output ' '	
+wait_ssm 0x01D9
+key_output ' '
+;
+;
+; test crtc 1 , ouvert aux autres CRTCs
+; BUG OUTI sur R0
+;
+key_output '6'
+wait_ssm 0x019D
+key_output ' '	
+;
+; test crtc 0 only
+; BUG OVF C4
+key_output '7'	 ;
+wait_ssm 0x019E
+wait_ssm 0x019F
+wait_ssm 0x01A4
+wait_ssm 0x01A5
+wait_ssm 0x01A6
+wait_ssm 0x01A7
+wait_ssm 0x01AC
+key_output ' '
+wait_ssm 0x01AD
+wait_ssm 0x01AE
+wait_ssm 0x01AF
+wait_ssm 0x01B4
+wait_ssm 0x01B5
+wait_ssm 0x01B6
+wait_ssm 0x01B7
+key_output ' '
+wait_ssm 0x01BC
+wait_ssm 0x01BD
+wait_ssm 0x01BE
+wait_ssm 0x01BF
+wait_ssm 0x01C0
+key_output ' '
+wait_ssm 0x01C1
+wait_ssm 0x01C2
+wait_ssm 0x01C3
+wait_ssm 0x01C4
+wait_ssm 0x01C5
+wait_ssm 0x01C6
+key_output ' '
+;
+; test crtc 0 only
+; CRT 0 R0=0
+key_output 'U'	
+wait_ssm 0x0217
+key_output ' '		; A
+wait_ssm 0x0218
+key_output ' '		; B
+wait_ssm 0x0219
+key_output ' '		; C
+wait_ssm 0x021A
+key_output ' '		; D
+wait_ssm 0x021B
+key_output ' '		; E
+wait_ssm 0x021C
+key_output ' '		; F
+wait_ssm 0x021D
+key_output ' '		; G
+wait_ssm 0x021E
+key_output ' '		; H
+wait_ssm 0x021F
+key_output ' '		; I
+wait_ssm 0x0220
+key_output ' '		; J
+wait_ssm 0x0221
+key_output ' '		; K
+wait_ssm 0x0222
+key_output ' '		; L
+wait_ssm 0x0223
+key_output ' '		; M
+wait_ssm 0x0224
+key_output ' '		; N
+wait_ssm 0x0225
+key_output ' '		; O
+wait_ssm 0x0226
+key_output ' '		; P
+wait_ssm 0x0227
+key_output ' '		; Q
+wait_ssm 0x0228
+key_output ' '		; R
+wait_ssm 0x0229
+key_output ' '		
+;
+; Test Analyzer des premieres heures
+; FORCED STAB CRTC 0 R0=0
+;
+key_output 'P'
+wait_ssm 0x01E8
+wait_ssm 0x01E9
+key_output ' '
+wait_ssm 0x01EA
+wait_ssm 0x01EB
+key_output ' '
+wait_ssm 0x01EC
+wait_ssm 0x01ED
+key_output ' '
+wait_ssm 0x01EE
+wait_ssm 0x01EF
+key_output ' '
+
+;
+csl_load 'SHAKER-B-1'

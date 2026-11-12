@@ -1,0 +1,81 @@
+;
+; Fichier de script CSL 
+; Execution du module SHAKE27C du DSK SHAKER27.DSK en CRTC 4
+; Le module genere des instructions au format SSM
+;
+csl_version 1.0
+crtc_select 4
+reset
+wait 3000000
+disk_insert 'shaker27.dsk'
+key_delay 70000 70000 400000
+key_output 'RUN"SHAKE27C"\(RET)'
+wait 10000000
+
+; test prevu pour CRTC 2 mais disp autre crc  Last Line cond
+key_output '7'
+wait_ssm 0x02BF
+key_output ' ' 
+
+; test crtc 2 vma' sur R1=0
+key_output 'T'
+wait_ssm 0x02CF
+key_output ' '
+wait_ssm 0x02D0
+key_output ' '
+wait_ssm 0x02D1
+key_output ' '
+wait_ssm 0x02D2
+key_output ' '
+
+; crtc 2 ghost vsync vs Last Line (others crtc welcome)
+key_output '\(RET)'
+wait_ssm 0x02CD
+key_output ' '
+wait_ssm 0x02CE
+key_output ' '
+
+; Add Line R5 on last line
+key_output 'E'
+wait_ssm 0x02C9
+key_output ' '
+wait_ssm 0x02CA
+key_output ' '
+
+; r5 additional line in interlace mode
+key_output 'S'
+wait_ssm 0x02D3
+key_output ' '
+
+; CRTC 0,3,4 Interlace vsync nightmare (2 1er test uniqu CRTC1)
+key_output 'O'
+wait_ssm 0x02D6  ; cvstot
+key_output ' '
+wait_ssm 0x02D7 ; cvstot
+key_output ' '
+wait_ssm 0x02D8 ; parity00 2d8
+wait_ssm 0x02D9
+key_output ' '
+wait_ssm 0x02DA ; cvms_a	; 2da
+key_output ' '
+wait_ssm 0x02DB ; cvms_b  ; 2db
+key_output ' '
+wait_ssm 0x02DC ; cvms_b  ; 2dc
+key_output ' '
+wait_ssm 0x02DD ; cvms_c  ; 2dd
+key_output ' '
+wait_ssm 0x02DE ; cvms_c  ; 2de
+key_output ' '
+
+; Y crtc 3/4 parity
+key_output 'Y'
+wait_ssm 0x02DF
+key_output ' '
+wait_ssm 0x02E0
+key_output ' '
+wait_ssm 0x02E1
+key_output ' '
+wait_ssm 0x02E2
+key_output ' '
+
+csl_load 'SHAKER-C-3'

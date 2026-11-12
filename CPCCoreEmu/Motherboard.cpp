@@ -148,6 +148,7 @@ void Motherboard::OnOff()
    // A reset does not touch it.
    monitor_.Reset();
    vga_.PowerOn();
+   crtc_.AbandonCharacterEdge();
    ResetChips();
 }
 
@@ -230,10 +231,11 @@ void Motherboard::InitStartOptimized()
    component_list_[nb_components_]->this_tick_time_ = 1;
    nb_components_++;
    
-   // CRTC
+   // CRTC : its next tick starts a microsecond, no character edge of the previous one is still to come
    component_elapsed_time_[nb_components_] = 11;
    component_list_[nb_components_] = &crtc_;
    component_list_[nb_components_]->this_tick_time_ = 11;
+   crtc_.edge_pending_ = 0;
    nb_components_++;
 
    // FDC ?
@@ -287,6 +289,7 @@ void Motherboard::InitStartOptimizedPlus()
    component_elapsed_time_[nb_components_] = 11;
    component_list_[nb_components_] = &asic_;
    component_list_[nb_components_]->this_tick_time_ = 11;
+   crtc_.edge_pending_ = 0;
    nb_components_++;
 
    // FDC ? After the ASIC, in the order the run loops read the deadlines

@@ -171,7 +171,6 @@ void GateArray::Reset()
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
    sr_mode_ = sr_div_mode_ = screen_mode_;
-   activation_mode_ = 2;
 
    hsync_counter_ = 0;
    h_old_sync_ = false;
@@ -194,6 +193,38 @@ void GateArray::Reset()
    vsync_black_end_in_ = -1;
 }
 
+// T-state of this microsecond from which the Z80A sees INT after the end of the HSYNC, the GATE ARRAY handling it at the
+// start of the microsecond (TickSignals).
+// - INT : the HSYNC pin clocks the ripple counter R52 (40010-simplified, sheet VSync, U801, U815 to U835) ; its clear at
+//   52 (U807, U816, U831) or the bit 5 going down clocks U836, which pulls INT_n down. No clock samples this path :
+//   INT_n falls a few gate delays after the HSYNC pin.
+// - The pin falls on the pixel given by the CRTC (HSyncPinEdge) : in this microsecond for an end on the clock (0 to 3
+//   for the CRTC 0, 1, 2 ; ASIC : the register of 1 us, then 2 pixels), in the previous one for an end by an R3 write.
+// - The Z80A samples INT on the rising edge of its clock that starts the last T-state of an instruction (Zilog UM0080,
+//   27.7.2). The T-state t of the microsecond spans the pixels 4t-4 to 4t (an I/O on the T-state t acts on the pixel
+//   4t, see HSyncPinEdge) : it sees INT if it starts strictly after the pin edge.
+// On CRTC 0, 1, 2 (pixel 4, 5) the T-state 2 starts on the edge and misses INT, the T-state 3 sees it : the last T-state
+// of DEC DE misses it, the one of ADD HL,DE or CP (HL) sees it (27.7.2, SHAKER #02E3). On CRTC 3, 4 (pixel 2), DEC DE sees
+// it.
+unsigned char GateArray::InterruptVisibleTState() const
+{
+   int pixel = crtc_->HSyncPinEdge(false, 0);
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   for (unsigned int q = 1; q < 4; ++q)
+   {
+      // Pin high on the quarter q-1 and low on the quarter q of the previous microsecond : ended by an R3 write
+      if (((quarters >> (q - 1)) & 1) != 0 && ((quarters >> q) & 1) == 0)
+      {
+         pixel = static_cast<int>(crtc_->HSyncPinEdge(false, q)) - 16;
+         break;
+      }
+   }
+   // First T-state t whose start 4t-4 is strictly after the edge. The edge of an R3 write is handled at the start of
+   // the next microsecond : INT is not seen before its T-state 1.
+   const int t = (pixel >= 0) ? (pixel / 4 + 2) : ((pixel - 3) / 4 + 2);
+   return static_cast<unsigned char>(t < 1 ? 1 : t);
+}
+
 void GateArray::RequestRasterInterrupt()
 {
    if (unlocked_)
@@ -204,7 +235,9 @@ void GateArray::RequestRasterInterrupt()
    {
       sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
    }
-   sig_handler_->InterruptRaster();
+   // Taken on the character edge, edge_cycle_ cycles after the start of the microsecond (CRTC::Tick)
+   const int t = static_cast<int>(InterruptVisibleTState()) - crtc_->edge_cycle_;
+   sig_handler_->InterruptRaster(static_cast<unsigned char>(t < 1 ? 1 : t));
    sig_handler_->int_is_gate_array_ = true;
    interrupt_raised_ = true;
 }
@@ -477,6 +510,9 @@ void GateArray::TickSignals()
       // of the HSYNC, it wins over the increment of its end (27.2)
       if (!r52_reset_held_)
          interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
+      // Interrupt acknowledge in progress (IRQACK_RST, see CSig::irq_ack_hold_) : bit 5 stays at 0 (27.7.1)
+      if (sig_handler_->irq_ack_hold_ != 0)
+         interrupt_counter_ &= 0x1F;
 
       // Plus ?
       if (plus_ && memory_->GetPRI() != 0)
@@ -597,13 +633,13 @@ void GateArray::TickSignals()
    {
       mode_window_ = false;
    }
-   if (mode_window_ && activation_mode_ != 0)
+   // Mode latch (40010-simplified, sheet VideoControl, U1003, U1004), open while SIG_GA_HSYNC is high. The sheet
+   // draws an edge triggered flip-flop on the end of SIG_GA_HSYNC : it gives the same windows (9.3.1 to 9.3.3)
+   // and the same pixels with a R3.NJIT, but moves the change 4 pixels later with a R3.JIT, when the schematics
+   // say it does not move (9.3.4.4). A latch that lets the mode through agrees with both : to measure.
+   if (mode_window_)
    {
-      activation_mode_--;
-      if (activation_mode_ == 0)
-      {
-         buffered_screen_mode_ = screen_mode_;
-      }
+      buffered_screen_mode_ = screen_mode_;
    }
    if (hsync_)
    {
@@ -951,39 +987,31 @@ void GateArray::TickIO()
          break;
       case 0x40:  // INKR
       case 0x60:  // INKR
-         // TODO : Decaller le changement de couleur par 8 pixels (9 sur 40010 en mode 2)
-         if ((pen_r_ & 0x10) == 0x10)
+         // The border and the 16 inks are written by the same strobe (40010-simplified, sheet Registers, U401) and
+         // reach the colour register through the same path : same position on the screen (9.2)
+         if (monitor_->screen_->IsDisplayed())
          {
-            // Border
-            //monitor_->SetBorder ( ListeColorsIndex [data & 0x5F] );
+            // The new colour is displayed from the 2nd byte of the character of this microsecond
+            // (9.2.2) : the colours are changed when the block is drawn, the palette of the ASIC now.
+            // A colour still pending (written out of the screen, or twice in the microsecond) first
+            if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+            const bool border = (pen_r_ & 0x10) == 0x10;
+            memory_->UpdateAsicPalette(border ? 17 : pen_r_, data - 0x40, false);
+            buffered_pen_     = border ? 0x10 : pen_r_;
+            buffered_ink_     = ListeColorsIndex[data & 0x5F];
+            buffered_ink_reg_ = data & 0x5F;
+            buffered_ink_available_ = true;
+         }
+         else if ((pen_r_ & 0x10) == 0x10)
+         {
             for (int i = 0; i < NB_BYTE_BORDER; i++)video_border_[i] = ListeColorsIndex[data & 0x5F];
             border_reg_ = data & 0x5F;
             memory_->UpdateAsicPalette(17, data - 0x40);
          }
          else
          {
-            if (monitor_->screen_->IsDisplayed())
-            {
-               // The new colour is displayed from the 2nd byte of the character of this microsecond
-               // (9.2.2) : the inks are changed when the block is drawn, the palette of the ASIC now.
-               // An ink still pending (written out of the screen, or twice in the microsecond) first
-               if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-               memory_->UpdateAsicPalette(pen_r_, data - 0x40, false);
-               buffered_pen_     = pen_r_;
-               buffered_ink_     = ListeColorsIndex[data & 0x5F];
-               buffered_ink_reg_ = data & 0x5F;
-               buffered_ink_available_ = true;
-               /*if ( m_bSpeed)
-               {
-                  monitor_->RecomputeColors ();
-               }*/
-            }
-            else
-            {
-               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
-               ink_regs_[pen_r_] = data & 0x5F;
-            }
-
+            ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
+            ink_regs_[pen_r_] = data & 0x5F;
          }
 
          break;
@@ -997,7 +1025,6 @@ void GateArray::TickIO()
          else
          {
             screen_mode_ = data & 0x3;
-            activation_mode_ = 1;
 
             // l'indiquer � la m�moire
             memory_->SetInfROMConnected((data & 0x4) ? false : true);
@@ -1009,6 +1036,7 @@ void GateArray::TickIO()
                interrupt_counter_ = 0;
                r52_reset_held_ = true;
                sig_handler_->req_int_ = false;
+               sig_handler_->int_delay_ = 0;
                sig_handler_->int_ = false;
                //m_Sig->AcqInt ();
 

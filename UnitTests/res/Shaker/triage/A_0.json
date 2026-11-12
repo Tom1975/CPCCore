@@ -1,0 +1,637 @@
+{
+ "0001": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0002": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0003": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0004": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0005": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0006": {
+  "verdict": "doute",
+  "why": "colonne étroite saumon, référence acceptée (utilisateur) ; la couleur de cette colonne change d'une image à l'autre et la photo ne la départage pas. Doute : photos à refaire sur la machine réelle"
+ },
+ "0007": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0008": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0009": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "000F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0010": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0011": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0012": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0013": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0014": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0015": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0016": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0017": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0018": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0019": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "001F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0020": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0021": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0022": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0023": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0024": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0025": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0026": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0027": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0028": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0029": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "002F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0030": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0031": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0032": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0033": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0034": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0035": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0036": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0038": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0039": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "003F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "007F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0080": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0081": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0082": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0083": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0084": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0085": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0086": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0087": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0088": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0089": {
+  "verdict": "ok",
+  "why": "nuance visible entre les deux bleus (deux couleurs différentes, comme sur la photo) ; aucun souci de palette observé jusqu'ici (validé utilisateur)"
+ },
+ "008C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0092": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0093": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0094": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0095": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0096": {
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
+ },
+ "0097": {
+  "verdict": "ok",
+  "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
+ },
+ "0098": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0099": {
+  "verdict": "ko",
+  "why": "machine réelle : écran blanc, une seule ligne de texte en haut ; Sugarbox : bloc noir plein de lignes de texte",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.08,
+    "y": 0.18,
+    "w": 0.78,
+    "h": 0.68,
+    "note": "bloc noir de lignes de texte"
+   },
+   {
+    "on": "real",
+    "x": 0.0,
+    "y": 0.15,
+    "w": 1.0,
+    "h": 0.06,
+    "note": "une seule ligne de texte"
+   },
+   {
+    "on": "real",
+    "x": 0.0,
+    "y": 0.53,
+    "w": 1.0,
+    "h": 0.05,
+    "note": "un simple trait"
+   }
+  ]
+ },
+ "009A": {
+  "verdict": "ko",
+  "why": "machine réelle : 2 lignes en haut, 1 en bas à droite sur fond noir ; Sugarbox : écran rempli de lignes",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.08,
+    "y": 0.18,
+    "w": 0.78,
+    "h": 0.68,
+    "note": "écran rempli de lignes"
+   },
+   {
+    "on": "real",
+    "x": 0.08,
+    "y": 0.16,
+    "w": 0.75,
+    "h": 0.07,
+    "note": "2 lignes en haut"
+   },
+   {
+    "on": "real",
+    "x": 0.38,
+    "y": 0.64,
+    "w": 0.6,
+    "h": 0.07,
+    "note": "1 ligne en bas à droite"
+   }
+  ]
+ },
+ "009B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009C": {
+  "verdict": "ko",
+  "why": "1re ligne pointillée : chez Sugarbox seuls les 2 premiers segments contiennent du noir, puis 3 blancs ; sur la photo les 3 premiers contiennent du noir (le 1er commence par du noir) et le 5e a un pixel noir centré (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.08,
+    "y": 0.14,
+    "w": 0.24,
+    "h": 0.05,
+    "note": "segments 3-5 tout blancs"
+   },
+   {
+    "on": "real",
+    "x": 0.08,
+    "y": 0.11,
+    "w": 0.3,
+    "h": 0.06,
+    "note": "noir dans les segments 1-3 et au centre du 5e"
+   }
+  ]
+ },
+ "009D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "009F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00A6": {
+  "verdict": "ko",
+  "why": "décrochage sous la bande blanche en bas : sur la photo il s'étend sur ~2/3 de la largeur, chez Sugarbox seulement ~1/10 à gauche (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.09,
+    "y": 0.4,
+    "w": 0.12,
+    "h": 0.04,
+    "note": "décrochage court"
+   },
+   {
+    "on": "real",
+    "x": 0.0,
+    "y": 0.4,
+    "w": 0.3,
+    "h": 0.35,
+    "note": "décrochage large"
+   }
+  ]
+ },
+ "00A7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00AF": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00B4": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00B5": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00B6": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00B7": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00BC": {
+  "verdict": "ok",
+  "why": "positions vérifiées à la règle 00-27 : barres noires 08/09 et 19/1A, bande couleur 0B-19, jaune 0A-1A, marche en bas à droite ; le gris de la photo est le tramage jaune/noir du mode 2"
+ },
+ "00BD": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00BE": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00BF": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C0": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C1": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C2": {
+  "verdict": "moniteur",
+  "why": "deux C-HSYNC en plus par ligne : les bandes sont au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de +37 px chez Sugarbox, +11 sur la photo et chez Amspirit). Test Monitor.DISABLED_R2UpdatedTwiceDuringHsync… (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.0,
+    "y": 0.3,
+    "w": 1.0,
+    "h": 0.35,
+    "note": "bande décalée de +37 px"
+   },
+   {
+    "on": "real",
+    "x": 0.1,
+    "y": 0.33,
+    "w": 0.8,
+    "h": 0.35,
+    "note": "+11 px"
+   }
+  ]
+ },
+ "00C3": {
+  "verdict": "doute",
+  "why": "Sugarbox affiche 2 lignes de plus que la photo (test « UPD R9=0, UPD R4=0 … » et sa ligne >>3C=00…) ; la photo, Amspirit 0.953, WinApe et CPC-EC s'arrêtent à la ligne >>3C=01… ; Amspirit-lite et Syntax Error ont les 2 lignes comme Sugarbox (version de Shaker différente ?)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.09,
+    "y": 0.55,
+    "w": 0.78,
+    "h": 0.08,
+    "note": "2 lignes en plus"
+   },
+   {
+    "on": "real",
+    "x": 0.05,
+    "y": 0.6,
+    "w": 0.9,
+    "h": 0.15,
+    "note": "rien"
+   }
+  ]
+ },
+ "00C4": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C5": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C6": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C7": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "00C8": {
+  "verdict": "moniteur",
+  "why": "R3=#04, C-HSYNC plus courte : le rectangle est au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de −10 px chez Sugarbox, ≈ −3 px sur la photo ; coin haut-gauche presque carré sur la photo) (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.2,
+    "y": 0.28,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin arrondi, −10 px"
+   },
+   {
+    "on": "real",
+    "x": 0.3,
+    "y": 0.2,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin presque carré, ≈ −3 px"
+   }
+  ]
+ },
+ "00C9": {
+  "verdict": "moniteur",
+  "why": "R3=#05, C-HSYNC plus courte : le rectangle est au bon endroit, compte tenu de la déformation ; seul le moniteur diffère (bande décalée de −12 px chez Sugarbox, ≈ −6 px sur la photo ; coin haut-gauche presque carré sur la photo) (validé utilisateur)",
+  "zones": [
+   {
+    "on": "sb",
+    "x": 0.2,
+    "y": 0.28,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin arrondi, −12 px"
+   },
+   {
+    "on": "real",
+    "x": 0.3,
+    "y": 0.2,
+    "w": 0.15,
+    "h": 0.15,
+    "note": "coin presque carré, ≈ −6 px"
+   }
+  ]
+ },
+ "00CA": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ },
+ "03AC": {
+  "verdict": "ok",
+  "why": "effet moniteur reproduit (boucle AFC du CTM644) : coin haut-gauche du rectangle arrondi, bord droit biseauté, encoche du cadre, damier incliné ; décalage de la bande −14 px (photo ≈ −13 sur #00BD), contenu identique (largeur du rectangle, étiquettes)",
+  "zones": []
+ }
+}

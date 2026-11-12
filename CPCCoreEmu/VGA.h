@@ -42,6 +42,7 @@ public:
    void Reset ();
    // R52 asks the Z80 for an interrupt
    void RequestRasterInterrupt();
+   unsigned char InterruptVisibleTState() const;
    // Power on : the colour latches, which the RESET line does not touch, start from 0
    void PowerOn ();
 
@@ -176,7 +177,6 @@ public:
 
    unsigned char hsync_counter_;
    unsigned char vsync_counter_;
-   unsigned char activation_mode_;
    bool mode_window_;                // this microsecond is the 2nd to 6th of the HSYNC of the GATE ARRAY
 
    Monitor* monitor_;

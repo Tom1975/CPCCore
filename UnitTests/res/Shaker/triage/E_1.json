@@ -1,0 +1,30 @@
+{
+ "03FA": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FB": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FC": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FD": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0400": {
+  "verdict": "ok",
+  "why": "la page affiche YOU'VE WON ; pas de photo sur le site"
+ },
+ "0401": {
+  "verdict": "ok",
+  "why": "la page affiche YOU'VE WON ; pas de photo sur le site"
+ },
+ "0402": {
+  "verdict": "ok",
+  "why": "la page affiche YOU'VE WON ; pas de photo sur le site"
+ }
+}

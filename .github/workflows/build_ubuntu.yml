@@ -39,13 +39,11 @@ jobs:
         ls -l
 
     - name: Test
-      # The UnitTests directory only: AmstradCoreTests has a failure that
-      # predates this change (GateArray.Clocks, which fails on master too) and
-      # CI has never run that suite.
+      # The UnitTests directory only: from the build root, ctest also lists the
+      # tests of the vendored zlib, which are not built.
       working-directory: ${{github.workspace}}/build/UnitTests
-      # One process per test, so they run in parallel. "unitTests" is the whole
-      # binary in one go, which the individual tests already cover.
-      run: xvfb-run --auto-servernum ctest -j $(nproc) --output-on-failure -E "^unitTests$"
+      # One process per test, so they run in parallel.
+      run: xvfb-run --auto-servernum ctest -j $(nproc) --output-on-failure
         
     - name: Install
       # Build your program with the given configuration
@@ -64,4 +62,21 @@ jobs:
             ${{github.workspace}}/build/UnitTests/Release/CART/
             ${{github.workspace}}/build/UnitTests/Release/ROM/
             ${{github.workspace}}/build/UnitTests/Release/Keyboards/
+
+    - name: Shaker
+      # SHAKER 2.7, modules A-E on the 5 CRTC (UnitTests/res/Shaker/README.md) : fails when a
+      # validated screenshot (UnitTests/res/Shaker/reference) changes or is no longer produced.
+      # After the binary archive, so that a Shaker failure keeps it.
+      working-directory: ${{github.workspace}}/build/UnitTests
+      run: xvfb-run --auto-servernum python3 ${{github.workspace}}/UnitTests/tools/run_shaker.py --unittests unitTests --jobs $(nproc)
+
+    - name: Archive the Shaker report
+      # Screenshots, differences and verdicts. Without the real hardware photos (400 MB, SHAKER
+      # site) : run_shaker.py --fetch-real then --report-only shows them locally.
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+          name: Shaker_report
+          path: ${{github.workspace}}/build/UnitTests/test-work/shaker_report/
+          if-no-files-found: ignore
             

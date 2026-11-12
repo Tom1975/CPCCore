@@ -1,0 +1,94 @@
+{
+ "02BF": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site pour ce code"
+ },
+ "02CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02CD": {
+  "verdict": "doute",
+  "why": "ON NEXT VSYNC : photo DE,DF, Sugarbox 5E,5F. Seul le bit 7 du port B du PPI diffère (entrée cassette, à confirmer) ; la photo CRTC 4 donne 5E,5F. Reste de la page identique"
+ },
+ "02CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02C9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02D9": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site pour ce code"
+ },
+ "02DA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

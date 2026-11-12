@@ -146,7 +146,10 @@ public:
    void HandleSnapshots();
    void HandlePaste(bool before);
    void HandleSyncro(int run_time);
+   void RunOptimized(unsigned int nb_cycles);
    virtual int RunTimeSlice(bool dbg = false);
+   // Runs exactly nb_cycles 4 MHz ticks, without waiting for the real time
+   void RunCycles(unsigned int nb_cycles);
 
    typedef enum
    {
