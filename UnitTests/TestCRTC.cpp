@@ -4801,6 +4801,44 @@ TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
    }
 }
 
+// 11.2.3, 17.4.3 : CRTC 1, 2, R4 = 10, R5 = 24, R9 = 7, R9 = 3 written on the additional line C9 = 1 (SHAKER
+// R5 STORIES #01F6). During the additional lines C9 == R9 on C0 = R1 still loads VMA' with VMA : the pointer
+// goes on (+ R1 on each C4). The last additional line is the last line of the frame : VMA' takes R12/R13 there
+// and the next frame starts on the offset.
+TEST(Compendium_11, Crtc12AdjustmentWithC9ReachingR9EndsOnTheOffset)
+{
+   for (CRTC::TypeCRTC type : { CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 10, 24, 7);
+      SetOffset(crtc);
+      ASSERT_TRUE(ReachLine(crtc, 0, 1));   // a frame start with the offset
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      EXPECT_EQ(Line(11, 0), NextLine(crtc));
+      // First additional line : CRTC 1 goes on in memory (R12/R13 only on a frame start, 17.4.2), CRTC 2 took
+      // R12/R13 on the line C4 = R4, C9 = R9 (17.4.3)
+      const unsigned short first = (type == CRTC::UM6845R) ? (kOffset + 11 * 40) & 0x3FFF : kOffset;
+      EXPECT_EQ(first, crtc.ma_ & 0x3FFF);
+      EXPECT_EQ(Line(11, 1), NextLine(crtc));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 9, 3);
+      int lines = 2;
+      std::vector<unsigned short> row_start;
+      Line line;
+      while ((line = NextLine(crtc)) != Line(0, 0) && lines < 100)
+      {
+         if (line.second == 0) row_start.push_back(crtc.ma_ & 0x3FFF);
+         ++lines;
+      }
+      EXPECT_EQ(24, lines);
+      ASSERT_EQ(5u, row_start.size());   // C4 = 12 to 16
+      for (size_t i = 0; i < row_start.size(); ++i)
+         EXPECT_EQ((first + 40 * (i + 1)) & 0x3FFF, row_start[i]) << "C4 = " << 12 + i;
+      EXPECT_EQ(kOffset, crtc.ma_ & 0x3FFF);
+   }
+}
+
 // 13.2.1, 12.2 : CRTC 0 evaluates the last line at the end of C0 = 0 and C0 = 1 ; on C0 = 2 the fate of C4 is
 // sealed. R9 7 -> 0 on a line with C4 = R4 = 38 :
 // - line C9 = 7 (a last line) : written on C0 = 0 the last line is cancelled, written on C0 = 1 the line
