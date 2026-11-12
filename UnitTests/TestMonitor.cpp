@@ -15,6 +15,7 @@
 #include "TestWorkspace.h"
 
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -122,7 +123,9 @@ const std::map<std::string, std::vector<int>>& ShakerTestT()
    static std::map<std::string, std::vector<int>> frames;
    if (!frames.empty()) return frames;
 
-   EmulatorEngine machine;
+   // About 5 MB : on the heap, the 1 MB stack of Windows does not hold it (the frame is reserved on entry)
+   std::unique_ptr<EmulatorEngine> engine = std::make_unique<EmulatorEngine>();
+   EmulatorEngine& machine = *engine;
    MonitorTestDisplay display;
    DirectoriesImp directories;
    Log log;

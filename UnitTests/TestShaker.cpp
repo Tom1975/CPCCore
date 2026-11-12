@@ -30,6 +30,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 
@@ -282,7 +283,9 @@ TEST_P(ShakerSuite, MatchesReference)
 
    // Machine : CPC 6128 FR, as the scripts were written for (AMSpiriT, 6128 FR) ; 6128 Plus FR for
    // CRTC 3, the CRTC of its ASIC
-   EmulatorEngine machine;
+   // About 5 MB : on the heap, the 1 MB stack of Windows does not hold it (the frame is reserved on entry)
+   std::unique_ptr<EmulatorEngine> engine = std::make_unique<EmulatorEngine>();
+   EmulatorEngine& machine = *engine;
    ShakerDisplay display;
    DirectoriesImp directories;
    Log log;
@@ -451,7 +454,9 @@ struct CslMachine
       machine.Reinit();
       machine.SetFixedSpeed(true);
    }
-   EmulatorEngine machine;
+   // About 5 MB : on the heap, the 1 MB stack of Windows does not hold it (the frame is reserved on entry)
+   std::unique_ptr<EmulatorEngine> engine = std::make_unique<EmulatorEngine>();
+   EmulatorEngine& machine = *engine;
    ShakerDisplay display;
    DirectoriesImp directories;
    Log log;
