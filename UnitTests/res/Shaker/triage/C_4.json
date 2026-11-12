@@ -48,8 +48,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "02D8": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "ko",
+  "why": "INTERLACE VSYNC NIGHTMARE : colonne de droite en marches fines (rangées IVM) sur toute la hauteur de la photo ; Sugarbox seulement sur le tiers haut, puis des marches de 8 lignes. Référence retirée le 2026-11-12 (l'ancienne n'avait que des marches de 8 lignes)"
  },
  "02D9": {
   "verdict": "doute",
@@ -81,14 +81,14 @@
  },
  "02E0": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "colonne de droite : marches fines comme la photo (VMA' chargé sur C9 >= R9 en IVM, 2026-11-12)"
  },
  "02E1": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "colonne de droite : marches fines comme la photo (VMA' chargé sur C9 >= R9 en IVM, 2026-11-12)"
  },
  "02E2": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "colonne de droite : marches fines comme la photo (VMA' chargé sur C9 >= R9 en IVM, 2026-11-12)"
  }
 }

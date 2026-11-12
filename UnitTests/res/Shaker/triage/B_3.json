@@ -16,8 +16,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00E9": {
-  "verdict": "ko",
-  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00EA": {
   "verdict": "ok",
@@ -32,8 +32,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00ED": {
-  "verdict": "ko",
-  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00EE": {
   "verdict": "ok",
@@ -48,8 +48,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00F1": {
-  "verdict": "ko",
-  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00F2": {
   "verdict": "ok",
@@ -64,8 +64,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00F5": {
-  "verdict": "ko",
-  "why": "rupture des colonnes bien plus basse (72 %) que sur la photo et Amspirit-lite (50 %) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00F6": {
   "verdict": "ok",
@@ -100,88 +100,88 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00D2": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00D3": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00D4": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00D5": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00D6": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00D7": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00D8": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00D9": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00DA": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00DB": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00DC": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00DD": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00DE": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00DF": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00E0": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00E1": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00E2": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "00E3": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "00E4": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "03E5": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "03E6": {
-  "verdict": "ko",
-  "why": "rupture des colonnes environ 8 % plus bas que sur la photo et Amspirit-lite (C9 inscrit en base 7) ; R4/R5 de la page suivante identiques"
+  "verdict": "ok",
+  "why": "rupture des colonnes à la hauteur de la photo : en IVM, les rangées paires (C9=0..8) chargent VMA' sur C9 >= R9 comme les impaires (2026-11-12)"
  },
  "01C7": {
   "verdict": "ok",

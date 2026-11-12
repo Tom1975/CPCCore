@@ -220,9 +220,16 @@ void CRTC::ClockTick34 ()
       }
       else
       {
+         // VMA' is loaded with VMA on the last line of the character : the output of the magnitude comparator
+         // C9 >= R9 that ends the character (10.3.4). In IVM with R9 odd the rows of even C9 end on C9 = R9 + 1,
+         // and the pointer moves on every row (19.8.4, SHAKER B_3/B_4 INTERLACE C4/C9 COUNTERS #00D2) ; a R9
+         // written lower than C9 ends the character the same way. With the ASIC vertical soft scroll the
+         // compared C9 is shifted (SSCR) and keeps its 3-bit equality.
          // VMA' is not updated during the additional lines (11.2.6)
          int vertical_shift = (gate_array_->memory_->GetSSCR()&0x7F) >> 4;
-         if ( !adjust_ && !interlace_line_ && ((vlc_ + vertical_shift) &0x7)== ((registers_list_[9] ) & 0x7))
+         const bool last_line = (vertical_shift == 0) ? (vlc_ >= registers_list_[9])
+                                                       : (((vlc_ + vertical_shift) & 0x7) == (registers_list_[9] & 0x7));
+         if ( !adjust_ && !interlace_line_ && last_line)
          {
             bu_ = ma_;
          }
