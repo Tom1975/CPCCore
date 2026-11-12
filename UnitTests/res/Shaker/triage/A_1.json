@@ -56,8 +56,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "000F": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -78,8 +78,8 @@
   ]
  },
  "0010": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -100,8 +100,8 @@
   ]
  },
  "0011": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -122,8 +122,8 @@
   ]
  },
  "0012": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -144,8 +144,8 @@
   ]
  },
  "0013": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -166,8 +166,8 @@
   ]
  },
  "0014": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -188,8 +188,8 @@
   ]
  },
  "0015": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -210,8 +210,8 @@
   ]
  },
  "0016": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -280,8 +280,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0023": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -302,8 +302,8 @@
   ]
  },
  "0024": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -324,8 +324,8 @@
   ]
  },
  "0025": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -346,8 +346,8 @@
   ]
  },
  "0026": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -368,8 +368,8 @@
   ]
  },
  "0027": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -390,8 +390,8 @@
   ]
  },
  "0028": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -412,8 +412,8 @@
   ]
  },
  "0029": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",
@@ -434,8 +434,8 @@
   ]
  },
  "002A": {
-  "verdict": "ko",
-  "why": "R4=0 (R1=1/2, R9=7) : Sugarbox coupe la zone en deux (bande de 1 rangée, bandes noires, puis les barres) et n'affiche pas les repères « ****xx** » ; la photo et les 5 émulateurs ont un seul bloc de barres continu et les repères",
+  "verdict": "ok",
+  "why": "un seul bloc de barres continu et les repères, comme la photo : R0 écrit égal à C0 sur la dernière ligne, la trame se termine (modèle provisoire, RealCpc P1, 2026-11-12)",
   "zones": [
    {
     "on": "sb",

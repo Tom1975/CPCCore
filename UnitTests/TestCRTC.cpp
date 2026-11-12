@@ -1594,6 +1594,35 @@ TEST(CRTC_Crtc1, AdjustmentUsesC5)
    EXPECT_EQ(Line(0, 0), NextLine(crtc));
 }
 
+// 11.2.4 : CRTC 1, the last line is sampled on the rising edge of the C0 == R0 comparator. R0 63 -> 1 written on
+// C0 = 1 makes it rise at the write : on the last line (C4 = R4, C9 = R9) the frame ends on the next edge, on another
+// line C9 just goes on (SHAKER CRTC RVMB #000F : R4 = 0, R9 = 7, then R0 = 1).
+TEST(Compendium_11, Crtc1R0WrittenWithC0SamplesTheLastLine)
+{
+   for (int c4 : { 0, 3 })
+   {
+      SCOPED_TRACE(c4);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 0, 0, 7);
+      WriteRegister(crtc, 4, (unsigned char)c4);
+      AdvanceMicroseconds(crtc, 2 * 128 * 64);
+      ASSERT_TRUE(ReachLine(crtc, c4, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 0, 1);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      if (c4 == 3) continue;
+      // R4 = 0, R9 = 7 : every eighth line ends the frame, C4 stays 0
+      for (int i = 0; i < 40; ++i)
+         EXPECT_EQ(0, NextLine(crtc).first);
+   }
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 10, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 5, 7));
+   AdvanceUntilHccEquals(crtc, 1);
+   WriteRegister(crtc, 0, 1);
+   EXPECT_EQ(Line(6, 0), NextLine(crtc));
+}
+
 // 12.3 : R4 = 0 written on the last line makes C4 overflow ; written when C0
 // reached R0 the frame end is already decided (11.2.4). SAFETY NET.
 TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)

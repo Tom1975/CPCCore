@@ -169,16 +169,10 @@ void CRTC::ClockTick1 ()
       }
    }
 
-   // Last line, sampled when C0 reaches R0. R0 lengthened on C0==R0 of the last line, the last line
-   // cancelled (R4, R9) during the lengthening : the frame end states set on the first C0==R0 meet a
-   // line that is no longer the last one, a R.F.D. at the end of the line (13.7.1.2)
+   // Last line, sampled when C0 reaches R0 (see SampleLastLine1)
    if (hcc_ == registers_list_[0])
    {
-      const bool last_line = (vcc_ == registers_list_[4]) && C9EqualsR9();
-      if (last_line_sampled_ && last_line_ && !last_line)
-         rfd_ = true;
-      last_line_ = last_line;
-      last_line_sampled_ = true;
+      SampleLastLine1();
    }
 
    // VSYNC (16.3, 16.4.2) : R7 is ignored during a VSYNC ; a new one needs the C4==R7 equality to change
@@ -261,4 +255,24 @@ void CRTC::ClockTick1 ()
    }
 
    ClockDispEnHalves();
+}
+
+// Last line flip-flop (CRTC 1) : it samples C4 == R4 && C9 == R9 on the rising edge of the C0 == R0 comparator
+// output. Counting, that edge is the one that starts the character C0 == R0 : a R4 / R9 written during that
+// character no longer changes the state (11.2.4). R0 written with the current C0 makes the output rise at the
+// write : the state is sampled then, and the line ends on the next edge as the last one (SHAKER CRTC RVMB #000F,
+// R0 63 -> 1 written on C0 = 1 of the line C4 = R4 = 0, C9 = R9).
+// PROVISIONAL MODEL : a flip-flop clocked by a comparator output and not by the character clock is unusual ; it
+// is the one that explains both the photos and 11.2.4. To be confirmed on a real CRTC 1 (UnitTests/RealCpc/README.md,
+// P1) : if a R4 written during the character C0 == R0 still cancels the frame end, the sampling is synchronous.
+// R0 lengthened on C0==R0 of the last line, the last line cancelled (R4, R9) during the lengthening : the
+// frame end states set on the first C0==R0 meet a line that is no longer the last one, a R.F.D. at the end of
+// the line (13.7.1.2)
+void CRTC::SampleLastLine1()
+{
+   const bool last_line = (vcc_ == registers_list_[4]) && C9EqualsR9();
+   if (last_line_sampled_ && last_line_ && !last_line)
+      rfd_ = true;
+   last_line_ = last_line;
+   last_line_sampled_ = true;
 }
