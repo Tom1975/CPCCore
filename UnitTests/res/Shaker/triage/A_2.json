@@ -412,8 +412,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00AD": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "ko",
+  "why": "R6=0/#7F basculé dans la zone d'ajustement (C4=37, 38) : la trame repart sur l'offset, la photo n'affiche qu'une fois les 2 rangées de texte, la zone d'ajustement doit donc être en BORDER ; Sugarbox y affiche les 2 rangées (#3000, #3028), soit le texte en double. L'ancienne référence ne collait que par coïncidence (trame partie sur #3050). Comportement de R6=0 pendant l'ajustement à établir (2026-11-12)"
  },
  "00AE": {
   "verdict": "ko",

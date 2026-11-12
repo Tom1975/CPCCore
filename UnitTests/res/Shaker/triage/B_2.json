@@ -460,124 +460,124 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01F6": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01F7": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01F8": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01F9": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01FA": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01FB": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01FC": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01FD": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0200": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0201": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0202": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0203": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0204": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0205": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0206": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0207": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0208": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0209": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020A": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020B": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020C": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020D": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020E": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "020F": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0210": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0211": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0212": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0213": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0214": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "0215": {
-  "verdict": "ko",
-  "why": "zone basse : motifs au lieu de la page bleue et de son texte ; photo et 4 émulateurs affichent le texte (RS STORY)"
+  "verdict": "ok",
+  "why": "page bleue et texte comme la photo : la dernière ligne additionnelle charge VMA' avec R12/R13 (C5+1=R5), la trame repart sur l'offset (2026-11-12)"
  },
  "01DD": {
   "verdict": "ok",
