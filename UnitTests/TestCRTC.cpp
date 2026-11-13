@@ -4154,6 +4154,46 @@ TEST(Compendium_19, AsicIvmCounting)
    }
 }
 
+// 10.3.4, 19.8.4 : CRTC 3, 4, the magnitude comparator C9 >= R9 that ends the character also loads VMA' with
+// VMA on C0 = R1. In IVM with R9 odd (7) the rows alternate C9 = 0, 2, 4, 6, 8 and 1, 3, 5, 7 : the even rows
+// end on C9 = 8 > R9 and the pointer moves on every row (SHAKER B_3 INTERLACE C4/C9 COUNTERS #00D2). A R9
+// written lower than C9 ends the character the same way.
+TEST(Compendium_19, AsicIvmRowsMoveThePointerOnEveryRow)
+{
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 9, 7);
+      WriteRegister(crtc, 8, 3);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      for (int i = 0; i < 400 && crtc.vcc_ != 2; ++i) NextLine(crtc);
+      ASSERT_EQ(2, crtc.vcc_);
+      std::string lines;
+      for (int row = 2; row < 8; ++row)
+      {
+         const unsigned short start = crtc.ma_;
+         int n = 0;
+         while (crtc.vcc_ == row && n < 16) { ++n; NextLine(crtc); }
+         lines += char('0' + n);
+         EXPECT_EQ((start + 40) & 0x3FFF, crtc.ma_ & 0x3FFF) << "C4 = " << row + 1;
+      }
+      EXPECT_TRUE(lines == "545454" || lines == "454545") << lines;
+   }
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      ASSERT_TRUE(ReachLine(crtc, 5, 5));
+      const unsigned short row = crtc.ma_;
+      WriteRegister(crtc, 9, 3);   // C9 = 5 > R9 : the character ends on this line
+      EXPECT_EQ(Line(6, 0), NextLine(crtc));
+      EXPECT_EQ((row + 40) & 0x3FFF, crtc.ma_ & 0x3FFF);
+   }
+}
+
 // 20.3.1, 20.3.4 : CRTC 0, 3, 4 take R12/R13 on C4 = C9 = C0 = 0 only : an offset written during the
 // frame changes nothing until the next frame.
 TEST(Compendium_20, OffsetTakenAtTheFrameStart)
@@ -4827,6 +4867,44 @@ TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
          EXPECT_EQ(r4_with_c4 ? Line(0, 0) : Line(39, 0), NextLine(crtc));
       }
       EXPECT_TRUE(found);
+   }
+}
+
+// 11.2.3, 17.4.3 : CRTC 1, 2, R4 = 10, R5 = 24, R9 = 7, R9 = 3 written on the additional line C9 = 1 (SHAKER
+// R5 STORIES #01F6). During the additional lines C9 == R9 on C0 = R1 still loads VMA' with VMA : the pointer
+// goes on (+ R1 on each C4). The last additional line is the last line of the frame : VMA' takes R12/R13 there
+// and the next frame starts on the offset.
+TEST(Compendium_11, Crtc12AdjustmentWithC9ReachingR9EndsOnTheOffset)
+{
+   for (CRTC::TypeCRTC type : { CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 10, 24, 7);
+      SetOffset(crtc);
+      ASSERT_TRUE(ReachLine(crtc, 0, 1));   // a frame start with the offset
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      EXPECT_EQ(Line(11, 0), NextLine(crtc));
+      // First additional line : CRTC 1 goes on in memory (R12/R13 only on a frame start, 17.4.2), CRTC 2 took
+      // R12/R13 on the line C4 = R4, C9 = R9 (17.4.3)
+      const unsigned short first = (type == CRTC::UM6845R) ? (kOffset + 11 * 40) & 0x3FFF : kOffset;
+      EXPECT_EQ(first, crtc.ma_ & 0x3FFF);
+      EXPECT_EQ(Line(11, 1), NextLine(crtc));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 9, 3);
+      int lines = 2;
+      std::vector<unsigned short> row_start;
+      Line line;
+      while ((line = NextLine(crtc)) != Line(0, 0) && lines < 100)
+      {
+         if (line.second == 0) row_start.push_back(crtc.ma_ & 0x3FFF);
+         ++lines;
+      }
+      EXPECT_EQ(24, lines);
+      ASSERT_EQ(5u, row_start.size());   // C4 = 12 to 16
+      for (size_t i = 0; i < row_start.size(); ++i)
+         EXPECT_EQ((first + 40 * (i + 1)) & 0x3FFF, row_start[i]) << "C4 = " << 12 + i;
+      EXPECT_EQ(kOffset, crtc.ma_ & 0x3FFF);
    }
 }
 

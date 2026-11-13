@@ -263,10 +263,19 @@ void CRTC::ClockTick2 ()
       gdl_reenabled_ = false;
    }
 
-   // VMA' (17.4.3) ; in IVM also in the middle of the character, on C9 = R9/2 (19.8.3)
+   // VMA' (17.4.3) ; in IVM also in the middle of the character, on C9 = R9/2 (19.8.3).
+   // VMA' takes R12/R13 on the last line of the frame. In the additional management that line is the last
+   // additional one : the C5 + 1 == R5 comparator (the interlace line counted as one more R5 line), which
+   // ends the frame at the line end (11.3.1), selects R12/R13 too, over a C9 == R9 met on the same line.
+   // Without it, a C9 == R9 met during the additional lines (R9 written there, 11.2.3) leaves VMA' on VMA
+   // and the next frame does not start on the offset : SHAKER R5 STORIES #01F6 (R9 7 -> 3 on the additional
+   // line 1, R12 written after C0 = R1 of the line C4 = R4), VERTICAL SCROLL #00CB (R5 = R9 + 1 : same photo
+   // as the CRTC 1, which takes R12/R13 on the frame start)
+   const unsigned char frame_adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
+   const bool adjust_last_line = adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == frame_adjust_lines;
    if (hcc_ == registers_list_[1] && !c0_reset)
    {
-      if (last_line_)
+      if (last_line_ || adjust_last_line)
          bu_ = registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
       else if (vlc_ == registers_list_[9] || (InterlaceVideo() && vlc_ == (registers_list_[9] >> 1)))
          bu_ = ma_;
