@@ -789,6 +789,11 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
             case 0:
 
                // R0=0 is a valid value on every CRTC (Compendium 13.2.6 for CRTC 0)
+               // CRTC 1 : R0 written with the current C0, the C0 == R0 comparator output rises (11.2.4)
+               if (type_crtc_ == UM6845R && previous_value != hcc_ && registers_list_[0] == hcc_)
+               {
+                  SampleLastLine1();
+               }
                break;
             case 2:
                HSyncStartComparatorChanged(t_state);

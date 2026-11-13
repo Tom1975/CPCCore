@@ -27,6 +27,15 @@ Ce que change le résultat :
 - **T3 décalé de 4 pixels** : le schéma a raison, les chronogrammes du compendium sont à revoir. Sinon, le verrou transparent actuel est confirmé.
 - **T4 décalé** : annuler `e2c490f` et signaler l'écart avec le §9.2.
 
+## 1 bis. Modèles provisoires à confirmer
+
+Comportements implémentés pour suivre les photos SHAKER, avec un modèle électronique plausible mais pas
+démontré. Pas encore de programme : à écrire si l'occasion se présente (mêmes conventions que `T1` à `T4`).
+
+| # | Question | Modèle actuel de Sugarbox | Mesure proposée (CRTC 1) |
+|---|---|---|---|
+| P1 | Quand la bascule « dernière ligne » du CRTC 1 échantillonne-t-elle C4=R4 et C9=R9 ? (SHAKER A3 RVMB `#000F` à `#0016`, `#0023` à `#002A`, correctif `fix/shaker-crtc1-r4-zero`) | Sur le **front montant de la sortie du comparateur C0=R0** (`CRTC::SampleLastLine1`). En comptant, c'est le début du caractère C0=R0. Avec R0 écrit égal au C0 en cours, c'est l'instant de l'écriture (`WriteBus`, case 0) : une bascule cadencée par un comparateur et non par l'horloge, inhabituelle. | Sur la dernière ligne d'une trame (C4=R4, C9=R9, R5=0) : **(a)** écrire R0=C0 en cours de ligne et vérifier que la trame se termine (C4 revient à 0, pas de débordement) ; **(b)** écrire R4≠C4 pendant le caractère C0=R0 à chacune des 4 µs de l'`OUT`, pour situer l'instant d'échantillonnage. Si (b) annule la fin de trame quand l'écriture tombe avant la fin du caractère, l'échantillonnage est synchrone (front d'horloge qui termine C0=R0) et le crochet sur R0 est à remplacer. |
+
 ## 2. Photos SHAKER à refaire
 
 Avec `shaker27.dsk`, `RUN"SHAKE27x"`, puis la touche de menu, puis la barre d'espace le nombre de fois indiqué.
