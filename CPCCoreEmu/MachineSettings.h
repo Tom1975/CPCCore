@@ -70,7 +70,7 @@ public:
 	void SetRamCfg(RamCfg ram_cfg) { ram_cfg_ = ram_cfg; };
 
 	const char* GetLowerRom() const { return lower_rom_.c_str(); };
-	void SetLowerRom(char* rom) { lower_rom_ = rom; };
+	void SetLowerRom(const char* rom) { lower_rom_ = rom; };
 
 	const char* GetUpperRom(unsigned int num) const { return (num >= 256) ? nullptr : upper_rom_[num].c_str(); };
 	void SetUpperRom(unsigned int num, const char* rom) { if (num < 256)upper_rom_[num] = rom; };
