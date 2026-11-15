@@ -143,9 +143,23 @@ bool MachineSettings::Save(const char* new_name)
    configuration_manager_->SetConfiguration("Hardware", "FDC", fdc_present_ ? "1" : "0", file_path_.c_str());
    configuration_manager_->SetConfiguration("Hardware", "Tape", tape_present_ ? "1" : "0", file_path_.c_str());
 
+   // Memory
+   sprintf(buffer, "%i", ram_cfg_);
+   configuration_manager_->SetConfiguration("Memory", "RAM", buffer, file_path_.c_str());
+   configuration_manager_->SetConfiguration("Memory", "DefaultCartridge", cartridge_path_.c_str(), file_path_.c_str());
+   configuration_manager_->SetConfiguration("Memory", "LowerROM", lower_rom_.c_str(), file_path_.c_str());
+   char key[16];
+   for (int i = 0; i < 256; i++)
+   {
+      sprintf(key, "%s_%i", "UpperROM", i);
+      configuration_manager_->SetConfiguration("Memory", key, upper_rom_[i].c_str(), file_path_.c_str());
+   }
+
    // Keyboard
    configuration_manager_->SetConfiguration("Keyboard", "Type", keyboard_config_.c_str(), file_path_.c_str());
 
+   // The values are only in memory until the file is written
+   configuration_manager_->CloseFile();
    return true;
 }
 
