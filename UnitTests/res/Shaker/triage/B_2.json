@@ -584,8 +584,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01CB": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "moniteur",
+  "why": "la photo montre un décalage que Sugarbox ne reproduit pas ; peut-être imputable au moniteur (utilisateur, 2026-11-16) ; reste identique"
  },
  "01CF": {
   "verdict": "ok",
