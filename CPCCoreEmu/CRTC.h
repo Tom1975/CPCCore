@@ -87,7 +87,8 @@ public:
    bool last_line_;             // C4==R4 && C9==R9, sampled at the end of characters 0 and 1
    bool adjust_;                // additional management armed
    bool adjust_confirmed_;      // additional management confirmed at the end of character 2 : C9 compared to R5
-   bool adjust_end_;            // next C9 == R5, sampled at the end of characters 0 to 2
+   bool adjust_end_;            // next C9 == R5 : follows the comparator on characters 0 to 2, set only later
+   bool r5_mode_reg_;           // adjust_ && C4 != R4, registered at the start of the character
    bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
    bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
    // CRTC 1 (see CRTC_1.cpp)

@@ -1,11 +1,11 @@
 {
  "03FA": {
-  "verdict": "ko",
-  "why": "autocontrôle : C0io=#03 #0084 (exp #0004) ; C0io=#3D #3E #3F #0081 (exp #0001)"
+  "verdict": "ok",
+  "why": "autocontrôle : les 7 lignes donnent la valeur attendue (2026-11-16, bascule de fin d'ajustement du CRTC 0)"
  },
  "03FB": {
-  "verdict": "ko",
-  "why": "autocontrôle : C0io=#3F #0031 (exp #0051) et #0511 (exp #0001)"
+  "verdict": "ok",
+  "why": "autocontrôle : les 12 lignes donnent la valeur attendue (2026-11-16, comparaison C4/R4 enregistrée au début du caractère)"
  },
  "03FC": {
   "verdict": "ok",

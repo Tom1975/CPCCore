@@ -1177,6 +1177,68 @@ TEST(CRTC_Crtc0Vertical, R5IsSampledUntilC0Equals2)
    }
 }
 
+// SHAKER module E, "R5 STORIES 2 PG 1", #03FA, self-checked by the page : on the last line (C4 = R4 = 38,
+// C9 = R9 = 7) of a frame with R5 = 20, R5 = 0 written during the character C0 = 0, 1, 2, 3, #3D, #3E or #3F :
+// C4 returns to 0 at the end of that line on every position. Up to C0 = 2 the additional management is
+// cancelled (13.2.1) ; later it is confirmed, and the frame ends because the next C9 (0) is R5.
+// 11.3.1 : R5 written after C0 = 2 on the line where C9 + 1 == R5 does not prevent the frame end either.
+TEST(Compendium_11, Crtc0R5ZeroWrittenOnTheLastLineEndsTheFrameOnEveryPosition)
+{
+   for (int p : { 0, 1, 2, 3, 30, 0x3D, 0x3E, 0x3F })
+   {
+      SCOPED_TRACE(testing::Message() << "R5 = 0 written on C0 = " << p);
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      if (p > 0) AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 5, 0);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   for (int p : { 3, 30, 0x3F })
+   {
+      SCOPED_TRACE(testing::Message() << "11.3.1 : R5 written on C0 = " << p << " of the line C9 + 1 == R5");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 3, 7);
+      ASSERT_TRUE(ReachLine(crtc, 39, 2));
+      AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 5, 10);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "R5 STORIES 2 PG 2", #03FB, self-checked by the page : last line (C4 = R4 = 38, C9 = R9 = 7),
+// R5 = 20, R4 = 50 written during the character C0 = p :
+// - #3D, #3E : C4 != R4, C9 is compared with R5 and counts on from 8 : 12 more lines, C4 kept (11.2.2 example 2) ;
+// - #3F = R0 : too late for this line end, C4 is incremented and C9 returns to 0 (as without any write,
+//   example 1), then the 20 lines of R5. 11.2.2 gives "between C0 == 2 and C0 == R0" for R4 : the page of
+//   SHAKER excludes C0 == R0.
+TEST(Compendium_11, Crtc0R4WrittenOnTheLastCharacterOfTheLastLine)
+{
+   for (int p : { 0x3D, 0x3E })
+   {
+      SCOPED_TRACE(testing::Message() << "R4 = 50 written on C0 = " << p);
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 4, 50);
+      for (int c9 = 8; c9 < 20; ++c9)
+         EXPECT_EQ(Line(38, c9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R4 = 50 written on C0 = R0");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 0x3F);
+      WriteRegister(crtc, 4, 50);
+      for (int c9 = 0; c9 < 20; ++c9)
+         EXPECT_EQ(Line(39, c9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
 // 11.2.2, examples p83 : last line C4 = R4 = 38, C9 = R9 = 7, with an additional management (R5 > 0).
 // - R4 written between C0 = 2 and C0 = R0 : C4 != R4, C9 is compared with R5 instead of R9 and counts on ;
 //   the frame ends after the line C9 + 1 == R5 (example 2) ;
