@@ -184,6 +184,8 @@ void CRTC::Reset()
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
+   line_start_pending_ = false;
+   frame_started_ = true;
    last_line_eq_ = false;
    dlp_ = false;
    gdl_reenabled_ = false;
@@ -491,7 +493,10 @@ bool CRTC::DispEn(int half) const
 // On the first line with R6=0 both happen on every character : one displayed byte, one border byte.
 void CRTC::ClockDispEnHalvesCrtc02()
 {
-   if (vcc_ == 0 && vlc_ == 0 && ff1_)
+   // CRTC 2, PROVISIONAL (RealCpc/README.md, P3) : the R6 border is cleared by the first line of a frame that
+   // really started (C4 returned to 0 by the last line), not by a C4 that overflowed back to 0 : 15.5.2 "as long
+   // as C4 never reached R6", and the screens of 15.6 that stay border while C4 overflows
+   if (vcc_ == 0 && vlc_ == 0 && ff1_ && (type_crtc_ != MC6845 || frame_started_))
       ff3_ = true;
    else if (vcc_ == registers_list_[6])
       ff3_ = false;

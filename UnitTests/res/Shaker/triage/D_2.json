@@ -188,8 +188,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0316": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0317": {
   "verdict": "moniteur",
@@ -232,8 +232,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0321": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0322": {
   "verdict": "moniteur",
@@ -276,8 +276,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "032C": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "032D": {
   "verdict": "moniteur",
@@ -320,8 +320,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0337": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0338": {
   "verdict": "moniteur",
@@ -356,12 +356,12 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "037F": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. Entre les HSYNC : BORDER chez Sugarbox, blanc et texte sur la photo ; même cause CRTC 2 que D3 #0316 (HSYNC active sur C0=0)"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0380": {
-  "verdict": "ko",
-  "why": "re-tri 2026-11-16 : pas le moniteur. Entre les HSYNC : BORDER chez Sugarbox, blanc et texte sur la photo ; même cause CRTC 2 que D3 #0316 (HSYNC active sur C0=0)"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0381": {
   "verdict": "doute",

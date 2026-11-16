@@ -946,7 +946,8 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->rfd_ ? 1 : 0);
    out.push_back(c->status_border_r6_ ? 1 : 0);
    out.push_back(c->c9_eq_r9_at_start_ ? 1 : 0);
-   out.push_back(c->hsync_on_line_start_ ? 1 : 0);
+   // bit 0 : HSYNC on the line start ; bit 1 : line start waiting ; bit 2 : C4 overflowed (frame not started)
+   out.push_back((c->hsync_on_line_start_ ? 1 : 0) | (c->line_start_pending_ ? 2 : 0) | (c->frame_started_ ? 0 : 4));
    out.push_back(c->last_line_eq_ ? 1 : 0);
    out.push_back(c->dlp_ ? 1 : 0);
    out.push_back(c->gdl_reenabled_ ? 1 : 0);
@@ -1039,7 +1040,9 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->rfd_ = p[at++] != 0;
    c->status_border_r6_ = p[at++] != 0;
    c->c9_eq_r9_at_start_ = p[at++] != 0;
-   c->hsync_on_line_start_ = p[at++] != 0;
+   c->hsync_on_line_start_ = (p[at] & 1) != 0;
+   c->line_start_pending_ = (p[at] & 2) != 0;
+   c->frame_started_ = (p[at++] & 4) == 0;
    c->last_line_eq_ = p[at++] != 0;
    c->dlp_ = p[at++] != 0;
    c->gdl_reenabled_ = p[at++] != 0;

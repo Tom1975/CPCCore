@@ -133,12 +133,15 @@ void CRTC::ClockTick2 ()
          }
       }
 
+      // The vertical border is lifted by the start of a frame only (frame_started_, ClockDispEnHalvesCrtc02)
+      if (new_frame) frame_started_ = true;
       if (!new_frame)
       {
          // C9 returns to 0 on R9 and increments C4, whatever R4 : only DL returns C4 to 0
          // C9.IVM counts all the time : reset with C9, and when C9 reaches R9/2 (19.8.3)
          if (c9_eq_r9)
          {
+            frame_started_ = false;
             vlc_ = 0;
             vcc_ = (vcc_ + 1) & 0x7F;
             c9_ivm_ = 0;
@@ -283,15 +286,31 @@ void CRTC::ClockTick2 ()
 
    ClockParityR6();
 
-   // The border is not lifted on C0=0 during a HSYNC (15.5)
-   if (hcc_ == 0 && !hsync_)
+   // PROVISIONAL (RealCpc/README.md, P3). Horizontal border of the CRTC 2 and HSYNC :
+   // - the C0=0 comparator sets a "line start" latch ; the latch sets the display flip flop (lifts the border)
+   //   only while the HSYNC is not active : a line start met during a HSYNC lifts the border on the character
+   //   where the HSYNC ends ;
+   // - C0=R1 resets the flip flop (border) and the latch, and wins over a set on the same character.
+   // 15.5 says "during the HSYNC the C0=0 test is not done". The photos of SHAKER D3 and D4 on CRTC 2 (a second
+   // HSYNC from C0=#3B..#3E that ends on C0=1, #0316 #0321 #032C #0337 #037F #0380) keep the text on these
+   // lines : the test is done, its effect waits for the end of the HSYNC. SHAKER A3 (RVMB, R0=3, R1=3, a HSYNC
+   // of 14 characters) keeps its border margin : the HSYNC ends there on C0=R1.
+   // The screens of 15.6 that stay border (a HSYNC on C0=0 on every line) come from the vertical border : the
+   // last line is cancelled, C4 overflows and the frame never starts again (frame_started_).
+   if (hcc_ == 0)
+   {
+      line_start_pending_ = true;
+   }
+   if (line_start_pending_ && !hsync_)
    {
        ff1_set = true;
+       line_start_pending_ = false;
    }
 
    if (hcc_ == registers_list_[1])
    {
       ff1_reset = true;
+      line_start_pending_ = false;
    }
 
    // Flip flop computation

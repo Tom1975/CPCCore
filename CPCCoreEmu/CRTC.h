@@ -99,6 +99,10 @@ public:
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
    bool hsync_on_line_start_;   // HSYNC output active on C0=0
+   // CRTC 2 : C0=0 met during a HSYNC, waiting for its end to lift the border ; C4 returned to 0 by a frame
+   // start, not by an overflow
+   bool line_start_pending_;
+   bool frame_started_;
    bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
    bool dlp_;                   // "Dernière Ligne Précédente"
    bool gdl_reenabled_;         // "Gestion Dernière Ligne" re-enabled on the last HSYNC character

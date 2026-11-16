@@ -1905,8 +1905,9 @@ TEST(CRTC_Compendium, Crtc2NoGhostVSyncWithR2Zero)
    EXPECT_TRUE(sig.v_sync_);
 }
 
-// 15.5 : CRTC 2 does not lift the border on C0 = 0 during a HSYNC : with a
-// HSYNC spanning C0 = 0 (R2 = 62, R3l = 6) the displayed lines stay border.
+// 15.5, 15.6 : on CRTC 2, with a HSYNC spanning C0 = 0 on every line (R2 = 62, R3l = 6), the screen stays
+// border : the last line is cancelled, C4 overflows and the frame never starts again (the vertical border
+// stays, see Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay for the horizontal one).
 TEST(CRTC_Compendium, Crtc2BorderNotLiftedDuringHSync)
 {
    struct { CRTC::TypeCRTC type; bool displayed; } const cases[] = {
@@ -3713,19 +3714,19 @@ TEST(Compendium_15, Crtc2HSyncExamples)
    }
 }
 
-// 15.5 against two photos of SHAKER, CRTC 2 : divergence, to measure on a CRTC 2.
+// 15.5 against the photos of SHAKER, CRTC 2. PROVISIONAL model (RealCpc/README.md, P3).
 // - SHAKER D3 (2 CSYNC RELATIVE, #0316 #0321 #032C #0337, module D) : R0 = 63, R1 = 40, a second HSYNC from
-//   R2 = #3B to #3E that ends on C0 = 1, on each line of a band. The photo keeps the text, as on CRTC 0 and 1 :
-//   the border set on C0 = R1 is lifted on C0 = 0 during the HSYNC (this test). #037F and #0380 (module D,
-//   CSYNC MULTIPLES) look the same.
+//   R2 = #3B to #3E that ends on C0 = 1, on each line of a band. The photo keeps the text, as on CRTC 0 and 1.
+//   #037F and #0380 (module D, CSYNC MULTIPLES) look the same.
 // - SHAKER A3 (RVMB, #000B to #001E, module A, validated against the photo and Amspirit) : R0 = 3, R1 = 3, a HSYNC
 //   of 14 characters started on C0 = 1 covers C0 = 0 of the next short lines : the photo keeps a yellow border
-//   margin, which only the rule of 15.5 gives (the border is not lifted on C0 = 0 during a HSYNC).
-// No model tried explains both : a lift on C0 = 0 in all cases loses the A3 margin (1456 pixels on 12 screens),
-// inhibited only for a HSYNC started on C0 = 0 too, frozen during the whole HSYNC keeps D3 wrong. A difference
-// left : the border of C0 = R1 is set during the HSYNC in A3, out of it in D3.
+//   margin.
+// Model : the line start (C0 = 0) met during a HSYNC lifts the border when the HSYNC ends, unless C0 = R1 comes
+// first or on the same character (A3 : the HSYNC ends on C0 = 3 = R1). The screens of 15.6 that stay border
+// have a HSYNC on C0 = 0 on every line : there the frame never restarts and the vertical border stays
+// (Crtc2HSyncExamples).
 // The HSYNC goes from C0 = 60 to C0 = 1 (R3l = 6) ; R2 is set back to 46 on C0 = 2 of the next line.
-TEST(Compendium_15, DISABLED_Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay)
+TEST(Compendium_15, Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay)
 {
    for (CRTC::TypeCRTC type : { CRTC::MC6845, CRTC::HD6845S, CRTC::UM6845R })
    {
