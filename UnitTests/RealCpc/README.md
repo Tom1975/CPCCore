@@ -10,7 +10,7 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 Sur le prompt BASIC, avec la disquette `realcpc.dsk` dans le lecteur, taper la ligne indiquée. Chaque programme
 rend la main au BASIC tout seul. `T3` et `T4` durent 15 secondes : c'est le moment de la photo.
 
-Sources : `t1in.asm`, `t2vsync.asm`, `t3mode.asm`, `t4border.asm`. Reconstruire : `./build.sh <chemin de rasm>`.
+Sources : `t1in.asm`, `t2vsync.asm`, `t3mode.asm`, `t4border.asm`, `t5mon.asm`. Reconstruire : `./build.sh <chemin de rasm>`.
 Sugarbox les exécute tous : les valeurs ci-dessous sont celles qu'il donne aujourd'hui en CRTC 1.
 
 | # | Ligne à taper | Question | Résultat possible | Sugarbox | Résultat |
@@ -19,6 +19,28 @@ Sugarbox les exécute tous : les valeurs ci-dessous sont celles qu'il donne aujo
 | T2 | `MEMORY &3FFF:LOAD"T2VSYNC.BIN":CALL &4000:PRINT PEEK(&4F00)+256*PEEK(&4F01),PEEK(&4F02)+256*PEEK(&4F03)` | Une VSYNC relancée après un nombre impair de HSYNC garde-t-elle le bit 0 de son compteur (`U809`) ? | **Deux valeurs proches** : non. **La première plus petite d'environ 6** (une ligne) : oui, le schéma a raison. | 346 et 346 | |
 | T3 | `MEMORY &3FFF:LOAD"T3MODE.BIN":CALL &4000` | Un R3.JIT déplace-t-il le changement de mode ? Le schéma dit oui de 4 pixels (`U1003`, `U1004`), le compendium dit non (9.3.4.4). | Photo à comparer à `reference/t3mode_crtc1.png`, zoomée sur le début de chaque rangée, juste après le noir à gauche. Les rangées peuvent être décalées d'un lancement à l'autre : comparer leur aspect, pas leur numéro. | Voir la référence | |
 | T4 | `MEMORY &3FFF:LOAD"T4BORDER.BIN":CALL &4000` | La bordure et l'encre changent-elles de couleur au même endroit (correctif `e2c490f`) ? | Deux bandes rouges superposées. **Bouts droits alignés** : le correctif est bon. **Décalés de 8 pixels mode 2** (la bande du bas s'arrête plus à gauche) : il faut l'annuler. | Alignés | |
+| T5 | `MEMORY &3FFF:LOAD"T5MON.BIN":CALL &4000,n` avec n = 1 à 8 | Boucle de synchro ligne du moniteur (modèle provisoire P2). Voir le détail ci-dessous. | Une photo par écran, 20 secondes chacun, **même moniteur, sans toucher au H-HOLD**, cadrée comme les photos SHAKER (tout l'écran, de face). | `reference/t5mon_<n>_crtc1.png` | |
+
+### T5 : les huit écrans du moniteur
+
+L'écran affiche 25 rangées `000102…27` en mode 2 (un octet = 16 pixels mode 2), papier blanc, bordure bleue. Dans une
+bande de lignes, la synchro ligne est modifiée ; le reste de l'écran sert de repère. Ce qu'on lit sur la photo : le
+décalage horizontal des rangées de la bande, ligne par ligne, par rapport aux rangées du dessus.
+
+| n | Bande | Ce que l'écran tranche |
+|---|---|---|
+| 1 | 64 lignes sans HSYNC | L'oscillateur tourne en libre : la pente des rangées donne le réglage du H-HOLD de ce moniteur, et la façon dont il lâche (photos SHAKER D8 : −10 px en 64 lignes, rapide puis lent ; Sugarbox : vers la droite). |
+| 2 | 200 lignes sans HSYNC | La même chose sur une durée où la tension du filtre a le temps de bouger. |
+| 3 | 2e C-HSYNC de 64 px, 464 px après la principale, 64 lignes | La synchro de SHAKER `#00BD` et `#0318`, dont les photos donnent −13 et −18 px : valeur de ce moniteur. |
+| 4 | La même, 200 lignes | Le palier tient-il, ou l'image continue-t-elle de glisser ? |
+| 5 | 2e C-HSYNC de 32 px, principale de 64 px, 64 lignes | Force de l'impulsion en plus seule (SHAKER D3 change toujours les deux largeurs ensemble). |
+| 6 | 2e C-HSYNC de 64 px, principale de 32 px, 64 lignes | Force de rappel de l'impulsion principale seule. |
+| 7 | 2e C-HSYNC de 64 px, 112 px après la principale, 200 lignes | Le glissement à gauche s'arrête-t-il (palier) ou décroche-t-il ? Sur 64 lignes les photos D3 ne le disent pas. |
+| 8 | Deux C-HSYNC en plus (464 et 640 px après la principale), 64 lignes | La synchro de SHAKER `#00C2` : photo +11 px, Sugarbox +26. |
+
+Les bandes de 64 lignes commencent 100 lignes sous le haut de l'écran, celles de 200 lignes 30 lignes sous le haut.
+Dans la bande, la HSYNC principale est raccourcie à 6 caractères (R3 n'est jamais écrit pendant une HSYNC) : la
+C-HSYNC garde ses 4 µs, mais le noir à gauche de l'image est plus court, c'est normal.
 
 Ce que change le résultat :
 
@@ -26,6 +48,8 @@ Ce que change le résultat :
 - **T2 oui** : à ajouter (`VGA.cpp`, `wait_for_hsync_` et `v26_` repartiraient d'un compteur dont le bit 0 survit).
 - **T3 décalé de 4 pixels** : le schéma a raison, les chronogrammes du compendium sont à revoir. Sinon, le verrou transparent actuel est confirmé.
 - **T4 décalé** : annuler `e2c490f` et signaler l'écart avec le §9.2.
+- **T5** : les huit photos entrent dans l'ajustement du modèle du moniteur (`res/Shaker/afc_study/`) à la place des
+  photos SHAKER de séances différentes ; l'écran 1 fixe la valeur standard de `Monitor::SetHorizontalHold`.
 
 ## 1 bis. Modèles provisoires à confirmer
 
