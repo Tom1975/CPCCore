@@ -18,6 +18,10 @@
 // - c4_increment_     registered C9==R9, sampled at the start of each character while C9 is handled : the
 //                     value seen at the start of the last character increments C4. C9 itself is compared
 //                     with R9 on the C0 reset : R9 written on C0==R0 increments both C4 and C9 (10.3.1).
+//                     At the line end the latch is ORed with the comparator of the character that ends :
+//                     R9 written with the value of C9 during the last character (C9 != R9 before) still
+//                     increments C4 (SHAKER E, C4/C9 COUNTER LOGIC, #0405), R9 moved away from C9 during
+//                     it does not prevent the increment (10.3.1). Set, not cleared, as adjust_end_.
 // - c9_managed_       C9 handling, enabled when C0 reaches 1, disabled when C0 restarts at 0. With R0=0
 //                     C0 never reaches 1 : C9, C3h and the C4 increment latch freeze (13.2.4, 13.2.6).
 // - last_line_        C4==R4 && C9==R9, sampled at the end of characters 0 and 1 only (12.2).
@@ -31,6 +35,9 @@
 //                     (C9 = 0, C4 + 1) disagrees with these : not followed.
 // - adjust_confirmed_ C9 no longer returns to 0 on R9 (11.2.2). Once C4 differs from R4, C9 is compared
 //                     with R5 instead of R9 and C4 is kept.
+//                     Line end with C4 == R4 while confirmed : C9 == R9 increments C4, C4 then differs from
+//                     R4 and the C9 computed for the next line (0) is compared with R5 in the same line end
+//                     (cascade of 11.2.2). With R5 = 0 the frame ends there (SHAKER E #03FA, #0407 line 04).
 // - adjust_end_       next C9 == R5 : the latch follows the comparator at the end of characters 0 to 2 ;
 //                     later on the line the comparator can still set it, not clear it. R5 written after
 //                     C0 = 2 on the line where C9 + 1 == R5 does not prevent the frame end (11.3.1), and
@@ -82,6 +89,9 @@ void CRTC::ClockTick0 ()
    // Line end : C4 and frame
    // Returning C4 and C9 to 0 is part of the C9 handling : with R0=0 it is frozen (13.2.3)
    bool new_frame = false;
+   // C4 increment : the registered C9 == R9, which the comparator of the character that ends can still set
+   // (R9 written with C9 during the last character, SHAKER E #0405), not clear (10.3.1)
+   const bool c4_increment = c4_increment_ || (c9_managed_ && c9_eq_r9);
    if (line_end_)
    {
       if (last_line_ && !adjust_)
@@ -93,15 +103,21 @@ void CRTC::ClockTick0 ()
          // C4 is kept : the adjustment ends when the next C9 reaches R5
          new_frame = c9_managed_ && adjust_end;
       }
-      else if (last_line_ && adjust_confirmed_ && adjust_end && !(InterlaceOn() && parity_r6_))
+      else if (c4_increment)
       {
-         // Last line, additional management confirmed (R5 > 0 on C0 = 2), then R5 written with 0 : the next
-         // C9 (0) is R5, the adjustment ends before its first line (SHAKER E #03FA)
-         new_frame = c9_managed_;
-      }
-      else if (c4_increment_)
-      {
-         vcc_ = (vcc_ + 1) & 0x7F;
+         if (adjust_confirmed_ && adjust_end && !(InterlaceOn() && parity_r6_))
+         {
+            // Additional management confirmed with C4 == R4 : C9 == R9 increments C4, C4 then differs from R4
+            // and the C9 computed for the next line (0) is compared with R5 in the same line end (the cascade
+            // of 11.2.2, "R9 written exactly on C0 == R0"). With R5 = 0 the adjustment ends before its first
+            // line : R5 = 0 written on a last line (SHAKER E #03FA), or R9 moved away from C9 on C0 = 1 of a
+            // last line then set back to C9 (SHAKER E #0407, line 04)
+            new_frame = c9_managed_;
+         }
+         else
+         {
+            vcc_ = (vcc_ + 1) & 0x7F;
+         }
       }
       c4_increment_ = false;
    }

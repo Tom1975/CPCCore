@@ -1278,6 +1278,91 @@ TEST(Compendium_11, Crtc0R4R9WrittenOnTheLastLineOfAnAdjustment)
    }
 }
 
+// SHAKER module E, "C4/C9 COUNTER LOGIC, UPD R9=C9 ON C0==R0 WHEN C9<>R9", #0405, self-checked by the page :
+// on the line C4 = C9 = 3 with R9 = 7, R9 = 3 written during the last character (C0 = R0). The C4 increment
+// latch was registered false at the start of that character, the comparator of the character that ends
+// still sets it : C4 is incremented at this line end, with C4 != R4 (R4 = 38) and with C4 == R4 (R4 = 3,
+// no last line was sampled on C0 = 0 and 1). C9 returns to 0 (10.3.1).
+// Written earlier on the line, the latch is registered at the start of a character : same result.
+// R9 moved away from C9 during the last character does not clear the latch (10.3.1, R9 written on C0 == R0).
+TEST(Compendium_10, Crtc0R9SetToC9OnTheLastCharacterIncrementsC4)
+{
+   for (int r4 : { 38, 3 })
+   {
+      for (int p : { 2, 30, 0x3E, 0x3F })
+      {
+         SCOPED_TRACE(testing::Message() << "R4 = " << r4 << ", R9 = 3 written on C0 = " << p);
+         CRTC crtc; CSig sig;
+         Crtc0Screen(crtc, sig, r4, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 3, 3));
+         AdvanceUntilHccEquals(crtc, p);
+         WriteRegister(crtc, 9, 3);
+         EXPECT_EQ(Line(4, 0), NextLine(crtc));
+      }
+   }
+   {
+      SCOPED_TRACE("R9 = 3 -> 7 written on C0 = R0 of the line C9 = 3 : the latch stays set");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 3, 3));
+      AdvanceUntilHccEquals(crtc, 0x3F);
+      WriteRegister(crtc, 9, 7);
+      EXPECT_EQ(Line(4, 4), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "SWITCH COMPARATOR C9 WITH R9 TO R5 (PG1)", #0407, lines 04 and 05, self-checked by the page.
+// Last line (C4 = R4 = 38, C9 = R9 = 7), R5 = 0, R9 = 6 written during the character C0 = p, then R9 = 7
+// written back later on the line (SHAKER : C0 = 60 after C0 = 1, C0 = 5 after C0 = 0) :
+// - p = 0 : the last line is not sampled, C9 == R9 at the line end increments C4 (39, 0) ;
+// - p = 1 : last line sampled on C0 = 0, lost on C0 = 1 : the additional management is confirmed on C0 = 2
+//   (10.3.1.2). At the line end C9 == R9 increments C4, C4 then differs from R4 and the C9 of the next line (0)
+//   is R5 : the adjustment ends at once, new frame (11.2.2 : it ends when the C9 computed for the new line
+//   is R5). Before, C4 went to 39 and 32 lines were added (#00FE instead of #0032) ;
+// - p = 2 : the last line stays true, new frame (10.3.1.2).
+TEST(Compendium_11, Crtc0R9MovedAwayThenBackOnTheLastLine)
+{
+   for (int back : { 5, 10, 30, 60, 62, 63 })
+   {
+      for (int p : { 0, 1, 2, 3 })
+      {
+         if (back <= p) continue;
+         SCOPED_TRACE(testing::Message() << "R9 = 6 written on C0 = " << p << ", R9 = 7 on C0 = " << back);
+         CRTC crtc; CSig sig;
+         Crtc0Screen(crtc, sig, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         if (p > 0) AdvanceUntilHccEquals(crtc, p);
+         WriteRegister(crtc, 9, 6);
+         AdvanceUntilHccEquals(crtc, back);
+         WriteRegister(crtc, 9, 7);
+         EXPECT_EQ(p == 0 ? Line(39, 0) : Line(0, 0), NextLine(crtc));
+         EXPECT_EQ(p == 0 ? Line(39, 1) : Line(0, 1), NextLine(crtc));
+      }
+   }
+   {
+      SCOPED_TRACE("R9 = 6 on C0 = 1, not written back : first additional line, C4 kept, C9 counts on");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 9, 6);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R5 = 20 : the C9 of the next line (0) is not R5, C4 is incremented and the 20 lines follow");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 9, 6);
+      AdvanceUntilHccEquals(crtc, 60);
+      WriteRegister(crtc, 9, 7);
+      for (int c9 = 0; c9 < 20; ++c9)
+         EXPECT_EQ(Line(39, c9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
 // 12.2 : on the last line, R4 written on C0 = 0 cancels the last line ; written
 // on C0 = 1 it starts the additional management (the line becomes the first
 // additional line : C4 kept, C9 compared with R5). SAFETY NET.
