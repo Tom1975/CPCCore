@@ -19,7 +19,7 @@ TL = 56e3 * 10e-9 / PX           # R417 * C413 : 8960 px
 
 
 def simulate(starts, widths, main=771, g=0.1, eps=0.05, delta=0.05, rho=1.0, hold=0.0, step=0.23,
-             ta=TA, ratio=RATIO, tl=TL, frames=4, wmain=None, nband=NBAND, more=(), fly=192.0, isf_tau=0.0, isf_u0=0.0):
+             ta=TA, ratio=RATIO, tl=TL, frames=4, wmain=None, nband=NBAND, more=(), fly=192.0, isf_tau=0.0, isf_u0=0.0, osc_tau=0.0, osc_u0=0.0, lag=0):
     """starts, widths : second pulse of each screen (arrays). Returns shift[screen, i] (pixels, + = right)
     of the picture for the lines of the last frame, and the line of i = 0 relative to the band start."""
     s = np.asarray(starts, float); w = np.asarray(widths, int); C = len(s)
@@ -43,44 +43,55 @@ def simulate(starts, widths, main=771, g=0.1, eps=0.05, delta=0.05, rho=1.0, hol
     lam, E = np.linalg.eig(np.array([[-a - l, a], [a / ratio, -a / ratio]])); Ei = np.linalg.inv(E)
     lam = lam.real; E = E.real; Ei = Ei.real
 
-    def fstep(x, dt):                    # x (C,2), dt (C,) -> x after dt, integral of V1
+    def fstep(x, dt, left=None):         # x (C,2), dt (C,) -> x after dt, integral of V1
         c = x @ Ei.T
         e = np.exp(lam[None, :] * dt[:, None])
-        ie = np.where(np.abs(lam[None, :]) > 1e-12, (e - 1) / lam[None, :], dt[:, None])
+        if left is None:
+            ie = np.where(np.abs(lam[None, :]) > 1e-12, (e - 1) / lam[None, :], dt[:, None])
+        else:
+            # pin 2 : the current of R417 is integrated by C415, which forgets with osc_tau ; 'left' is the
+            # time between the start of this step and the end of the ramp
+            b = lam[None, :] + 1.0 / osc_tau
+            ie = np.exp(-left[:, None] / osc_tau) * (np.exp(b * dt[:, None]) - 1) / b
         return (e * c) @ E.T, (ie * c) @ E[0]
 
     total = frames * FRAME
     isband = np.zeros(total + 4, bool)
     for f in range(frames): isband[f * FRAME + BAND0: f * FRAME + BAND0 + nband] = True
-    x = np.zeros((C, 2)); t_fb = np.full(C, float(N - 100))
+    x = np.zeros((C, 2)); t_fb = np.full(C, float(N - 100)) + osc_u0   # t_fb : start of the oscillator ramp
     rec_t = []
     for k in range(total + 3):
+        t_ramp = t_fb; t_fly = t_fb - osc_u0
         L0 = np.floor(t_fb / N).astype(int)
         te = []; q = []
         for dL in (0, 1):
             LL = L0 + dL
             ok_line = (LL >= 0) & (LL < total)
             t0 = LL * N + float(main)
-            te.append(np.where(ok_line, t0 + wm / 2.0 - t_fb, 1e9)); q.append(charge(t0, wm, t_fb))
+            te.append(np.where(ok_line, t0 + wm / 2.0 - t_fb, 1e9)); q.append(charge(t0, wm, t_fly))
             for s_, w_ in [(s, w)] + [(np.asarray(a_, float), np.asarray(b_, int)) for a_, b_ in more]:
                 t0 = LL * N + s_
                 te.append(np.where(ok_line & isband[np.clip(LL, 0, total + 3)], t0 + w_ / 2.0 - t_fb, 1e9))
-                q.append(charge(t0, w_, t_fb))
+                q.append(charge(t0, w_, t_fly))
         te = np.stack(te, 1); q = np.stack(q, 1)
         te = np.where(te < 0, 1e9, te)
         order = np.argsort(te, axis=1)
         te = np.take_along_axis(te, order, 1); q = np.take_along_axis(q, order, 1)
-        period = np.full(C, float(N))
+        period = np.full(C, float(N)) if not (lag and k) else nxt
         for it in range(2):
             y = x; t = np.zeros(C); area = np.zeros(C)
             for j in range(te.shape[1]):
                 hit = te[:, j] < period
                 tj = np.where(hit, te[:, j], t)
-                y, ar = fstep(y, tj - t); area += ar; t = tj
+                y, ar = fstep(y, tj - t, period - t if osc_tau else None); area += ar; t = tj
                 y = y + np.stack([np.where(hit, q[:, j], 0.0), np.zeros(C)], 1)
-            y, ar = fstep(y, period - t); area += ar
-            period = np.clip(N + hold + g * area / period, N - 64.0, N + 64.0)
-        rec_t.append(t_fb.copy())
+            y, ar = fstep(y, period - t, period - t if osc_tau else None); area += ar
+            norm = osc_tau * (1 - np.exp(-period / osc_tau)) if osc_tau else period
+            nxt = np.clip(N + hold + g * area / norm, N - 64.0, N + 64.0)
+            if lag:                      # lag : the period of a line is set by the line before (emulator)
+                break
+            period = nxt
+        rec_t.append(t_fly.copy())
         x = y; t_fb = t_fb + period
     T = np.stack(rec_t, 1)               # flyback times (C, k)
     base = (frames - 1) * FRAME + BAND0

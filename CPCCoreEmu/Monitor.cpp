@@ -37,40 +37,97 @@ unsigned int Mode2ExtendedLut[0x100][0x8];
 unsigned int Mode3ExtendedLut[0x100][0x8];
 
 
-// Horizontal deflection of the CTM644 (service manual of the CPC664 : IC401 is a Sanyo LA7800, sync
-// separator and line oscillator). The line oscillator is locked to the C-HSYNC by an AFC loop :
-//  - comparison signal : a sawtooth built by integrating the line flyback pulse. It rises during the
-//    flyback (12 us) and falls back during the trace (52 us). Its rising edge crosses zero at the
-//    position where the centre of the C-HSYNC settles (ACCC 14.4 : a C-HSYNC 1 us shorter moves the
-//    picture by 0.5 us, the loop follows the centre of the pulse).
-//  - phase comparator : while the C-HSYNC is present, it passes the sawtooth value to the loop filter
-//    (gated current). Every pulse counts, wherever it falls on the line : a second C-HSYNC in the middle
-//    of the line (R2 or R3 updated during the HSYNC, ACCC 15.3) brings the value of the trace part of
-//    the sawtooth, and the loop moves the picture until the main pulse compensates for it (ACCC 15.7 :
-//    the monitor takes several lines to settle). A short pulse brings little charge : with R3l=2 the
-//    monitor hardly sees it (ACCC 14.4).
-//  - loop filter (lag-lead network) : a proportional part that moves the phase of the next flyback,
-//    and an integrating part (the capacitor) that holds the oscillator frequency.
-// The charge brought during a line is sampled at the start of the next flyback.
-static const int kNominalLine = 1024;      // 64 us : free running line (H-Hold set to 15625 Hz)
-static const int kFlyback = 192;           // 12 us : line sync + back porch
-static const double kLockCentre = 36.0;    // C-HSYNC centre in the locked state, in pixels after the flyback start (H-phase)
-static const double kLoopProportional = 0.3;
-static const double kLoopIntegral = 0.01;
-static const double kLockRange = 64.0;     // Pull-in range of the oscillator, in pixels per line
+// Horizontal deflection of the CTM644 (service manual of the CPC6128 / CTM644, page 26 : IC401 is a Sanyo
+// LA7800, sync separator and line oscillator). The line oscillator is locked to the C-HSYNC by an AFC loop.
+//
+// PROVISIONAL : the structure comes from the schematic, the values the schematic does not give come from
+// the photos of a real CPC (SHAKER 2.7, D3 "2 CSYNC / LINE STUDIES", 44 screens, 2.75 pixels RMS). Nothing
+// was measured on a CTM644 : RealCpc/README.md, part 1 bis. Study : UnitTests/res/Shaker/afc_study.
+//
+//  - pin 16, comparison signal : the line flyback pulse integrated by R406 (6.2 k) and C404 (39 nF), a
+//    sawtooth that rises during the flyback (12 us) and falls back during the trace (52 us), plus the part
+//    of the pulse that C403 (180 pF) / C404 pass (a step).
+//  - phase comparator : a differential pair switched on by the C-HSYNC. Its output current follows
+//    tanh((sawtooth - reference) / kComparatorRange) : all or nothing as soon as the sawtooth is away from
+//    the reference, proportional only around it. Every pulse counts, wherever it falls on the line : a
+//    second C-HSYNC in the middle of the line (R2 or R3 updated during the HSYNC, ACCC 15.3) brings a
+//    current set by its width, and the picture moves until the main pulse compensates for it (ACCC 15.7).
+//    The side that sources the current is stronger than the side that sinks it (kSourceRatio).
+//  - pin 1, loop filter : the current goes into C413 (10 nF), which shares it with C414 (1 uF) through
+//    R418 (8.2 k) ; R417 (56 k) leaks it towards pin 2.
+//  - pin 2, oscillator : a ramp (C415, 5.6 nF, charged through the H-HOLD network) whose slope follows the
+//    voltage of pin 1. The line flyback starts when the ramp ends. A current pulse moves the end of the
+//    ramp all the more that it comes late in the ramp (relaxation oscillator), kRampMemory.
+// Units : pixel (62.5 ns) ; charge = sink current of the comparator during one pixel ; C413 = 1.
+static const int kNominalLine = 1024;            // 64 us
+static const int kFlyback = 192;                 // 12 us : line sync + back porch
+static const double kSawtoothStep = 0.23;        // C403 / C404 part of the flyback pulse (sawtooth = +-1)
+static const double kComparatorReference = 0.06497;
+static const double kComparatorRange = 0.12384;  // linear zone of the differential pair
+static const double kSourceRatio = 1.56449;      // source current / sink current
+static const double kFilterShare = 1.0 / 1312.0; // 1 / (R418 x C413)
+static const double kFilterRatio = 100.0;        // C414 / C413
+static const double kFilterLeak = 1.0 / 8960.0;  // 1 / (R417 x C413)
+static const double kOscillatorGain = 0.07754;   // pixels of line period per unit of pin 1 voltage
+static const double kRampMemory = 1970.16;       // pixels
+static const double kRampStart = 124.38;         // start of the ramp, in pixels after the flyback start
+static const double kLockRange = 64.0;           // widest period change of the oscillator, in pixels per line
+// The beam flyback of the picture starts this number of pixels after the flyback start of the model : it
+// puts the standard picture at its place (horizontal phase of the monitor)
+static const int kPictureDelay = 43;
 
-// Sawtooth of the AFC comparison, as a function of the position in the line (pixels since the flyback start)
-static double AfcSawtooth(double position)
+// Sawtooth of pin 16, as a function of the position in the line (pixels since the flyback start), minus
+// the reference of the comparator
+static double AfcSawtooth(double u)
 {
-   // Value at the centre of the pixel
-   double u = std::fmod(position + 0.5 - (kLockCentre - kFlyback / 2.0), (double)kNominalLine);
-   if (u < 0) u += kNominalLine;
-   if (u < kFlyback)
-      return -1.0 + 2.0 * u / kFlyback;
-   return 1.0 - 2.0 * (u - kFlyback) / (kNominalLine - kFlyback);
+   const double value = (u < kFlyback) ? -1.0 + 2.0 * u / kFlyback + kSawtoothStep
+                                       : 1.0 - 2.0 * (u - kFlyback) / (kNominalLine - kFlyback);
+   return value - (kSawtoothStep * kFlyback / kNominalLine + kComparatorReference);
 }
 
-Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), horizontal_position_(0)
+// Charge the comparator brings to pin 1 during one pixel of C-HSYNC, 'u' pixels after the flyback start
+static double AfcCharge(double u)
+{
+   u = std::fmod(u, (double)kNominalLine);
+   if (u < 0) u += kNominalLine;
+   double current = std::tanh(AfcSawtooth(u) / kComparatorRange);
+   if (current > 0) current *= kSourceRatio;
+   // Relaxation oscillator : weight of the pulse by the time left before the end of the ramp
+   double ramp = u - kRampStart;
+   if (ramp < 0) ramp += kNominalLine;
+   static const double norm = (kNominalLine / kRampMemory) / (1.0 - std::exp(-kNominalLine / kRampMemory));
+   return current * std::exp((ramp - kNominalLine) / kRampMemory) * norm;
+}
+
+// Loop filter over 'pixels' pixels : exponential of the matrix of the network (C413, R418 + C414, R417)
+struct AfcFilterStep
+{
+   double m[2][2];
+   explicit AfcFilterStep(double pixels)
+   {
+      const double a[2][2] = { { -(kFilterShare + kFilterLeak) * pixels, kFilterShare * pixels },
+                               { kFilterShare / kFilterRatio * pixels, -kFilterShare / kFilterRatio * pixels } };
+      double term[2][2] = { { 1, 0 }, { 0, 1 } };
+      m[0][0] = m[1][1] = 1; m[0][1] = m[1][0] = 0;
+      for (int n = 1; n < 12; n++)
+      {
+         double next[2][2];
+         for (int i = 0; i < 2; i++)
+            for (int j = 0; j < 2; j++)
+               next[i][j] = (term[i][0] * a[0][j] + term[i][1] * a[1][j]) / n;
+         for (int i = 0; i < 2; i++)
+            for (int j = 0; j < 2; j++)
+            {
+               term[i][j] = next[i][j];
+               m[i][j] += next[i][j];
+            }
+      }
+   }
+};
+static const AfcFilterStep kFilterPixel(1.0);
+static const AfcFilterStep kFilterBlock(NBPIXELADDED);
+
+Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), horizontal_position_(0), horizontal_hold_(kStandardHorizontalHold)
 {
    playback_ = nullptr;
    int i, b;
@@ -251,13 +308,12 @@ void Monitor::Reset()
 
    }
 
-   x_total_ = kNominalLine - line_sync_;
-   next_flyback_x_ = x_total_;
-   flyback_pending_ = true;
+   x_total_ = kNoFlyback;
+   flyback_asked_ = false;
    line_position_ = 0;
-   afc_charge_ = 0;
-   afc_integral_ = 0;
-   line_fraction_ = 0;
+   // Locked state : the voltage of pin 1 that brings the oscillator back to 64 us
+   afc_pin1_ = afc_c414_ = -horizontal_hold_ / kOscillatorGain;
+   oscillator_ramp_ = 0;
    flyback_phase_ = 0;
 
    horizontal_state_ = vertical_state_ = DISPLAY;
@@ -273,29 +329,13 @@ Monitor::~Monitor(void)
 {
 }
 
-void Monitor::FlybackStart()
+// Line period of the oscillator for a voltage of pin 1, in pixels
+double Monitor::LinePeriod() const
 {
-   // Charge of the line, as a phase error in pixels : a 64 pixels pulse whose centre is 'd' pixels late
-   // brings 64 * 2d / kFlyback
-   const double error = afc_charge_ * kFlyback / (2.0 * 64);
-   afc_charge_ = 0;
-   afc_integral_ += kLoopIntegral * error;
-   if (afc_integral_ > kLockRange) afc_integral_ = kLockRange;
-   if (afc_integral_ < -kLockRange) afc_integral_ = -kLockRange;
-   double period = kNominalLine + afc_integral_ + kLoopProportional * error;
+   double period = kNominalLine + horizontal_hold_ + kOscillatorGain * afc_pin1_;
    if (period < kNominalLine - kLockRange) period = kNominalLine - kLockRange;
    if (period > kNominalLine + kLockRange) period = kNominalLine + kLockRange;
-   // The flyback can only start on a pixel, the nearest one to its true start : the true start of this
-   // flyback is 'flyback_phase_' pixels (-0.5 to 0.5) after the pixel where it starts, the comparator
-   // works on the true position
-   flyback_phase_ = line_fraction_;
-   line_fraction_ += period;
-   const int whole = (int)std::floor(line_fraction_ + 0.5);
-   line_fraction_ -= whole;
-   // The beam position x_ restarts at the end of the line sync : the next flyback starts at period - line sync
-   next_flyback_x_ = whole - line_sync_;
-   flyback_pending_ = false;
-   line_position_ = 0;
+   return period;
 }
 
 void Monitor::Tick( )
@@ -309,20 +349,47 @@ void Monitor::Tick( )
       x_ += NBPIXELADDED;
       ++elapsed_us_;
 
-   // AFC phase comparator, pixel by pixel on the C-HSYNC of the GATE ARRAY (16.2.2)
+   // AFC loop, on the C-HSYNC of the GATE ARRAY (16.2.2)
    const unsigned short chsync_mask = gate_array_->chsync_mask_;
-   for (int pixel = 0; pixel < NBPIXELADDED; ++pixel)
+   const double block_ramp = NBPIXELADDED / LinePeriod();
+   if (chsync_mask == 0 && oscillator_ramp_ + block_ramp < 0.999)
    {
-      // Flyback start : the beam reaches x_total_ (it can be the first pixel of the next block, already in SYNC)
-      if (flyback_pending_ && (horizontal_state_ != DISPLAY || x_ - NBPIXELADDED + pixel >= x_total_))
+      // No C-HSYNC and no end of ramp in these pixels : the filter and the ramp in one step
+      const double pin1 = kFilterBlock.m[0][0] * afc_pin1_ + kFilterBlock.m[0][1] * afc_c414_;
+      afc_c414_ = kFilterBlock.m[1][0] * afc_pin1_ + kFilterBlock.m[1][1] * afc_c414_;
+      afc_pin1_ = pin1;
+      oscillator_ramp_ += block_ramp;
+      line_position_ += NBPIXELADDED;
+   }
+   else
+   {
+      for (int pixel = 0; pixel < NBPIXELADDED; ++pixel)
       {
-         FlybackStart();
+         if ((chsync_mask >> pixel) & 1)
+         {
+            // Comparator : the true flyback start is 'flyback_phase_' pixels before the pixel 0 of the line
+            afc_pin1_ += AfcCharge(line_position_ + 0.5 + flyback_phase_ - horizontal_position_);
+         }
+         const double pin1 = kFilterPixel.m[0][0] * afc_pin1_ + kFilterPixel.m[0][1] * afc_c414_;
+         afc_c414_ = kFilterPixel.m[1][0] * afc_pin1_ + kFilterPixel.m[1][1] * afc_c414_;
+         afc_pin1_ = pin1;
+         const double period = LinePeriod();
+         oscillator_ramp_ += 1.0 / period;
+         ++line_position_;
+         if (oscillator_ramp_ >= 1.0)
+         {
+            // End of the ramp : flyback start. The ramp restarts ; the part already done is the fraction
+            // of pixel since the true end.
+            oscillator_ramp_ -= 1.0;
+            flyback_phase_ = oscillator_ramp_ * period;
+            line_position_ = 0;
+            // Beam : the flyback of the picture, on the pixel after
+            if (horizontal_state_ == DISPLAY)
+               x_total_ = x_ - NBPIXELADDED + pixel + 1 + kPictureDelay;
+            else
+               flyback_asked_ = true;   // the beam is still in its previous flyback
+         }
       }
-      if ((chsync_mask >> pixel) & 1)
-      {
-         afc_charge_ += AfcSawtooth(line_position_ - flyback_phase_ - horizontal_position_);
-      }
-      ++line_position_;
    }
 
    if (horizontal_state_ == DISPLAY)
@@ -444,9 +511,9 @@ void Monitor::Tick( )
          if (horizontal_hold_count_ < 0)
          {
             horizontal_state_ = DISPLAY;
-            // The AFC loop has computed the next flyback during this flyback (FlybackStart)
-            x_total_ = next_flyback_x_;
-            flyback_pending_ = true;
+            // The beam goes on until the oscillator ends its ramp (unless it already did)
+            x_total_ = flyback_asked_ ? 0 : kNoFlyback;
+            flyback_asked_ = false;
          }
       }
    }

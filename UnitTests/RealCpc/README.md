@@ -35,6 +35,7 @@ démontré. Pas encore de programme : à écrire si l'occasion se présente (mê
 | # | Question | Modèle actuel de Sugarbox | Mesure proposée (CRTC 1) |
 |---|---|---|---|
 | P1 | Quand la bascule « dernière ligne » du CRTC 1 échantillonne-t-elle C4=R4 et C9=R9 ? (SHAKER A3 RVMB `#000F` à `#0016`, `#0023` à `#002A`, correctif `fix/shaker-crtc1-r4-zero`) | Sur le **front montant de la sortie du comparateur C0=R0** (`CRTC::SampleLastLine1`). En comptant, c'est le début du caractère C0=R0. Avec R0 écrit égal au C0 en cours, c'est l'instant de l'écriture (`WriteBus`, case 0) : une bascule cadencée par un comparateur et non par l'horloge, inhabituelle. | Sur la dernière ligne d'une trame (C4=R4, C9=R9, R5=0) : **(a)** écrire R0=C0 en cours de ligne et vérifier que la trame se termine (C4 revient à 0, pas de débordement) ; **(b)** écrire R4≠C4 pendant le caractère C0=R0 à chacune des 4 µs de l'`OUT`, pour situer l'instant d'échantillonnage. Si (b) annule la fin de trame quand l'écriture tombe avant la fin du caractère, l'échantillonnage est synchrone (front d'horloge qui termine C0=R0) et le crochet sur R0 est à remplacer. |
+| P2 | Boucle AFC du moniteur CTM644 (LA7800) : comparateur, filtre, oscillateur (`Monitor.cpp`, étude `res/Shaker/afc_study/`) | Structure du schéma (dent de scie broche 16, filtre broche 1 aux valeurs du schéma, oscillateur à rampe broche 2). Valeurs **ajustées sur les photos SHAKER D3** (2,75 px RMS) : plage linéaire et référence du comparateur, dissymétrie source / puits 1,56, gain de l'oscillateur, mémoire de la rampe 1970 px (le schéma donne 1000 à 1250), H-HOLD −1,77 px/ligne. L'écart entre les photos D3 (−18 px) et celles du module A (−13 px) pour la même synchro est attribué au H-HOLD (`Monitor::SetHorizontalHold`) sans preuve. | Mesures M1 à M7 de la partie 4, plus : période libre de l'oscillateur (broche 2, sans signal vidéo) pour la valeur du H-HOLD ; rapport des courants source / puits sur la broche 1 (M2 contre M3). |
 
 ## 2. Photos SHAKER à refaire
 
@@ -72,11 +73,11 @@ Il faudrait un autre CRTC. À garder si l'occasion se présente.
 
 ## 4. Moniteur CTM644 : mesures à l'oscilloscope
 
-Le moniteur décale l'image quand une ligne porte une C-HSYNC en plus (R2 réécrit pendant la HSYNC). Les photos SHAKER
-D3 « 2 CSYNC RELATIVE » (44 écrans, CRTC 0, 1 et 2 concordants) montrent un comparateur de phase en tout-ou-rien, avec deux
-constantes de temps. Le modèle linéaire de `Monitor.cpp` se trompe d'un facteur 2 à 7. La fiche Sanyo du LA7800
-(`res/Shaker/afc_study/LA7800_Sanyo_ENN725F.pdf`) ne donne ni le courant de l'AFC, ni sa plage linéaire, ni la commande de
-l'oscillateur : il faut les mesurer. Étude, mesures sur photo et simulateurs : `res/Shaker/afc_study/` (non suivi).
+Le moniteur décale l'image quand une ligne porte une C-HSYNC en plus (R2 réécrit pendant la HSYNC). `Monitor.cpp` suit
+un modèle reconstruit du schéma et ajusté sur les photos SHAKER D3 « 2 CSYNC / LINE STUDIES » (44 écrans, CRTC 0, 1 et 2
+concordants, 2,75 px RMS) : modèle provisoire, entrée P2 de la partie 1 bis. La fiche Sanyo du LA7800 ne donne ni le
+courant de l'AFC, ni sa plage linéaire, ni la commande de l'oscillateur : les mesures ci-dessous les remplaceraient.
+Étude, mesures sur photo et simulateur : `res/Shaker/afc_study/`.
 
 Schéma : manuel de service CPC6128 / CTM644 / GT65, page 26 (IC401 = LA7800). Points de mesure :
 
@@ -98,4 +99,4 @@ l'autre (A1 à A11, B1 à B11, C1 à C11, D1 à D11). L'en-tête de l'écran aff
 | M7 | A1 | Broche 2 (oscillateur, C415 5 600 pF) en même temps que la broche 1 | Comment la tension de la broche 1 agit sur l'oscillateur (fréquence seule, ou phase aussi) |
 
 Décalages mesurés sur les photos SHAKER (pixels mode 2, + = vers la droite, fin de bande) : A1 -45, A5 -17, A6 -7,
-A7 +10, A8 +26, D1 -13, D8 +9. Sugarbox : voir `Monitor.DISABLED_R2UpdatedTwiceDuringHsyncMovesTheBandRightAsOnTheRealCpc`.
+A7 +10, A8 +26, D1 -13, D8 +9. Sugarbox : tests `Monitor.*` (`TestMonitor.cpp`).

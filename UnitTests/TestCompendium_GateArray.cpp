@@ -620,6 +620,9 @@ std::vector<int> ExpectedSplit(int from, int to, unsigned char b, bool crtc1)
 std::vector<int> MeasuredSplit(CRTC::TypeCRTC type, int from, int to, unsigned char byte)
 {
    Machine m(type);
+   // With R3 = 2 the GATE ARRAY sends no C-HSYNC : the line oscillator of the monitor runs free. Set to
+   // 64 us exactly (H-HOLD), the picture keeps its place.
+   m.Engine().GetMonitor()->SetHorizontalHold(0);
    Prepare(m, from, byte);
    // R1 = 63 : the bytes under the HSYNC are displayed.
    std::vector<unsigned char> p = { z80::kDi };

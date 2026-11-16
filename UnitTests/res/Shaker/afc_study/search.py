@@ -1,5 +1,6 @@
 import sys, json, random, multiprocessing as mp
-import fit as fit4
+import importlib, os
+fit4 = importlib.import_module(os.environ.get("AFC_FIT", "fit"))
 SPACE = json.loads(sys.argv[1])       # name -> [lo, hi, 'log'|'lin'] or a fixed value
 NR = int(sys.argv[2]); SEED = int(sys.argv[3]) if len(sys.argv) > 3 else 1
 def ev(p):
