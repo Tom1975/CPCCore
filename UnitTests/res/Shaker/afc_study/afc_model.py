@@ -19,8 +19,8 @@ TL = 56e3 * 10e-9 / PX           # R417 * C413 : 8960 px
 
 
 def simulate(starts, widths, main=771, g=0.1, eps=0.05, delta=0.05, rho=1.0, hold=0.0, step=0.23,
-             ta=TA, ratio=RATIO, tl=TL, frames=4, wmain=None, nband=NBAND, more=(), fly=192.0, isf_tau=0.0, isf_u0=0.0, osc_tau=0.0, osc_u0=0.0, lag=0):
-    """starts, widths : second pulse of each screen (arrays). Returns shift[screen, i] (pixels, + = right)
+             ta=TA, ratio=RATIO, tl=TL, frames=4, wmain=None, nband=NBAND, more=(), fly=192.0, isf_tau=0.0, isf_u0=0.0, osc_tau=0.0, osc_u0=0.0, lag=0, nomain=False):
+    """starts, widths : second pulse of each screen (arrays) ; nomain : no main pulse in the band (SHAKER D8). Returns shift[screen, i] (pixels, + = right)
     of the picture for the lines of the last frame, and the line of i = 0 relative to the band start."""
     s = np.asarray(starts, float); w = np.asarray(widths, int); C = len(s)
     wm = w if wmain is None else np.asarray(wmain, int)
@@ -68,7 +68,8 @@ def simulate(starts, widths, main=771, g=0.1, eps=0.05, delta=0.05, rho=1.0, hol
             LL = L0 + dL
             ok_line = (LL >= 0) & (LL < total)
             t0 = LL * N + float(main)
-            te.append(np.where(ok_line, t0 + wm / 2.0 - t_fb, 1e9)); q.append(charge(t0, wm, t_fly))
+            in_band = isband[np.clip(LL, 0, total + 3)]
+            te.append(np.where(ok_line & ~(in_band & nomain), t0 + wm / 2.0 - t_fb, 1e9)); q.append(charge(t0, wm, t_fly))
             for s_, w_ in [(s, w)] + [(np.asarray(a_, float), np.asarray(b_, int)) for a_, b_ in more]:
                 t0 = LL * N + s_
                 te.append(np.where(ok_line & isband[np.clip(LL, 0, total + 3)], t0 + w_ / 2.0 - t_fb, 1e9))

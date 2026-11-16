@@ -30,8 +30,9 @@ public:
    // Horizontal position setting of the monitor, in Mode 2 pixels (positive : image to the right)
    void SetHorizontalPosition(int pixels) { horizontal_position_ = pixels; }
    // H-HOLD setting of the monitor (VR403 / VR404) : free running line period minus 64 us, in Mode 2
-   // pixels per line. kStandardHorizontalHold is the setting of the monitor of the SHAKER photos.
-   static constexpr double kStandardHorizontalHold = -1.77;
+   // pixels per line. kStandardHorizontalHold is the setting of the monitor of the SHAKER photos : without
+   // HSYNC, its picture slides to the left by about 10 pixels in 64 lines (D8, #0392).
+   static constexpr double kStandardHorizontalHold = 1.10;
    void SetHorizontalHold(double pixels_per_line) { horizontal_hold_ = pixels_per_line; }
    void SetVGA(GateArray * vga);
    void SetKeyboard(IKeyboardHandler* keyboard){keyboard_ = keyboard;}

@@ -41,8 +41,8 @@ unsigned int Mode3ExtendedLut[0x100][0x8];
 // LA7800, sync separator and line oscillator). The line oscillator is locked to the C-HSYNC by an AFC loop.
 //
 // PROVISIONAL : the structure comes from the schematic, the values the schematic does not give come from
-// the photos of a real CPC (SHAKER 2.7, D3 "2 CSYNC / LINE STUDIES", 44 screens, 2.75 pixels RMS). Nothing
-// was measured on a CTM644 : RealCpc/README.md, part 1 bis. Study : UnitTests/res/Shaker/afc_study.
+// the photos of a real CPC (SHAKER 2.7 : D3 "2 CSYNC / LINE STUDIES", 44 screens, 2.9 pixels RMS, and D8
+// "NO HSYNC FOR XX LINES", which gives the H-HOLD). Nothing was measured on a CTM644 : RealCpc/README.md, part 1 bis. Study : UnitTests/res/Shaker/afc_study.
 //
 //  - pin 16, comparison signal : the line flyback pulse integrated by R406 (6.2 k) and C404 (39 nF), a
 //    sawtooth that rises during the flyback (12 us) and falls back during the trace (52 us), plus the part
@@ -62,15 +62,15 @@ unsigned int Mode3ExtendedLut[0x100][0x8];
 static const int kNominalLine = 1024;            // 64 us
 static const int kFlyback = 192;                 // 12 us : line sync + back porch
 static const double kSawtoothStep = 0.23;        // C403 / C404 part of the flyback pulse (sawtooth = +-1)
-static const double kComparatorReference = 0.06497;
-static const double kComparatorRange = 0.12384;  // linear zone of the differential pair
-static const double kSourceRatio = 1.56449;      // source current / sink current
+static const double kComparatorReference = 0.06679;
+static const double kComparatorRange = 0.105;    // linear zone of the differential pair
+static const double kSourceRatio = 1.41842;      // source current / sink current
 static const double kFilterShare = 1.0 / 1312.0; // 1 / (R418 x C413)
 static const double kFilterRatio = 100.0;        // C414 / C413
 static const double kFilterLeak = 1.0 / 8960.0;  // 1 / (R417 x C413)
-static const double kOscillatorGain = 0.07754;   // pixels of line period per unit of pin 1 voltage
-static const double kRampMemory = 1970.16;       // pixels
-static const double kRampStart = 124.38;         // start of the ramp, in pixels after the flyback start
+static const double kOscillatorGain = 0.08796;   // pixels of line period per unit of pin 1 voltage
+static const double kRampMemory = 2230.58;       // pixels
+static const double kRampStart = 126.05;         // start of the ramp, in pixels after the flyback start
 static const double kLockRange = 64.0;           // widest period change of the oscillator, in pixels per line
 // The beam flyback of the picture starts this number of pixels after the flyback start of the model : it
 // puts the standard picture at its place (horizontal phase of the monitor)

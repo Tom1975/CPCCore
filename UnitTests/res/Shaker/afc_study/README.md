@@ -22,35 +22,53 @@ Unités : pixel mode 2 = 62,5 ns ; charge = courant puits du comparateur pendant
 
 ## Valeurs tirées des photos (`best_schematic.json`)
 
-Ajustement sur les 44 écrans SHAKER D3 « 2 CSYNC / LINE STUDIES » (#0314 à #033F), moyenne des photos
-des CRTC 0, 1 et 2 : **2,75 px RMS**. Fourchette des six meilleures solutions :
+Ajustement commun (`fit_d8.py`) sur les 44 écrans SHAKER D3 « 2 CSYNC / LINE STUDIES » (#0314 à #033F,
+moyenne des photos des CRTC 0, 1 et 2) et sur D8 « NO HSYNC FOR XX LINES » (#0392, 64 lignes sans
+C-HSYNC, même module) : **2,89 px RMS sur D3, 2,7 px sur D8**.
 
-| Paramètre | Meilleure | Fourchette | Sens |
+| Paramètre | Valeur | Six meilleures solutions | Sens |
 |---|---|---|---|
-| g | 0,0775 | 0,075 – 0,085 | gain de boucle ; avec 42,5 px/V, courant du comparateur ≈ 0,3 mA |
-| eps | 0,124 | 0,11 – 0,13 | zone linéaire du comparateur (amplitude normalisée ±1) |
-| delta | 0,065 | 0,060 – 0,066 | référence du comparateur |
-| rho | 1,56 | 1,43 – 1,68 | dissymétrie source / puits (la moins bien déterminée) |
-| isf_tau | 1970 px | 1670 – 2620 | constante de temps de la rampe (calcul schéma : 1000 à 1250 px, écart non expliqué) |
-| isf_u0 | 124 px | 123 – 126 | début de rampe après le début du retour ligne |
-| hold | −1,8 px/ligne | −3,5 – +0,4 | réglage H-HOLD de la séance de photos D3, mal déterminé |
+| g | 0,088 | 0,083 – 0,089 | gain de boucle ; avec 42,5 px/V, courant du comparateur ≈ 0,3 mA |
+| eps | 0,105 | 0,09 – 0,135 | zone linéaire du comparateur (amplitude normalisée ±1) |
+| delta | 0,067 | 0,062 – 0,074 | référence du comparateur |
+| rho | 1,42 | 1,24 – 1,67 | dissymétrie source / puits (la moins bien déterminée) |
+| isf_tau | 2230 px | 1500 – 3280 | constante de temps de la rampe (calcul schéma : 1000 à 1250 px, écart non expliqué) |
+| isf_u0 | 126 px | 126 – 132 | début de rampe après le début du retour ligne |
+| hold | +1,10 px/ligne | 1,10 – 1,57 | réglage H-HOLD de la séance de photos du module D |
 
 Plage de maintien du modèle : environ ±10 px par ligne (±1 %).
+
+### Le Hold vient de D8
+
+Sans C-HSYNC le comparateur ne débite plus : la broche 1 retombe sur le pont R418 / R417 (elle perd
+R418 / (R417 + R418) = 13 % de son écart au repos en une ligne), puis C414 se vide lentement. La période
+passe aussitôt à 1024 + 0,13 × hold. Photos D8 (décalage des rangées de texte, corrélation ligne à ligne,
+CRTC 0 et 2 concordants) : l'image glisse à **gauche** de 10 à 11 px en 64 lignes, vite au début (−0,3 px
+par ligne) puis lentement. Le signe impose hold > 0 ; D3 seul le laissait entre −3,5 et +0,4 (ancienne
+solution : −1,77, 2,75 px RMS sur D3, mais +12 px à droite sur D8). Le modèle glisse plus régulièrement
+que la photo (−7,7 px à la ligne 50 pour −9,8).
+
+Sur ces photos le haut de l'écran n'est pas à l'équilibre : loin de toute bande, les rangées dérivent
+encore de +4,6 px sur une cinquantaine de lignes (#038D, bande de 8 lignes). Reprise après la synchro
+verticale, probablement : le modèle ne la représente pas, et les profils D3 y sont superposés.
 
 ## Contrôles
 
 - Module A, #00BD-#00C1, #00C4-#00C7, #00CA, #03AC (références sûres) : dans l'émulateur, même synchro
   partout (2e C-HSYNC de 64 px, 464 px après la principale, bande de 88 lignes). Photos CRTC 0-2 :
-  −12 à −15 px, plat (`a_shifts.json`). Modèle (`fit_joint.py`) : −18,8 au Hold de D3, −17,0 à
-  −5 px/ligne, −14,8 à −10 px/ligne. Les photos D3 donnent −18 px pour la même synchro : les deux séances
-  de photos ne s'accordent pas. L'écart est attribué au Hold, sans preuve (−10 px/ligne est au bord de la
-  plage de maintien, peu vraisemblable pour un moniteur réglé).
+  −12 à −15 px, plat (`a_shifts.json`). Modèle (`fit_joint.py`) : −21 px au Hold du module D. Les photos
+  D3 donnent −18 px pour la même synchro : les deux séances de photos ne s'accordent pas. Un Hold de
+  −10 px/ligne rapprocherait le modèle du module A, mais c'est le bord de la plage de maintien : peu
+  vraisemblable. Écart non expliqué ; l'écran 3 de `RealCpc/t5mon.asm` donnera la valeur d'un moniteur connu.
 - Photos CRTC 3 du module A : −23 px. Probablement un moniteur de 6128 Plus, hors étalonnage.
 - #00C8 / #00C9 (2e impulsion de 38 / 50 px dans l'émulateur, principale 64) : photos = dérive lente sur
-  toute la bande (−3 → −7 et −4 → −16 px) ; modèle = palier (−12,6 et −15,9). Non résolu. La largeur
+  toute la bande (−3 → −7 et −4 → −16 px) ; modèle = palier (−13,6 et −17,4). Non résolu. La largeur
   réelle de l'impulsion (R3 réécrit pendant la HSYNC) n'est pas vérifiée, et ces écrans ne sont pas dans
   les références sûres.
-- #00C2 (deux impulsions en plus) : photo +11 px, modèle +26 (ancien modèle linéaire : +37).
+- #00C2 (deux impulsions en plus) : photo +11 px, modèle trop à droite (voir `TestMonitor.cpp`).
+- Autres écrans du module D sondés dans l'émulateur, pas encore dans l'ajustement : D1 #0310/#0311
+  (2 C-HSYNC de 34 px à 771 et 851 sur toute la trame), D4 #037F/#0380 (8 C-HSYNC de 64 px par ligne, tous
+  les 128 px, 64 lignes), D7 (C-HSYNC principale une ligne sur deux à 771 et 835).
 
 ## Défauts connus
 
@@ -70,8 +88,8 @@ Plage de maintien du modèle : environ ±10 px par ligne (±1 %).
 
 L'oscillateur y est une rampe dont la pente suit la tension de la broche 1 à chaque pixel ; le retour ligne
 part à la fin de la rampe. C'est la même loi que `simulate()` (période = 1024 + hold + g × tension moyenne)
-sans retard d'une ligne (`lag=1` dans `simulate()` : 3,26 px RMS au lieu de 2,75). `Monitor::SetHorizontalHold`
-règle le Hold ; valeur standard = celle des photos D3. Sans C-HSYNC (R3 = 2), l'oscillateur tourne en libre.
+sans retard d'une ligne (`lag=1` dans `simulate()` coûte 0,5 px RMS). `Monitor::SetHorizontalHold`
+règle le Hold ; valeur standard = celle des photos du module D (+1,10). Sans C-HSYNC (R3 = 2), l'oscillateur tourne en libre.
 
 ## Fichiers
 
@@ -84,6 +102,7 @@ règle le Hold ; valeur standard = celle des photos D3. Sans C-HSYNC (R3 = 2), l
 | `edges.py`, `profiles.py`, `profiles.json` | décalage ligne à ligne de la bande sur les photos D3 (bordure bleue) |
 | `aedge.py`, `ameasure.py`, `a_shifts.json` | décalage de bande sur les photos du module A (bordure jaune) |
 | `best_schematic.json` | meilleure solution |
+| `fit_d8.py` | score D3 + D8 (celui de `best_schematic.json`) : `AFC_FIT=fit_d8 python3 search.py ...` |
 | `fit_joint.py` | score D3 + module A avec un Hold par séance (`hold_a`) ; `AFC_FIT=fit_joint python3 search.py ...` |
 
 Les profils D3 sont décalés de 2 lignes : l'indice 0 est la 3e ligne de la bande (`profiles.py` suppose
