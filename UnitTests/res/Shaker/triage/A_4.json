@@ -40,92 +40,20 @@
   "why": "même image (motifs, positions, texte)"
  },
  "000B": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : colonne parasite à droite et haut des barres courbé (la PLL du moniteur suit des synchros en trop), la photo est droite",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.1,
-    "w": 1,
-    "h": 0.1,
-    "note": "haut des barres courbé"
-   },
-   {
-    "on": "sb",
-    "x": 0.9,
-    "y": 0,
-    "w": 0.1,
-    "h": 1,
-    "note": "colonne parasite"
-   }
-  ]
+  "verdict": "doute",
+  "why": "re-tri 2026-11-16 : barres droites comme sur la photo (la déformation venait de l'ancien modèle du moniteur) ; reste une 13e colonne et une bande multicolore au bord droit, hors de la zone visible de la photo : rien pour comparer"
  },
  "000C": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : colonne parasite à droite et haut des barres courbé (la PLL du moniteur suit des synchros en trop), la photo est droite",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.1,
-    "w": 1,
-    "h": 0.1,
-    "note": "haut des barres courbé"
-   },
-   {
-    "on": "sb",
-    "x": 0.9,
-    "y": 0,
-    "w": 0.1,
-    "h": 1,
-    "note": "colonne parasite"
-   }
-  ]
+  "verdict": "doute",
+  "why": "re-tri 2026-11-16 : barres droites comme sur la photo (la déformation venait de l'ancien modèle du moniteur) ; reste une 13e colonne et une bande multicolore au bord droit, hors de la zone visible de la photo : rien pour comparer"
  },
  "000D": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : colonne parasite à droite et haut des barres courbé (la PLL du moniteur suit des synchros en trop), la photo est droite",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.1,
-    "w": 1,
-    "h": 0.1,
-    "note": "haut des barres courbé"
-   },
-   {
-    "on": "sb",
-    "x": 0.9,
-    "y": 0,
-    "w": 0.1,
-    "h": 1,
-    "note": "colonne parasite"
-   }
-  ]
+  "verdict": "doute",
+  "why": "re-tri 2026-11-16 : barres droites comme sur la photo (la déformation venait de l'ancien modèle du moniteur) ; reste une 13e colonne et une bande multicolore au bord droit, hors de la zone visible de la photo : rien pour comparer"
  },
  "000E": {
-  "verdict": "ko",
-  "why": "comme sur le CRTC 3 : colonne parasite à droite et haut des barres courbé (la PLL du moniteur suit des synchros en trop), la photo est droite",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.1,
-    "w": 1,
-    "h": 0.1,
-    "note": "haut des barres courbé"
-   },
-   {
-    "on": "sb",
-    "x": 0.9,
-    "y": 0,
-    "w": 0.1,
-    "h": 1,
-    "note": "colonne parasite"
-   }
-  ]
+  "verdict": "doute",
+  "why": "re-tri 2026-11-16 : barres droites comme sur la photo (la déformation venait de l'ancien modèle du moniteur) ; reste une 13e colonne et une bande multicolore au bord droit, hors de la zone visible de la photo : rien pour comparer"
  },
  "000F": {
   "verdict": "ok",

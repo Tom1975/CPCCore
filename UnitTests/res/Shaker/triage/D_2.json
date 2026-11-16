@@ -189,7 +189,7 @@
  },
  "0316": {
   "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
  },
  "0317": {
   "verdict": "moniteur",
@@ -233,7 +233,7 @@
  },
  "0321": {
   "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
  },
  "0322": {
   "verdict": "moniteur",
@@ -277,7 +277,7 @@
  },
  "032C": {
   "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
  },
  "032D": {
   "verdict": "moniteur",
@@ -321,7 +321,7 @@
  },
  "0337": {
   "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. 2e HSYNC en fin de ligne (R2=#3B à #3E, encore active sur C0=0) : Sugarbox affiche du BORDER sur toute la ligne, la photo affiche le texte. Règle du CRTC 2 « HSYNC sur C0=0 = pas d'affichage » appliquée à tort ici"
  },
  "0338": {
   "verdict": "moniteur",
@@ -357,11 +357,11 @@
  },
  "037F": {
   "verdict": "ko",
-  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. Entre les HSYNC : BORDER chez Sugarbox, blanc et texte sur la photo ; même cause CRTC 2 que D3 #0316 (HSYNC active sur C0=0)"
  },
  "0380": {
   "verdict": "ko",
-  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+  "why": "re-tri 2026-11-16 : pas le moniteur. Entre les HSYNC : BORDER chez Sugarbox, blanc et texte sur la photo ; même cause CRTC 2 que D3 #0316 (HSYNC active sur C0=0)"
  },
  "0381": {
   "verdict": "doute",
