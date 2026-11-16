@@ -384,24 +384,24 @@
   "why": "même image (motifs, positions, texte)"
  },
  "00CB": {
-  "verdict": "ko",
-  "why": "chiffre affiché dans le décrochement différent de la photo (photo 25, Sugarbox 09 sur #00CB) — relevé par l'utilisateur le 2026-11-16"
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CC": {
-  "verdict": "ko",
-  "why": "chiffre affiché dans le décrochement différent de la photo (photo 25, Sugarbox 09 sur #00CB) — relevé par l'utilisateur le 2026-11-16"
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CD": {
-  "verdict": "ko",
-  "why": "chiffre affiché dans le décrochement différent de la photo (photo 25, Sugarbox 09 sur #00CB) — relevé par l'utilisateur le 2026-11-16"
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CE": {
-  "verdict": "ko",
-  "why": "chiffre affiché dans le décrochement différent de la photo (photo 25, Sugarbox 09 sur #00CB) — relevé par l'utilisateur le 2026-11-16"
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CF": {
-  "verdict": "ko",
-  "why": "chiffre affiché dans le décrochement différent de la photo (photo 25, Sugarbox 09 sur #00CB) — relevé par l'utilisateur le 2026-11-16"
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "0192": {
   "verdict": "ok",
