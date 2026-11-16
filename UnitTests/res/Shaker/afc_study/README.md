@@ -66,9 +66,13 @@ verticale, probablement : le modèle ne la représente pas, et les profils D3 y 
   réelle de l'impulsion (R3 réécrit pendant la HSYNC) n'est pas vérifiée, et ces écrans ne sont pas dans
   les références sûres.
 - #00C2 (deux impulsions en plus) : photo +11 px, modèle trop à droite (voir `TestMonitor.cpp`).
-- Autres écrans du module D sondés dans l'émulateur, pas encore dans l'ajustement : D1 #0310/#0311
-  (2 C-HSYNC de 34 px à 771 et 851 sur toute la trame), D4 #037F/#0380 (8 C-HSYNC de 64 px par ligne, tous
-  les 128 px, 64 lignes), D7 (C-HSYNC principale une ligne sur deux à 771 et 835).
+- D4 #037F/#0380 (8 C-HSYNC de 64 px par ligne, tous les 128 px, 64 lignes ; sondé dans l'émulateur) :
+  photo = la bande part à droite d'environ +7 px (±3, lecture grossière du bord des blocs noirs, déformation
+  de la photo non corrigée) et se pose en une quinzaine de lignes ; modèle = +4,4 px en une quinzaine de
+  lignes. Même sens, même durée ; pas dans l'ajustement faute d'une mesure propre.
+- Sondés mais non exploités : D1 #0310/#0311 (2 C-HSYNC de 34 px à 771 et 851 ; l'émulateur les met sur
+  toute la trame, la photo A montre une image inclinée : l'état photographié n'est pas identifié), D7
+  (C-HSYNC principale une ligne sur deux à 771 et 835).
 
 ## Défauts connus
 
