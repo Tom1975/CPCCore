@@ -167,6 +167,7 @@ public:
    unsigned char vertical_sync_width_;
    unsigned char horizontal_sync_width_;   
    unsigned char vertical_adjust_counter_;
+   bool interlace_add_line_;    // CRTC 2 : the additional line in progress is the interlace line (after the R5 lines)
 
    unsigned short bu_;
 
@@ -211,6 +212,7 @@ public:
    // at the start of the character (17.5.2)
    bool R1BorderNow() const { return (type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845) && hcc_ == registers_list_[1]; }
    void ClockDispEnHalvesCrtc02();
+   bool LastAdditionalLine2() const;
    void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
    // DISPEN for the first (half = 0) or the second (half = 1) half of the current character
    bool DispEn(int half = 0) const;

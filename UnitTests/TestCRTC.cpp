@@ -5148,6 +5148,64 @@ TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
    }
 }
 
+// 11.3.1 : CRTC 2, R5 written with the value of C5 during the additional lines : C5 overflows (counts up to 31, back to 0)
+// before it meets R5. SHAKER C ADD LINE R5 ON LAST LINE #02C9 ("#0080 expected" on CRTC 2) : R5 = 1, R5 = 0 written
+// on the first additional line ; R5 = 3, R5 = 1 written on the second one. Written on C0 = 2, 30 and 62.
+TEST(Compendium_11, Crtc2R5WrittenWithC5Overflows)
+{
+   const struct { unsigned char r5; int line; unsigned char r5_new; int lines_left; } cases[] = {
+      { 1, 0, 0, 32 },   // C5 = 0 .. 31 : 32 lines from the first additional line
+      { 3, 1, 1, 32 },   // C5 = 1 .. 31, 0 : 32 lines from the second one
+      { 2, 0, 1, 1 } };  // R5 = C5 + 1 : this line is the last one
+   for (const auto& c : cases)
+   {
+      for (int c0 : { 2, 30, 62 })
+      {
+         SCOPED_TRACE(testing::Message() << "R5 = " << int(c.r5) << ", " << int(c.r5_new) << " written on the additional line "
+                      << c.line << ", C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, CRTC::MC6845);
+         WriteRegister(crtc, 5, c.r5);
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         for (int l = 0; l <= c.line; ++l) NextLine(crtc);
+         ASSERT_TRUE(crtc.adjust_);
+         AdvanceUntilHccEquals(crtc, (unsigned char)c0);
+         WriteRegister(crtc, 5, c.r5_new);
+         int lines = 1;
+         while (NextLine(crtc) != Line(0, 0) && lines < 100) ++lines;
+         EXPECT_EQ(c.lines_left, lines);
+      }
+   }
+}
+
+// 11.9, 19.6.3 : CRTC 2, the interlace line (after the R5 lines, on the frames where ParitéR6 asks for it) ends the
+// frame whatever R5 : SHAKER C ADD LINE R8 #02CB, R5 = 1, R8 = 3, R5 = 0 written on the interlace line ("#0004 exp").
+// R8 = 0 written on it : it is no longer the interlace line, C4 counts on.
+TEST(Compendium_11, Crtc2InterlaceLineEndsTheFrameWhateverR5)
+{
+   for (bool r8_off : { false, true })
+   {
+      SCOPED_TRACE(r8_off ? "R8 = 0 written on the interlace line" : "R5 = 0 written on the interlace line");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      WriteRegister(crtc, 5, 1);
+      WriteRegister(crtc, 8, 3);
+      bool found = false;
+      for (int frame = 0; frame < 4 && !found; ++frame)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         NextLine(crtc);
+         NextLine(crtc);
+         found = crtc.interlace_add_line_;
+      }
+      ASSERT_TRUE(found);
+      AdvanceUntilHccEquals(crtc, 10);
+      if (r8_off) WriteRegister(crtc, 8, 0); else WriteRegister(crtc, 5, 0);
+      const Line next = NextLine(crtc);
+      if (r8_off) EXPECT_NE(Line(0, 0), next); else EXPECT_EQ(Line(0, 0), next);
+   }
+}
+
 // 11.2.3, 17.4.3 : CRTC 1, 2, R4 = 10, R5 = 24, R9 = 7, R9 = 3 written on the additional line C9 = 1 (SHAKER
 // R5 STORIES #01F6). During the additional lines C9 == R9 on C0 = R1 still loads VMA' with VMA : the pointer
 // goes on (+ R1 on each C4). The last additional line is the last line of the frame : VMA' takes R12/R13 there

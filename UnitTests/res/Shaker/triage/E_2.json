@@ -12,8 +12,8 @@
   "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
  },
  "03FD": {
-  "verdict": "ko",
-  "why": "autocontrôle, dernier test : #FFFF (exp #000C) et #000C (exp #0080)"
+  "verdict": "ok",
+  "why": "2026-11-17 : #000C et #0080 comme attendu (même correctif CRTC 2 que C #02C9)"
  },
  "040B": {
   "verdict": "doute",

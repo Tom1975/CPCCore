@@ -59,8 +59,7 @@ void CRTC::ClockTick2 ()
    if (prev == registers_list_[1] && !r1_load_at_start_)
    {
       // Same source selection as the strobe of the start of the character (DL, or the last additional line)
-      const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
-      if (last_line_ || (adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == adjust_lines))
+      if (last_line_ || LastAdditionalLine2())
          bu_ |= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
       else if (vlc_ == registers_list_[9])
          bu_ |= ma_;
@@ -103,8 +102,8 @@ void CRTC::ClockTick2 ()
       }
 
       const bool c9_eq_r9 = C9EqualsR9();
-      // Additional interlace line when ParitéR6 is odd, counted as one more R5 line (19.6.3)
-      const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
+      // Additional interlace line when ParitéR6 is odd : one more line after the R5 lines (19.6.3)
+      const bool interlace_pending = InterlaceOn() && parity_r6_;
 
       // FE : the line that ends follows a frame end that produced no additional line. The additional line
       // condition (interlace && ParitéR6) is decoded during it : met there (IVM switched on during the first
@@ -119,28 +118,45 @@ void CRTC::ClockTick2 ()
       }
       else if (adjust_)
       {
-         // The interlace line (the one after the R5 lines) is no longer one when the interlace is switched
-         // off during it : the additional management ends, C9 and C4 count as usual and C4 == R4 can make a
-         // last line again (11.9)
-         if (vertical_adjust_counter_ == registers_list_[5] && !InterlaceOn())
+         if (interlace_add_line_)
          {
-            adjust_ = false;
+            // The interlace line ends the frame whatever R5 (SHAKER C ADD LINE R8 #02CB : R5 = 0 written on it).
+            // It is no longer one when the interlace is switched off during it : the additional management ends,
+            // C9 and C4 count as usual and C4 == R4 can make a last line again (11.9)
+            interlace_add_line_ = false;
+            if (InterlaceOn())
+               new_frame = true;
+            else
+               adjust_ = false;
          }
          else
          {
-            // C5 counts the additional lines (11.2.5)
+            // C5 counts the additional lines ; the C5 + 1 == R5 comparator ends them (11.2.5), so a R5 written
+            // below C5 + 1 makes C5 overflow (11.3.1, SHAKER C ADD LINE R5 ON LAST LINE #02C9, "#0080 expected").
+            // The interlace line follows the R5 lines (SHAKER #02CB : R5 3 -> 1 on the 2nd additional line with
+            // R8 = 3, "#0084 expected" : the overflow, then the interlace line)
             vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
-            new_frame = (vertical_adjust_counter_ == adjust_lines);
-            frame_end_no_extra_ = new_frame && (adjust_lines == registers_list_[5]);
+            if (vertical_adjust_counter_ == registers_list_[5])
+            {
+               if (interlace_pending)
+                  interlace_add_line_ = true;
+               else
+               {
+                  new_frame = true;
+                  frame_end_no_extra_ = true;
+               }
+            }
          }
       }
       else if (last_line_)
       {
-         if (adjust_lines != 0)
+         if (registers_list_[5] != 0 || interlace_pending)
          {
-            // The additional lines are displayed before C4 and C9 return to 0
+            // The additional lines are displayed before C4 and C9 return to 0 ; with R5 = 0 the interlace line
+            // comes at once
             adjust_ = true;
             vertical_adjust_counter_ = 0;
+            interlace_add_line_ = (registers_list_[5] == 0);
          }
          else
          {
@@ -174,6 +190,7 @@ void CRTC::ClockTick2 ()
          c9_ivm_ = 0;
          vcc_ = 0;
          adjust_ = false;
+         interlace_add_line_ = false;
 
          // Next frame : ParitéFrame = ParitéR6 (19.5.4)
          even_field_ = !parity_r6_;
@@ -290,8 +307,7 @@ void CRTC::ClockTick2 ()
    // and the next frame does not start on the offset : SHAKER R5 STORIES #01F6 (R9 7 -> 3 on the additional
    // line 1, R12 written after C0 = R1 of the line C4 = R4), VERTICAL SCROLL #00CB (R5 = R9 + 1 : same photo
    // as the CRTC 1, which takes R12/R13 on the frame start)
-   const unsigned char frame_adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
-   const bool adjust_last_line = adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == frame_adjust_lines;
+   const bool adjust_last_line = LastAdditionalLine2();
    r1_load_at_start_ = (hcc_ == registers_list_[1]);
    if (hcc_ == registers_list_[1] && !c0_reset)
    {
@@ -352,4 +368,13 @@ void CRTC::ClockTick2 ()
    {
       ff4_ = true;
    }
+}
+
+// CRTC 2 : the line in progress is the last additional line of the frame : the interlace line, or the last R5 line
+// (C5 + 1 == R5) when no interlace line follows it
+bool CRTC::LastAdditionalLine2() const
+{
+   if (!adjust_) return false;
+   if (interlace_add_line_) return true;
+   return ((vertical_adjust_counter_ + 1) & 0x1F) == registers_list_[5] && !(InterlaceOn() && parity_r6_);
 }

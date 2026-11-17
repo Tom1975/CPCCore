@@ -187,6 +187,7 @@ void CRTC::Reset()
    hsync_on_line_start_ = false;
    line_start_pending_ = false;
    r1_load_at_start_ = false;
+   interlace_add_line_ = false;
    c3h_status_ = 0;
    frame_started_ = true;
    last_line_eq_ = false;
