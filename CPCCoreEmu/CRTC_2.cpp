@@ -50,6 +50,22 @@ void CRTC::ClockTick2 ()
    // C4==R7 comparator output during the character that ends (see VSYNC below)
    const bool vsync_eq_in_previous_char = (vcc_ == registers_list_[7]);
 
+   // VMA' : C0 == R1 met only after the start of the character, by a R1 written during it (R1 = C0) : only the OR
+   // strobe of the load is done, at the end of the character (17.4.3 : VMA' is loaded by an AND then an OR).
+   // PROVISIONAL (RealCpc/README.md, P5) : SHAKER R1 STORIES #009A (R1 = 63 written on C0 = 63 on each line, then
+   // R1 = 64) shows identical character rows of an address far from the text : VMA' |= VMA reaches a fixed value.
+   // A full load gives different rows, the AND alone repeats the title row. R1 moved away during C0 == R1 keeps
+   // the load of the start of the character (17.4.3, p186)
+   if (prev == registers_list_[1] && !r1_load_at_start_)
+   {
+      // Same source selection as the strobe of the start of the character (DL, or the last additional line)
+      const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
+      if (last_line_ || (adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == adjust_lines))
+         bu_ |= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+      else if (vlc_ == registers_list_[9])
+         bu_ |= ma_;
+   }
+
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
    if (c0_reset)
@@ -166,13 +182,13 @@ void CRTC::ClockTick2 ()
       // With R1=0, VMA' is loaded (with the DL state of the line that ends) before VMA=VMA' (17.4.3).
       // VMA' takes R12/R13 by two strobes of the C0=R1 character, both gated by DL : an AND (clears the bits
       // at 0) then an OR (sets the bits at 1). On C0=0 the DL state changes between them : on the first line
-      // of a frame only the AND is done, on the VMA' loaded with VMA on C0=0 of the last line (AND bug)
-      if (registers_list_[1] == 0)
+      // of a frame only the AND is done, on the VMA' loaded with VMA on C0=0 of the last line (AND bug).
+      // Without DL, VMA' takes "the VMA of the position C0=0" (17.4.3) : the VMA of the character 0, that is
+      // VMA' itself, not the count of the previous line (SHAKER R1 STORIES #0098 : R1 = 0 at the start of the
+      // lines C9 = R9 does not move the character rows on the photo, R1 = 40 written later on the line loads VMA')
+      if (registers_list_[1] == 0 && last_line_)
       {
-         if (last_line_)
-            bu_ &= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
-         else if (vlc_ == registers_list_[9])
-            bu_ = ma_;
+         bu_ &= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
       }
 
       // VMA is loaded with VMA', on the first line of a frame too (17.4.3)
@@ -276,6 +292,7 @@ void CRTC::ClockTick2 ()
    // as the CRTC 1, which takes R12/R13 on the frame start)
    const unsigned char frame_adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
    const bool adjust_last_line = adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == frame_adjust_lines;
+   r1_load_at_start_ = (hcc_ == registers_list_[1]);
    if (hcc_ == registers_list_[1] && !c0_reset)
    {
       if (last_line_ || adjust_last_line)

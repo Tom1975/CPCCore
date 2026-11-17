@@ -332,34 +332,16 @@
   "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0098": {
-  "verdict": "ko",
-  "why": "R1=0 STORY 3 : Sugarbox répète le texte « CRTC 2 R1 STORIES… » en bas à droite et « 1,0/OUT R1,40) » en bas à gauche, et n'affiche pas la rangée de damiers noirs sous les bandes ; la photo et les 5 émulateurs n'ont pas ce texte et ont le damier",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.8,
-    "w": 1,
-    "h": 0.2,
-    "note": "texte en trop"
-   },
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.28,
-    "w": 1,
-    "h": 0.1,
-    "note": "damier absent"
-   }
-  ]
+  "verdict": "ok",
+  "why": "2026-11-17, VMA' du CRTC 2 : R1=0 au début d'une ligne C9=R9 (hors DL) ne charge plus le compteur de la ligne précédente : damier sous les bandes, plus de texte en bas, comme la photo"
  },
  "0099": {
   "verdict": "doute",
   "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : écran en bordure et trait au milieu comme la photo ; ligne de titre décalée (texte à partir du milieu, « OUT) » à gauche), illisible sur la photo : VMA' du CRTC 2 avec R1=0 (17.4.3) à vérifier"
  },
  "009A": {
-  "verdict": "ko",
-  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : colonne blanche à gauche comme la photo, mais fond noir chez Sugarbox et bruit bordeaux sur la photo : R1=63 écrit sur C0=63 recharge VMA' sur le vrai CRTC 2, pas chez Sugarbox (VMA' échantillonné en début de caractère, 17.4.3, p186)"
+  "verdict": "ok",
+  "why": "2026-11-17, VMA' du CRTC 2 : R1=63 écrit sur C0=63 : impulsion OU seule en fin de caractère (provisoire, README P5) ; rangées identiques au motif dense de la photo, colonne blanche à gauche"
  },
  "009B": {
   "verdict": "ok",

@@ -4195,6 +4195,57 @@ TEST(Compendium_17, R1WrittenWithTheCurrentC0)
    }
 }
 
+// 17.4.3, SHAKER R1 STORIES #009A : R1 written with the current C0 on the last line of a character, then set back
+// above R0. CRTC 0 and 1 sample C0 == R1 at the end of the character : full load, VMA' = VMA. CRTC 2 has already done
+// the strobe of the start of the character : only the OR strobe of the end is done, VMA' |= VMA. PROVISIONAL for
+// CRTC 2 (RealCpc/README.md, P5). R12/R13 = &0101, R1 = 1 written on C0 = 1 : the next row starts on &0102 (full)
+// or &0103 (OR).
+TEST(Compendium_17, R1WrittenWithTheCurrentC0LoadsVmaPrime)
+{
+   const struct { CRTC::TypeCRTC type; unsigned short expected; } cases[] = {
+      { CRTC::HD6845S, 0x0102 }, { CRTC::UM6845R, 0x0102 }, { CRTC::MC6845, 0x0103 } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, c.type);
+      WriteRegister(crtc, 12, 0x01);
+      WriteRegister(crtc, 13, 0x01);
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      ASSERT_EQ(0x0101, crtc.ma_);
+      WriteRegister(crtc, 1, 70);
+      ASSERT_TRUE(ReachLine(crtc, 0, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 1, 1);
+      Advance(crtc);
+      WriteRegister(crtc, 1, 70);
+      ASSERT_TRUE(ReachLine(crtc, 1, 0));
+      EXPECT_EQ(c.expected, crtc.ma_) << std::hex << crtc.ma_;
+   }
+}
+
+// 17.4.3, SHAKER R1 STORIES #0098 : CRTC 2, R1 = 0 at the start of the line C9 = R9 (not the last line of the frame),
+// then R1 = 40 written on C0 = 10. VMA' takes "the VMA of the position C0 = 0", the start of the row : the line
+// keeps its address, and the next row starts 40 characters further, as on the photo.
+TEST(Compendium_17, Crtc2R1ZeroOnARowEndKeepsTheRows)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::MC6845);
+   ASSERT_TRUE(ReachLine(crtc, 5, 0));
+   const unsigned short row = crtc.ma_;
+   ASSERT_TRUE(ReachLine(crtc, 5, 6));
+   AdvanceUntilHccEquals(crtc, 60);
+   WriteRegister(crtc, 1, 0);
+   AdvanceUntilHccEquals(crtc, 0);
+   ASSERT_EQ(Line(5, 7), Line(crtc.vcc_, crtc.vlc_));
+   EXPECT_EQ(row, crtc.ma_);
+   AdvanceUntilHccEquals(crtc, 10);
+   WriteRegister(crtc, 1, 40);
+   ASSERT_TRUE(ReachLine(crtc, 6, 0));
+   EXPECT_EQ(row + 40, crtc.ma_);
+}
+
 // 18.1 : the R6 border has priority over R1 : on the row C4 = R6, the border is on before C0 = R1.
 TEST(Compendium_18, R6BorderBeforeC0EqualsR1)
 {

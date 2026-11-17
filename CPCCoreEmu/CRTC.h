@@ -103,6 +103,7 @@ public:
    // CRTC 2 : C0=0 met during a HSYNC, waiting for its end to lift the border ; C4 returned to 0 by a frame
    // start, not by an overflow
    bool line_start_pending_;
+   bool r1_load_at_start_;      // CRTC 2 : VMA' strobe of the start of the character done (C0 == R1 then)
    bool frame_started_;
    bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
    bool dlp_;                   // "Dernière Ligne Précédente"
