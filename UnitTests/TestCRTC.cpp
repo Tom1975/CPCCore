@@ -5383,3 +5383,88 @@ TEST(Compendium_13, R0UpdateChronograms)
       }
    }
 }
+
+// CRTC 1 : the VSYNC line counter C3h is clocked by the end of the HSYNC (PROVISIONAL, RealCpc README P8).
+// SHAKER LOST VSYNC ON R0=0 (#008D) : R0 = 0 (or 1) written on C0 = 0 of the line C4 = 29, C9 = 7 (R7 = 30, R2 = 46),
+// then R0 = 45 and R2 = 28 18 us later. No HSYNC while R0 < R2 : C3h stays at 0 while C9 and C4 count, and the VSYNC
+// then lasts 16 lines of 46 us.
+TEST(Compendium_16, Crtc1VsyncCounterFrozenWithoutHsync)
+{
+   for (unsigned char r0 : { 0, 1 })
+   {
+      SCOPED_TRACE(testing::Message() << "R0 = " << int(r0));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 29, 7));
+      WriteRegister(crtc, 0, r0);
+      int vsync_us = 0;
+      for (int us = 0; us < 2000; ++us)
+      {
+         if (us == 18)
+         {
+            EXPECT_EQ(0, crtc.scanline_vbl_);
+            WriteRegister(crtc, 0, 45);
+            WriteRegister(crtc, 2, 28);
+         }
+         Advance(crtc);
+         if (crtc.ff4_) ++vsync_us;
+         else if (vsync_us > 0) break;
+      }
+      // The VSYNC starts 1 us after the write (C4 = 30) : 17 us without a count, then 16 lines (R0 = 1 : R0 = 45 is
+      // written on C0 = 1, the first line is 45 us long)
+      EXPECT_EQ(17 + (r0 == 0 ? 46 : 45) + 15 * 46, vsync_us);
+   }
+}
+
+// CRTC 1 : R3l = 0 gives no HSYNC on the pin (14.5.2), but the HSYNC of length 0 on C0 = R2 still clocks C3h : the
+// VSYNC keeps its 16 lines (SHAKER INTER TEST IM1 #01F2, R3 = 0 with a photo, PROVISIONAL RealCpc README P8)
+TEST(Compendium_16, Crtc1VsyncCountsTheHsyncOfLengthZero)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::UM6845R);
+   WriteRegister(crtc, 3, 0x00);
+   ASSERT_TRUE(ReachLine(crtc, 10, 0));
+   int len = 0;
+   bool prev = crtc.ff4_, seen = false;
+   for (int us = 0; us < 2 * 19968 && !seen; ++us)
+   {
+      Advance(crtc);
+      EXPECT_FALSE(sig.h_sync_);
+      if (crtc.ff4_) ++len;
+      else if (prev) seen = true;
+      prev = crtc.ff4_;
+   }
+   EXPECT_TRUE(seen);
+   EXPECT_EQ(16 * 64, len);
+}
+
+// CRTC 1 : the infinite HSYNC (R0 = 0, R2 = 0, R3l = 1, 15.3.2) ends invisibly every 16 us (15.3.4) and C3h counts
+// these ends : the VSYNC lasts about 256 us and comes back on every frame of 312 us (SHAKER R52INC IN HSYNC #01F4, PROVISIONAL
+// RealCpc README P8)
+TEST(Compendium_16, Crtc1VsyncCountsTheInvisibleHsyncEnds)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::UM6845R);
+   WriteRegister(crtc, 2, 0);
+   WriteRegister(crtc, 3, 1);
+   ASSERT_TRUE(ReachLine(crtc, 10, 3));
+   WriteRegister(crtc, 0, 0);
+   std::vector<int> starts, lengths;
+   int len = 0;
+   bool prev = crtc.ff4_;
+   for (int us = 0; us < 1500; ++us)
+   {
+      Advance(crtc);
+      if (crtc.ff4_ && !prev) starts.push_back(us);
+      if (crtc.ff4_) ++len;
+      else if (prev) { lengths.push_back(len); len = 0; }
+      prev = crtc.ff4_;
+   }
+   ASSERT_GE(starts.size(), 3u);
+   EXPECT_EQ(312, starts[1] - starts[0]);
+   EXPECT_EQ(312, starts[2] - starts[1]);
+   ASSERT_GE(lengths.size(), 2u);
+   // 16 ends of 16 us, the first one 1 to 16 us after the start, then the line start (1 us)
+   EXPECT_GT(lengths[1], 15 * 16);
+   EXPECT_LE(lengths[1], 16 * 16 + 1);
+}

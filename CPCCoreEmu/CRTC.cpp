@@ -182,6 +182,9 @@ void CRTC::Reset()
    vma_reload_clear_ = false;
    rfd_ = false;
    last_line_sampled_ = false;
+   hsync_prev_ = false;
+   hsync_restart_ = false;
+   vsync_end_pending_ = false;
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
@@ -294,6 +297,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
             {
                hsync_fall_ = true;
                hsync_rise_ = true;
+               hsync_restart_ = true;   // end strobe without a falling edge of hsync_
             }
          }
          else
@@ -312,6 +316,12 @@ void CRTC::ClockHSync(bool& started, bool& ended)
          hsync_fall_ = true;
          horinzontal_pulse_ = 0;
       }
+   }
+   else if (c0_is_r2 && horizontal_sync_width_ == 0 && type_crtc_ == UM6845R)
+   {
+      // CRTC 1, R3l = 0 : the HSYNC flip-flop is set by C0 = R2 and reset at once by C3l == R3l (0) : no HSYNC on
+      // the pin (14.5.2), but the end strobe of the HSYNC is there (C3h clock, ClockTick1)
+      hsync_restart_ = true;
    }
    else if (c0_is_r2 && horizontal_sync_width_ != 0)
    {

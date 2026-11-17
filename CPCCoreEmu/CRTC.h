@@ -95,6 +95,9 @@ public:
    bool vma_reload_;            // VMA is loaded from R12/R13 at the line start instead of VMA'
    bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
+   bool hsync_prev_;            // CRTC 1 : internal HSYNC at the end of the previous character (C3h clock edge)
+   bool hsync_restart_;         // CRTC 1 : HSYNC end strobe of this character without a fall of hsync_ (restart on C0 = R2 + R3l, 15.3.4 ; R3l = 0)
+   bool vsync_end_pending_;     // CRTC 1 : C3h reached R3h, the VSYNC ends on the next line start
    bool last_line_sampled_;     // CRTC 1 : last_line_ already sampled on C0==R0 of this line (13.7.1.2)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)
