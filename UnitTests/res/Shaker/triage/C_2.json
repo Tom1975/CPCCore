@@ -133,7 +133,7 @@
  },
  "02C9": {
   "verdict": "ko",
-  "why": "2 dernières lignes : Sugarbox #0B20 et #0B1C, photo et attendu #0080"
+  "why": "2 dernières lignes : Sugarbox #0B20 et #0B1C, photo et attendu #0080 ; revu 2026-11-17 (sonde) : R5 écrit à C0=2 de la ligne additionnelle C5=0 (1->0) ou C5=1 (3->1). Chez Sugarbox, R5 = C5 déclenche la branche « ligne interlace » (§11.9, adjust_ annulé sans nouvelle trame) puis C4 déborde ; le compendium (§11.3.1) annonce un débordement de C5, la photo une ligne de plus seulement. L'unité de la mesure SHAKER n'est pas des µs depuis l'écriture (#0004 pour une trame finie ~60 µs après) : à désassembler avant de modéliser"
  },
  "02CA": {
   "verdict": "doute",

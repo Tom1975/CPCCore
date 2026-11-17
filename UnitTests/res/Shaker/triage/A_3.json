@@ -427,7 +427,7 @@
  },
  "0096": {
   "verdict": "ko",
-  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,7 chez Sugarbox et 4,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,7 chez Sugarbox et 4,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo) ; revu 2026-11-17 : toujours KO. Photo CRTC 4 = 5,6,7 comme Sugarbox ; seul le vrai CRTC 3 montre une mise à jour de VMA' en moins. Les écritures de R1 (OUT (C),r8 sur &BD01, T-state 1, C0=4) sont les mêmes sur 3 et 4 : la règle A13 ne s'applique pas, pas de piste dans le compendium",
   "zones": [
    {
     "on": "sb",
@@ -441,7 +441,7 @@
  },
  "0097": {
   "verdict": "ko",
-  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,6,7 chez Sugarbox et 4,5,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 5,6,6,7 chez Sugarbox et 4,5,5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo) ; revu 2026-11-17 : toujours KO. Photo CRTC 4 = 5,6,7 comme Sugarbox ; seul le vrai CRTC 3 montre une mise à jour de VMA' en moins. Les écritures de R1 (OUT (C),r8 sur &BD01, T-state 1, C0=4) sont les mêmes sur 3 et 4 : la règle A13 ne s'applique pas, pas de piste dans le compendium",
   "zones": [
    {
     "on": "sb",
@@ -455,7 +455,7 @@
  },
  "0098": {
   "verdict": "ko",
-  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 6,7 chez Sugarbox et 5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo)",
+  "why": "R1 STORIES : les étiquettes affichées « (Ln)AT #C000+(n x80) » valent 6,7 chez Sugarbox et 5,6 sur la photo : chaque ligne montrée est la suivante en mémoire (une ligne de caractères d'avance sur le pointeur vidéo) ; revu 2026-11-17 : toujours KO. Photo CRTC 4 = 5,6,7 comme Sugarbox ; seul le vrai CRTC 3 montre une mise à jour de VMA' en moins. Les écritures de R1 (OUT (C),r8 sur &BD01, T-state 1, C0=4) sont les mêmes sur 3 et 4 : la règle A13 ne s'applique pas, pas de piste dans le compendium",
   "zones": [
    {
     "on": "sb",
