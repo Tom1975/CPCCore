@@ -604,11 +604,9 @@ unsigned char CRTC::ReadRegister()
       case 2: // Status 1 (R10) - 21.3.4.1
       {
          // Bits 3, 4 (HSYNC start / end) are latched by the tick ; the others decode the counters and registers.
-         // Bit 5 : 0 when the line counter of the status (c3h_status_ : 1 on the first VSYNC line .. 15, then 0) equals
-         // the 3 low bits of R3h. R3h = 1 .. 7 : 0 on the line R3h counted from 1 ; R3h = 0 or 8 : 1 on the 15 lines
-         // from the VSYNC, 0 elsewhere (21.3.4.1). PROVISIONAL (RealCpc/README.md, P6) : the 3 bits and the counter
-         // that runs past the VSYNC come from SHAKER D3 #03C8 (R3h = 8 : a 15 line column), #03C9 (R3h = 7 : one line),
-         // #03BC (1 on the first VSYNC line)
+         // Bit 5 : the inverted output of the C3h == R3h comparator (4 bits) that ends the VSYNC (CRTC_3_4.cpp) : 0 on
+         // the last VSYNC line (R3h = 1 .. 15). C3h runs past the VSYNC up to 0 : with R3h = 0 the bit is 1 on the
+         // first 15 VSYNC lines and 0 elsewhere (21.3.4.1). PROVISIONAL (RealCpc/README.md, P6)
          const unsigned char r0 = registers_list_[0];
          unsigned char status = (status1_ & 0x18) | 0x40;
          if (c3h_status_ != ((registers_list_[3] >> 4) & 0x0F)) status |= 0x20;
@@ -623,19 +621,21 @@ unsigned char CRTC::ReadRegister()
       {
          const bool c9_eq_r9 = (vlc_ == registers_list_[9]);
          const bool last_char_of_line = c9_eq_r9 && hcc_ == registers_list_[0];
-         // Bit 4 ("always 1", 21.3.4.2) : the last character of the additional lines. When the frame has additional
-         // lines (R5, or the interlace line of an even frame) it is 0 except on their last character (C0 = R0 of
-         // the last one) ; without them it stays 1. From the SHAKER code : STATUS FIESTA (SHAKE27D #9736) expects,
-         // with R4 = 37 and R5 = 8, a 0 on the microseconds 0 to #4DFE of the frame and a 1 on #4DFF ; the R5 search
-         // (#835A) counts the lines up to that 1. Photos : D3 #03D7 (R5 = 0 : 1), #03DD (R5 = 8 : 0), #03E1 (IVM)
-         const bool interlace_extra = InterlaceOn() && even_field_;
-         const bool additional_lines = registers_list_[5] != 0 || interlace_extra;
-         const bool last_additional_char = hcc_ == registers_list_[0]
-            && (interlace_line_ || (adjust_ && (vlc_ + 1) >= registers_list_[5] && !interlace_extra));
-         unsigned char status = (!additional_lines || last_additional_char) ? 0x10 : 0x00;
-         // Bit 0 : the last character of the last line (C4 = R4, C9 = R9, C0 = R0) ; not during the additional lines,
-         // where C9 is compared with R5 (STATUS FIESTA, SHAKE27D #9339 : R4 = 37, R5 = 8, 0 on #4BFF only, 1 on the
-         // 512 us of the additional lines)
+         // Bit 4 ("always 1", 21.3.4.2) : the output of a magnitude comparator "C5 next >= R5", the one that ends the
+         // additional lines (C9 >= R5, 11.2.6 ; magnitude comparators as C9 >= R9, 10.3.4). C5 is C9 counting the
+         // additional lines ; out of them its path gives 0. "Next" is the incrementer output : the count + 1 on the
+         // last character of a line (C0 = R0), when the counter is about to take it. Without R5 (0 >= 0) the bit
+         // stays 1 ; with R5 it is 0 except on the last character of the last additional line.
+         // PROVISIONAL (RealCpc/README.md, P7), from the SHAKER code : STATUS FIESTA (SHAKE27D #9736) expects, with
+         // R4 = 37 and R5 = 8, a 0 on the microseconds 0 to #4DFE of the frame and a 1 on #4DFF ; the R5 search
+         // (#835A) counts the lines up to that 1 ; photos D3 #03D7 (R5 = 0 : 1), #03DD (R5 = 8 : 0). The additional
+         // interlace line (19.6.4) is not known to take part : no term for it (D3 #03E1, IVM, in doubt)
+         const unsigned char c5_next = adjust_ ? ((vlc_ + ((hcc_ == registers_list_[0]) ? 1 : 0)) & 0x1F) : 0;
+         unsigned char status = (c5_next >= registers_list_[5]) ? 0x10 : 0x00;
+         // Bit 0 : the last character of the last line (C4 = R4, C9 = R9, C0 = R0). During the additional lines C9
+         // is compared with R5, not R9 (11.2.6), and the additional interlace line is not a last line (19.6.4) :
+         // STATUS FIESTA (SHAKE27D #9339 : R4 = 37, R5 = 8) expects 0 on #4BFF only, 1 on the 512 us of the
+         // additional lines
          if (!(last_char_of_line && vcc_ == registers_list_[4] && !adjust_ && !interlace_line_)) status |= 0x01;
          if (!(last_char_of_line && vcc_ == ((registers_list_[6] - 1) & 0x7F))) status |= 0x02;
          if (!(last_char_of_line && vcc_ == ((registers_list_[7] - 1) & 0x7F))) status |= 0x04;

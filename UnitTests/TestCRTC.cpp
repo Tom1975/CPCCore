@@ -2371,6 +2371,37 @@ TEST(Compendium_21, AsicStatus2Bits0And4OverAFrame)
    }
 }
 
+// Status 2 bit 4 is the output of the magnitude comparator "C5 next >= R5" that ends the additional lines
+// (PROVISIONAL, RealCpc README P7) : on the additional line C5 = 3 (R4 = 37, R5 = 8), R5 written to 3 sets it at once
+// on every character ; R5 = 4 sets it on the last character of the line only (C5 next = 4)
+TEST(Compendium_21, AsicStatus2Bit4FollowsTheAdditionalLineComparator)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (unsigned char r5 : { 3, 4 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", R5 = " << int(r5) << " on C5 = 3");
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 4, 37);
+         WriteRegister(crtc, 5, 8);
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         AdvanceMicroseconds(crtc, 38 * 8 * 64 + 3 * 64);
+         ASSERT_TRUE(crtc.adjust_);
+         ASSERT_EQ(3, crtc.vlc_);
+         ASSERT_EQ(0, crtc.hcc_);
+         WriteRegister(crtc, 5, r5);
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            EXPECT_EQ(r5 == 3 || c0 == 63, (ReadStatus(crtc, 11) & 0x10) != 0);
+         }
+      }
+   }
+}
+
 // 21.3.4.2 : STATUS 2 on every C0 of the lines C4 = R4, R6 - 1, R7 - 1 (C9 = R9), and C9 = 0, 3 :
 // bits 0, 1, 2 = 0 on C0 = R0 of their line ; bit 5 = 0 while C9 = R9 ; bit 7 = 1 on (C9 = R9, C0 = R0) and on
 // (C9 = 0, C0 < R0).

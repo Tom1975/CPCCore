@@ -104,7 +104,7 @@ public:
    // start, not by an overflow
    bool line_start_pending_;
    bool r1_load_at_start_;      // CRTC 2 : VMA' strobe of the start of the character done (C0 == R1 then)
-   unsigned char c3h_status_;   // CRTC 3/4 : line counter of the status 1 bit 5, 1 on the first VSYNC line .. 15, then 0 (21.3.4.1)
+   unsigned char c3h_status_;   // CRTC 3/4 : C3h, the VSYNC line counter (1 on the first VSYNC line, runs up to 0), compared with R3h (16.3, 21.3.4.1)
    bool frame_started_;
    bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
    bool dlp_;                   // "Dernière Ligne Précédente"
