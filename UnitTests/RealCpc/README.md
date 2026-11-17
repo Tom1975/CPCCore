@@ -97,6 +97,7 @@ Il faudrait un autre CRTC. À garder si l'occasion se présente.
 | 0 | `#0006` (module A) | Référence acceptée avec un doute |
 | 0 | `#00C2` (module A) | Moniteur : +37 contre +11 pixels. Cause : le comparateur du LA7800, voir la partie 4 |
 | 2 | `#0316`, `#0321`, `#032C`, `#0337`, `#037F`, `#0380` (module D) contre `#000B` à `#001E` (module A, A3 RVMB) | BORDER à la place du texte dans Sugarbox (règle du §15.5 : pas de levée du BORDER sur C0=0 pendant une HSYNC). Les photos CRTC 2 se contredisent : D3 lève le BORDER sous une HSYNC finie sur C0=1, A3 ne le lève pas (marge jaune). Aucun modèle essayé n'explique les deux. Mesure : sur un CRTC 2, RVMB et D3 avec R1 avant ou pendant la HSYNC. Test `Compendium_15.DISABLED_Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay` |
+| 2 | `#02BF` (module C, touche `7`) | LAST LINE COND. Photo prise avec une autre version de SHAKER (3 lignes de texte différentes). Elle donne 01 sur toutes les positions de R9=1 écrit sur C4=1, C9=1 (C0io #2C à #3F), HSYNC comprise (R2=#2E, R3=#0A dans `SHAKE27C #840E`) ; Sugarbox suit le §15.6 (« une mise à jour de R4 ou R9 est ignorée si elle a lieu durant une HSYNC ») et rend FF sous la HSYNC. Mesure : sur un CRTC 2 avec SHAKER 2.7, refaire la photo ; si 01 partout, le §15.6 est faux pour R9 |
 | 3, 4 | `#03BE`, `#03C0`, `#03C8` et suivants (module D) | Registres et statuts. Le schéma du 40010 ne couvre pas ces ASIC |
 
 `RESET` qui force la bordure à `#10` (`U409`) n'est pas observable sur un 6128 standard : le firmware la réécrit aussitôt.

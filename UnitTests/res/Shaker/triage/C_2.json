@@ -68,8 +68,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "02BF": {
-  "verdict": "ko",
-  "why": "valeurs différentes : photo 01 partout sur les lignes de résultat, Sugarbox FF et 00 ; suites Y/N décalées ; 2 lignes R9=7 R4=38 en plus chez Sugarbox"
+  "verdict": "doute",
+  "why": "photo d'une autre version de SHAKER (3 lignes de texte différentes : « LASTLINE ACTIVATION ON R9x2 » au lieu de « R9=7 R4=38 C9=C4=0 … ») ; ses 01 sous la HSYNC contredisent le §15.6 (R4/R9 écrits pendant la HSYNC ignorés pour la dernière ligne), que Sugarbox suit (FF sur C0io #2D à #38, HSYNC R2=#2E R3=#0A, SHAKE27C #87F2). RealCpc README partie 3"
  },
  "02C0": {
   "verdict": "ok",
