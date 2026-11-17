@@ -406,8 +406,8 @@
   "why": "rectangle aux mêmes étiquettes que la photo ; effet moniteur reproduit (coin arrondi, bord biseauté)"
  },
  "00C3": {
-  "verdict": "ko",
-  "why": "Sugarbox affiche une ligne de test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 … » et son résultat), comme sur les autres CRTC"
+  "verdict": "doute",
+  "why": "2026-11-17, SHAKE27A désassemblé : la page actuelle a un test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 », chaîne en #9E98), affiché aussi par Amspirit-lite et Syntax Error : la photo vient d'une version plus ancienne de SHAKER. Les valeurs C0vsio (CRTC 1 : 3F=01 contre 00) ne sont pas comparables sans la même version ; à refaire sur un vrai CPC avec SHAKER 2.7"
  },
  "0092": {
   "verdict": "ok",

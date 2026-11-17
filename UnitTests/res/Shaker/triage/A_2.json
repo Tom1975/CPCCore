@@ -304,8 +304,8 @@
   "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
  },
  "00C3": {
-  "verdict": "ko",
-  "why": "Sugarbox affiche une ligne de test de plus (« UPD R9=0, UPD R4=0 … » et son résultat) et donne 3F=01 à la ligne « UPD R4=1 … (01=C4 Ovf) », la photo 3F=00"
+  "verdict": "doute",
+  "why": "2026-11-17, SHAKE27A désassemblé : la page actuelle a un test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 », chaîne en #9E98), affiché aussi par Amspirit-lite et Syntax Error : la photo vient d'une version plus ancienne de SHAKER. Les valeurs C0vsio (CRTC 1 : 3F=01 contre 00) ne sont pas comparables sans la même version ; à refaire sur un vrai CPC avec SHAKER 2.7"
  },
  "0092": {
   "verdict": "ok",
