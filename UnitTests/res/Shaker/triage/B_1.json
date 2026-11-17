@@ -396,24 +396,24 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01CF": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, bande noire), photo et 4 émulateurs stables"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D0": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D1": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D2": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D3": {
-  "verdict": "ko",
-  "why": "bande noire qui coupe les barres et 3e ligne de texte absente ; photo et 4 émulateurs stables"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01F0": {
   "verdict": "ok",
