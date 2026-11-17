@@ -440,20 +440,20 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03BD": {
-  "verdict": "ko",
-  "why": "2026-11-17 : la recherche trouve R3=#9D (photo #8D) ; l'ancienne référence (#0D) était fausse elle aussi, acceptée à tort. Méthode de SHAKER pour R3h inconnue (à désassembler)"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : la recherche de R3h (#82B0) trouve #9D comme la photo (relue au zoom : #9D, pas #8D)"
  },
  "03BE": {
-  "verdict": "ko",
-  "why": "2026-11-17 : R3=#7C trouvé comme la photo ; R4..R7 restent à #00 (photo R4=#25 R5=#08 R6=#19 R7=#1E) : Status 2 bit 0 / bit 4 encore faux (voir #03C0)"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E comme la photo : Status 2 bit 4 = 1 sur le dernier caractère des lignes additionnelles, compté par #835A"
  },
  "03BF": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "03C0": {
-  "verdict": "ko",
-  "why": "2026-11-17 : Status 1 bit 5 OK (WELL DONE) comme la photo ; restent WRONG : Status 2 bit 0 (#4DFF) et Status 2 bit 4 (#0000). Bit 4 : la photo #03DD le montre à 0 sur toute la trame avec R4=37/R5=8, mais le mettre à 0 dès que R5>0 fait boucler la recherche #03BE : il manque un élément"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : FIESTA page 2 : tous les tests OK comme la photo (Status 1 bit 5, Status 2 bit 0 hors lignes additionnelles, Status 2 bit 4)"
  },
  "03C1": {
   "verdict": "ok",
@@ -565,11 +565,11 @@
  },
  "03DC": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 0 avec R4=37/R5=8 : le seul point à 0 est sur #4BFF (fin de la dernière ligne normale), comme l'attend la FIESTA"
  },
  "03DD": {
-  "verdict": "ko",
-  "why": "STATUS 2 BIT 4 variante R4=37 : photo rouge, Sugarbox jaune"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 4 avec R4=37/R5=8 : 0 partout sauf le dernier caractère de la trame, rouge comme la photo"
  },
  "03DE": {
   "verdict": "ok",
@@ -584,8 +584,8 @@
   "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E1": {
-  "verdict": "ko",
-  "why": "STATUS 2 BIT 4 en IVM : photo tramée, Sugarbox jaune uni"
+  "verdict": "doute",
+  "why": "2026-11-17 : Status 2 bit 4 en IVM : Sugarbox alterne d'une trame à l'autre (ligne interlace une trame sur deux), carte en bandes ; la photo est tramée et plutôt jaune. Règle IVM non confirmée"
  },
  "03E2": {
   "verdict": "ok",

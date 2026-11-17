@@ -2331,6 +2331,46 @@ TEST(Compendium_21, AsicStatus1Bit5AroundTheVsync)
    }
 }
 
+// 21.3.4.2 : STATUS 2 bits 0 and 4 over a whole frame, R4 = 37 and R5 = 8 (312 lines), as SHAKER STATUS FIESTA does
+// (SHAKE27D #9339, #9736 : one read per microsecond from the frame start). Bit 0 = 0 on the last character of the last
+// line only (#4BFF), not on the last additional line ; bit 4 = 0 everywhere but the last character of the additional
+// lines (#4DFF). With R5 = 0, bit 4 stays 1 and bit 0 is 0 on #4DFF.
+TEST(Compendium_21, AsicStatus2Bits0And4OverAFrame)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (bool adjust : { true, false })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << (adjust ? ", R4 = 37, R5 = 8" : ", R4 = 38, R5 = 0"));
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         if (adjust)
+         {
+            WriteRegister(crtc, 4, 37);
+            WriteRegister(crtc, 5, 8);
+         }
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         std::vector<int> bit0_low, bit4_high;
+         for (int us = 0; us < 19968; ++us)
+         {
+            if (us > 0) Advance(crtc);
+            const unsigned char s = ReadStatus(crtc, 11);
+            if ((s & 0x01) == 0) bit0_low.push_back(us);
+            if ((s & 0x10) != 0) bit4_high.push_back(us);
+         }
+         EXPECT_EQ(std::vector<int>{ adjust ? 0x4BFF : 0x4DFF }, bit0_low);
+         if (adjust)
+            EXPECT_EQ(std::vector<int>{ 0x4DFF }, bit4_high);
+         else
+            EXPECT_EQ(19968u, bit4_high.size());
+         // The next frame starts there
+         Advance(crtc);
+         EXPECT_EQ(Line(0, 0), Line(crtc.vcc_, crtc.vlc_));
+      }
+   }
+}
+
 // 21.3.4.2 : STATUS 2 on every C0 of the lines C4 = R4, R6 - 1, R7 - 1 (C9 = R9), and C9 = 0, 3 :
 // bits 0, 1, 2 = 0 on C0 = R0 of their line ; bit 5 = 0 while C9 = R9 ; bit 7 = 1 on (C9 = R9, C0 = R0) and on
 // (C9 = 0, C0 < R0).

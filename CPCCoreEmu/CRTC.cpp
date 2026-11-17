@@ -623,8 +623,20 @@ unsigned char CRTC::ReadRegister()
       {
          const bool c9_eq_r9 = (vlc_ == registers_list_[9]);
          const bool last_char_of_line = c9_eq_r9 && hcc_ == registers_list_[0];
-         unsigned char status = 0x10;
-         if (!(last_char_of_line && vcc_ == registers_list_[4])) status |= 0x01;
+         // Bit 4 ("always 1", 21.3.4.2) : the last character of the additional lines. When the frame has additional
+         // lines (R5, or the interlace line of an even frame) it is 0 except on their last character (C0 = R0 of
+         // the last one) ; without them it stays 1. From the SHAKER code : STATUS FIESTA (SHAKE27D #9736) expects,
+         // with R4 = 37 and R5 = 8, a 0 on the microseconds 0 to #4DFE of the frame and a 1 on #4DFF ; the R5 search
+         // (#835A) counts the lines up to that 1. Photos : D3 #03D7 (R5 = 0 : 1), #03DD (R5 = 8 : 0), #03E1 (IVM)
+         const bool interlace_extra = InterlaceOn() && even_field_;
+         const bool additional_lines = registers_list_[5] != 0 || interlace_extra;
+         const bool last_additional_char = hcc_ == registers_list_[0]
+            && (interlace_line_ || (adjust_ && (vlc_ + 1) >= registers_list_[5] && !interlace_extra));
+         unsigned char status = (!additional_lines || last_additional_char) ? 0x10 : 0x00;
+         // Bit 0 : the last character of the last line (C4 = R4, C9 = R9, C0 = R0) ; not during the additional lines,
+         // where C9 is compared with R5 (STATUS FIESTA, SHAKE27D #9339 : R4 = 37, R5 = 8, 0 on #4BFF only, 1 on the
+         // 512 us of the additional lines)
+         if (!(last_char_of_line && vcc_ == registers_list_[4] && !adjust_ && !interlace_line_)) status |= 0x01;
          if (!(last_char_of_line && vcc_ == ((registers_list_[6] - 1) & 0x7F))) status |= 0x02;
          if (!(last_char_of_line && vcc_ == ((registers_list_[7] - 1) & 0x7F))) status |= 0x04;
          if (frame_counter_ & 0x10) status |= 0x08;
