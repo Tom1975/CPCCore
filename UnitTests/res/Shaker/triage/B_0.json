@@ -184,188 +184,188 @@
   "why": "même image (motifs, positions, texte)"
  },
  "013B": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "013C": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "013D": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "013E": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "013F": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "017F": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=2 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0180": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=2 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0181": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0182": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0183": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0184": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=4 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0185": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=4 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0186": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=5 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0187": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ko",
+  "why": "base 5, parité paire, test C9=5 : AUTOSYNC du test différent de la photo (C9=2 : photo #26/#02, Sugarbox #2B/#00 ; C9=4 : photo #2A/#02, Sugarbox #26/#02 ; C9=5 : photo #26/#02, Sugarbox #2A/#02) et bande du haut différente. Comptage IVM du CRTC 0 en parité paire à analyser ; la parité impaire est juste"
  },
  "0188": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0189": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "018A": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "018B": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "018C": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "018D": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "018E": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "03EF": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "03F0": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0126": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0127": {
   "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "why": "base 5 : la page affiche l'AUTOSYNC du test passé juste avant, qui dépend de l'ordre de passage (photo SHAKER 2.2 : #29/#04 ou #2B/#05 ; Sugarbox : #xx ou #2B/#01) ; le reste de la page est identique"
  },
  "0128": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0129": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012A": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012B": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012C": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012D": {
-  "verdict": "doute",
-  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012E": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "012F": {
-  "verdict": "doute",
-  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0130": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0131": {
-  "verdict": "doute",
-  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0132": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0133": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0134": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0135": {
-  "verdict": "doute",
-  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0136": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0137": {
-  "verdict": "doute",
-  "why": "photo en base 5 : R4=#26 R5=#07 ; Sugarbox #22 #00 en base 5, #22 #00 ou voisin en base 7. Vrai écart candidat, comme les R4=#26 en base 6"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0138": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "0139": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "013A": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "03ED": {
   "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "why": "base 5 : la page affiche l'AUTOSYNC du test passé juste avant, qui dépend de l'ordre de passage (photo SHAKER 2.2 : #29/#04 ou #2B/#05 ; Sugarbox : #xx ou #2B/#01) ; le reste de la page est identique"
  },
  "03EE": {
-  "verdict": "doute",
-  "why": "photo en R9 base 5 (variante R9E57), script en base 7 : valeurs AUTOSYNC et cases différentes selon la base dans Sugarbox. À trancher (voir aussi l'essai en base 5)"
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
  },
  "01C7": {
   "verdict": "ok",
