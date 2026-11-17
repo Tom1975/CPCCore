@@ -395,21 +395,11 @@
  },
  "00AD": {
   "verdict": "ko",
-  "why": "R6=0/#7F basculé dans la zone d'ajustement (C4=37, 38) : la trame repart sur l'offset, la photo n'affiche qu'une fois les 2 rangées de texte, la zone d'ajustement doit donc être en BORDER ; Sugarbox y affiche les 2 rangées (#3000, #3028), soit le texte en double. L'ancienne référence ne collait que par coïncidence (trame partie sur #3050). Comportement de R6=0 pendant l'ajustement à établir (2026-11-12)"
+  "why": "R6=0/FF écrits de C0=4 à 32 de chaque ligne additionnelle (R4=36, R5=16). Trace : la ligne DL (C4=36, C9=7) charge VMA' avec R12/R13, les lignes additionnelles (C4=37, 38) affichent #3000/#3028, d'où le texte en double ; R6=0 ne vaut jamais C4. La photo n'affiche le texte qu'une fois. Essayé : DL suivie de lignes additionnelles ne charge pas R12/R13 → 41 KO sur CRTC 2, réfuté. Aucune explication par le 18.2.2 (R6=C4 seulement) : à mesurer"
  },
  "00AE": {
-  "verdict": "ko",
-  "why": "R6=R4+1/FF en V.ADJ : la photo et les 5 émulateurs affichent le titre « CRTC 2 R6 STORIES -LAST LINE- » en haut de la grande zone blanche ; Sugarbox ne l'affiche pas",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.15,
-    "w": 0.8,
-    "h": 0.08,
-    "note": "titre absent"
-   }
-  ]
+  "verdict": "ok",
+  "why": "R6=R4+1/FF en V.ADJ : titre en haut de la zone blanche et texte replié en bas, comme la photo (corrigé par un correctif précédent, revu 2026-11-17)"
  },
  "008A": {
   "verdict": "ok",
