@@ -134,7 +134,10 @@ void CRTC::Reset()
 
    
 
-   lightpen_input_ = true;
+   // CRTC 1 status bit 6 : the "light pen register full" flip-flop, set by a rising edge on LPSTB (pin 3, expansion
+   // port pin 47, 21.3.3), cleared by a read of R16 / R17. Nothing is connected to it on a bare CPC : it stays at 0
+   // (SHAKER CRTC 1 - BE00 CHECK #0216 : bit 6 at 0 on every read of the status, photo)
+   lightpen_input_ = false;
 
    adddress_register_ = 0;
    ComputeSyncWidths();

@@ -779,6 +779,20 @@ TEST(CRTC_RegisterRead, Crtc34UseAThreeBitTable)
    }
 }
 
+// CRTC 1 status bit 6 : the light pen register full flip-flop is only set by a LPSTB edge, nothing drives it on a
+// bare CPC : 0 on a whole frame from the reset (SHAKER CRTC 1 - BE00 CHECK #0216, photo)
+TEST(CRTC_RegisterRead, Crtc1LightPenFullStaysClearWithoutStrobe)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   ProgramStandardEuropeanScreen(crtc);
+   for (int us = 0; us < 19968; ++us)
+   {
+      Advance(crtc);
+      ASSERT_EQ(0, crtc.In(kStatusPort) & 0x40) << "us " << us;
+   }
+}
+
 // 21.3: &BE00 is a status register on CRTC 1 only (bits 0-4 and 7 read 0),
 // a mirror of &BF00 on CRTC 3/4, and nothing on CRTC 0/2 (open bus, 0xFF
 // observed on a CRTC 2). SAFETY NET.

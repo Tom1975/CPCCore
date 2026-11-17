@@ -162,7 +162,7 @@ public:
    bool mux_set_ ;
    bool mux_reset_ ;
 
-   bool lightpen_input_;
+   bool lightpen_input_;        // CRTC 1 : light pen register full (status bit 6), set by a LPSTB rising edge
    unsigned char dispen_history_;   // DISPEN of the previous characters, 2 bits (halves) per character, for the R8 SKEW
    bool dispen_half0_;          // DISPEN for the first half (byte) of the current character
    bool dispen_half1_;          // DISPEN for the second half (byte) of the current character
