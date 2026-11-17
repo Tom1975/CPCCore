@@ -731,15 +731,15 @@
  },
  "0098": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : plus de ligne « (L3)AT » sous les bandes, damier directement sous les bandes comme sur la photo"
  },
  "0099": {
-  "verdict": "ko",
-  "why": "R1>R0, R1=0 sur C0=0 : machine réelle écran blanc et une ligne de titre ; Sugarbox bloc noir plein de lignes de texte (comme sur CRTC 0)"
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=0 écrit sur C0=0 : écran en bordure, ligne de titre (C4=0) et trait au milieu comme sur la photo"
  },
  "009A": {
-  "verdict": "ko",
-  "why": "R1=63 sur C0=63 : photo bruit gris plein écran avec une bande blanche verticale à gauche ; Sugarbox bruit saumon sur fond noir, sans la bande (comme sur CRTC 0)"
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=63 écrit sur C0=63 : colonne blanche à gauche et VMA' rechargé à chaque rangée comme sur la photo (teinte du bruit = contenu de la RAM)"
  },
  "009B": {
   "verdict": "ok",

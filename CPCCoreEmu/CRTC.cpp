@@ -476,7 +476,7 @@ bool CRTC::DispEn(int half) const
    {
    case 0:
       // CRTC 1 : R6=0 forces the border as long as it stays 0 (18.3.3)
-      return (half ? dispen_half1_ : dispen_half0_) && !(type_crtc_ == UM6845R && registers_list_[6] == 0);
+      return (half ? dispen_half1_ : dispen_half0_) && !(type_crtc_ == UM6845R && registers_list_[6] == 0) && !R1BorderNow();
    case 3:
       return false;
    default:
@@ -497,7 +497,7 @@ void CRTC::ClockDispEnHalvesCrtc02()
    // CRTC 2, PROVISIONAL (RealCpc/README.md, P3) : the R6 border is cleared by the first line of a frame that
    // really started (C4 returned to 0 by the last line), not by a C4 that overflowed back to 0 : 15.5.2 "as long
    // as C4 never reached R6", and the screens of 15.6 that stay border while C4 overflows
-   if (vcc_ == 0 && vlc_ == 0 && ff1_ && (type_crtc_ != MC6845 || frame_started_))
+   if (vcc_ == 0 && vlc_ == 0 && ff1_ && !R1BorderNow() && (type_crtc_ != MC6845 || frame_started_))
       ff3_ = true;
    else if (vcc_ == registers_list_[6])
       ff3_ = false;

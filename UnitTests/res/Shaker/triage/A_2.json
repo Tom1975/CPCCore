@@ -354,12 +354,12 @@
   ]
  },
  "0099": {
-  "verdict": "ko",
-  "why": "R1>R0, R1=0 sur C0=0 : machine réelle écran blanc avec une bande sombre en haut ; Sugarbox bloc noir plein de lignes de texte (comme sur CRTC 0/1)"
+  "verdict": "doute",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : écran en bordure et trait au milieu comme la photo ; ligne de titre décalée (texte à partir du milieu, « OUT) » à gauche), illisible sur la photo : VMA' du CRTC 2 avec R1=0 (17.4.3) à vérifier"
  },
  "009A": {
   "verdict": "ko",
-  "why": "R1=63 sur C0=63 : photo bruit bordeaux plein écran avec une bande blanche verticale à gauche ; Sugarbox fond noir sans la bande (comme sur CRTC 0/1)"
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : colonne blanche à gauche comme la photo, mais fond noir chez Sugarbox et bruit bordeaux sur la photo : R1=63 écrit sur C0=63 recharge VMA' sur le vrai CRTC 2, pas chez Sugarbox (VMA' échantillonné en début de caractère, 17.4.3, p186)"
  },
  "009B": {
   "verdict": "ok",

@@ -203,7 +203,11 @@ public:
    void ClockHSync(bool& started, bool& ended);
    // The SKEW delay line is clocked by the character clock (19.2.4) : it takes DISPEN at the end of the
    // character and gives it back for a whole character
-   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 3 : 0); }
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | ((dispen_half1_ && !R1BorderNow()) ? 3 : 0); }
+   // CRTC 0, 1, 2 : the live C0 == R1 comparator gates DISPTMG during the character, with the R1 written in its bus
+   // window (17.3, 17.5.1). DISPTMG itself is reset at the end of that character (ClockTick0/1/2). CRTC 3, 4 compare
+   // at the start of the character (17.5.2)
+   bool R1BorderNow() const { return (type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845) && hcc_ == registers_list_[1]; }
    void ClockDispEnHalvesCrtc02();
    void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
    // DISPEN for the first (half = 0) or the second (half = 1) half of the current character

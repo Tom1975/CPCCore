@@ -69,6 +69,17 @@ void CRTC::ClockTick0 ()
 
    // Comparators on the character that ends
    const bool c9_eq_r9 = C9EqualsR9();
+
+   // C0 == R1 on the character that ends, with the R1 written during it : the register is latched in the bus
+   // window at the start of the character, the comparator is sampled by this edge (17.3, 17.5.1 : OUT R1,0
+   // taken on C0 = 0 still borders the line ; R1.JIT, 17.4.2 : R1 moved away from C0 during C0 == R1 misses it).
+   // It resets DISPTMG and loads VMA' with VMA on the last line of a character, before VMA is reloaded on a
+   // line end (R1 = R0)
+   const bool r1_end = (prev == registers_list_[1]);
+   if (r1_end && c9_eq_r9)
+   {
+      bu_ = ma_;
+   }
    // Additional management, once C4 differs from R4 : C9 is compared with R5 (11.2.2)
    // On the character that ends the line it is the value registered at its start : R4 written during the
    // last character comes too late for this line end (r5_mode_reg_)
@@ -257,12 +268,6 @@ void CRTC::ClockTick0 ()
 
    ClockParityR6();
 
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17, 19.8.1)
-   if ( hcc_ == registers_list_[1] && C9EqualsR9() )
-   {
-      bu_ = ma_;
-   }
-
    ///////////////////////////////
    // VSYNC (16.3, 16.4.1)
    if (vcc_ == registers_list_[7])
@@ -310,30 +315,27 @@ void CRTC::ClockTick0 ()
    }
 
 
-   // DISPEN is enabled by the C0 reset, not by C0 overflowing to 0 (17.1)
+   // DISPTMG is set by the C0 reset, not by C0 overflowing to 0 (17.1), and reset by C0 == R1 sampled at the
+   // end of the character. The live comparator gates its output during the character itself (R1BorderNow) :
+   // R1 = R0 borders the last character and displays the next line (17.6.1), R1 = 0 borders the whole line
    if (c0_reset)
    {
        ff1_set = true;
+   }
+   else if (r1_end)
+   {
+      ff1_reset = true;
    }
 
    bool hsync_started, hsync_ended;
    ClockHSync(hsync_started, hsync_ended);
 
-   if (hcc_ == registers_list_[1])
-   {
-      ff1_reset = true;
-   }
-
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }

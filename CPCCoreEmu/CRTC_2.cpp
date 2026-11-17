@@ -290,13 +290,20 @@ void CRTC::ClockTick2 ()
    // - the C0=0 comparator sets a "line start" latch ; the latch sets the display flip flop (lifts the border)
    //   only while the HSYNC is not active : a line start met during a HSYNC lifts the border on the character
    //   where the HSYNC ends ;
-   // - C0=R1 resets the flip flop (border) and the latch, and wins over a set on the same character.
+   // - C0=R1, sampled at the end of the character with the R1 written during it (17.3, 17.5.1), resets the flip flop
+   //   (border) and the latch ; during that character the live comparator gates the output (R1BorderNow). A line
+   //   start on the same edge (R1 = R0) wins : the next line is displayed (17.6.1).
    // 15.5 says "during the HSYNC the C0=0 test is not done". The photos of SHAKER D3 and D4 on CRTC 2 (a second
    // HSYNC from C0=#3B..#3E that ends on C0=1, #0316 #0321 #032C #0337 #037F #0380) keep the text on these
    // lines : the test is done, its effect waits for the end of the HSYNC. SHAKER A3 (RVMB, R0=3, R1=3, a HSYNC
    // of 14 characters) keeps its border margin : the HSYNC ends there on C0=R1.
    // The screens of 15.6 that stay border (a HSYNC on C0=0 on every line) come from the vertical border : the
    // last line is cancelled, C4 overflows and the frame never starts again (frame_started_).
+   if (prev == registers_list_[1])
+   {
+      ff1_reset = true;
+      line_start_pending_ = false;
+   }
    if (hcc_ == 0)
    {
       line_start_pending_ = true;
@@ -307,22 +314,12 @@ void CRTC::ClockTick2 ()
        line_start_pending_ = false;
    }
 
-   if (hcc_ == registers_list_[1])
-   {
-      ff1_reset = true;
-      line_start_pending_ = false;
-   }
-
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }

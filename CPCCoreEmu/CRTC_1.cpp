@@ -45,7 +45,9 @@ void CRTC::ClockTick1 ()
    // until the frame end : with the wrong parity it fails, VMA' is not updated and VMA keeps being loaded
    // from R12/R13 (11.6.1)
    const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
-   if ( hcc_ == registers_list_[1] && r1_c9_test )
+   // The same edge resets DISPTMG : the R1 written during the character is compared (17.3, 17.5.1)
+   const bool r1_end = (hcc_ == registers_list_[1]);
+   if ( r1_end && r1_c9_test )
    {
       bu_ = ma_;
       vma_reload_clear_ = true;
@@ -208,30 +210,26 @@ void CRTC::ClockTick1 ()
    }
    r6_eq_prev_ = r6_eq;
 
-   // Flip flop computations
+   // DISPTMG : set by the line start, reset by C0 == R1 at the end of the character (r1_end) ; the live comparator
+   // gates its output during that character (R1BorderNow). R1 = R0 borders the last character only (17.6.1)
    if (hcc_ == 0)
    {
        ff1_set = true;
+   }
+   else if (r1_end)
+   {
+      ff1_reset = true;
    }
 
    bool hsync_started, hsync_ended;
    ClockHSync(hsync_started, hsync_ended);
 
-   if (hcc_ == registers_list_[1])
-   {
-      ff1_reset = true;
-   }
-
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }

@@ -402,8 +402,12 @@ TEST(CRTC_DisplayEnable, BorderAssertedAtR1AndClearedAtNewLine)
       AdvanceUntilHccEquals(crtc, 0);
       EXPECT_TRUE(crtc.ff1_) << "display should be enabled right after C0 == 0";
 
+      // CRTC 0, 1, 2 : on C0 == R1 the live comparator gates the DISPTMG output, the flip-flop falls at the end of
+      // the character (17.3) ; CRTC 3, 4 : the flip-flop falls at its start
       AdvanceUntilHccEquals(crtc, 0x28);  // R1 == 40
-      EXPECT_FALSE(crtc.ff1_) << "display should be disabled once C0 == R1";
+      EXPECT_FALSE(crtc.ff1_ && !crtc.R1BorderNow()) << "display should be disabled once C0 == R1";
+      Advance(crtc);
+      EXPECT_FALSE(crtc.ff1_) << "display should stay disabled after C0 == R1";
 
       AdvanceUntilHccEquals(crtc, 0);
       EXPECT_TRUE(crtc.ff1_) << "display should re-enable at the next C0 == 0";
@@ -4091,10 +4095,13 @@ TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)
 // start : the next row starts there.
 // - CRTC 1 : written on C0 = 39 or C0 = R1 = 40 (R1.JIT) VMA' is not loaded ; on C0 = 41 it is ;
 // - CRTC 2 : written on C0 = 39 it is not loaded ; on C0 = R1 = 40 the update comes too late : loaded.
-// CRTC 0, 3, 4 : not given.
+// CRTC 3, 4 : not given. CRTC 0 : not given either ; it samples C0 == R1 at the end of the character as CRTC 1
+// (SHAKER R1 STORIES #009A : R1 = 63 written on C0 = 63 loads VMA', the photo shows the rows moving on), so it
+// behaves as CRTC 1.
 TEST(Compendium_17, R1WrittenAroundC0EqualsR1)
 {
    const struct { CRTC::TypeCRTC type; int p; bool loaded; } cases[] = {
+      { CRTC::HD6845S, 39, false }, { CRTC::HD6845S, 40, false }, { CRTC::HD6845S, 41, true },
       { CRTC::UM6845R, 39, false }, { CRTC::UM6845R, 40, false }, { CRTC::UM6845R, 41, true },
       { CRTC::MC6845, 39, false }, { CRTC::MC6845, 40, true }, { CRTC::MC6845, 41, true },
    };
@@ -4146,6 +4153,45 @@ TEST(Compendium_17, R1EqualsR0GivesOneBorderMicrosecond)
       std::string trace;
       for (int i = 0; i < 64; ++i) { Advance(crtc); trace += crtc.DispEn() ? '1' : '0'; }
       EXPECT_EQ(std::string(62, '1') + "01", trace);
+   }
+}
+
+// 17.3, 17.5 : R1 written with the current C0 (R1 > R0 before), then set back above R0 on the next character, as
+// SHAKER R1 STORIES does (#0099 : R1 = 0 on C0 = 0, #009A : R1 = 63 on C0 = 63). CRTC 0, 1, 2 compare C0 with the
+// R1 written during the character : that character and the rest of the line are border, the next line is displayed
+// (photos : a white screen, a white column on C0 = 63). CRTC 3, 4 compare at the start of the character : the
+// write is missed and the line stays displayed (photos : text everywhere). Each position of the line is covered,
+// HSYNC included (R2 = 46, 14 characters).
+TEST(Compendium_17, R1WrittenWithTheCurrentC0)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      const bool taken = (type == CRTC::HD6845S || type == CRTC::UM6845R || type == CRTC::MC6845);
+      for (int p : { 0, 1, 2, 3, 20, 39, 40, 46, 50, 59, 62, 63 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << " R1 = C0 = " << p);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 1, 70);
+         ASSERT_TRUE(ReachLine(crtc, 5, 3));
+         if (p != 0) AdvanceUntilHccEquals(crtc, (unsigned char)p);
+         WriteRegister(crtc, 1, (unsigned char)p);
+         std::string line;
+         line += crtc.DispEn() ? '1' : '0';
+         Advance(crtc);
+         WriteRegister(crtc, 1, 70);
+         while (crtc.hcc_ != 0) { line += crtc.DispEn() ? '1' : '0'; Advance(crtc); }
+         if (p == 63)
+         {
+            // The line end : only C0 = 63 itself
+            line.resize(1);
+         }
+         EXPECT_EQ(std::string(64 - p, taken ? '0' : '1'), line);
+         // The next line is displayed (C0 = 0 to 62 ; C0 = 63 = R0 shows the R1 > R0 border on its 2nd half only)
+         std::string next;
+         while (crtc.hcc_ != 63) { next += crtc.DispEn() ? '1' : '0'; Advance(crtc); }
+         EXPECT_EQ(std::string(63, '1'), next);
+      }
    }
 }
 
