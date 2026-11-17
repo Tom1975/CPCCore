@@ -249,6 +249,15 @@ std::string FixScript(std::string text, int crtc, std::vector<std::string>& chan
          changes.push_back("6128 Plus : key_output '\\(FN1)' (cartridge menu, BASIC) before disk_insert");
       }
    }
+   // Module D, CRTC 3/4 STATUS FIESTA (#03C0) : once every status test passes the page takes about 56 s ; the 45 s of
+   // the script let the next key fall during it, the following screens come one key late and the last one is lost
+   const std::string fiesta = "wait 45000000 ; 3c0", fiesta_long = "wait 60000000 ; 3c0";
+   const size_t fiesta_pos = text.find(fiesta);
+   if (fiesta_pos != std::string::npos)
+   {
+      text.replace(fiesta_pos, fiesta.size(), fiesta_long);
+      changes.push_back("STATUS FIESTA #03C0 : wait 45 s -> 60 s (the page takes about 56 s when every test passes)");
+   }
    const std::string key_z = "key_output 'Z'", key_w = "key_output 'W'";
    size_t count = 0;
    for (size_t pos = text.find(key_z); pos != std::string::npos; pos = text.find(key_z, pos + key_w.size()))

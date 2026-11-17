@@ -2298,6 +2298,39 @@ TEST(Compendium_21, AsicStatus1OnEveryPosition)
    }
 }
 
+// 21.3.4.1 : STATUS 1 bit 5, line by line around the VSYNC (R7 = 30, C0 = 10). The status has its own line counter : 1
+// on the first VSYNC line, then 2 .. 15, back to 0 where it stops, whatever R3h ; the bit is 0 when it equals R3h.
+// R3h = 7 : 0 on the 7th VSYNC line only ; R3h = 8 : on the 8th ; R3h = 0 : 0 except on the 15 first lines.
+// PROVISIONAL (RealCpc/README.md, P6) : SHAKER D3 #03C8, #03C9, #03D2 photos, #03C0 "STATUS 1 BIT 5 : OK".
+TEST(Compendium_21, AsicStatus1Bit5AroundTheVsync)
+{
+   const struct { unsigned char r3; const char* expected; } cases[] = {
+      { 0x7E, "11111111011111111111111" },
+      { 0x8E, "11111111101111111111111" },
+      { 0x0E, "00111111111111111000000" } };
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (const auto& c : cases)
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", R3 = " << std::hex << int(c.r3));
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 3, c.r3);
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         // From 2 lines before the VSYNC (C4 = 29, C9 = 6) to 20 lines after its start
+         ASSERT_TRUE(ReachLine(crtc, 29, 6));
+         std::string bits;
+         for (int line = 0; line < 23; ++line)
+         {
+            AdvanceUntilHccEquals(crtc, 10);
+            bits += (ReadStatus(crtc, 10) & 0x20) ? '1' : '0';
+            AdvanceUntilHccEquals(crtc, 0);
+         }
+         EXPECT_EQ(c.expected, bits);
+      }
+   }
+}
+
 // 21.3.4.2 : STATUS 2 on every C0 of the lines C4 = R4, R6 - 1, R7 - 1 (C9 = R9), and C9 = 0, 3 :
 // bits 0, 1, 2 = 0 on C0 = R0 of their line ; bit 5 = 0 while C9 = R9 ; bit 7 = 1 on (C9 = R9, C0 = R0) and on
 // (C9 = 0, C0 < R0).

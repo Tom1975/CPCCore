@@ -440,12 +440,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03BD": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "ko",
+  "why": "2026-11-17 : la recherche trouve R3=#9D (photo #8D) ; l'ancienne référence (#0D) était fausse elle aussi, acceptée à tort. Méthode de SHAKER pour R3h inconnue (à désassembler)"
  },
  "03BE": {
   "verdict": "ko",
-  "why": "registres trouvés : photo R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E ; Sugarbox R3=#0C R4=#00 R5=#00 R6=#00 R7=#00"
+  "why": "2026-11-17 : R3=#7C trouvé comme la photo ; R4..R7 restent à #00 (photo R4=#25 R5=#08 R6=#19 R7=#1E) : Status 2 bit 0 / bit 4 encore faux (voir #03C0)"
  },
  "03BF": {
   "verdict": "ok",
@@ -453,7 +453,7 @@
  },
  "03C0": {
   "verdict": "ko",
-  "why": "STATUS 1 BIT 5, STATUS 2 BIT 0, STATUS 2 BIT 4 : WRONG chez Sugarbox, OK sur la photo"
+  "why": "2026-11-17 : Status 1 bit 5 OK (WELL DONE) comme la photo ; restent WRONG : Status 2 bit 0 (#4DFF) et Status 2 bit 4 (#0000). Bit 4 : la photo #03DD le montre à 0 sur toute la trame avec R4=37/R5=8, mais le mettre à 0 dès que R5>0 fait boucler la recherche #03BE : il manque un élément"
  },
  "03C1": {
   "verdict": "ok",
@@ -484,12 +484,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03C8": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 : photo rouge avec colonne jaune, Sugarbox tout jaune"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : colonne jaune de 15 lignes à la VSYNC sur fond rouge, comme la photo"
  },
  "03C9": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 variante R3=#7E : trait vertical sur la photo, absent chez Sugarbox"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : R3=#7E : un seul trait rouge sur fond jaune, comme la photo"
  },
  "03CA": {
   "verdict": "ok",
@@ -524,8 +524,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03D2": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 en IVM : marques obliques sur la photo, absentes chez Sugarbox"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : IVM : marques obliques comme la photo"
  },
  "03D3": {
   "verdict": "ok",
@@ -573,15 +573,15 @@
  },
  "03DE": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03DF": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E0": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E1": {
   "verdict": "ko",
@@ -589,7 +589,7 @@
  },
  "03E2": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E3": {
   "verdict": "ok",
@@ -597,6 +597,6 @@
  },
  "03E4": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  }
 }

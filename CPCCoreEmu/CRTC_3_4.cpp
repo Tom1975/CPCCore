@@ -75,6 +75,11 @@ void CRTC::ClockTick34 ()
          }
       }
 
+      // Line counter of the status 1 bit 5 : 1 on the first VSYNC line, then 2 .. 15, back to 0 where it stops ;
+      // it runs for 16 lines whatever R3h (21.3.4.1, SHAKER D3 #03C8 with R3h = 8)
+      if (c3h_status_ != 0)
+         c3h_status_ = (c3h_status_ + 1) & 0x0F;
+
       // VMA is reloaded from VMA'
       ma_ = bu_;
 
@@ -308,13 +313,11 @@ void CRTC::ClockTick34 ()
       if (!ff4_reset && ff4_set)
       {
          ff4_ = true;
-         if ((scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
+         c3h_status_ = 1;
       }
       else if (ff4_reset && ff4_set)
       {
          // Nothing .
-         int dbg = 1;
-         if (ff4_ && (scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
       }
       
    }

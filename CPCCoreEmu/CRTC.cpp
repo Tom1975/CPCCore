@@ -187,6 +187,7 @@ void CRTC::Reset()
    hsync_on_line_start_ = false;
    line_start_pending_ = false;
    r1_load_at_start_ = false;
+   c3h_status_ = 0;
    frame_started_ = true;
    last_line_eq_ = false;
    dlp_ = false;
@@ -601,10 +602,15 @@ unsigned char CRTC::ReadRegister()
          return registers_list_[17];
       case 2: // Status 1 (R10) - 21.3.4.1
       {
-         // Bits 3, 4, 5 (HSYNC start / end, VSYNC line) are latched by the tick ; the others decode
-         // the counters and registers
+         // Bits 3, 4 (HSYNC start / end) are latched by the tick ; the others decode the counters and registers.
+         // Bit 5 : 0 when the line counter of the status (c3h_status_ : 1 on the first VSYNC line .. 15, then 0) equals
+         // the 3 low bits of R3h. R3h = 1 .. 7 : 0 on the line R3h counted from 1 ; R3h = 0 or 8 : 1 on the 15 lines
+         // from the VSYNC, 0 elsewhere (21.3.4.1). PROVISIONAL (RealCpc/README.md, P6) : the 3 bits and the counter
+         // that runs past the VSYNC come from SHAKER D3 #03C8 (R3h = 8 : a 15 line column), #03C9 (R3h = 7 : one line),
+         // #03BC (1 on the first VSYNC line)
          const unsigned char r0 = registers_list_[0];
-         unsigned char status = (status1_ & 0x38) | 0x40;
+         unsigned char status = (status1_ & 0x18) | 0x40;
+         if (c3h_status_ != ((registers_list_[3] >> 4) & 0x0F)) status |= 0x20;
          if (hcc_ == r0) status |= 0x01;
          if (hcc_ != r0 / 2) status |= 0x02;
          if (!(r0 >= registers_list_[1] && hcc_ == ((registers_list_[1] - 1) & 0xFF))) status |= 0x04;

@@ -950,6 +950,7 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    // bit 3 : VMA' strobe of the start of the character done
    out.push_back((c->hsync_on_line_start_ ? 1 : 0) | (c->line_start_pending_ ? 2 : 0) | (c->frame_started_ ? 0 : 4)
                  | (c->r1_load_at_start_ ? 8 : 0));
+   out.push_back(c->c3h_status_);
    out.push_back(c->last_line_eq_ ? 1 : 0);
    out.push_back(c->dlp_ ? 1 : 0);
    out.push_back(c->gdl_reenabled_ ? 1 : 0);
@@ -1047,6 +1048,7 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->line_start_pending_ = (p[at] & 2) != 0;
    c->r1_load_at_start_ = (p[at] & 8) != 0;
    c->frame_started_ = (p[at++] & 4) == 0;
+   c->c3h_status_ = p[at++];
    c->last_line_eq_ = p[at++] != 0;
    c->dlp_ = p[at++] != 0;
    c->gdl_reenabled_ = p[at++] != 0;
