@@ -1788,6 +1788,30 @@ TEST(Compendium_11, Crtc1R0WrittenWithC0SamplesTheLastLine)
    EXPECT_EQ(Line(6, 0), NextLine(crtc));
 }
 
+// 13.7.1.2 : R0 lengthened on C0 = R0 of the last line of the frame, then R4 and R9 moved away during the
+// lengthening (SHAKER D RFD ROUND 2, "OVERRIDE BY R9+R4") : a R.F.D. at the end of the line. The VMA' load of
+// C0 = R1 earlier in the line does not cancel it, C9 != R9 on the line end : VMA keeps being reloaded from R12/R13
+// (PROVISIONAL, RealCpc README P9).
+TEST(Compendium_13, Crtc1RfdByR0LengthenedWithR9MovedTakesTheOffset)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 7, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 7, 7));
+   AdvanceUntilHccEquals(crtc, 63);
+   WriteRegister(crtc, 0, 0xBD);
+   AdvanceMicroseconds(crtc, 6);
+   WriteRegister(crtc, 0, 0x7F);
+   AdvanceUntilHccEquals(crtc, 88);
+   WriteRegister(crtc, 4, 0x25);
+   WriteRegister(crtc, 9, 0x0E);
+   AdvanceUntilHccEquals(crtc, 0);
+   // The line end : C9 went on (C9 != R9), C4 stays 7, and VMA is reloaded from R12/R13
+   EXPECT_EQ(Line(7, 8), Line(crtc.vcc_, crtc.vlc_));
+   EXPECT_TRUE(crtc.vma_reload_);
+   EXPECT_TRUE(crtc.rfd_parity_);
+   EXPECT_EQ(crtc.registers_list_[13] + ((crtc.registers_list_[12] & 0x3F) << 8), crtc.ma_);
+}
+
 // 12.3 : R4 = 0 written on the last line makes C4 overflow ; written when C0
 // reached R0 the frame end is already decided (11.2.4). SAFETY NET.
 TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)

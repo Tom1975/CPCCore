@@ -436,52 +436,52 @@
   "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
  },
  "0393": {
-  "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox VERY BAD TRIP, photo RUPT:THIS LINE REPEATED (Amspirit 0.953 comme la photo)"
+  "verdict": "ok",
+  "why": "RFD ROUND 2 sans IVM, override R9 / R9+R4 : la page alterne d'une trame à l'autre entre la ligne répétée et « AND THIS 2ND ONE FLASHING », comme les photos A1/A2 et B1/B2 (captures sur 6 trames). RealCpc P9"
  },
  "03F7": {
-  "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox VERY BAD TRIP, photo RUPT + AND THIS 2ND ONE FLASHING"
+  "verdict": "ok",
+  "why": "RFD ROUND 2 sans IVM, override R9 / R9+R4 : la page alterne d'une trame à l'autre entre la ligne répétée et « AND THIS 2ND ONE FLASHING », comme les photos A1/A2 et B1/B2 (captures sur 6 trames). RealCpc P9"
  },
  "0394": {
-  "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox une ligne flashing en plus, photo RUPT:THIS LINE REPEATED seul"
+  "verdict": "ok",
+  "why": "RFD ROUND 2 sans IVM, override R9 / R9+R4 : la page alterne d'une trame à l'autre entre la ligne répétée et « AND THIS 2ND ONE FLASHING », comme les photos A1/A2 et B1/B2 (captures sur 6 trames). RealCpc P9"
  },
  "03F8": {
-  "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox en-tête répété en 2e bloc, photo RUPT + AND THIS 2ND ONE FLASHING"
+  "verdict": "ok",
+  "why": "RFD ROUND 2 sans IVM, override R9 / R9+R4 : la page alterne d'une trame à l'autre entre la ligne répétée et « AND THIS 2ND ONE FLASHING », comme les photos A1/A2 et B1/B2 (captures sur 6 trames). RealCpc P9"
  },
  "03F9": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox ligne BAD TRIP répétée, photo une seule ligne (Amspirit et lite aussi)"
+  "why": "RFD ROUND 2, override R4 seul : alterne entre « RUPT + 2ND ONE FLASHING » et « BAD TRIP » répété ; photos : lignes RUPT répétées / une seule ligne BAD TRIP. RealCpc P9, non résolu"
  },
  "0395": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox BAD TRIP répété, photo RUPT:THIS LINE REPEATED"
+  "why": "RFD ROUND 2, override R4 seul : alterne entre « RUPT + 2ND ONE FLASHING » et « BAD TRIP » répété ; photos : lignes RUPT répétées / une seule ligne BAD TRIP. RealCpc P9, non résolu"
  },
  "0396": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox VERY BAD TRIP, photo RUPT:THIS LINE REPEATED"
+  "why": "RFD ROUND 2, IVM ON/OFF avant RFD : photo ligne répétée sur toutes les trames (cas 1, 11.6.2) ; Sugarbox alterne. Une ParitéC9 en porte XOR le corrige mais casse C_1 #02D8 : RealCpc P9"
  },
  "0397": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox ligne flashing et en-tête répété, photo RUPT:THIS LINE REPEATED"
+  "why": "RFD ROUND 2, IVM ON/OFF avant RFD : photo ligne répétée sur toutes les trames (cas 1, 11.6.2) ; Sugarbox alterne. Une ParitéC9 en porte XOR le corrige mais casse C_1 #02D8 : RealCpc P9"
  },
  "0398": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox BAD TRIP, photo RUPT:THIS LINE REPEATED"
+  "why": "RFD ROUND 2, IVM ON/OFF avant RFD : photo ligne répétée sur toutes les trames (cas 1, 11.6.2) ; Sugarbox alterne. Une ParitéC9 en porte XOR le corrige mais casse C_1 #02D8 : RealCpc P9"
  },
  "0399": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox NO RUPTURE répété, photo RUPT 1ST LINE ALONE + 2ND LINE ALONE"
+  "why": "RFD ROUND 2, IVM ON/OFF après RFD : photo 1ST LINE ALONE + 2ND LINE ALONE (ou NO RUPTURE seule) puis vide ; Sugarbox répète la ligne. RealCpc P9, non résolu"
  },
  "039A": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox 1ST LINE ALONE répété, photo 1ST LINE ALONE + 2ND LINE ALONE"
+  "why": "RFD ROUND 2, IVM ON/OFF après RFD : photo 1ST LINE ALONE + 2ND LINE ALONE (ou NO RUPTURE seule) puis vide ; Sugarbox répète la ligne. RealCpc P9, non résolu"
  },
  "039B": {
   "verdict": "ko",
-  "why": "RFD ROUND 2 : pas le même contenu de page que la photo : Sugarbox NO RUPTURE répété, photo une seule ligne"
+  "why": "RFD ROUND 2, IVM ON/OFF après RFD : photo 1ST LINE ALONE + 2ND LINE ALONE (ou NO RUPTURE seule) puis vide ; Sugarbox répète la ligne. RealCpc P9, non résolu"
  },
  "03AE": {
   "verdict": "ok",

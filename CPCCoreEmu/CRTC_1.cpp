@@ -80,6 +80,9 @@ void CRTC::ClockTick1 ()
 
       // Comparators on the line that ends, with the registers written during the line
       const bool c9_eq_r9 = C9EqualsR9();
+      // The same C9 == R9 test with ParitéC9 in place of C9.0, once a R.F.D. is set (now or before in the frame, 11.6)
+      const bool c9_eq_r9_parity = (rfd_ || rfd_parity_)
+         ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : c9_eq_r9;
       const bool c4_eq_r4 = (vcc_ == registers_list_[4]);
 
       // Additional interlace line on the even frames, counted as one more R5 line (11.2.3, 19.6.2)
@@ -126,14 +129,23 @@ void CRTC::ClockTick1 ()
          }
       }
 
-      // VMA reload state (17.4.2, 11.6)
+      // VMA reload state (17.4.2, 11.6) : a flip-flop set by the R.F.D. and by the frame start, reset on the line end
+      // by "the border reached on the last line of the character" : the latch of C0 == R1 met with C9 == R9 (or
+      // R1 > R0, C0 == R1 never met) AND the C9 == R9 test on this edge, with the parity once a R.F.D. is set. The
+      // reset wins : a R.F.D. by R5 on a line C9 = R9 is cancelled when the parity matches (11.6.1, case 2).
+      // A R.F.D. by R0 lengthened on the last line (13.7.1.2), from SHAKER D RFD ROUND 2 :
+      // - R9 moved away from C9 during the lengthening ("OVERRIDE BY R9", "R9+R4") : C9 != R9 on the edge, R12/R13
+      //   are taken ;
+      // - R4 only ("OVERRIDE BY R4", C9 == R9) : the test with the parity fails one frame of two, R12/R13 are taken
+      //   one frame of two (13.7.1.2) ; with the parity fixed even (IVM ON/OFF), on every frame.
+      // PROVISIONAL (RealCpc/README.md, P9)
       if (rfd_)
       {
          vma_reload_ = true;
          rfd_parity_ = true;
          rfd_ = false;
       }
-      if ((vma_reload_clear_ || (registers_list_[1] > registers_list_[0] && c9_eq_r9)) && !c4_eq_r4)
+      if (c9_eq_r9_parity && (vma_reload_clear_ || registers_list_[1] > registers_list_[0]) && !c4_eq_r4)
       {
          vma_reload_ = false;
       }
