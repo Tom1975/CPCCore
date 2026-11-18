@@ -98,7 +98,8 @@ public:
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
    bool hsync_prev_;            // CRTC 1 : internal HSYNC at the end of the previous character (C3h clock edge)
    bool hsync_restart_;         // CRTC 1 : HSYNC end strobe of this character without a fall of hsync_ (restart on C0 = R2 + R3l, 15.3.4 ; R3l = 0)
-   bool vsync_end_pending_;     // CRTC 1 : C3h reached R3h, the VSYNC ends on the next line start
+   bool vsync_end_pending_;     // CRTC 1 : C3h reached R3h, the VSYNC ends on the next line start (unused since P8)
+   bool line_pulse_prev_;       // CRTC 1 : the line start pulse that clocks C3h came on the previous edge
    bool last_line_sampled_;     // CRTC 1 : last_line_ already sampled on C0==R0 of this line (13.7.1.2)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)

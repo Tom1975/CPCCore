@@ -65,18 +65,31 @@ void CRTC::ClockTick1 ()
       ma_++;
    }
 
-   if (c0_reset)
+   // Vertical sync width counter C3h (16.3), 4 bits, R3h fixed to 16 on this CRTC : clocked by the line start pulse,
+   // which cannot come on two edges in a row. The VSYNC ends on the 16th line start after its own start, counted in
+   // whole lines from C0 = 0 (16.4.2 : a VSYNC triggered on C0 lasts 16 lines minus C0 + 1). With R0 = 0 (lines of
+   // 1 us) the pulse comes one edge of two : C3h counts one line each 2 us. Measured on a real CRTC 1 (RealCpc
+   // README, P8, 2026-11-18) : (A), (D) R0 = 0 for 10 to 38 us : each us takes half a line off the VSYNC, it ends
+   // between 30 and 34 us ; (B) no HSYNC (R0 = 20, R2 = 40) : the VSYNC still ends ; (C) R7 = C4 written on C0 = #10
+   // and #3C : 101 and 99 steps of 10 us (16.4.2). SHAKER LOST VSYNC ON R0=0 (#008D, 18 us of R0 = 0 : 9 lines, the
+   // VSYNC goes on) and R52INC IN HSYNC (#01F4, R0 = 0 : the VSYNC comes back every frame) agree. PROVISIONAL : the
+   // pulse "not on two edges in a row" is deduced from the measures (RealCpc README, P8). Replaces the C3h clocked
+   // by the end of the HSYNC (101c896), wrong : (B).
+   const bool line_pulse = c0_reset && !line_pulse_prev_;
+   line_pulse_prev_ = line_pulse;
+   if (line_pulse && ff4_)
    {
-      last_line_sampled_ = false;
-
-      // End of the VSYNC : the C3h == R3h latch (set by the HSYNC end, below) resets the VSYNC flip-flop on the line
-      // start, as the VSYNC is counted in whole lines from C0 = 0 (16.4.2)
-      if (ff4_ && vsync_end_pending_)
+      scanline_vbl_ = (scanline_vbl_ + 1) & 0x0F;
+      if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
       {
-         vsync_end_pending_ = false;
          scanline_vbl_ = 0;
          ff4_reset = true;
       }
+   }
+
+   if (c0_reset)
+   {
+      last_line_sampled_ = false;
 
       // Comparators on the line that ends, with the registers written during the line
       const bool c9_eq_r9 = C9EqualsR9();
@@ -238,26 +251,6 @@ void CRTC::ClockTick1 ()
    hsync_restart_ = false;
    ClockHSync(hsync_started, hsync_ended);
 
-   // Vertical sync width counter C3h (16.3), 4 bits, R3h fixed to 16 on this CRTC : it is clocked by the end of
-   // the HSYNC of the CRTC (falling edge of its internal HSYNC, also when R3.JIT ends it on a write, and the
-   // "invisible" end of the HSYNC that restarts on C0 = R2 + R3l, 15.3.4 ; with R3l = 0, the HSYNC of length 0 on
-   // C0 = R2 : no HSYNC on the pin, 14.5.2, but its end strobe). C3h == R3h sets a latch that ends the VSYNC on the
-   // next line start. When C0 never meets R2 (R0 lower than R2) C3h does not count and the VSYNC lasts.
-   // PROVISIONAL (RealCpc/README.md, P8), from SHAKER :
-   // - LOST VSYNC ON R0=0 (#008D, SHAKE27A #6491) : R0 = 0 written on C0 = 0 of the line before C4 = R7 (R2 = 46),
-   //   R0 = 45 18 us later : the photo still reads the VSYNC 5, 23, 61 and 65 us after the write ; 16 lines of 1 us
-   //   would have ended it ;
-   // - R52INC IN HSYNC (#01F4, SHAKE27B #502A) : R0 = 0, R2 = 0, R3 = 1, the infinite HSYNC (15.3.2) : no interrupt
-   //   in 3328 us (#FF). R52 counts the invisible ends every 16 us : the VSYNC must come back every frame (312 us)
-   //   to reset it, so C3h counts these ends. A clock on the C0 == R0 edge would freeze C3h there ;
-   // - INTER TEST IM1 (#01F2) and LAST LINE COND (#02BF) run with R3 = 0 : the VSYNC ends (the photo of #01F2 exists),
-   //   so the HSYNC of length 0 clocks C3h.
-   if (ff4_ && ((hsync_prev_ && !hsync_) || hsync_restart_))
-   {
-      scanline_vbl_ = (scanline_vbl_ + 1) & 0x0F;
-      if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
-         vsync_end_pending_ = true;
-   }
    hsync_prev_ = hsync_;
 
    // Flip flop computation
@@ -291,7 +284,6 @@ void CRTC::ClockTick1 ()
    {
       // A VSYNC start (also one that restarts on its end) starts C3h from 0
       scanline_vbl_ = 0;
-      vsync_end_pending_ = false;
    }
 
    ClockDispEnHalves();
