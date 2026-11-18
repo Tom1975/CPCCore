@@ -158,6 +158,7 @@ void CRTC::Reset()
    adjust_confirmed_ = false;
    adjust_end_ = false;
    r5_mode_reg_ = false;
+   adjust_end_pending_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
    frame_counter_ = 0;

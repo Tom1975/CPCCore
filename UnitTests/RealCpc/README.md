@@ -111,7 +111,6 @@ Il faudrait un autre CRTC. À garder si l'occasion se présente.
 | CRTC | Codes | Écart |
 |---|---|---|
 | 0 | `#021B` (module B) | `R6=0` puis `R6=13` en zone `R0=0` : rayures dans Sugarbox, BORDER sur la photo |
-| 0 | `#01CB` à `#01CF` (module B) | Décrochage dans Sugarbox, photo stable |
 | 0 | `#0006` (module A) | Référence acceptée avec un doute |
 | 0 | `#00C2` (module A) | Moniteur : +37 contre +11 pixels. Cause : le comparateur du LA7800, voir la partie 4 |
 | 2 | `#0316`, `#0321`, `#032C`, `#0337`, `#037F`, `#0380` (module D) contre `#000B` à `#001E` (module A, A3 RVMB) | BORDER à la place du texte dans Sugarbox (règle du §15.5 : pas de levée du BORDER sur C0=0 pendant une HSYNC). Les photos CRTC 2 se contredisent : D3 lève le BORDER sous une HSYNC finie sur C0=1, A3 ne le lève pas (marge jaune). Aucun modèle essayé n'explique les deux. Mesure : sur un CRTC 2, RVMB et D3 avec R1 avant ou pendant la HSYNC. Test `Compendium_15.DISABLED_Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay` |

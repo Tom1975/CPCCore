@@ -936,7 +936,7 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->last_line_ ? 1 : 0);
    out.push_back(c->adjust_ ? 1 : 0);
    out.push_back(c->adjust_confirmed_ ? 1 : 0);
-   out.push_back((c->adjust_end_ ? 1 : 0) | (c->r5_mode_reg_ ? 2 : 0));
+   out.push_back((c->adjust_end_ ? 1 : 0) | (c->r5_mode_reg_ ? 2 : 0) | (c->adjust_end_pending_ ? 4 : 0));
    out.push_back(c->vsync_allowed_ ? 1 : 0);
    out.push_back(c->c3h_load_ ? 1 : 0);
    out.push_back(c->v_no_sync_ ? 1 : 0);
@@ -1036,7 +1036,8 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->adjust_ = p[at++] != 0;
    c->adjust_confirmed_ = p[at++] != 0;
    c->adjust_end_ = (p[at] & 1) != 0;
-   c->r5_mode_reg_ = (p[at++] & 2) != 0;
+   c->r5_mode_reg_ = (p[at] & 2) != 0;
+   c->adjust_end_pending_ = (p[at++] & 4) != 0;
    c->vsync_allowed_ = p[at++] != 0;
    c->c3h_load_ = p[at++] != 0;
    c->v_no_sync_ = p[at++] != 0;

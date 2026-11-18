@@ -89,6 +89,7 @@ public:
    bool adjust_confirmed_;      // additional management confirmed at the end of character 2 : C9 compared to R5
    bool adjust_end_;            // next C9 == R5 : follows the comparator on characters 0 to 2, set only later
    bool r5_mode_reg_;           // adjust_ && C4 != R4, registered at the start of the character
+   bool adjust_end_pending_;    // CRTC 0 : end of an unconfirmed adjustment decided on the last line, taken on the next line end
    bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
    bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
    // CRTC 1 (see CRTC_1.cpp)

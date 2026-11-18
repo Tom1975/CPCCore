@@ -1499,6 +1499,27 @@ TEST(CRTC_Crtc0Vertical, R0EnlargedOnC0Equals1OfALastLine)
    EXPECT_EQ(Line(0, 0), NextLine(crtc));
 }
 
+// 13.2.5 : with R0 = 1, R4 = 0, R9 = 2, R5 = 0, every frame is the rows C9 = 0, 1, 2 then one additional line
+// (C4 = 1, C9 = 0). The C9 computed on the last line end (0) equals R5 : the adjustment stops one line later, even
+// when that additional line is a long one (R0 = 43 written on its C0 = 0) whose C0 = 2 confirms the adjustment.
+// SHAKER B RVNI LTD (#01CB to #01CF, SHAKE27B #6D3B) : 10 lines of R0 = 1 and one of R0 = 43 every 64 us, the photo
+// is stable and the expected C9 list goes on 2, 0, 0, 1 across the long line. Before, C9 counted up to 31 there.
+TEST(CRTC_Crtc0Vertical, LongAdditionalLineOfAShortLineFrameEndsIt)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 0, 0, 2);
+   WriteRegister(crtc, 0, 1);
+   AdvanceMicroseconds(crtc, 64);
+   ASSERT_TRUE(ReachLine(crtc, 1, 0));
+   WriteRegister(crtc, 0, 43);
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   WriteRegister(crtc, 0, 1);
+   EXPECT_EQ(Line(0, 1), NextLine(crtc));
+   EXPECT_EQ(Line(0, 2), NextLine(crtc));
+   EXPECT_EQ(Line(1, 0), NextLine(crtc));
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+}
+
 // 13.2.2, 16.4.1.2 : C0 must reach 2 on the line before C4 = R7. With R0 = 1 on
 // that line the VSYNC does not happen and stays blocked for this frame. SAFETY NET.
 TEST(CRTC_Crtc0Vertical, VSyncFrozenByAShortLine)

@@ -50,6 +50,11 @@
 //                     not switch C9 to the R5 comparison for this line end, C4 is incremented and C9 returns
 //                     to 0 (SHAKER E, R5 STORIES 2 PG 2, #03FB : R4 = 50 written on C0 = #3F, C4 = #27 one
 //                     line later, C4 = 0 after the 20 lines of R5 ; written on #3D or #3E, C9 counts on to R5).
+// - adjust_end_pending_ end of an adjustment never confirmed, decided when C0 restarts at 0 at the end of its last
+//                     line (C4 == R4, C9 == R9) : the C9 loaded for the next line (0) equals R5. The frame ends on
+//                     the next line end, also when C0 reaches 2 on that line and confirms the adjustment (13.2.5,
+//                     SHAKER B RVNI LTD). Not set while C9 is frozen (R0 = 0, 13.2.6) nor without the C0 reset
+//                     (R0 enlarged on C0 = 1, 13.7.2.2) : C9 is not loaded.
 // - vsync_allowed_    set at the end of character 2, cleared on the C0 reset : C4==R7 starts a VSYNC only
 //                     if C0 reached 2 since (13.2.2, 16.4.1).
 //
@@ -105,7 +110,22 @@ void CRTC::ClockTick0 ()
    const bool c4_increment = c4_increment_ || (c9_managed_ && c9_eq_r9);
    if (line_end_)
    {
-      if (last_line_ && !adjust_)
+      // End of an unconfirmed adjustment decided on the line end before (adjust_end_pending_) : taken now, even if
+      // C0 reached 2 on this line and confirmed the adjustment (SHAKER B RVNI LTD #01CB)
+      const bool pending_end = adjust_end_pending_ && c9_managed_;
+      // The last line of an adjustment not confirmed (R0 < 2, 13.2.5) ends with C9 == R9 : the C9 computed for the next
+      // line (0) is compared with R5 when C0 restarts at 0 and loads it, and the adjustment stops one line later.
+      // Only while C9 is handled : with R0 = 0 C9 is frozen, nothing is computed and R5 must be C9 + 1 once R0 > 1
+      // again (13.2.6). Nor without the C0 reset : R0 enlarged on C0 = 1 of the last line, C9 is not loaded and the
+      // adjustment goes on (13.7.2.2)
+      adjust_end_pending_ = c9_managed_ && adjust_ && !adjust_confirmed_ && vcc_ == registers_list_[4] && c4_increment
+                            && hcc_ == registers_list_[0]
+                            && ((registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0)) & 0x1F) == 0;
+      if (pending_end)
+      {
+         new_frame = true;
+      }
+      else if (last_line_ && !adjust_)
       {
          new_frame = c9_managed_;
       }

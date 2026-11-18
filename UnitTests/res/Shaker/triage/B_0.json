@@ -572,24 +572,24 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01CB": {
-  "verdict": "ko",
-  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
  },
  "01CC": {
-  "verdict": "ko",
-  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
  },
  "01CD": {
-  "verdict": "ko",
-  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
  },
  "01CE": {
-  "verdict": "ko",
-  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
  },
  "01CF": {
-  "verdict": "ko",
-  "why": "page en décrochage vertical : barres et texte coupés, position différente à chaque code ; photo et Amspirit-lite stables"
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
  },
  "01F0": {
   "verdict": "ok",
