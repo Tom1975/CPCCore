@@ -7,19 +7,28 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 
 ## 1. Programmes de `realcpc.dsk`
 
-Sur le prompt BASIC, avec la disquette `realcpc.dsk` dans le lecteur, taper la ligne indiquée. Chaque programme
-rend la main au BASIC tout seul. `T3` et `T4` durent 15 secondes : c'est le moment de la photo.
+Disquette `realcpc.dsk` dans le lecteur, taper `RUN"MENU"`. Le menu affiche le CRTC détecté (lecture du port
+`&BF00`, compendium §28.1.9 : R12 lisible sur les CRTC 0, 3 et 4, R4 relu comme R12 sur les CRTC 3 et 4, R31 non
+nul sur le CRTC 1) et range les tests par type de CRTC ; la rubrique du CRTC détecté est en rouge (`<== CE CPC`).
+On tape la touche du test : l'écran reste affiché **jusqu'à l'appui d'une touche** (le temps de faire la photo),
+puis le menu revient, avec le résultat de `T1` ou `T2` sur sa dernière ligne. `Q` : retour au BASIC.
 
-Sources : `t1in.asm`, `t2vsync.asm`, `t3mode.asm`, `t4border.asm`, `t5mon.asm`. Reconstruire : `./build.sh <chemin de rasm>`.
+Le test de touche se fait à durée fixe (256 µs, `keyscan` dans `menu.asm`, à la place d'un `DELAY_LINES 4`) :
+les écrans gardent le calage au µs près des anciens programmes (vérifié dans Sugarbox : mêmes captures).
+
+Sources : `menu.asm` (menu, détection, clavier) qui inclut `t1in.asm`, `t2vsync.asm`, `t3mode.asm`, `t4border.asm`,
+`t5mon.asm`. Reconstruire : `./build.sh <chemin de rasm>`.
 Sugarbox les exécute tous : les valeurs ci-dessous sont celles qu'il donne aujourd'hui en CRTC 1.
 
-| # | Ligne à taper | Question | Résultat possible | Sugarbox | Résultat |
-|---|---|---|---|---|---|
-| T1 | `MEMORY &3FFF:LOAD"T1IN.BIN":CALL &4000:PRINT PEEK(&4F00)` | Une lecture du PPI à l'adresse `&74xx` écrit-elle aussi dans le Gate Array ? Le schéma n'a ni RD ni WR dans ce décodage (`U401`). | Bordure **rouge** 3 s : oui, le schéma a raison. Bordure **bleue** : non. Le nombre affiché doit valoir 76, sinon le test n'a pas lu la bonne valeur. | Bleue, 76 | |
-| T2 | `MEMORY &3FFF:LOAD"T2VSYNC.BIN":CALL &4000:PRINT PEEK(&4F00)+256*PEEK(&4F01),PEEK(&4F02)+256*PEEK(&4F03)` | Une VSYNC relancée après un nombre impair de HSYNC garde-t-elle le bit 0 de son compteur (`U809`) ? | **Deux valeurs proches** : non. **La première plus petite d'environ 6** (une ligne) : oui, le schéma a raison. | 346 et 346 | |
-| T3 | `MEMORY &3FFF:LOAD"T3MODE.BIN":CALL &4000` | Un R3.JIT déplace-t-il le changement de mode ? Le schéma dit oui de 4 pixels (`U1003`, `U1004`), le compendium dit non (9.3.4.4). | Photo à comparer à `reference/t3mode_crtc1.png`, zoomée sur le début de chaque rangée, juste après le noir à gauche. Les rangées peuvent être décalées d'un lancement à l'autre : comparer leur aspect, pas leur numéro. | Voir la référence | |
-| T4 | `MEMORY &3FFF:LOAD"T4BORDER.BIN":CALL &4000` | La bordure et l'encre changent-elles de couleur au même endroit (correctif `e2c490f`) ? | Deux bandes rouges superposées. **Bouts droits alignés** : le correctif est bon. **Décalés de 8 pixels mode 2** (la bande du bas s'arrête plus à gauche) : il faut l'annuler. | Alignés | |
-| T5 | `MEMORY &3FFF:LOAD"T5MON.BIN":CALL &4000,n` avec n = 1 à 8 | Boucle de synchro ligne du moniteur (modèle provisoire P2). Voir le détail ci-dessous. | Une photo par écran, 20 secondes chacun, **même moniteur, sans toucher au H-HOLD**, cadrée comme les photos SHAKER (tout l'écran, de face). | `reference/t5mon_<n>_crtc1.png` | |
+| Touche | # | Rubrique | Question | Résultat possible | Sugarbox | Résultat |
+|---|---|---|---|---|---|---|
+| `1` | T1 | Tous les CRTC | Une lecture du PPI à l'adresse `&74xx` écrit-elle aussi dans le Gate Array ? Le schéma n'a ni RD ni WR dans ce décodage (`U401`). | Bordure **rouge** : oui, le schéma a raison. Bordure **bleue** : non. Le menu affiche ensuite la valeur lue, qui doit valoir 76, sinon le test n'a pas lu la bonne valeur. | Bleue, 76 | |
+| `2` | T4 | Tous les CRTC | La bordure et l'encre changent-elles de couleur au même endroit (correctif `e2c490f`) ? | Deux bandes rouges superposées. **Bouts droits alignés** : le correctif est bon. **Décalés de 8 pixels mode 2** (la bande du bas s'arrête plus à gauche) : il faut l'annuler. | Alignés | |
+| `3` | T2 | CRTC 1 | Une VSYNC relancée après un nombre impair de HSYNC garde-t-elle le bit 0 de son compteur (`U809`) ? Le menu affiche les deux mesures (17 puis 18 HSYNC). | **Deux valeurs proches** : non. **La première plus petite d'environ 6** (une ligne) : oui, le schéma a raison. | 340 et 346 (346 et 346 avant `101c896` : C3h cadencé par la fin de HSYNC, P8, allonge d'une ligne la VSYNC lancée après la fin de HSYNC ; la mesure ne départage donc plus le seul `U809`, à relire avec P8) | |
+| `4` | T3 | CRTC 1 | Un R3.JIT déplace-t-il le changement de mode ? Le schéma dit oui de 4 pixels (`U1003`, `U1004`), le compendium dit non (9.3.4.4). | Photo à comparer à `reference/t3mode_crtc1.png`, zoomée sur le début de chaque rangée, juste après le noir à gauche. Les rangées peuvent être décalées d'un lancement à l'autre : comparer leur aspect, pas leur numéro. | Voir la référence | |
+| `5` à `9`, `A` à `C` | T5 | CRTC 1 | Boucle de synchro ligne du moniteur (modèle provisoire P2), écrans 1 à 8. Voir le détail ci-dessous. | Une photo par écran, 20 secondes au moins chacun, **même moniteur, sans toucher au H-HOLD**, cadrée comme les photos SHAKER (tout l'écran, de face). | `reference/t5mon_<n>_crtc1.png` | |
+
+Aucun test pour les CRTC 0, 2, 3 et 4 pour l'instant : les rubriques sont prêtes dans le menu.
 
 ### T5 : les huit écrans du moniteur
 

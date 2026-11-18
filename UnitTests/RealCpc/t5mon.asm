@@ -2,7 +2,7 @@
 ; Monitor.cpp follows a model fitted on photos of two sessions that do not agree (README, P2). Each screen
 ; of this program isolates one unknown of the model ; all the photos must come from the same monitor,
 ; without touching its H-HOLD.
-; CALL &4000,n : screen n for 20 seconds. Mode 2, rows "000102..27" (one byte = 16 Mode 2 pixels), white
+; Screen n (A = 1 to 8, from menu.asm) until a key is pressed. Mode 2, rows "000102..27" (one byte = 16 Mode 2 pixels), white
 ; paper, blue border. In a band of lines of the frame :
 ;   1 : no HSYNC, 64 lines                        free running oscillator : slant = H-HOLD
 ;   2 : no HSYNC, 200 lines
@@ -13,8 +13,6 @@
 ;   7 : 2nd C-HSYNC of 64 pixels, 112 pixels after the main one, 200 lines   does the slide to the left stop ?
 ;   8 : two more C-HSYNC of 64 pixels, 464 and 640 pixels after the main one, 64 lines  (SHAKER #00C2)
 ; The bands of 64 lines start 100 lines under the top of the screen, the bands of 200 lines 30 lines under it.
-   include 'common.asm'
-
 ; Position of the band loop in the line : NOPS before the loop. Set with the emulator so that the first
 ; I/O of the loop (R3) falls on C0 = 57.
 BASE equ 22
@@ -27,7 +25,8 @@ BASE equ 22
 ; the full C-HSYNC of 4 us, R3 = 4 gives 2 us).
 macro BAND_SCREEN pre,lines,shift,w_extra,r2_a,r2_b,r2_c,w_main
 @frame:                 ; exactly 19968 us
-   DELAY_LINES {pre}
+   DELAY_LINES {pre}-4
+   call keyscan         ; 256 us
    CRTC_WRITE 3,{w_main}   ; 14 : away from the HSYNC
    NOPS 50
    NOPS (BASE+{shift}) % 64
@@ -69,19 +68,16 @@ macro BAND_SCREEN pre,lines,shift,w_extra,r2_a,r2_b,r2_c,w_main
    DELAY_LINES 309-{pre}-{lines}-1
    DELAY_LINES 1
    endif
-   ld hl,(frames)       ; 5 + 2 + 5 + 1 + 1 + 3 = 17
-   dec hl
-   ld (frames),hl
-   ld a,h
-   or l
-   jp nz,@frame
-   jp finish
+   KEY_UP_TEST          ; 14
+   jp z,@frame           ; 3
+   jp t5_finish
 mend
 
 ; A band of 'lines' lines without HSYNC (R3 = 0 : the CRTC 1 sends none)
 macro NOSYNC_SCREEN pre,lines
 @frame:                 ; exactly 19968 us
-   DELAY_LINES {pre}
+   DELAY_LINES {pre}-4
+   call keyscan         ; 256 us
    NOPS (BASE+30) % 64
    CRTC_WRITE 3,#80     ; 14
    DELAY_LINES {lines}
@@ -95,63 +91,57 @@ macro NOSYNC_SCREEN pre,lines
    DELAY_LINES 310-{pre}-{lines}-1
    DELAY_LINES 1
    endif
-   ld hl,(frames)       ; 17
-   dec hl
-   ld (frames),hl
-   ld a,h
-   or l
-   jp nz,@frame
-   jp finish
+   KEY_UP_TEST          ; 14
+   jp z,@frame           ; 3
+   jp t5_finish
 mend
 
-   org #4000
-start:
-   or a                 ; CALL &4000,n : A = number of parameters, DE = n
-   ld a,3
-   jr z,@default
-   ld a,e
-@default:
-   dec a                ; 1 to 8, 3 otherwise
+t5_run:                 ; A = screen, 1 to 8
+   dec a
    cp 8
-   jr c,@known
+   jr c,.known
    ld a,2
-@known:
+.known:
    add a,a
    ld e,a
    ld d,0
-   ld hl,screens
+   ld hl,t5_screens
    add hl,de
    ld e,(hl)
    inc hl
    ld d,(hl)
-   ld (entry),de
+   ld (t5_entry),de
    ld a,2
    call #BC0E           ; mode 2
+   ld a,1
+   call #BB90           ; TXT SET PEN 1 (the menu leaves another pen)
+   xor a
+   call #BB96           ; TXT SET PAPER 0
    ld b,25              ; 25 rows "000102..27" ; the last character of the screen is left out (no scroll)
-@row:
+.row:
    ld c,0
-@byte:
+.byte:
    ld a,c
    rrca
    rrca
    rrca
    rrca
-   call digit
+   call t5_digit
    ld a,b
    dec a
-   jr nz,@low
+   jr nz,.low
    ld a,c
    cp 39
-   jr z,@next
-@low:
+   jr z,.next
+.low:
    ld a,c
-   call digit
-@next:
+   call t5_digit
+.next:
    inc c
    ld a,c
    cp 40
-   jr nz,@byte
-   djnz @row
+   jr nz,.byte
+   djnz .row
    di
    ld bc,#7F8E          ; mode 2, ROMs off
    out (c),c
@@ -168,44 +158,39 @@ start:
    ld bc,#7F44
    out (c),c
    ld a,(#0038)         ; interrupt : comes back at once, interrupts off
-   ld (saved),a
+   ld (t5_saved),a
    ld a,#C9
    ld (#0038),a
-   ld hl,1000
-   ld (frames),hl
    WAIT_VSYNC_RISE      ; line 240
    DELAY_LINES 10
    ld bc,#7F9E          ; interrupt counter of the GATE ARRAY to 0, no interrupt waiting : the next one
    out (c),c            ; comes at the end of the 52nd HSYNC from here, 10 lines before the top of the screen
    ei
    halt                 ; the frame loop starts on a known microsecond of the line
-   ld hl,(entry)        ; the same time for every screen
+   ld hl,(t5_entry)     ; the same time for every screen
    jp (hl)
 
-screen1: NOSYNC_SCREEN 110,64
-screen2: NOSYNC_SCREEN 40,200
-screen3: BAND_SCREEN 110,64,0,#86,11,46,46,#86
-screen4: BAND_SCREEN 40,200,0,#86,11,46,46,#86
-screen5: BAND_SCREEN 110,64,0,#84,11,46,46,#86
-screen6: BAND_SCREEN 110,64,0,#86,11,46,46,#84
-screen7: BAND_SCREEN 40,200,22,#86,46,46,53,#86
-screen8: BAND_SCREEN 110,64,0,#86,11,22,46,#86
+t5_screen1: NOSYNC_SCREEN 110,64
+t5_screen2: NOSYNC_SCREEN 40,200
+t5_screen3: BAND_SCREEN 110,64,0,#86,11,46,46,#86
+t5_screen4: BAND_SCREEN 40,200,0,#86,11,46,46,#86
+t5_screen5: BAND_SCREEN 110,64,0,#84,11,46,46,#86
+t5_screen6: BAND_SCREEN 110,64,0,#86,11,46,46,#84
+t5_screen7: BAND_SCREEN 40,200,22,#86,46,46,53,#86
+t5_screen8: BAND_SCREEN 110,64,0,#86,11,22,46,#86
 
-finish:
-   ld a,(saved)
+t5_finish:
+   ld a,(t5_saved)
    ld (#0038),a
-   BACK_TO_BASIC
+   ret
 
-digit:                  ; prints the low digit of A in hexadecimal
+t5_digit:               ; prints the low digit of A in hexadecimal
    and 15
    add a,#90
    daa
    adc a,#40
    daa
    jp #BB5A
-entry: dw 0
-screens: dw screen1,screen2,screen3,screen4,screen5,screen6,screen7,screen8
-saved: db 0
-frames: dw 0
-end:
-   save 'T5MON.BIN',start,end-start,DSK,'realcpc.dsk'
+t5_entry: dw 0
+t5_screens: dw t5_screen1,t5_screen2,t5_screen3,t5_screen4,t5_screen5,t5_screen6,t5_screen7,t5_screen8
+t5_saved: db 0
