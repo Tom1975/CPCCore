@@ -105,8 +105,14 @@ void CRTC::ClockTick1 ()
             adjust_ = true;
             vertical_adjust_counter_ = 0;
          }
-         else
+         else if (c4_eq_r4 && c9_eq_r9)
          {
+            // Without additional line, C4 returns to 0 only if the comparators still give the last line on this edge :
+            // R4 (or R9) moved away during the character C0 = R0 cancels the frame end. Measured on a real CRTC 1
+            // (RealCpc README, P1, 2026-11-18) : R5 = 0, R4 = 38 -> 39 written with its I/O on C0 = 60 to 63 (= R0)
+            // gives one more row, on C0 = 0 of the next line it does not. With R5 > 0 the additional management is
+            // decided on the start of C0 = R0 (SHAKER E R5 STORIES 2, R5 = 20, R4 = 50 on C0 = #3F : no effect,
+            // photographed on the same machine). PROVISIONAL : two decisions on two positions, from two measures.
             new_frame = true;
          }
       }

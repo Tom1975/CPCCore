@@ -1833,8 +1833,10 @@ TEST(Compendium_13, Crtc1RfdByR0LengthenedWithR9MovedTakesTheOffset)
    EXPECT_EQ(crtc.registers_list_[13] + ((crtc.registers_list_[12] & 0x3F) << 8), crtc.ma_);
 }
 
-// 12.3 : R4 = 0 written on the last line makes C4 overflow ; written when C0
-// reached R0 the frame end is already decided (11.2.4). SAFETY NET.
+// 12.3 : R4 = 0 written on the last line makes C4 overflow. With R5 = 0 also during the character C0 = R0 : the
+// frame end needs C4 == R4 on the line end edge. Measured on a real CRTC 1 (RealCpc README, P1, 2026-11-18 : R4 = 39
+// written on C0 = 60 to 63 gives one more row, on C0 = 0 of the next line it does not). 11.2.4 says the state is
+// sampled when C0 reaches R0 : kept for the additional management (R5 > 0, SHAKER E R5 STORIES 2).
 TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)
 {
    {
@@ -1851,7 +1853,17 @@ TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)
       ASSERT_TRUE(ReachLine(crtc, 38, 7));
       AdvanceUntilHccEquals(crtc, 63);
       WriteRegister(crtc, 4, 0);
-      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      EXPECT_EQ(Line(39, 0), NextLine(crtc));
+   }
+   {
+      // R5 > 0 : the additional management was decided on the start of C0 = R0
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 2, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 4, 0);
+      EXPECT_EQ(Line(39, 0), NextLine(crtc));
+      EXPECT_TRUE(crtc.adjust_);
    }
 }
 
