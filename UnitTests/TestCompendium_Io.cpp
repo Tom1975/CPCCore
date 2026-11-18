@@ -405,6 +405,57 @@ TEST(Compendium_12, Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier)
 
 namespace
 {
+// PSG register 0 = value through the PPI port A, port A then an input and the PSG in read mode : an IN on &7400
+// selects the PPI port A (A11 = 0) and the GATE ARRAY (A15 = 0, A14 = 1), and reads the PSG register 0. Optionally
+// the border selected first. The value read is stored at kResult.
+void InOnThePpiAndTheGateArray(Machine& m, unsigned char value, bool border_first)
+{
+   std::vector<unsigned char> p = { z80::kDi };
+   if (border_first) z80::Append(p, z80::OutGateArray(0x10));
+   z80::Append(p, z80::Out(0xF700, 0x82));   // PPI port A output
+   z80::Append(p, z80::Out(0xF400, 0x00));   // PSG register 0
+   z80::Append(p, z80::Out(0xF600, 0xC0));
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF400, value));
+   z80::Append(p, z80::Out(0xF600, 0x80));   // PSG write
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF700, 0x92));   // PPI port A input
+   z80::Append(p, z80::Out(0xF600, 0x40));   // PSG read
+   z80::Append(p, z80::In(0x7400, kResult));
+   const unsigned short end = (unsigned short)(kProgram + p.size());
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   ASSERT_GE(m.CyclesUntil([&]() { return m.Cpu().pc_ == end; }, 4 * 400), 0);
+   for (int i = 0; i < 4 * 8; ++i) m.Cycle();   // the LD (nn),A ends
+}
+}
+
+// 4.4 against the GATE ARRAY 40010 : its registers are strobed without RD nor WR (40010-simplified, sheet Registers,
+// U401), so an IN that selects it writes it with the byte on the bus. Measured on a real CPC (RealCpc README, T1,
+// 2026-11-18) : IN A,(C) on &7400 reads #4C from the PSG through the PPI, and the border turns bright red. The
+// compendium (4.4) says a read is not taken by the GATE ARRAY.
+TEST(Compendium_4, InOnThePpiAndTheGateArrayWritesTheGateArray)
+{
+   {
+      // #10 : PENR, the border selected
+      Machine m(CRTC::UM6845R);
+      m.Ga().pen_r_ = 0;
+      InOnThePpiAndTheGateArray(m, 0x10, false);
+      EXPECT_EQ(0x10, m.Ram()[kResult]);
+      EXPECT_EQ(0x10, m.Ga().pen_r_);
+   }
+   {
+      // #4C : INKR, bright red on the border
+      Machine m(CRTC::UM6845R);
+      InOnThePpiAndTheGateArray(m, 0x4C, true);
+      EXPECT_EQ(0x4C, m.Ram()[kResult]);
+      EXPECT_TRUE(m.Ga().border_reg_ == 0x4C || (m.Ga().buffered_ink_available_ && m.Ga().buffered_ink_reg_ == 0x4C
+                                                  && m.Ga().buffered_pen_ == 0x10));
+   }
+}
+
+namespace
+{
 // R0 = 19 (lines of 20 us), then 'io' writes R0 = 63 after 'nops' NOP : returns C0 on the microsecond the CRTC takes
 // the write, or -1.
 int C0WhenR0IsWritten(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& io, int nops)

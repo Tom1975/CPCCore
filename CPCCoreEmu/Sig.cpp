@@ -271,6 +271,19 @@ void CSig::In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode
        data_bus_->SetBus( (unsigned char)memory_->GetLastValueRead()  ); // 0x76 on 464 / 0x79 on 6128 todo
       asic_->In(a, address_);
    }
+   else if (int_mode_0 == false && (address_ & 0xC000) == 0x4000 && (*a & 0xC0) != 0xC0)
+   {
+      // GATE ARRAY 40010 : its registers are strobed by A15 = 0, A14 = 1, IORQ low and M1 high, neither RD nor WR
+      // (40010-simplified, sheet Registers, U401) : an IN that selects it gives it the byte on the data bus, as a
+      // write. Measured on a real CPC (UnitTests/RealCpc/README.md, T1, 2026-11-18) : IN A,(C) with BC = &7400 reads
+      // the PSG register 0 (#4C) through the PPI port A, and the border turns bright red. Compendium 4.4 says the
+      // opposite ("une lecture sur ce circuit n'est pas prise en compte"). The RAM configuration (#C0 to #FF) is
+      // decoded by the PAL of the 6128, not by the 40010 : not known, a read leaves it (and an IN that reads nothing,
+      // the bus at #FF, then has no effect).
+      address_bus_->SetBus(address_);
+      data_bus_->SetBus(*a);
+      vga_->TickIO();
+   }
 
    if ( (int_mode_0 == false)) // TODO !!!!
       for (int i = 0; i < nb_expansion_; i++)
