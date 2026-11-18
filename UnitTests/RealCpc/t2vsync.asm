@@ -6,11 +6,21 @@
 ; interrupt. Time from the second VSYNC to that interrupt, in steps of 10 us (6.4 steps = 1 line).
 ; t2_odd : 17 HSYNC, t2_even : 18 HSYNC.
 ; Both about the same (about 345) : the bit 0 has no effect. The first about 6 less : it has one.
-; Included by menu.asm. The IM 2 table is at #7000 and the interrupt code, which sets t2_flag, at #7171 (menu.asm).
+; Included by menu.asm. The IM 2 table is built at #9000 (257 bytes #91) and the interrupt code, which sets t2_flag,
+; copied to #9191 : the vector is #9191 whatever the data bus.
 t2_run:
    di
+   ld hl,#9000          ; IM 2 table
+   ld de,#9001
+   ld bc,256
+   ld (hl),#91
+   ldir
+   ld hl,t2_interrupt   ; its code at #9191
+   ld de,#9191
+   ld bc,t2_interrupt_end-t2_interrupt
+   ldir
    im 2
-   ld a,#70
+   ld a,#90
    ld i,a
    ld a,18              ; the first measure is not stable (R52 before the first VSYNC) : not kept
    call t2_measure
@@ -55,6 +65,15 @@ t2_count:               ; 10 us
    di
    CRTC_WRITE 7,30
    ret
+
+t2_interrupt:           ; copied to #9191
+   push af
+   ld a,1
+   ld (t2_flag),a
+   pop af
+   ei
+   ret
+t2_interrupt_end:
 
 t2_lines: db 0
 t2_flag:  db 0

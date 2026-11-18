@@ -1,10 +1,13 @@
 ; MENU : the real CPC tests of README.md, part 1. RUN"MENU" from realcpc.dsk (built by build.sh).
-; The menu shows the CRTC found (compendium 28.1.9) and the tests sorted by CRTC type. A test runs until a key is
-; pressed, then the menu comes back with its result, if it has one.
+; The menu shows the CRTC found (compendium 28.1.9) and the tests sorted by CRTC type. A screen test runs until a key
+; is pressed ; a measure shows its result page, then a key brings the menu back.
    include 'common.asm'
    org #4000
    run start
 start:
+   ifdef AUTO
+   jp auto_loop
+   endif
    call detect_crtc
    ld (crtc_type),a
 menu:
@@ -23,7 +26,7 @@ menu:
    jr z,.read           ; not a key of the menu
    cp c
    jr z,.found
-   ld de,5
+   ld de,6
    add hl,de
    jr .find
 .found:
@@ -36,10 +39,28 @@ menu:
    ld (param),a
    inc hl
    ld a,(hl)
-   ld (result),a
+   inc hl
+   ld h,(hl)
+   ld l,a
+   ld (show_addr),hl
    ld (test_addr),de
    call run_test
-   jp menu
+   ld hl,(show_addr)    ; result page, if any
+   ld a,h
+   or l
+   jp z,menu
+   ld a,1
+   call #BC0E           ; SCR SET MODE (HL is lost)
+   ld hl,(show_addr)
+   ld de,menu
+   push de              ; the page returns to the menu once a key is pressed
+   ld de,result_wait
+   push de
+   jp (hl)
+result_wait:
+   ld hl,txt_key
+   call print_str
+   jp #BB06             ; KM WAIT CHAR
 
 ; Runs the test at test_addr with A = param, once the key of the menu is up, then puts the firmware back
 run_test:
@@ -50,10 +71,13 @@ run_test:
    ld hl,(test_addr)
    call .jump
    di
-   CRTC_WRITE 1,40      ; standard CRTC values the tests change
+   CRTC_WRITE 0,63      ; standard CRTC values the tests change
+   CRTC_WRITE 1,40
    CRTC_WRITE 2,46
    CRTC_WRITE 3,#8E
+   CRTC_WRITE 4,38
    CRTC_WRITE 7,30
+   CRTC_WRITE 9,7
    ld bc,#7F85          ; mode 1, ROMs as the firmware expects them
    out (c),c
    call wait_release
@@ -177,6 +201,8 @@ show_menu:
 .sections:
    ld hl,txt_all
    call print_str
+   ld hl,txt_tests_all
+   call print_str
    ld a,'0'
    ld hl,txt_crtc0
    call section
@@ -192,14 +218,9 @@ show_menu:
    ld hl,txt_crtc34
    call section
    ld hl,txt_help
-   call print_str
-   ld a,(result)
-   cp 1
-   jr z,.t1
-   cp 2
-   jr z,.t2
-   ret
-.t1:
+   jp print_str
+
+t1_show:
    ld hl,txt_res_t1
    call print_str
    ld a,(t1_value)
@@ -208,7 +229,8 @@ show_menu:
    call print_dec
    ld hl,txt_res_t1b
    jp print_str
-.t2:
+
+t2_show:
    ld hl,txt_res_t2
    call print_str
    ld hl,(t2_odd)
@@ -275,75 +297,109 @@ print_dec:              ; HL in decimal, no leading zeros
    ld e,1
    jp #BB5A
 
+print_hex:              ; A in hexadecimal, 2 digits
+   push af
+   rrca
+   rrca
+   rrca
+   rrca
+   call .digit
+   pop af
+.digit:
+   and 15
+   add a,#90
+   daa
+   adc a,#40
+   daa
+   jp #BB5A
+
+   include 'sync.asm'
    include 't1in.asm'
    include 't2vsync.asm'
    include 't3mode.asm'
    include 't4border.asm'
    include 't5mon.asm'
+   include 'p1last.asm'
+   include 'p8vsync.asm'
+   include 'fdcrqm.asm'
 
-; key, test, parameter (A), result shown in the menu (1 : T1, 2 : T2, 0 : none)
+; Calibration with the emulator (calib.asm) : the test AUTO runs again and again, no menu
+   ifdef AUTO
+auto_loop:
+   if AUTO == 1
+   call p1_run
+   endif
+   if AUTO == 2
+   call p8_run
+   endif
+   if AUTO == 3
+   call fdc_run
+   endif
+   jr auto_loop
+   endif
+
+; key, test, parameter (A), result page (0 : none)
 entries:
-   db '1' : dw t1_run : db 0,1
-   db '2' : dw t4_run : db 0,0
-   db '3' : dw t2_run : db 0,2
-   db '4' : dw t3_run : db 0,0
-   db '5' : dw t5_run : db 1,0
-   db '6' : dw t5_run : db 2,0
-   db '7' : dw t5_run : db 3,0
-   db '8' : dw t5_run : db 4,0
-   db '9' : dw t5_run : db 5,0
-   db 'A' : dw t5_run : db 6,0
-   db 'B' : dw t5_run : db 7,0
-   db 'C' : dw t5_run : db 8,0
-   db 'Q' : dw quit : db 0,0
+   db '1' : dw t1_run : db 0 : dw t1_show
+   db '2' : dw t4_run : db 0 : dw 0
+   db '3' : dw fdc_run : db 0 : dw fdc_show
+   db '4' : dw t2_run : db 0 : dw t2_show
+   db '5' : dw t3_run : db 0 : dw 0
+   db '6' : dw p1_run : db 0 : dw p1_show
+   db '7' : dw p8_run : db 0 : dw p8_show
+   db '8' : dw t5_run : db 1 : dw 0
+   db '9' : dw t5_run : db 2 : dw 0
+   db 'A' : dw t5_run : db 3 : dw 0
+   db 'B' : dw t5_run : db 4 : dw 0
+   db 'C' : dw t5_run : db 5 : dw 0
+   db 'D' : dw t5_run : db 6 : dw 0
+   db 'E' : dw t5_run : db 7 : dw 0
+   db 'F' : dw t5_run : db 8 : dw 0
+   db 'Q' : dw quit : db 0 : dw 0
    db 0
 
 ; Texts : 15,n = pen n ; 13,10 = new line. 39 characters at most per line.
 txt_title:     db 15,1,"TESTS SUR VRAI CPC",13,10,"CRTC DETECTE : ",0
 txt_three_four: db "3 OU 4",0
-txt_all:       db 13,10,13,10,15,2,"TOUS LES CRTC",13,10
-               db 15,1," 1  T1  IN &74xx : PPI ET GATE ARRAY",13,10
-               db " 2  T4  BORDER ET ENCRE",13,10,0
+txt_all:       db 13,10,13,10,15,2,"TOUS LES CRTC",13,10,0
+txt_tests_all: db 15,1," 1  T1  IN &74xx : PPI ET GATE ARRAY",13,10
+               db " 2  T4  BORDER ET ENCRE",13,10
+               db " 3  FDC RQM ENTRE OCTETS DE RESULTAT",13,10,0
 txt_crtc0:     db "CRTC 0 : AUCUN TEST",0
 txt_crtc1:     db "CRTC 1",0
-txt_tests1:    db 15,1," 3  T2  VSYNC APRES 17 OU 18 HSYNC",13,10
-               db " 4  T3  MODE ET R3.JIT",13,10
-               db " 5  T5  MONITEUR 1 : 64 L SANS HSYNC",13,10
-               db " 6  T5  MONITEUR 2 : 200 L SANS HSYNC",13,10
-               db " 7  T5  MONITEUR 3 : HSYNC +464, 64 L",13,10
-               db " 8  T5  MONITEUR 4 : HSYNC +464, 200 L",13,10
-               db " 9  T5  MONITEUR 5 : 2E HSYNC 32 PX",13,10
-               db " A  T5  MONITEUR 6 : PRINCIPALE 32 PX",13,10
-               db " B  T5  MONITEUR 7 : HSYNC +112, 200 L",13,10
-               db " C  T5  MONITEUR 8 : 2 HSYNC EN PLUS",13,10,0
+txt_tests1:    db 15,1," 4  T2  VSYNC APRES 17 OU 18 HSYNC",13,10
+               db " 5  T3  MODE ET R3.JIT",13,10
+               db " 6  P1  ECHANTILLON DERNIERE LIGNE",13,10
+               db " 7  P8  COMPTEUR DE LIGNES VSYNC",13,10
+               db " 8  T5  MONITEUR 1 : 64 L SANS HSYNC",13,10
+               db " 9  T5  MONITEUR 2 : 200 L SANS HSYNC",13,10
+               db " A  T5  MONITEUR 3 : HSYNC +464, 64 L",13,10
+               db " B  T5  MONITEUR 4 : HSYNC +464, 200 L",13,10
+               db " C  T5  MONITEUR 5 : 2E HSYNC 32 PX",13,10
+               db " D  T5  MONITEUR 6 : PRINCIPALE 32 PX",13,10
+               db " E  T5  MONITEUR 7 : HSYNC +112, 200 L",13,10
+               db " F  T5  MONITEUR 8 : 2 HSYNC EN PLUS",13,10,0
 txt_crtc2:     db "CRTC 2 : AUCUN TEST",0
 txt_crtc34:    db "CRTC 3 ET 4 : AUCUN TEST",0
 txt_found:     db " <== CE CPC",0
 txt_newline:   db 13,10,0
-txt_help:      db 13,10,15,1,"UNE TOUCHE ARRETE LE TEST. Q : BASIC",13,10,13,10,15,2,0
-txt_res_t1:    db "T1 : LU ",0
+txt_help:      db 13,10,15,1,"UNE TOUCHE ARRETE L'ECRAN.  Q : BASIC",0
+txt_key:       db 13,10,13,10,15,2,"UNE TOUCHE : MENU",0
+txt_res_t1:    db 15,2,"T1 : IN &7400",13,10,13,10,15,1,"VALEUR LUE ",0
 txt_res_t1b:   db " (76 ATTENDU)",0
-txt_res_t2:    db "T2 : 17 HSYNC ",0
-txt_res_t2b:   db ", 18 HSYNC ",0
+txt_res_t2:    db 15,2,"T2 : VSYNC APRES 17 OU 18 HSYNC",13,10,13,10,15,1,"17 HSYNC : ",0
+txt_res_t2b:   db 13,10,"18 HSYNC : ",0
 
 crtc_type: db 0
 key:       db 0
 param:     db 0
-result:    db 0
 test_addr: dw 0
-   assert $ <= #7000
+show_addr: dw 0
+   assert $ <= #9000    ; T2 builds its IM 2 table at #9000 (t2vsync.asm)
 
-; IM 2 table of T2 : the vector is #7171 whatever the data bus. Sets t2_flag.
-   org #7000
-   repeat 257
-   db #71
-   rend
-   org #7171
-   push af
-   ld a,1
-   ld (t2_flag),a
-   pop af
-   ei
-   ret
 end:
+   ifdef AUTO
+   save 'MENU.BIN',start,end-start,DSK,'calib.dsk'
+   else
    save 'MENU.BIN',start,end-start,DSK,'realcpc.dsk'
+   endif
