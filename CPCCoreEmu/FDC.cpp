@@ -122,6 +122,8 @@ FDC::FDC(void) : load_progress_(-1)
    start_dio_ = false;
    start_dio_pending_ = false;
    data_service_ticks_ = 0;
+   result_gap_ = 0;
+   result_last_ = false;
 
    for (int i = 0; i < NB_COMMAND_MAX; i++)
    {
@@ -338,6 +340,7 @@ void FDC::Out (unsigned short addr, unsigned char data)
          delay_for_instruction_ = DELAY_INSTR;
          rqm_ = false;
          time_ = 0;
+         result_gap_ = 0;   // a command written before the end of the result gap takes over
 
          switch (fdc_command_[data&0x1F].seek_cmd)
          {
@@ -563,20 +566,20 @@ unsigned char FDC::In ( unsigned short Addr_P )
                LOGB(data_register_);
             }
          }
+         // RQM falls on the read and comes back about 16 us later (FDC::Tick, result_gap_). Measured on a real CPC
+         // (RealCpc README, FDC, 2026-11-18) : READ ID, the main status 5, 9, 13, 17, 21 us after each result byte :
+         // 50 10 10 50 D0 (DIO down from about 8 us, back about 16 us, RQM about 18 us), after the last one
+         // 50 10 90 80 80 (command phase with RQM from about 12 us, busy down about 16 us). The uPD765 datasheet and
+         // 64nops give no time : PROVISIONAL, from this measure only.
+         rqm_ = false;
+         result_gap_ = 1;
+         result_last_ = (results_count_ == 0);
          if ( results_count_ == 0)
          {
             if (current_command_ != C_SENSE_INT_STATE)
             {
                LOGEOL;
             }
-
-            // special case : If Seekend but no seek command, dont do this
-            // After a while, reset m_bSeekEnd
-            if ( time_ == 0) //!m_bSeekEnd  || (m_bSeekCmd))
-               cb_ = false;
-            // if (!m_bSeekEnd) // FAUX !
-            rqm_ = true;
-            dio_ = false;
             //interrupt_occured_ = false;
             state_ = INSTRUCTION;
          }
@@ -964,6 +967,31 @@ unsigned int FDC::Tick( )
       && fdc_command_[index_fdc_command_].transfer_type == READ)
    {
       or_ = true;
+   }
+
+   // Result byte read : RQM and DIO come back as measured (see FDC::In), one tick = 2 us
+   if (result_gap_ > 0)
+   {
+      ++result_gap_;
+      if (result_gap_ == 5)
+      {
+         dio_ = false;
+      }
+      if (!result_last_)
+      {
+         if (result_gap_ == 9) dio_ = true;
+         if (result_gap_ == 10) { rqm_ = true; result_gap_ = 0; }
+      }
+      else
+      {
+         if (result_gap_ == 7) rqm_ = true;
+         if (result_gap_ == 9)
+         {
+            // special case : If Seekend but no seek command, dont do this
+            if (time_ == 0) cb_ = false;
+            result_gap_ = 0;
+         }
+      }
    }
 
    if (delay_for_instruction_>0)

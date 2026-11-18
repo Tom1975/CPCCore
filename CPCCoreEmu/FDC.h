@@ -290,6 +290,8 @@ protected:
    bool start_dio_;                    // DIO of the command, set once EXM is up (status #30 then #70)
    bool start_dio_pending_;
    unsigned int data_service_ticks_;   // FDC ticks left to read the offered data byte
+   unsigned int result_gap_;           // FDC ticks since a result byte was read (0 : none), RQM down meanwhile
+   bool result_last_;                  // that byte was the last result byte
    void StartExecution();
 
    // Definition of commands

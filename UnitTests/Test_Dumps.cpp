@@ -1031,7 +1031,8 @@ TEST(Dumps_Disk, Prof_Detective)
 {
    TestDump test_dump;
    CommandList cmd_list;
-   cmd_list.AddCommand(new CommandRunCycles(350));
+   // 360 : the FDC lowers RQM after each result byte (FDC.cpp, real CPC), the menu comes a little later
+   cmd_list.AddCommand(new CommandRunCycles(360));
    // move joystick upn "play"
    cmd_list.AddCommand(new CommandJoystick(0, 2));
    cmd_list.AddCommand(new CommandRunCycles(495));
