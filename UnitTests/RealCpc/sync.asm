@@ -8,16 +8,20 @@ int_patch:              ; #0038 = RET, ROMs off (the RAM under the lower ROM is 
    di
    ld bc,#7F8D          ; mode 1, ROMs off
    out (c),c
-   ld a,(#0038)
-   ld (int_saved),a
+   ld hl,#0038          ; the 4 bytes at #0038 (synctest.asm writes a POP HL, JP there)
+   ld de,int_saved
+   ld bc,4
+   ldir
    ld a,#C9
    ld (#0038),a
    ret
 
 int_restore:
    di
-   ld a,(int_saved)
-   ld (#0038),a
+   ld hl,int_saved
+   ld de,#0038
+   ld bc,4
+   ldir
    ret
 
 sync_frame:
@@ -57,4 +61,4 @@ count_to_vsync_fall:
    jr c,.high           ; 3
    ret
 
-int_saved: db 0
+int_saved: ds 4

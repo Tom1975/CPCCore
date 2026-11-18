@@ -322,6 +322,7 @@ print_hex:              ; A in hexadecimal, 2 digits
    include 'p1last.asm'
    include 'p8vsync.asm'
    include 'fdcrqm.asm'
+   include 'synctest.asm'
 
 ; Calibration with the emulator (calib.asm) : the test AUTO runs again and again, no menu
    ifdef AUTO
@@ -335,11 +336,15 @@ auto_loop:
    if AUTO == 3
    call fdc_run
    endif
+   if AUTO == 4
+   call sync_run
+   endif
    jr auto_loop
    endif
 
 ; key, test, parameter (A), result page (0 : none)
 entries:
+   db '0' : dw sync_run : db 0 : dw sync_show
    db '1' : dw t1_run : db 0 : dw t1_show
    db '2' : dw t4_run : db 0 : dw 0
    db '3' : dw fdc_run : db 0 : dw fdc_show
@@ -361,8 +366,9 @@ entries:
 ; Texts : 15,n = pen n ; 13,10 = new line. 39 characters at most per line.
 txt_title:     db 15,1,"TESTS SUR VRAI CPC",13,10,"CRTC DETECTE : ",0
 txt_three_four: db "3 OU 4",0
-txt_all:       db 13,10,13,10,15,2,"TOUS LES CRTC",13,10,0
-txt_tests_all: db 15,1," 1  T1  IN &74xx : PPI ET GATE ARRAY",13,10
+txt_all:       db 13,10,15,2,"TOUS LES CRTC",13,10,0
+txt_tests_all: db 15,1," 0  SYNC  CALAGE DES PROGRAMMES (HALT)",13,10
+               db " 1  T1  IN &74xx : PPI ET GATE ARRAY",13,10
                db " 2  T4  BORDER ET ENCRE",13,10
                db " 3  FDC RQM ENTRE OCTETS DE RESULTAT",13,10,0
 txt_crtc0:     db "CRTC 0 : AUCUN TEST",0

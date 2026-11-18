@@ -11,7 +11,10 @@
 ; (c) R7=20 written on the line C4=20, C9=0 (the VSYNC starts at once), its I/O on C0=#10 (before the HSYNC) then
 ;     on C0=#3C (after its end) : steps of 10 us from the write to the end of the VSYNC. Compendium 16.4.2 : 16 lines
 ;     minus C0+1 in both cases (about 100, then 96) ; Sugarbox : 101, then 103 (one line more after the HSYNC).
-; Results : p8_ref, p8_r0, p8_still, p8_rest, p8_c10, p8_c3c. Included by menu.asm.
+;(d) As (a), R0=0 during 10, 14, 18 ... 38 us : about 100 while the VSYNC goes on after it, about 1850 once it
+;     ended during R0=0. SHAKER #008D (18 us : the VSYNC goes on) and (a) (40 us : ended) : the first 1850 tells
+;     how fast C3h counts the lines of 1 us (one line each us : from about 17 us ; one of two : about 33 us).
+; Results : p8_ref, p8_r0, p8_still, p8_rest, p8_c10, p8_c3c, p8_d (8 words). Included by menu.asm.
 
 P8A_LINES equ 248         ; set with the emulator : I/O of R0 on C4=29, C9=7, C0=0
 P8A_NOPS  equ 43
@@ -28,6 +31,21 @@ macro P8A_RUN value,result
    out (c),c
    NOPS 33
    ld bc,#BD3F          ; R0 = 63, 40 us after the first I/O
+   out (c),c
+   call count_to_vsync_fall
+   ld ({result}),de
+mend
+
+macro P8D_RUN us,result
+   call sync_frame
+   ld bc,#BC00          ; R0 selected
+   out (c),c
+   DELAY_LINES P8A_LINES
+   NOPS P8A_NOPS
+   ld bc,#BD00          ; R0 = 0
+   out (c),c
+   NOPS {us}-7
+   ld bc,#BD3F          ; R0 = 63, us after the first I/O
    out (c),c
    call count_to_vsync_fall
    ld ({result}),de
@@ -73,6 +91,15 @@ p8_run:
    ; (c)
    P8C_RUN #10,p8_c10
    P8C_RUN #3C,p8_c3c
+   ; (d)
+   P8D_RUN 10,p8_d
+   P8D_RUN 14,p8_d+2
+   P8D_RUN 18,p8_d+4
+   P8D_RUN 22,p8_d+6
+   P8D_RUN 26,p8_d+8
+   P8D_RUN 30,p8_d+10
+   P8D_RUN 34,p8_d+12
+   P8D_RUN 38,p8_d+14
    jp int_restore
 
 ; Result page
@@ -105,7 +132,34 @@ p8_show:
    ld hl,p8_txt_c2
    call print_str
    ld hl,(p8_c3c)
-   jp print_dec
+   call print_dec
+   ld hl,p8_txt_d
+   call print_str
+   ld hl,p8_d
+   ld b,8
+.d:
+   push bc
+   ld e,(hl)
+   inc hl
+   ld d,(hl)
+   inc hl
+   push hl
+   ex de,hl
+   call print_dec
+   ld a,' '
+   call #BB5A
+   pop hl
+   pop bc
+   ld a,b
+   cp 5
+   jr nz,.next
+   push hl
+   ld hl,p8_txt_d2
+   call print_str
+   pop hl
+.next:
+   djnz .d
+   ret
 
 p8_txt_a:  db 15,2,"P8 : COMPTEUR DE LIGNES VSYNC CRTC 1",13,10,13,10,15,1
            db "(A) REFERENCE : ",0
@@ -116,6 +170,8 @@ p8_txt_no:  db "NON",0
 p8_txt_b2: db 13,10,"    PUIS : ",0
 p8_txt_c:  db 13,10,13,10,"(C) R7 SUR C0=#10 : ",0
 p8_txt_c2: db 13,10,"    R7 SUR C0=#3C : ",0
+p8_txt_d:  db 13,10,13,10,"(D) R0=0 10 14 18 22 / 26 30 34 38 US :",13,10,"    ",0
+p8_txt_d2: db 13,10,"    ",0
 
 p8_ref:   dw 0
 p8_r0:    dw 0
@@ -123,3 +179,4 @@ p8_still: db 0
 p8_rest:  dw 0
 p8_c10:   dw 0
 p8_c3c:   dw 0
+p8_d:     ds 16
