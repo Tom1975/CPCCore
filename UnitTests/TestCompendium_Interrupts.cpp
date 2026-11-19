@@ -469,3 +469,24 @@ TEST(Compendium_27, InterruptOnTheLastTCycleOfEachInstruction)
          EXPECT_EQ(asic ? o.crtc34 : o.crtc012, positions);
       }
 }
+
+// Disquettes de test (CLAUDESTRAD, 2026-11-19), photos of real CPCs : INTPOS, INTPOS2, INTPOS3, INTREP, HALTPOS. On a
+// CRTC 1 (with or without M4), a chain of LD A,(nn) misses the interrupt at one of its 4 alignments, which the CRTC 2
+// takes : INTREP "LD A,(nn)" 64 65 66 67 on CRTC 1, 64 65 66 63 on CRTC 2. INC HL, LD (HL),A, LD A,R, NOP, EX (SP),HL :
+// the same on both, and as here. Sugarbox gives 2 3 4 5 on CRTC 0, 1, 2 ; the CRTC 1 needs 3 4 5 6 (the alignment of
+// C0 = 2 takes the interrupt one instruction, 4 us, later). Its HSYNC pin falls 1 pixel later than on CRTC 0, 2
+// (HSyncPinEdge) : that is enough only if the last read of LD A,(nn) samples INT between the pixels 4 and 5, while CP (HL)
+// and DEC DE (#02E3) sample on the T-state starts. No model explains both : not forced, measures asked (RealCpc README,
+// part 0, "INT CRTC 1"). CRTC 0 : only photos with an M4 (it delays INT), which give 3 4 5 6 too.
+TEST(Compendium_27, DISABLED_Crtc1LdANnMissesTheInterruptAtOneAlignment)
+{
+   const std::vector<unsigned char> ld_a_nn = { 0x3A, 0x00, 0x80 };
+   std::set<int> crtc1, crtc2;
+   for (int nops = 0; nops < 4; ++nops)
+   {
+      crtc1.insert(AcknowledgeOnAChainOf(CRTC::UM6845R, "6128", ld_a_nn, nops));
+      crtc2.insert(AcknowledgeOnAChainOf(CRTC::MC6845, "6128", ld_a_nn, nops));
+   }
+   EXPECT_EQ((std::set<int>{ 3, 4, 5, 6 }), crtc1);
+   EXPECT_EQ((std::set<int>{ 2, 3, 4, 5 }), crtc2);
+}

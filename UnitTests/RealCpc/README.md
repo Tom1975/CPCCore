@@ -13,6 +13,11 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 - [ ] **`7` P8** : relancer 2 fois pour voir si (C) `99` est stable.
 - [ ] **`2` T4** : photo en plan serré sur les bouts des deux bandes rouges.
 - [ ] **`5` T3** : photo zoomée sur le début de chaque rangée, juste après le noir à gauche.
+- [ ] **INT CRTC 1** (disquettes_test, test `Compendium_27.DISABLED_Crtc1LdANnMissesTheInterruptAtOneAlignment`) : sur CRTC 1,
+  `LD A,(nn)` rate l'interruption à un des 4 calages (INTREP 64 65 66 **67**, CRTC 2 : 63), les autres instructions non.
+  À faire : `INTPOS` et `INTREP` sur le **CRTC 0 sans M4** ; puis un INTREP avec `CP (HL)`, `LD A,(HL)`, `LD HL,(nn)`,
+  `LD A,(nn)` sur CRTC 1 et CRTC 2 (programme à écrire), pour savoir quelles instructions finissant par une lecture
+  ratent l'interruption.
 - [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
 - [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
 - [ ] SHAKER B `I`, 5 espaces (`#01E3`).
