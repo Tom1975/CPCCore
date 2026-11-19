@@ -26,6 +26,12 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   casse 11 tests disque, dont 2 chargeurs qui retombent au BASIC (Hercule II, Little Puff) : une autre approximation du
   FDC (premier pas immédiat « CHEAT », délai commande -> résultat) compense l'ancien pas trop rapide. À reprendre avec la
   mesure FDCTEST2.
+  *Suite (2026-11-19)* : avec en plus un délai du résultat de SENSE INTERRUPT (34 pas de 2 µs ; au-delà, palier : RQM revient
+  par `delay_for_instruction_` à 60 µs), SEEKJIT4 colle (82 170 347 700 1406 2817 contre 97 184 ~350 700 1388 2764) et Little
+  Puff, Catch 23 repassent. Hercule II : dans Explore, ses échanges FDC sont identiques à l'ancien pas, mais un ESPACE
+  pressé à 600, 700, 740 ou 1100 tranches ramène au BASIC (à 650, 720, 760, 800, 900, 1000 : bon) ; avec l'ancien pas, jamais,
+  même pendant le chargement. Une vérification de protection d'Hercule II échoue avec le pas réel : autre minutage du FDC
+  à trouver (Harricana aussi). Titan, Puffy's Saga : écran noir.
 - [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
 - [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
 - [ ] SHAKER B `I`, 5 espaces (`#01E3`).
