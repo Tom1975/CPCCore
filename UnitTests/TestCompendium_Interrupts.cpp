@@ -383,6 +383,40 @@ TEST(Compendium_27, HSyncEndDuringTheAcknowledgeKeepsBit5OfR52AtZero)
    }
 }
 
+// 27.2, 40010-simplified sheet VSync : HCNT counts the HSYNC ends from the VSYNC rising edge, which clears U814 to
+// U829 but not U809, its bit 0. On CRTC 1 (VSYNC of 16 lines, starts as soon as R7 = C4), a VSYNC restarted by
+// R7 = 32 on C0 = 0 of the line C4 = 32, C9 = 1 (17 HSYNC ends after the first one) or C9 = 2 (18) : with 17,
+// the bit 0 stayed at 1 and R52 goes back to 0 at the end of the 1st HSYNC ; with 18, of the 2nd. The end of the
+// VSYNC of the GATE ARRAY (26 HSYNC) moves the same way. Real CPC, RealCpc T2 (2026-11-18) : 17 HSYNC 334 or
+// 346, 18 HSYNC 340 (it was 340 or 346, then 346 without the bit 0).
+TEST(Compendium_27, VSyncRestartedAfterAnOddNumberOfHSyncKeepsBit0OfHcnt)
+{
+   for (int hsyncs : { 17, 18 })
+   {
+      SCOPED_TRACE(testing::Message() << hsyncs << " HSYNC");
+      Machine m(CRTC::UM6845R);
+      ASSERT_TRUE(UntilPosition(m, kVSyncLine + hsyncs, 0));
+      std::vector<unsigned char> p = Prologue(false);
+      z80::Append(p, z80::WriteCrtc(7, 32));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      const int first = kVSyncLine + hsyncs;
+      ASSERT_TRUE(UntilPosition(m, first, kR2 + 16));
+      EXPECT_TRUE(m.Ga().vsync_);
+      if (hsyncs == 17)
+         EXPECT_EQ(0, m.Ga().interrupt_counter_);
+      else
+         EXPECT_NE(0, m.Ga().interrupt_counter_);
+      ASSERT_TRUE(UntilPosition(m, first + 1, kR2 + 16));
+      EXPECT_EQ(hsyncs == 17 ? 1 : 0, m.Ga().interrupt_counter_);
+      // End of the VSYNC of the GATE ARRAY : 25 HSYNC ends after the restart with 17, 26 with 18
+      ASSERT_TRUE(UntilPosition(m, first + 24, kR2 + 16));
+      EXPECT_EQ(hsyncs == 18, m.Ga().vsync_);
+      ASSERT_TRUE(UntilPosition(m, first + 25, kR2 + 16));
+      EXPECT_FALSE(m.Ga().vsync_);
+   }
+}
+
 /////////////////////////////////////////////////////////////
 // 27.7.2 : reliability of the interrupts
 

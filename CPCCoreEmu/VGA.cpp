@@ -353,8 +353,10 @@ void GateArray::FinalizeBlock()
       }
       if (p == vsync_rise)
       {
+         // HCNT (40010 sheet 8) : the rising edge (U810) clears U814-U829, not U809, its bit 0. A VSYNC
+         // restarted before the 26th HSYNC, after an odd number of them, counts from 1 (see TickSignals)
+         v26_ = (cblack_vsync_ && v26_ < 26) ? (v26_ & 1) : 0;
          cblack_vsync_ = true;
-         v26_ = 0;
          vsync_black_end_in_ = -1;
       }
       while (next < nb_black_edges_ && black_edges_[next].pixel == p)
@@ -660,10 +662,16 @@ void GateArray::TickSignals()
 
    if (v_old_sync_ == false && sig_handler_->v_sync_ == true)
    {
-      // Wait for two HSync
-      wait_for_hsync_ = 2;
+      // HCNT (40010 sheet 8, U809 U814 U820 U825 U829) : ripple counter of the HSYNC falling edges, held
+      // by U805 once it reaches 26 HSYNC (HCNTLT28). The VSYNC rising edge (U803/U810, sampled by CCLK)
+      // clears U814 to U829 but not U809, its bit 0 : a VSYNC restarted before the 26th HSYNC, after an
+      // odd number of them, keeps the bit 0 at 1. HCNT then reaches 2 (U806, INTCNTCLR_4 : R52 back to 0)
+      // after 1 HSYNC instead of 2, and 26 (end of the VSYNC of the GATE ARRAY) after 25.
+      // Measured on a real CPC (RealCpc T2, 2026-11-18) : 17 HSYNC 334 or 346, 18 HSYNC 340.
+      const unsigned char hcnt_bit0 = (vsync_ && vsync_counter_ < 26) ? (vsync_counter_ & 1) : 0;
+      wait_for_hsync_ = 2 - hcnt_bit0;
       vsync_ = true;
-      vsync_counter_ = 0;
+      vsync_counter_ = hcnt_bit0;
       vsync_rise_pending_ = true;
 
    }
