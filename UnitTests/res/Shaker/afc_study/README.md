@@ -88,6 +88,43 @@ verticale, probablement : le modèle ne la représente pas, et les profils D3 y 
   glissement meilleure (−43 à −49), mais oubli de 115 à 160 px (le schéma donne ~1000 px) et palier à
   droite qui rampe. Les photos ne départagent pas les deux formes de l'oscillateur.
 
+## Photos T5 du moniteur de l'utilisateur (2026-11-18)
+
+Programme `UnitTests/RealCpc/t5mon.asm` (8 écrans, un seul moniteur CTM644, H-HOLD non touché), photos
+`RealCpc/screenshots/Menu_8 (n).jpg` (non suivies). Mesure : bord droit du papier ligne par ligne
+(`t5_edges.py` : texture du texte, ou couleur pour les photos surexposées `T5_BLUE=1`), en pixels mode 2
+(papier = 640 px, 200 lignes), relatif aux lignes avant la bande (`t5_profiles.json`). Le bord gauche est
+masqué par un reflet. L'écran 3 est écarté (haut du papier caché, lignes non placées).
+
+Constats : ce moniteur tourne en libre bien plus loin de 1024 que celui des photos SHAKER (écran 1 :
+−80 px en 64 lignes, SHAKER D8 : −10). Là où la synchro tient, la photo rejoint le modèle sans
+réglage (écran 5 : −13 / −13 ; écran 4 : palier −20 / −21 sur 60 lignes ; écran 8 : +10, la photo
+SHAKER `#00C2` donne +11). Ailleurs : écran 7 glisse puis se pose net à −97 ; écran 6 décroche ;
+écran 4 reprend une dérive lente après son palier.
+
+Avec les valeurs de `best_schematic.json`, aucun Hold ne rend à la fois l'écran 1 (64 lignes sans
+C-HSYNC) et l'écran 2 (200 lignes) : C414 se vide trop par la fuite R417 pendant la bande et ne se
+recharge pas en 112 lignes (régime périodique). Une fuite plus forte règle les deux.
+
+**Ajustement commun** (`fit_all.py` = D3 + D8 avec `hold`, T5 avec `hold_t5`, `refine.py`), résultat
+`best_t5joint.json` : D3 3,25 px RMS, D8 1,74, T5 7,15 (écrans 1 : 3,8 ; 2 : 3,7 ; 4 : 8,9 ; 4b : 5,2 ;
+5 : 5,7 ; 6 : 7,0 ; 7 : 8,5 ; 8 : 11,1).
+
+| Paramètre | `best_schematic.json` | `best_t5joint.json` |
+|---|---|---|
+| g | 0,088 | 0,097 |
+| eps | 0,105 | 0,095 |
+| delta, rho | 0,067, 1,42 | inchangés |
+| isf_tau, isf_u0 | 2230, 126 | 2028, 132 |
+| tl (fuite de la broche 1) | 8960 px (R417 56 k × C413) | **3950 px** (≈ 25 k équivalents) |
+| hold, séance SHAKER D | +1,10 | +0,75 |
+| hold_t5, moniteur de l'utilisateur | — | **+4,8** |
+
+PROVISIONAL : la fuite de 25 k ne vient pas du schéma (R417 = 56 k). Il faudrait environ 45 k en
+parallèle, peut-être l'entrée de la broche 2 du LA7800 (la fiche ne la donne pas). Restes : écran 8
+(+19 contre +10, même défaut que `#00C2`), dérive lente de l'écran 4 après 80 lignes (modèle plus
+tardif), palier de l'écran 7 (−88 contre −97). `Monitor.cpp` n'est pas encore passé à ces valeurs.
+
 ## Portage (`Monitor.cpp`)
 
 L'oscillateur y est une rampe dont la pente suit la tension de la broche 1 à chaque pixel ; le retour ligne
@@ -107,6 +144,8 @@ règle le Hold ; valeur standard = celle des photos du module D (+1,10). Sans C-
 | `aedge.py`, `ameasure.py`, `a_shifts.json` | décalage de bande sur les photos du module A (bordure jaune) |
 | `best_schematic.json` | meilleure solution |
 | `fit_d8.py` | score D3 + D8 (celui de `best_schematic.json`) : `AFC_FIT=fit_d8 python3 search.py ...` |
+| `fit_all.py`, `fit_t5.py`, `refine.py` | score D3 + D8 + T5 (`hold_t5`), descente par coordonnées depuis un point : `python3 refine.py '<départ JSON>' g,eps,...` |
+| `t5_edges.py`, `t5_profiles.json`, `best_t5joint.json` | mesure des photos T5, profils, meilleure solution commune |
 | `fit_joint.py` | score D3 + module A avec un Hold par séance (`hold_a`) ; `AFC_FIT=fit_joint python3 search.py ...` |
 
 Les profils D3 sont décalés de 2 lignes : l'indice 0 est la 3e ligne de la bande (`profiles.py` suppose
