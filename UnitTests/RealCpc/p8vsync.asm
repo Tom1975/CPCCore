@@ -180,3 +180,164 @@ p8_rest:  dw 0
 p8_c10:   dw 0
 p8_c3c:   dw 0
 p8_d:     ds 16
+
+; P8 bis (key G) : where the gaps of (c) and (d) come from. Real CPC (2026-11-18) : (c) 101 then 99, the compendium
+; 16.4.2 and Sugarbox 101 then 96 ; (d) 77 64 51 38 / 25 13, Sugarbox one line less (70 57 45 32 / 19 6). No model
+; with one end position in the line gives 2 steps between C0=#10 and C0=#3C (44 us : 4 or 5 steps).
+; (e) As (c), R7=20 written on C0 = #00, #04 ... #3C : where the end of the VSYNC moves away from 16.4.2.
+; (f) As (d), R0=0 during 10, 11 ... 17 us then 28, 29 ... 35 us : one value each us. The lines of 1 us are counted
+;     one of two : the odd durations tell the phase of this count, the second row where the VSYNC ends.
+; Results : p8b_e (16 words), p8b_f (16 words).
+; Same timings as P8C_RUN and P8D_RUN, in two loops : the start is common, the delay is a JP (HL) into a NOP sled
+; whose end does the I/O and the count, as P8C_RUN and P8D_RUN do them.
+p8b_run:
+   call int_patch
+   ld hl,p8e_targets
+   ld de,p8b_e
+   call p8b_loop_e
+   ld hl,p8f_targets
+   ld de,p8b_f
+   call p8b_loop_f
+   jp int_restore
+
+p8b_loop_e:
+   ld b,16
+.n:
+   call p8b_target
+   call p8e_pre
+   call p8b_store
+   djnz .n
+   ret
+
+p8b_loop_f:
+   ld b,16
+.n:
+   call p8b_target
+   call p8f_pre
+   call p8b_store
+   djnz .n
+   ret
+
+p8b_target:             ; (HL) -> p8_target, HL += 2 ; keeps HL, DE, BC for p8b_store
+   ld a,(hl)
+   ld (p8_target),a
+   inc hl
+   ld a,(hl)
+   ld (p8_target+1),a
+   inc hl
+   ld (p8_table),hl
+   ld (p8_out),de
+   ld a,b
+   ld (p8_left),a
+   ret
+
+p8b_store:              ; p8_val -> (p8_out), DE = p8_out + 2, HL = p8_table, B = p8_left
+   ld de,(p8_out)
+   ld a,(p8_val)
+   ld (de),a
+   inc de
+   ld a,(p8_val+1)
+   ld (de),a
+   inc de
+   ld hl,(p8_table)
+   ld a,(p8_left)
+   ld b,a
+   ret
+
+; (e) : as P8C_RUN, NOPS P8C_NOPS+c0-#10 = LD HL (5) + JP (HL) (1) + the NOP of the sled
+p8e_pre:
+   call sync_frame
+   ld bc,#BC07          ; R7 selected
+   out (c),c
+   DELAY_LINES P8C_LINES
+   ld hl,(p8_target)    ; 5
+   jp (hl)              ; 1
+   ds 100,0             ; NOP
+p8e_sled_end:
+   ld bc,#BD14          ; R7 = 20
+   out (c),c
+   call count_to_vsync_fall
+   ld (p8_val),de
+   CRTC_WRITE 7,30
+   ret
+
+; (f) : as P8D_RUN, NOPS us-7 = JP (HL) (1) + the NOP of the sled
+p8f_pre:
+   call sync_frame
+   ld bc,#BC00          ; R0 selected
+   out (c),c
+   DELAY_LINES P8A_LINES
+   NOPS P8A_NOPS-5
+   ld hl,(p8_target)    ; 5
+   ld bc,#BD00          ; R0 = 0
+   out (c),c
+   jp (hl)              ; 1
+   ds 40,0              ; NOP
+p8f_sled_end:
+   ld bc,#BD3F          ; R0 = 63, us after the first I/O
+   out (c),c
+   call count_to_vsync_fall
+   ld (p8_val),de
+   ret
+
+p8e_targets:
+   repeat 16,k
+   dw p8e_sled_end-(P8C_NOPS+(k-1)*4-#10-6)
+   rend
+p8f_targets:
+   repeat 8,k
+   dw p8f_sled_end-(9+k-7-1)
+   rend
+   repeat 8,k
+   dw p8f_sled_end-(27+k-7-1)
+   rend
+
+p8_target: dw 0
+p8_table:  dw 0
+p8_out:    dw 0
+p8_val:    dw 0
+p8_left:   db 0
+
+; Result page : 4 rows of 8 numbers
+p8b_show:
+   ld hl,p8b_txt_e
+   call print_str
+   ld hl,p8b_e
+   call p8b_row
+   ld hl,p8b_txt_e2
+   call print_str
+   call p8b_row
+   ld hl,p8b_txt_f
+   call print_str
+   ld hl,p8b_f
+   call p8b_row
+   ld hl,p8b_txt_f2
+   call print_str
+   jp p8b_row
+
+p8b_row:                ; 8 words from HL, HL moves past them
+   ld b,8
+.n:
+   push bc
+   ld e,(hl)
+   inc hl
+   ld d,(hl)
+   inc hl
+   push hl
+   ex de,hl
+   call print_dec
+   ld a,' '
+   call #BB5A
+   pop hl
+   pop bc
+   djnz .n
+   ret
+
+p8b_txt_e:  db 15,2,"P8 BIS : COMPTEUR DE LIGNES VSYNC",13,10,13,10,15,1
+            db "(E) R7 SUR C0=#00 #04 ... #1C :",13,10,"    ",0
+p8b_txt_e2: db 13,10,"    C0=#20 #24 ... #3C :",13,10,"    ",0
+p8b_txt_f:  db 13,10,13,10,"(F) R0=0 10 11 ... 17 US :",13,10,"    ",0
+p8b_txt_f2: db 13,10,"    R0=0 28 29 ... 35 US :",13,10,"    ",0
+
+p8b_e:    ds 32
+p8b_f:    ds 32

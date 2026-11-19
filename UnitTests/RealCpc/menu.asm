@@ -360,6 +360,7 @@ entries:
    db 'D' : dw t5_run : db 6 : dw 0
    db 'E' : dw t5_run : db 7 : dw 0
    db 'F' : dw t5_run : db 8 : dw 0
+   db 'G' : dw p8b_run : db 0 : dw p8b_show
    db 'Q' : dw quit : db 0 : dw 0
    db 0
 
@@ -384,7 +385,8 @@ txt_tests1:    db 15,1," 4  T2  VSYNC APRES 17 OU 18 HSYNC",13,10
                db " C  T5  MONITEUR 5 : 2E HSYNC 32 PX",13,10
                db " D  T5  MONITEUR 6 : PRINCIPALE 32 PX",13,10
                db " E  T5  MONITEUR 7 : HSYNC +112, 200 L",13,10
-               db " F  T5  MONITEUR 8 : 2 HSYNC EN PLUS",13,10,0
+               db " F  T5  MONITEUR 8 : 2 HSYNC EN PLUS",13,10
+               db " G  P8  BIS : R7 SUR C0, R0=0 PAR US",13,10,0
 txt_crtc2:     db "CRTC 2 : AUCUN TEST",0
 txt_crtc34:    db "CRTC 3 ET 4 : AUCUN TEST",0
 txt_found:     db " <== CE CPC",0
