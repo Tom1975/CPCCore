@@ -2400,6 +2400,7 @@ void FDC::FormatTrack()
    fb_ = parameters_[4] ;  // FB
 
    format_sector_count_ = 0;
+   format_c_ = 0;
 
    status_1_ |= disk_[current_drive_].IsWriteProtected()?0x02:0;
 
@@ -2479,8 +2480,12 @@ void FDC::FormatTrackTick ()
             results_[i++] = status_1_;
             results_[i++] = status_2_;
 
-            results_[i++] = tr_;
-            results_[i++] = hd_;
+            // C H R N of the result : "no meaning" for the datasheet. A real CPC (disquettes de test FDCRES, 2026-11-19 ;
+            // track 20, N = 0 to 4, SC = 9, 4, 2, 1, 5) gives C = the C of the IDs (&14), H = 2^N (the sector length in
+            // units of 128 bytes : 01 02 04 08 10), R = the number of sectors formatted, N = N. PROVISIONAL for H : the
+            // register is taken as reused by the byte count, not documented.
+            results_[i++] = format_c_;
+            results_[i++] = (unsigned char)(1 << (sz_ & 0x07));
             results_[i++] = format_sector_count_;
             results_[i++] = sz_;
 
@@ -4139,7 +4144,12 @@ void FDC::InitHandleFormat ( MFMPhase formatPhase )
          write_byte_counter_ = 1;
 
          // This should be checked...
-         if (chrn_byte_count_ == 2)
+         if (chrn_byte_count_ == 1)
+         {
+            format_c_ = byte_to_write_;
+            rqm_ = true;
+         }
+         else if (chrn_byte_count_ == 2)
          {
             hd_ = (byte_to_write_&1)<<2;
             rqm_ = true;
@@ -4254,11 +4264,15 @@ void FDC::InitHandleFormat ( MFMPhase formatPhase )
       }
       break;
    case MFM_GAB4_B:
+      // GAP 4B : the 4E bytes up to the index hole, which ends the command (uPD765 datasheet, FORMAT). Without it the end
+      // of the previous track stays : a FORMAT with fewer or smaller sectors left the old sectors after the new ones, READ ID
+      // found them (disquettes de test FDCRES, photo of a real CPC : READ ID gives the first new sector, C1, with the new N)
       byte_is_sync_ = false;
-      if ( (disk_[current_drive_].GetPos()) >= DEFAULT_TRACK_SIZE)
-         write_byte_counter_ = DEFAULT_TRACK_SIZE - disk_[current_drive_].GetPos();
-      else
-         write_byte_counter_ = 1;
+      {
+         const int track_bytes = disk_[current_drive_].GetSizeOfCurrentTrack() / 16;
+         const int pos = disk_[current_drive_].GetPos();
+         write_byte_counter_ = (pos < track_bytes) ? (track_bytes - pos) : 1;
+      }
       byte_to_write_ = 0x4E;
       next_phase_ = MFM_END;
       break;

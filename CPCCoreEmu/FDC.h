@@ -471,6 +471,7 @@ protected:
    bool crc_on_;
 
    int chrn_byte_count_ ;
+   unsigned char format_c_;          // C of the last ID written by FORMAT (its result)
    int crc_cyte_;
 
    // Delayed loading
