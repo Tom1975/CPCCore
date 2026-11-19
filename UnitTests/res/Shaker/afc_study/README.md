@@ -123,14 +123,14 @@ recharge pas en 112 lignes (régime périodique). Une fuite plus forte règle le
 PROVISIONAL : la fuite de 25 k ne vient pas du schéma (R417 = 56 k). Il faudrait environ 45 k en
 parallèle, peut-être l'entrée de la broche 2 du LA7800 (la fiche ne la donne pas). Restes : écran 8
 (+19 contre +10, même défaut que `#00C2`), dérive lente de l'écran 4 après 80 lignes (modèle plus
-tardif), palier de l'écran 7 (−88 contre −97). `Monitor.cpp` n'est pas encore passé à ces valeurs.
+tardif), palier de l'écran 7 (−88 contre −97). Porté dans `Monitor.cpp` le 2026-11-19 (Hold standard +0,75) ; 155 références SHAKER refaites (139 à ±1 px, 16 de 2 à 12 px : A_2 `#00AF` `#00B4` `#00B5` `#00B6`, D_0-D_2 `#037F` `#0380`, D_2 `#0316` `#0321` `#032C` `#0337`, D_3 D_4 `#030F`).
 
 ## Portage (`Monitor.cpp`)
 
 L'oscillateur y est une rampe dont la pente suit la tension de la broche 1 à chaque pixel ; le retour ligne
 part à la fin de la rampe. C'est la même loi que `simulate()` (période = 1024 + hold + g × tension moyenne)
 sans retard d'une ligne (`lag=1` dans `simulate()` coûte 0,5 px RMS). `Monitor::SetHorizontalHold`
-règle le Hold ; valeur standard = celle des photos du module D (+1,10). Sans C-HSYNC (R3 = 2), l'oscillateur tourne en libre.
+règle le Hold ; valeur standard = celle des photos du module D (+0,75 depuis l'ajustement commun avec T5, +1,10 avant). Sans C-HSYNC (R3 = 2), l'oscillateur tourne en libre.
 
 ## Fichiers
 

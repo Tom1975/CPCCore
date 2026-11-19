@@ -41,8 +41,10 @@ unsigned int Mode3ExtendedLut[0x100][0x8];
 // LA7800, sync separator and line oscillator). The line oscillator is locked to the C-HSYNC by an AFC loop.
 //
 // PROVISIONAL : the structure comes from the schematic, the values the schematic does not give come from
-// the photos of a real CPC (SHAKER 2.7 : D3 "2 CSYNC / LINE STUDIES", 44 screens, 2.9 pixels RMS, and D8
-// "NO HSYNC FOR XX LINES", which gives the H-HOLD). Nothing was measured on a CTM644 : RealCpc/README.md, part 1 bis. Study : UnitTests/res/Shaker/afc_study.
+// the photos of real CPCs, fitted together with one H-HOLD per monitor (afc_study/best_t5joint.json) :
+// SHAKER 2.7 D3 "2 CSYNC / LINE STUDIES" (44 screens, 3.25 pixels RMS) and D8 "NO HSYNC FOR XX LINES"
+// (1.74), and the 8 screens of RealCpc T5 on another CTM644 (7.15, its H-HOLD +4.8). Nothing was measured
+// on a CTM644 : RealCpc/README.md, part 1 bis. Study : UnitTests/res/Shaker/afc_study.
 //
 //  - pin 16, comparison signal : the line flyback pulse integrated by R406 (6.2 k) and C404 (39 nF), a
 //    sawtooth that rises during the flyback (12 us) and falls back during the trace (52 us), plus the part
@@ -54,7 +56,8 @@ unsigned int Mode3ExtendedLut[0x100][0x8];
 //    current set by its width, and the picture moves until the main pulse compensates for it (ACCC 15.7).
 //    The side that sources the current is stronger than the side that sinks it (kSourceRatio).
 //  - pin 1, loop filter : the current goes into C413 (10 nF), which shares it with C414 (1 uF) through
-//    R418 (8.2 k) ; R417 (56 k) leaks it towards pin 2.
+//    R418 (8.2 k) ; R417 (56 k) leaks it towards pin 2. The photos T5 need a leak of about 25 k : another
+//    path of about 45 k, not on the schematic (input of pin 2 of the LA7800 ?), PROVISIONAL.
 //  - pin 2, oscillator : a ramp (C415, 5.6 nF, charged through the H-HOLD network) whose slope follows the
 //    voltage of pin 1. The line flyback starts when the ramp ends. A current pulse moves the end of the
 //    ramp all the more that it comes late in the ramp (relaxation oscillator), kRampMemory.
@@ -63,14 +66,14 @@ static const int kNominalLine = 1024;            // 64 us
 static const int kFlyback = 192;                 // 12 us : line sync + back porch
 static const double kSawtoothStep = 0.23;        // C403 / C404 part of the flyback pulse (sawtooth = +-1)
 static const double kComparatorReference = 0.06679;
-static const double kComparatorRange = 0.105;    // linear zone of the differential pair
+static const double kComparatorRange = 0.09545;  // linear zone of the differential pair
 static const double kSourceRatio = 1.41842;      // source current / sink current
 static const double kFilterShare = 1.0 / 1312.0; // 1 / (R418 x C413)
 static const double kFilterRatio = 100.0;        // C414 / C413
-static const double kFilterLeak = 1.0 / 8960.0;  // 1 / (R417 x C413)
-static const double kOscillatorGain = 0.08796;   // pixels of line period per unit of pin 1 voltage
-static const double kRampMemory = 2230.58;       // pixels
-static const double kRampStart = 126.05;         // start of the ramp, in pixels after the flyback start
+static const double kFilterLeak = 1.0 / 3950.6;  // 1 / (R x C413), R about 25 k : R417 (56 k) is not enough (T5)
+static const double kOscillatorGain = 0.09676;   // pixels of line period per unit of pin 1 voltage
+static const double kRampMemory = 2027.8;        // pixels
+static const double kRampStart = 132.35;         // start of the ramp, in pixels after the flyback start
 static const double kLockRange = 64.0;           // widest period change of the oscillator, in pixels per line
 // The beam flyback of the picture starts this number of pixels after the flyback start of the model : it
 // puts the standard picture at its place (horizontal phase of the monitor)
