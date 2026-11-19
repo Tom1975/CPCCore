@@ -5,6 +5,20 @@ Tout se fait sur **CRTC 1** (la machine disponible). Reporter le résultat dans 
 
 Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified against real 40010 »).
 
+## 0. Prochaine séance (liste à jour, 2026-11-19)
+
+À faire sur le vrai CPC (CRTC 1), dans cet ordre. Rayer au fur et à mesure.
+
+- [ ] **`G` P8 bis** (`realcpc.dsk` reconstruit le 2026-11-19) : noter les 32 nombres de la page. Lancer 2 fois.
+- [ ] **`7` P8** : relancer 2 fois pour voir si (C) `99` est stable.
+- [ ] **`2` T4** : photo en plan serré sur les bouts des deux bandes rouges.
+- [ ] **`5` T3** : photo zoomée sur le début de chaque rangée, juste après le noir à gauche.
+- [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
+- [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
+- [ ] SHAKER B `I`, 5 espaces (`#01E3`).
+- [ ] SHAKER B `P` (`#01E8` à `#01EF`) : pas encore prises.
+- [ ] SHAKER B base 6 (`W` puis `1`, `#00EE` à `#00F4`) : pas encore prises.
+
 ## 1. Programmes de `realcpc.dsk`
 
 Disquette `realcpc.dsk` dans le lecteur, taper `RUN"MENU"`. Le menu affiche le CRTC détecté (lecture du port
