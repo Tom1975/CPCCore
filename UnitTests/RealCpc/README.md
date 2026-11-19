@@ -18,6 +18,14 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   À faire : `INTPOS` et `INTREP` sur le **CRTC 0 sans M4** ; puis un INTREP avec `CP (HL)`, `LD A,(HL)`, `LD HL,(nn)`,
   `LD A,(nn)` sur CRTC 1 et CRTC 2 (programme à écrire), pour savoir quelles instructions finissant par une lecture
   ratent l'interruption.
+- [ ] **FDC, délai commande -> résultat** (disquettes_test SEEKJIT3) : une boucle `SENSE INTERRUPT` dure ~36 µs de plus sur
+  le vrai CPC que dans Sugarbox (résultat prêt vers 70 µs après l'octet `08` au lieu de moins de 34). Photographier chaque
+  page de **FDCTEST2** (et FDCTEST3), qui lit l'état juste après chaque octet de commande.
+  *Essai non retenu (2026-11-19)* : le pas de piste doublé (horloge 4 MHz du µPD765, `2 x (16 - SRT)` ms,
+  `disquettes_test/outils/fdc_step_rate_4mhz.patch`) colle aux SEEK de SEEKJIT4 (32 pistes 439 ms contre 456 réels) mais
+  casse 11 tests disque, dont 2 chargeurs qui retombent au BASIC (Hercule II, Little Puff) : une autre approximation du
+  FDC (premier pas immédiat « CHEAT », délai commande -> résultat) compense l'ancien pas trop rapide. À reprendre avec la
+  mesure FDCTEST2.
 - [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
 - [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
 - [ ] SHAKER B `I`, 5 espaces (`#01E3`).
