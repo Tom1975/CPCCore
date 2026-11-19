@@ -82,9 +82,10 @@ TEST(Compendium_5, OneOutReachesEveryDecodedChip)
    EXPECT_EQ(0x0E, m.Engine().GetPPI()->port_a_);
 }
 
-// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected with A14 = 0 or 1 on the CPC+ (CRTC
-// 3, 4) ; on the CPC "old" A14 must be 1 (only a few CPC select it with A14 = 0). The GATE ARRAY
-// itself always needs A14 = 1.
+// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected by A15 = 0, A14 = 0 or 1. The compendium finds A14 = 0
+// working "on some CPC only" ; measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test PALA14, 2026-11-19) : &01C4
+// selects the bank on all of them, &3FC4 on the CRTC 0 and 2. On the CRTC 1, &3Fxx is also a read of the CRTC, which
+// spoils the byte (Compendium_5.Crtc1DrivesTheBusOnAnOutToItsReadPort). The GATE ARRAY itself always needs A14 = 1.
 TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
 {
    Machine m(CRTC::AMS40489, "6128PLUS");
@@ -94,13 +95,43 @@ TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
    EXPECT_EQ(1, m.Engine().GetMem()->GetRamBankConfig());
 }
 
-TEST(Compendium_5, PalNeedsA14OneOnTheCpcOld)
+TEST(Compendium_5, PalSelectedByA15AloneOnTheCpcOld)
 {
-   Machine m(CRTC::HD6845S);
-   std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0x3F00, 0xC1));
-   RunProgram(m, p);
-   EXPECT_EQ(0, m.Engine().GetMem()->GetRamBankConfig());
+   for (auto type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0x01C4, 0xC2));   // A15 = 0, A14 = 0, A9 = 0
+      RunProgram(m, p);
+      EXPECT_EQ(2, m.Engine().GetMem()->GetRamBankConfig());
+      if (type == CRTC::UM6845R) continue;     // &3Fxx : see below
+      Machine m2(type);
+      std::vector<unsigned char> p2 = { z80::kDi };
+      z80::Append(p2, z80::Out(0x3F00, 0xC1));
+      RunProgram(m2, p2);
+      EXPECT_EQ(1, m2.Engine().GetMem()->GetRamBankConfig());
+   }
+}
+
+// PALA14B (photo of a real CRTC 1) : R15 written, then OUT &3Fxx with the RAM configuration. The CRTC 1 reads R15 on the
+// bus at the same time : bits 0 to 5 = AND of both, bits 6, 7 from the Z80A (CSig::Out, PROVISIONAL). Real CPC : C0 for
+// R15 = &00 (no configuration written, C0 stays), C4 for &C4, &C7, &FF, &44, and Z = &C5 with R15 = &C6.
+TEST(Compendium_5, Crtc1DrivesTheBusOnAnOutToItsReadPort)
+{
+   struct Case { unsigned char z, r15, config; };
+   const Case cases[] = { { 0xC4, 0x00, 0 }, { 0xC4, 0xC4, 4 }, { 0xC4, 0xC7, 4 }, { 0xC5, 0xC6, 4 }, { 0xC4, 0xFF, 4 }, { 0xC4, 0x44, 4 } };
+   for (const Case& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "Z = " << (int)c.z << ", R15 = " << (int)c.r15);
+      Machine m(CRTC::UM6845R);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0xBC00, 15));
+      z80::Append(p, z80::Out(0xBD00, c.r15));
+      z80::Append(p, z80::Out(0x3F00, c.z));
+      RunProgram(m, p);
+      EXPECT_EQ(c.config, m.Engine().GetMem()->GetRamBankConfig());
+   }
 }
 
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)

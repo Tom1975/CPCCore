@@ -1065,10 +1065,11 @@ void GateArray::TickIO()
    }
    // PAL
 
-   // Selected by A15 = 0. A14 must be 1 on the CPC "old" (compendium 5.1 : with A14 = 0 the PAL is
-   // selected on a few CPC only), it can be 0 or 1 with the ASIC of the CPC+.
+   // Selected by A15 = 0 alone, A14 = 0 or 1. Measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test, PALA14,
+   // 2026-11-19) : &01C4 selects the bank on all of them, &3FC4 on the CRTC 0 and 2. The compendium (5.1, note *) finds
+   // A14 = 0 selecting the PAL "on some CPC only" : on &3Fxx / &3Exx the CRTC 1 drives the bus too (CSig::Out).
    const unsigned short pal_address = address_bus_->GetShortBus();
-   if (pal_present_ && (pal_address & 0x8000) == 0x0000 && (plus_ || (pal_address & 0x4000) == 0x4000))
+   if (pal_present_ && (pal_address & 0x8000) == 0x0000)
    {
       // todo
       switch (data & 0xE0)

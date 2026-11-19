@@ -160,6 +160,19 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P, unsigned int t_stat
    address_ = Addr_P;
    data_ = Data_P;
    address_bus_->SetBus (address_);
+   // The CRTC is not wired to RD / WR : A14 = 0 selects it and A9 is its R/W line (5.1). An OUT on &BExx / &BFxx (A9 = 1)
+   // is a read for it : it drives the data bus with the status or the register while the Z80A drives the byte written.
+   // Measured on a real CRTC 1 (disquettes de test, PALA14 / PALA14B, 2026-11-19) : OUT (C),&C4 on &3Fxx with R15 selected
+   // gives the RAM configuration C0 for R15 = &00, C4 for R15 = &44, &C4, &C7, &FF, C4 for &C5 with R15 = &C6 : the bits
+   // 0 to 5 of the bus are the AND of both drivers (the low level wins), the bits 6, 7 stay those of the Z80A. The CPC
+   // with CRTC 0 or 2 of the same series take the byte of the Z80A. PROVISIONAL : why only the bits 0 to 5 and only the
+   // CRTC 1 is not known (RealCpc/README.md, part 1 bis, P10). It is also why the compendium (5.1, note *) finds the PAL
+   // selected by A14 = 0 "on some CPC only" : an RAM configuration written on &3Fxx of a CRTC 1 is spoiled.
+   if (!plus_ && crtc_->type_crtc_ == CRTC::UM6845R && (address_ & 0x4200) == 0x0200)
+   {
+      const unsigned char driven = crtc_->In(address_);
+      data_ = data_ & (driven | 0xC0);
+   }
    data_bus_->SetBus (data_);
 
    if ( address_ == 256)
