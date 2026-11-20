@@ -273,8 +273,11 @@ void CSig::In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode
       *a = fdc_->In ( address_ );
       found = true;
    }
-   // CRTC
-   if ((b &0x40) ==0x00 && (int_mode_0 == false))
+   // CRTC : selected by A14 = 0, its R/W line is A9 (no RD / WR, compendium 5.1 : select and write on A9 = 0,
+   // status and read on A9 = 1). It drives the data bus only for A9 = 1 : an IN on &BCxx / &BDxx leaves the bus
+   // to the other circuits, as the PPI with A11 = 0 (acid, ppi.dsk, "ppi i/o decode (f5xx)" : port B reads the
+   // same with A14 = 0 or 1).
+   if ((b &0x40) ==0x00 && (b & 0x02) == 0x02 && (int_mode_0 == false))
    {
       *a = crtc_->In ( address_ );
       found = true;

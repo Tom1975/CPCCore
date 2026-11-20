@@ -1,7 +1,7 @@
 ; PLUSC : the 6128 Plus tests of README.md as a cartridge (plusc.cpr), for a Plus without disk drive or with its
 ; firmware out of the way. No firmware : the cartridge starts at #0000 (page 0 of the cartridge as lower ROM) and
 ; sets the Gate Array, the PPI, the CRTC and the inks itself, then prints with its own 8x8 font (font.asm, mode 2).
-; It runs P12 (p12dma.asm) once and shows its page ; the reset button runs it again.
+; It runs P12 (p12dma.asm) and P13 (p13dma.asm) once and shows their pages ; the reset button runs them again.
 ; Built by build.sh : rasm plusc.asm -o plusc (RASM writes plusc.cpr).
 CART equ 1
    include 'common.asm'
@@ -61,6 +61,8 @@ cart_start:
    call print_str
    call p12_run
    call p12_show
+   call p13_run
+   call p13_show
    ld hl,txt_cart_end
    call print_str
 .stop:
@@ -71,6 +73,7 @@ cart_start:
 cart_crtc: db 63,40,46,#8E,38,0,25,30,0,7,0,0,#30,0
 
    include 'p12dma.asm'
+   include 'p13dma.asm'
 
 ; ---------------------------------------------------------------------------------------------------------------
 ; Text without firmware : mode 2, 80 columns, 25 rows. Codes : 13 column 0, 10 next row, 15,n pen (ignored).
@@ -187,11 +190,27 @@ print_dec:              ; HL in decimal, no leading zeros
    ld e,1
    jp print_char
 
+print_hex:              ; A in hexadecimal, 2 digits
+   push af
+   rrca
+   rrca
+   rrca
+   rrca
+   call .digit
+   pop af
+.digit:
+   and 15
+   add a,#90
+   daa
+   adc a,#40
+   daa
+   jp print_char
+
    include 'font.asm'
 
 txt_newline:  db 13,10,0
-txt_cart:     db "TESTS DU 6128 PLUS SUR VRAI CPC (CARTOUCHE PLUSC.CPR, SANS FIRMWARE)",13,10,13,10,0
-txt_cart_end: db 13,10,13,10,"TERMINE. PHOTOGRAPHIER L'ECRAN. RESET : RECOMMENCER.",0
+txt_cart:     db "TESTS DU 6128 PLUS SUR VRAI CPC (CARTOUCHE PLUSC.CPR, SANS FIRMWARE)",13,10,0
+txt_cart_end: db 13,10,"TERMINE. PHOTOGRAPHIER L'ECRAN. RESET : RECOMMENCER.",0
 
 cart_end:
    assert cart_end <= #4000

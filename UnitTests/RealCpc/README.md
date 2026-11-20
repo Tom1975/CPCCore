@@ -9,9 +9,13 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 
 À faire sur le vrai CPC (CRTC 1), dans cet ordre. Rayer au fur et à mesure.
 
-- [ ] **6128 Plus, cartouche `plusc.cpr`** (ou `RUN"PLUS"` touche `1` sur `realcpc.dsk`) : **P12**, pauses du DMA à 1, 2,
-  3 canaux : noter les 21 nombres de la page. Puis
+- [ ] **6128 Plus, cartouche `plusc.cpr`** (ou `RUN"PLUS"` touches `1` et `2` sur `realcpc.dsk`) : **P12** (pauses du DMA à
+  1, 2, 3 canaux) et **P13** (interruption DMA du canal 2) sur la même page : la photographier. Puis
   **PLUSDMA2** (disquettes_test) : une vidéo de quelques secondes de l'écran, pour voir si le rectangle jaune apparaît.
+- [ ] **acid CPCTEST** (`disquettes_test/ACID/cpc/cpc.dsk`, `RUN"CPCTEST`, CRTC 1) : photo de la 1re page (« CPC int (HSYNC
+  width) »). Sugarbox : `0000: got 00 expected 01 - FAIL` sur les lignes paires : la VSYNC est finie 1 µs trop tôt par
+  rapport à l'interruption (la 1re lecture du PPI tombe sur la µs de sa fin). Le test suivant (« GA I/O decode ») saute en
+  0 (BC non initialisé dans le programme) : un retour au BASIC est normal.
 - [ ] **`CRTC` touche `3` : P8 bis** (`realcpc.dsk` reconstruit le 2026-11-20 ; la 2e rangée de chaque mesure s'affichait mal avant) : noter les 32 nombres de la page. Lancer 2 fois.
 - [ ] **`CRTC` touche `2` : P8** : relancer 2 fois pour voir si (C) `99` est stable.
 - [ ] **`GA` touche `2` : T4** : photo en plan serré sur les bouts des deux bandes rouges.
@@ -105,8 +109,8 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 
 Disquette `realcpc.dsk` dans le lecteur. Cinq programmes, un par composant (`RUN"MENU"` en rappelle la liste) :
 `RUN"CRTC"` (SYNC, P1, P8, P8 bis, VSYNC fantôme CRTC 2), `RUN"GA"` (T1, T4, T2, T3), `RUN"MONITEUR"` (T5, écrans 1 à 8), `RUN"FDC"` (RQM entre
-les octets de résultat, SEEK d'une piste), `RUN"PLUS"` (6128 Plus seulement : P12, pauses du DMA). Les mêmes tests du Plus existent en **cartouche sans firmware**,
-`plusc.cpr` : elle démarre sur le test, affiche sa page en mode 2 avec sa propre police (`font.asm`, générée par `font.py`),
+les octets de résultat, SEEK d'une piste), `RUN"PLUS"` (6128 Plus seulement : P12, pauses du DMA ; P13, interruption DMA du canal 2). Les mêmes tests du Plus existent en **cartouche sans firmware**,
+`plusc.cpr` : elle enchaîne P12 et P13, affiche les deux pages en mode 2 avec sa propre police (`font.asm`, générée par `font.py`),
 et le bouton reset la relance. Chaque menu affiche le CRTC détecté (lecture du port
 `&BF00`, compendium §28.1.9 : R12 lisible sur les CRTC 0, 3 et 4, R4 relu comme R12 sur les CRTC 3 et 4, R31 non
 nul sur le CRTC 1) et range les tests par type de CRTC ; la rubrique du CRTC détecté est en rouge (`<== CE CPC`).
@@ -118,7 +122,7 @@ les écrans gardent le calage au µs près des anciens programmes (vérifié dan
 
 Sources : `menucore.asm` (menu, détection, clavier, affichage), inclus par `crtc.asm` (`sync.asm`, `synctest.asm`,
 `p1last.asm`, `p8vsync.asm`, `ghost2.asm`), `ga.asm` (`t1in.asm`, `t4border.asm`, `t2vsync.asm`, `t3mode.asm`), `moniteur.asm`
-(`t5mon.asm`) et `fdc.asm` (`fdcrqm.asm`, `seek1.asm`), `plus.asm` (`p12dma.asm`, org #8000), `plusc.asm` (la cartouche : `p12dma.asm` avec `CART`, listes DMA et résultats
+(`t5mon.asm`) et `fdc.asm` (`fdcrqm.asm`, `seek1.asm`), `plus.asm` (`p12dma.asm`, `p13dma.asm`, org #8000), `plusc.asm` (la cartouche : `p12dma.asm` avec `CART`, listes DMA et résultats
 recopiés en RAM) ; `menu.asm` : la liste des cinq. Reconstruire : `./build.sh
 <chemin de rasm>`. Les mesures (`T1`, `T2`, `P1`, `P8`, `FDC`) affichent une page de résultats : noter les nombres.
 `calib.asm` assemble une variante sans menu (`calib.dsk`, pas sur la disquette) qui répète un test (`AUTO_TEST`) : elle
@@ -139,6 +143,7 @@ Sugarbox les exécute tous : les valeurs ci-dessous sont celles qu'il donne aujo
 | `MONITEUR` `1` à `8` | T5 | CRTC 1 | Boucle de synchro ligne du moniteur (modèle provisoire P2), écrans 1 à 8. Voir le détail ci-dessous. | Une photo par écran, 20 secondes au moins chacun, **même moniteur, sans toucher au H-HOLD**, cadrée comme les photos SHAKER (tout l'écran, de face). | `reference/t5mon_<n>_crtc1.png` | Photos `Menu_8 (2)` à `(10)` puis `(1)` = écrans 1 à 8 (`(5)`, `(6)` : écran 4 ; `(7)` : repère) (2026-11-18) **Analysé** (2026-11-19, `res/Shaker/afc_study/README.md`, « Photos T5 ») : un seul modèle pour ce moniteur et celui des photos SHAKER, seul le H-HOLD change (+4,8 contre +0,75 px/ligne) ; fuite de la broche 1 ≈ 25 k au lieu de 56 k (PROVISIONAL) ; T5 7,2 px RMS, D3 3,3, D8 1,7. `Monitor.cpp` pas encore mis à jour |
 | `CRTC` `3` | P8 bis | CRTC 1 | D'où viennent les écarts de P8 (C) et (D) ? (C) : le vrai CPC donne 101 puis **99**, le §16.4.2 et Sugarbox 101 puis 96 ; aucun modèle à une seule position de fin dans la ligne ne donne 2 pas entre C0=#10 et C0=#3C (44 µs : 4 ou 5 pas). (D) : Sugarbox une ligne de moins que le vrai CPC, mais toutes les durées testées valent 2 modulo 4 µs. **(E)** comme (C), R7=20 écrit sur C0 = #00, #04 … #3C. **(F)** comme (D), R0=0 pendant 10, 11 … 17 puis 28, 29 … 35 µs. | (E) : la position où la fin de la VSYNC s'écarte de la droite du §16.4.2 (un pas tous les 10 µs environ). (F) : avec seulement une phase d'1 µs dans le comptage « une ligne de 1 µs sur deux », **77 70 70 64 64 57 57 51** ; avec une ligne de moins à phase égale, **77 77 70 70 64 64 57 57** ; la 2e rangée situe la fin pendant R0=0 (≈1890). | (E) 102 102 101 101 101 100 100 99 / 99 99 98 98 97 97 97 96 ; (F) 70 70 64 64 57 57 51 51 / 13 13 6 6 1901 1894 1888 1881 | |
 | `PLUS` `1` | P12 | 6128 Plus | Une PAUSE du DMA dure-t-elle autant quand plusieurs canaux sont en pause ensemble ? Sur la photo de PLUSDMA2 (PAUSE 30 sur les 3 canaux), l'INT du canal 2 ne se voit jamais : elle tomberait sous la ligne 200 si la pause durait environ 3 fois plus. 7 cas : PAUSE 30 puis INT, DCSR lu à chaque ligne pendant 400 lignes. Valeurs : ligne du drapeau INT de C0, C1, C2 (`--` : jamais). | **31 partout** (61 avec le prédiviseur 1) : la pause ne dépend pas du nombre de canaux, le jaune de PLUSDMA2 vient d'ailleurs. **Environ 61 à 2 canaux et 91 à 3** : le décompte des pauses est partagé entre les canaux (à modéliser). `--` sur la ligne « COMME PLUSDMA2 » : l'INT du canal 2 n'a pas lieu. | C0 seul 31 ; C0+C1 31 31 ; C0+C1+C2 31 31 31 ; C2 seul 31 ; comme PLUSDMA2 `-- -- 31` ; C0 LOAD puis INT 32 ; prédiviseur 1 : 61 61 61 | |
+| `PLUS` `2` | P13 | 6128 Plus | L'INT DMA du canal 2 interrompt-elle le Z80 ? acid (Kevin Thacker), `asic1.dsk` DMATEST : avec IVR bit 0 = 1, la routine lit le drapeau du canal 0 (#40) et du canal 1 (#20), et **attend #00 pour le canal 2** ; PLUSDMA2 : la barre jaune (INT du canal 2) n'apparaît pas. IM 2 : chaque vecteur (IVR bits 7-3 = 0 ; source canal 0 = 4, canal 1 = 2, canal 2 = 0, raster = 6) a sa routine, qui note la source et DCSR. 8 cas. Valeurs : source, DCSR dans la routine, lignes, DCSR à la fin (`PAS D'INT` : aucune interruption DMA en 512 lignes). | Ligne « C2 IVR=1 » : `00 90 1 90` comme Sugarbox ; `PAS D'INT` (le canal 2 n'interrompt pas) ; DCSR sans #10 (pas de drapeau). La ligne « C0+C1+C2 » donne la priorité entre canaux (source de la 1re interruption). | C0/C1/C2 IVR=0 : `04 80 1 80`, `02 80 1 80`, `00 80 1 80` ; IVR=1 : `04 C0 1 C0`, `02 A0 1 A0`, `00 90 1 90` ; C0+C1+C2 : `00 F0 1 F0` ; 3 canaux INT C2 : `00 90 1 90` | |
 
 Aucun test propre aux CRTC 0, 2, 3 et 4 pour l'instant.
 

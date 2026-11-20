@@ -134,6 +134,25 @@ TEST(Compendium_5, Crtc1DrivesTheBusOnAnOutToItsReadPort)
    }
 }
 
+// 5.1 : the CRTC has no RD / WR, its R/W line is A9 (select and write on A9 = 0, status and read on A9 = 1). It drives
+// the data bus only for A9 = 1 : an IN on &B5xx (CRTC write, PPI port B) reads port B as &F5xx does. acid (Kevin
+// Thacker), ppi.dsk, "ppi i/o decode (f5xx)" : port B decoded on x x x x 0 x 0 1, A14 not decoded.
+TEST(Compendium_5, CrtcDoesNotDriveTheBusOnAnInToItsWritePorts)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::In(0xF500, kResult));       // PPI port B alone
+      z80::Append(p, z80::In(0xB500, kResult + 1));   // PPI port B and CRTC write : the CRTC leaves the bus
+      z80::Append(p, z80::In(0xB400, kResult + 2));   // PPI port A and CRTC select
+      z80::Append(p, z80::In(0xF400, kResult + 3));   // PPI port A alone
+      RunProgram(m, p);
+      EXPECT_EQ(m.Ram()[kResult] & 0xFE, m.Ram()[kResult + 1] & 0xFE) << "CRTC " << (int)type;
+      EXPECT_EQ(m.Ram()[kResult + 3], m.Ram()[kResult + 2]) << "CRTC " << (int)type;
+   }
+}
+
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)
 {
    Machine m(CRTC::HD6845S);
