@@ -32,6 +32,19 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   pressé à 600, 700, 740 ou 1100 tranches ramène au BASIC (à 650, 720, 760, 800, 900, 1000 : bon) ; avec l'ancien pas, jamais,
   même pendant le chargement. Une vérification de protection d'Hercule II échoue avec le pas réel : autre minutage du FDC
   à trouver (Harricana aussi). Titan, Puffy's Saga : écran noir.
+- [ ] **Lecteur : READY après l'allumage du moteur** (disquettes_test READYTST, SPINDOWN, SPINDWN2, 2026-11-20). Les photos
+  donnent : READY tombe dès la coupure ; après une coupure de 1 à 5 trames, il revient au bout de 10 à 18 trames (au moins
+  un tour, selon la position du trou d'index) ; depuis l'arrêt, 22-23 trames, très régulier, après une coupure de 12 à 150
+  trames (SPINDOWN, moteur allumé 3 s avant), mais 27-28 après une coupure de 250 trames (READYTST, moteur allumé moins
+  d'une seconde avant). Aucun mécanisme unique n'explique les deux ; avant de modéliser, lancer `RUN"SPINDOWN` sur
+  `RealCpc/spindwn3.dsk` (coupures 6 à 12 trames) et sur `RealCpc/spindwn4.dsk` (coupures 150, 175, 200, 225, 250, 255,
+  100), une touche pour commencer, photo de chaque écran. Ce sont des copies de `MESURES.DSK` où seule la table des
+  coupures de SPINDOWN change. Si la coupure de 250 donne 22 ici, c'est la durée de marche avant la coupure qui compte ;
+  si elle donne 27, c'est la durée de la coupure.
+  *Essai (2026-11-20)* : READY retardé de 8, 22 ou 27 trames, avec le pas doublé : Hercule II retombe au BASIC aux mêmes
+  instants. READY n'explique pas Hercule II.
+- [ ] **Lecteur : vitesse** (ROTATION) : 2050 trames pour 200 tours sur ce lecteur (293 tr/min, hors des ±1,5 % habituels :
+  courroie fatiguée ?). Si un autre lecteur 3" est disponible, y lancer ROTATION avant de changer la vitesse de Sugarbox.
 - [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
 - [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
 - [ ] SHAKER B `I`, 5 espaces (`#01E3`).
