@@ -1270,6 +1270,9 @@ void MachineState::WriteDma(Motherboard* board, std::vector<unsigned char>& out)
       out.push_back(d->interrupt_on_ ? 1 : 0);
       out.push_back(d->prescalar_);
       out.push_back(d->prescalar_counter_);
+      out.push_back(d->fetch_in_);
+      out.push_back(d->exec_in_);
+      out.push_back(d->prescalar_write_ ? 1 : 0);
    }
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
@@ -1285,7 +1288,10 @@ bool MachineState::ReadDma(Motherboard* board, const unsigned char* p, size_t si
    if (size < 4) return false;
    if (GetU32(&p[at]) != 3) return false;
    at += 4;
-   if (size != at + 3 * 21) return false;
+   // 21 bytes per channel before the DMA sequencer (2026-11-20), 24 with its fetch and execute microseconds
+   // and the latched write of the prescaler
+   const size_t per_channel = (size - at) / 3;
+   if ((per_channel != 21 && per_channel != 24) || size != at + 3 * per_channel) return false;
 
    for (int i = 0; i < 3; ++i)
    {
@@ -1300,6 +1306,9 @@ bool MachineState::ReadDma(Motherboard* board, const unsigned char* p, size_t si
       d->interrupt_on_ = p[at++] != 0;
       d->prescalar_ = p[at++];
       d->prescalar_counter_ = p[at++];
+      d->fetch_in_ = (per_channel == 24) ? p[at++] : 0;
+      d->exec_in_ = (per_channel == 24) ? p[at++] : 0;
+      d->prescalar_write_ = (per_channel == 24) ? (p[at++] != 0) : false;
    }
    return true;
 }

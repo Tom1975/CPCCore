@@ -685,6 +685,12 @@ void GateArray::TickSignals()
    v_old_sync_ = sig_handler_->v_sync_;
    h_old_sync_ = sig_handler_->h_sync_;
 
+   if (plus_)
+   {
+      // DMA sequencer : the fetches and executions scheduled at a previous HSYNC rise
+      for (int c = 0; c < 3; ++c)
+         dma_list_[c].Clock();
+   }
    if (sig_handler_->hsync_raise_)
    {
       // DMA ?
@@ -1204,22 +1210,43 @@ void GateArray::DrawSprites(int * buffer_display)
    }
 }
 
+// DMA sequencer of the ASIC, started by the rise of the HSYNC. PROVISIONAL MODEL (no schematic : model of the
+// measures of plusdma on a real 6128 Plus, 2026-11-20, RealCpc README "1 bis", P12). A slot counter clocked
+// by the microsecond, cleared by the HSYNC rise. From its 3rd microsecond, the RAM goes to the channels that
+// asked for it at the HSYNC (channel enabled in DCSR, not in PAUSE), one microsecond each, channel 0 first
+// (priority encoder) : the 2 bytes of the instruction. The instructions are then executed in the same order,
+// one per microsecond, after the last fetch. Measured, section A (DCSR read after d us, synchro on the PRI) :
+// one channel alone, any of the three, sets its INT flag 3 us after the HSYNC rise ; the 3 channels set
+// theirs 5, 6 and 7 us after it (channel 0, 1, 2). PLUSDMA2 : the INT of channel 0 alone comes 3 us
+// after the PRI.
 void GateArray::HandleDMA()
 {
-   unsigned char dcsr = memory_->GetDCSR();
-   if ((dcsr & 0x1) == 0x1)
+   const unsigned char dcsr = memory_->GetDCSR();
+   bool fetch[3] = { false, false, false };
+   int requests = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[0].Hbl();
+      if ((dcsr & (1 << c)) == 0)
+      {
+         dma_list_[c].ClearPrescalarWrite();
+      }
+      else if (dma_list_[c].HsyncTick())
+      {
+         fetch[c] = true;
+         ++requests;
+      }
    }
-   if ((dcsr & 0x2) == 0x2)
+   int slot = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[1].Hbl();
-   }
-   if ((dcsr & 0x4) == 0x4)
-   {
-      dma_list_[2].Hbl();
+      if (fetch[c])
+      {
+         dma_list_[c].Schedule(2 + slot, 2 + requests + slot);
+         ++slot;
+      }
    }
 }
+
 DMA* GateArray::GetDMAChannel(int channel)
 {
    return &dma_list_[channel];
