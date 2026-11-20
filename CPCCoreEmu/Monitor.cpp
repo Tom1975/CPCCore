@@ -421,18 +421,18 @@ void Monitor::Tick( )
                {
                   ++y_;
 
-                  if (!syncv_ && gate_array_->vsync_)
+                  if (!syncv_ && gate_array_->c_vsync_)
                   {
                      vertical_sync_start_ = y_;
                   }
 
-                  if (((y_ >= expected_vertical_sync_start_) && (gate_array_->vsync_))     // Either capacitor is loaded enough AND a vsync is met
+                  if (((y_ >= expected_vertical_sync_start_) && (gate_array_->c_vsync_))     // Either capacitor is loaded enough AND a vsync is met
                      || (y_ >= expected_vertical_sync_start_ + 24 + vertical_tolerate_ + 24)                    // Or the capacitor overload
                      )
                   {
                      gate_array_->vsync_count_ = 0;
                      // Set to sync - The sawtooth generator fall, either by sync with the sync signal, or because of the capacitor overload
-                     syncv_ = gate_array_->vsync_;
+                     syncv_ = gate_array_->c_vsync_;
                      vertical_state_ = SYNC;
                   }
                   break;
@@ -443,13 +443,16 @@ void Monitor::Tick( )
                   ++y_;
                   ++gate_array_->vsync_count_;
 
-                  if (!syncv_ && gate_array_->vsync_)
+                  if (!syncv_ && gate_array_->c_vsync_)
                   {  
                      vertical_sync_start_ = y_;
                      syncv_ = true;
                   }
 
-                  if (gate_array_->vsync_count_ >= 8)
+                  // Lines from the C-VSYNC to the first line of the emulated window. The C-VSYNC comes about 2 lines
+                  // after the CRTC VSYNC (end of the 2nd HSYNC, 16.2.3) : 6 lines keep the window where it was when
+                  // the flyback started on the CRTC VSYNC (8 lines). Calibration of the window, not a measure.
+                  if (gate_array_->vsync_count_ >= 6)
                   {
                      if (vertical_sync_start_ != 0 && syncv_)
                      {
@@ -522,7 +525,7 @@ void Monitor::Tick( )
    }
 
 
-      if (!syncv_ && gate_array_->vsync_)
+      if (!syncv_ && gate_array_->c_vsync_)
       {
          vertical_sync_start_ = y_;
       }

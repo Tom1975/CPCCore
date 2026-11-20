@@ -176,6 +176,7 @@ void GateArray::Reset()
    h_old_sync_ = false;
    hsync_ = false;
    vsync_ = false;
+   c_vsync_ = false;
 
    last_block_ = nullptr;
    monitor_pending_ = false;
@@ -555,7 +556,12 @@ void GateArray::TickSignals()
       }
 
       if (vsync_)
+      {
          vsync_counter_++;
+         // SIG_GA_VSYNC (compendium 16.2.3) : the same HSYNC counter (HCNT) decoded on 2 sets it, on 6 clears it
+         if (vsync_counter_ == 2) c_vsync_ = true;
+         if (vsync_counter_ == 6) c_vsync_ = false;
+      }
 
       if (vsync_ && (vsync_counter_ == 26))
       {

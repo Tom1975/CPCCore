@@ -417,6 +417,51 @@ TEST(Compendium_27, VSyncRestartedAfterAnOddNumberOfHSyncKeepsBit0OfHcnt)
    }
 }
 
+// 16.2.3 : SIG_GA_VSYNC, the vertical sync sent to the monitor (C-VSYNC), rises at the end of the 2nd HSYNC counted
+// from the VSYNC rising edge and falls at the end of the 6th : the same HSYNC counter (HCNT) as the end of the VSYNC
+// of the GATE ARRAY (26) and the R52 reset (2). Without HSYNC at the start of the VSYNC it comes later : disquettes_test
+// VSYNCTST (real CPC photo, 2026-11-19), R2 = 100 (no HSYNC) for 8 lines from the VSYNC start : the picture goes up
+// by a character row.
+TEST(Compendium_16, CVSyncFromTheEndOfThe2ndHSyncToTheEndOfThe6th)
+{
+   Machine m(CRTC::UM6845R);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine, kR2 + 16));
+   EXPECT_TRUE(m.Ga().vsync_);
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 1, kR2 + 12));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 1, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 4, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 5, kR2 + 16));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+}
+
+TEST(Compendium_16, CVSyncWaitsForTheHSyncs)
+{
+   Machine m(CRTC::UM6845R);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine - 1, 0));
+   std::vector<unsigned char> p = Prologue(false);
+   z80::Append(p, z80::WriteCrtc(2, 100));
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 7, 0));
+   EXPECT_TRUE(m.Ga().vsync_);
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   p = Prologue(false);
+   z80::Append(p, z80::WriteCrtc(2, kR2));
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   // HSYNC again from the line + 7 : C-VSYNC at the end of the 2nd one, on the line + 8 (+ 1 without the R2 change)
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 7, kR2 + 16));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 8, kR2 + 12));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 8, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+}
+
 /////////////////////////////////////////////////////////////
 // 27.7.2 : reliability of the interrupts
 
