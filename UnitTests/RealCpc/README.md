@@ -62,6 +62,11 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   instant. Profession Détective : resté au menu (touches du test à revoir). Titan : ci-dessus. Le délai SENSE INTERRUPT
   d'essai (RQM coupé 68 µs) cassait en plus SecuTrack, Cosa Nostra, Starfox, Captain Blood : abandonné, à modéliser
   après la mesure FDCTEST2.
+- [ ] **CRTC 2 : `RUN"CRTC"` touche `4`, VSYNC fantôme** (`ghost2.asm`, 2026-11-20). Photo de la page. Pour R0=63,
+  R2=50 et R3l = 11 à 15 : la broche VSYNC monte-t-elle ? Compendium (schéma p156) et Sugarbox : 11, 12, 13 oui,
+  14, 15 non. Mais VSINT (disquettes_test, vidéo du vrai CRTC 2 avec M4) se bloque et l'image défile avec R2=50,
+  R3=&0D (R3l=13) : pas de VSYNC ? (test `CRTC_Compendium.DISABLED_Crtc2GhostVSyncWithR3l13`). Si possible, aussi
+  sans la carte M4.
 - [ ] **Les deux CRTC 0 : quelles puces ?** (disquettes_test R0ZTEST et KUKU, 2026-11-20). Sur R0ZTEST, le CPC de la
   photo GT65 voit l'écriture de R0 une µs plus tôt que celui de la photo CTM644 sur 3 cases (`OUTI` C0≈66, `OUT(C),A`
   C0≈64 et ≈66 : 1434/1438/1434 contre 1438/1463/1438 ; le second = Sugarbox). KUKU (`CLG 1`, R6=0) : ligne
@@ -96,7 +101,7 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 ## 1. Programmes de `realcpc.dsk`
 
 Disquette `realcpc.dsk` dans le lecteur. Quatre programmes, un par composant (`RUN"MENU"` en rappelle la liste) :
-`RUN"CRTC"` (SYNC, P1, P8, P8 bis), `RUN"GA"` (T1, T4, T2, T3), `RUN"MONITEUR"` (T5, écrans 1 à 8), `RUN"FDC"` (RQM entre
+`RUN"CRTC"` (SYNC, P1, P8, P8 bis, VSYNC fantôme CRTC 2), `RUN"GA"` (T1, T4, T2, T3), `RUN"MONITEUR"` (T5, écrans 1 à 8), `RUN"FDC"` (RQM entre
 les octets de résultat, SEEK d'une piste). Chaque menu affiche le CRTC détecté (lecture du port
 `&BF00`, compendium §28.1.9 : R12 lisible sur les CRTC 0, 3 et 4, R4 relu comme R12 sur les CRTC 3 et 4, R31 non
 nul sur le CRTC 1) et range les tests par type de CRTC ; la rubrique du CRTC détecté est en rouge (`<== CE CPC`).
@@ -107,7 +112,7 @@ Le test de touche se fait à durée fixe (256 µs, `keyscan` dans `menucore.asm`
 les écrans gardent le calage au µs près des anciens programmes (vérifié dans Sugarbox : mêmes captures).
 
 Sources : `menucore.asm` (menu, détection, clavier, affichage), inclus par `crtc.asm` (`sync.asm`, `synctest.asm`,
-`p1last.asm`, `p8vsync.asm`), `ga.asm` (`t1in.asm`, `t4border.asm`, `t2vsync.asm`, `t3mode.asm`), `moniteur.asm`
+`p1last.asm`, `p8vsync.asm`, `ghost2.asm`), `ga.asm` (`t1in.asm`, `t4border.asm`, `t2vsync.asm`, `t3mode.asm`), `moniteur.asm`
 (`t5mon.asm`) et `fdc.asm` (`fdcrqm.asm`, `seek1.asm`) ; `menu.asm` : la liste des quatre. Reconstruire : `./build.sh
 <chemin de rasm>`. Les mesures (`T1`, `T2`, `P1`, `P8`, `FDC`) affichent une page de résultats : noter les nombres.
 `calib.asm` assemble une variante sans menu (`calib.dsk`, pas sur la disquette) qui répète un test (`AUTO_TEST`) : elle

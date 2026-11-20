@@ -2108,6 +2108,21 @@ TEST(CRTC_Compendium, Crtc2GhostVSync)
    }
 }
 
+// 15.4.4 against a video : VSINT (disquettes_test, real CRTC 2 with a M4 card, 2026-11-19) programs R2 = 50, R3 = #0D
+// and waits for the VSYNC pin after each interrupt : the real CPC hangs there and the picture rolls (no VSYNC to the
+// monitor), as with a ghost VSYNC ; the schema p156 of the compendium and Sugarbox give a VSYNC with R3l = 13. The
+// measure RUN"CRTC" key 4 (RealCpc/ghost2.asm) tells which R3l still gives a VSYNC (RealCpc README, part 0).
+TEST(CRTC_Compendium, DISABLED_Crtc2GhostVSyncWithR3l13)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 2, 50);
+   WriteRegister(crtc, 3, 0x0D);
+   AdvanceMicroseconds(crtc, 19968);
+   EXPECT_FALSE(VSyncSeen(crtc, sig, 2 * 19968));
+}
+
 // 15.4.4 : with R2 = 0 the HSYNC starts on C0 = 0, but a VSYNC condition met
 // on C0 = 0 is processed first : normal VSYNC. (With R2 = 0 the last line is
 // never reached on CRTC 2, 15.6 : C4 = R7 is met here by the counting.)
