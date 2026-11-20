@@ -7,7 +7,9 @@
 // CRTC 2 (MC6845) - Compendium 11.2.5, 12.4, 13.4, 15.4.4, 15.5, 15.6, 16.4.3, 17.4.3, 18.2.2
 //
 // One call is one character clock edge. The frame end is driven by a "Dernière Ligne" (DL) state :
-// - last_line_ (DL)         evaluated at the end of character 0 : C4==R4 with the current R4, but C9==R9
+// - last_line_ (DL)         evaluated at the end of character 0 of a line start (C0 returned to 0 by the C0==R0
+//                           reset ; C0 overflowing 255 -> 0 does not clock it, PROVISIONAL, RealCpc README P11) :
+//                           C4==R4 with the current R4, but C9==R9
 //                           sampled at the start of the character (c9_eq_r9_at_start_ : a R9 written on
 //                           C0=0 is seen too late). Refused if the previous line was already a last line
 //                           (DLP) or if the HSYNC output is active on C0=0. During the line it is also set by a rising
@@ -65,6 +67,13 @@ void CRTC::ClockTick2 ()
          bu_ |= ma_;
    }
 
+   // The character C0 = 0 that ends is a line start (C0 returned to 0 by the C0 == R0 reset) or C0 overflowing
+   // 255 -> 0 in a line whose R0 was written below C0. DL is clocked by the line start only. PROVISIONAL (RealCpc
+   // README P11) : R0ZTEST on a real CRTC 2, R0 = 0 written on C0 = 29 of the last line, R0 = 63 512 or 1024 us later :
+   // the frame ends (1429, 2496 steps of 12 us) although DLP sampled this last line during its HSYNC ; a DL clocked
+   // again on the overflow refuses it (3562, 832)
+   const bool char0_is_line_start = c0_from_reset_;
+
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
    if (c0_reset)
@@ -76,8 +85,9 @@ void CRTC::ClockTick2 ()
       hcc_++;
       ma_++;
    }
+   c0_from_reset_ = c0_reset;
 
-   if (c0_reset && prev == 0)
+   if (c0_reset && prev == 0 && char0_is_line_start)
    {
       // A line of one character (R0 = 0) : its C0==0 position is also its end. The "Derniere Ligne"
       // state is evaluated with the counters of this line, before those of the next one (13.4 : R0 = 0
@@ -267,7 +277,7 @@ void CRTC::ClockTick2 ()
    const bool first_line = (vcc_ == 0 && vlc_ == 0);
    // Evaluated on the C0==0 position, at the end of the character (a line of one character, R0 = 0,
    // is evaluated before the next line starts, see above)
-   if (prev == 0 && !c0_reset)
+   if (prev == 0 && !c0_reset && char0_is_line_start)
    {
       last_line_ = line_eq && !dlp_ && !hsync_on_line_start_;
    }

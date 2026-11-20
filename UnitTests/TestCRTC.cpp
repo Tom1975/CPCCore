@@ -2983,6 +2983,20 @@ TEST(CRTC_Compendium, R6ZeroOnTheFirstLine)
    }
 }
 
+// 18.3.2 against a photo : KUKU (disquettes_test, CLG 1 then R6 = 0, 2026-11-19) shows a continuous line on a real
+// CRTC 0, dashes on a real CRTC 2 (as the compendium says for both). The compendium and Sugarbox alternate on CRTC 0
+// too. Two real CRTC 0 also disagree by 1 us on R0ZTEST (GT65 and CTM644 photos) : two kinds of CRTC 0 (HD6845S,
+// UM6845) ? Divergence kept here until the chips are identified (RealCpc README, part 0).
+TEST(CRTC_Compendium, DISABLED_Crtc0R6ZeroOnTheFirstLineDisplaysTheWholeLine)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::HD6845S);
+   WriteRegister(crtc, 6, 0);
+   AdvanceMicroseconds(crtc, 19968);
+   ASSERT_TRUE(ReachLine(crtc, 0, 0));
+   EXPECT_EQ("111111", DispEnHalves(crtc, 0, 2));
+}
+
 // 18.3.2 : on the first line, R6 set back to a value > 0 before C0 = R1 cancels
 // the conflict : no R6 border on the next line. If R6 is still 0 when C0 = R1,
 // the border is definitive, even if R6 changes afterwards.
@@ -5546,4 +5560,39 @@ TEST(Compendium_16, Crtc1VsyncComesBackOnEveryFrameWithR0Zero)
    // 16 pulses one each 2 us : 31 or 32 us depending on the phase of the pulse when the VSYNC starts
    EXPECT_GE(lengths[1], 31);
    EXPECT_LE(lengths[1], 32);
+}
+
+// 13.4, 12.4 : R0 = 0 written on C0 = 29 of the last line (C4 = R4 = 38, C9 = R9 = 7), R0 = 63 again 512 or 1024 us
+// later, then the time to the next VSYNC in steps of 12 us (disquettes_test R0ZTEST, photos of real CPCs,
+// 2026-11-19). C0 counts on to 255 and overflows : the line crosses its HSYNC (DLP samples this last line) and
+// passes C0 = 0 without a line start. CRTC 2 (GT65 photo) : 1429 and 2496 ; the frame ends as on the CRTC 1. The
+// "Derniere Ligne" state is clocked by the line start only, not by the overflow (CRTC_2.cpp, PROVISIONAL).
+TEST(Compendium_13, R0ZeroWrittenOnTheLastLineThenR0Again)
+{
+   struct { CRTC::TypeCRTC type; int hold; int units; } const cases[] = {
+      { CRTC::HD6845S, 512, 1280 }, { CRTC::HD6845S, 1024, 1280 },
+      { CRTC::UM6845R, 512, 1429 }, { CRTC::UM6845R, 1024, 362 },
+      { CRTC::MC6845, 512, 1429 }, { CRTC::MC6845, 1024, 2496 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " " << c.hold << " us");
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      while (crtc.hcc_ != 29) Advance(crtc);
+      WriteRegister(crtc, 0, 0);
+      AdvanceMicroseconds(crtc, c.hold);
+      WriteRegister(crtc, 0, 63);
+      int us = 0;
+      bool prev = sig.v_sync_;
+      while (us < 100000)
+      {
+         Advance(crtc);
+         ++us;
+         if (sig.v_sync_ && !prev) break;
+         prev = sig.v_sync_;
+      }
+      EXPECT_EQ(c.units, us / 12);
+   }
 }

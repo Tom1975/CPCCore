@@ -105,6 +105,7 @@ public:
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
    bool hsync_on_line_start_;   // HSYNC output active on C0=0
+   bool c0_from_reset_;         // CRTC 2 : C0 = 0 reached by the line reset (C0 == R0), not by the overflow of C0
    // CRTC 2 : C0=0 met during a HSYNC, waiting for its end to lift the border ; C4 returned to 0 by a frame
    // start, not by an overflow
    bool line_start_pending_;

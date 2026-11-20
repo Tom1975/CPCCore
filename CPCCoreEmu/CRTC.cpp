@@ -193,6 +193,7 @@ void CRTC::Reset()
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
+   c0_from_reset_ = true;
    line_start_pending_ = false;
    r1_load_at_start_ = false;
    interlace_add_line_ = false;
