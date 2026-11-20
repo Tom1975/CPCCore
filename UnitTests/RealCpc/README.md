@@ -5,9 +5,10 @@ Tout se fait sur **CRTC 1** (la machine disponible). Reporter le résultat dans 
 
 Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified against real 40010 »).
 
-## 0. Prochaine séance (liste à jour, 2026-11-19)
+## 0. Prochaine séance (liste à jour, 2026-11-20)
 
-À faire sur le vrai CPC (CRTC 1), dans cet ordre. Rayer au fur et à mesure.
+À faire sur les vrais CPC (6128 Plus pour la 1re ligne, CRTC 1 pour les autres), dans cet ordre. Rayer au fur et à
+mesure.
 
 - [ ] **6128 Plus, cartouche `plusc.cpr`** (ou `RUN"PLUS"` touches `1` et `2` sur `realcpc.dsk`) : **P12** (pauses du DMA à
   1, 2, 3 canaux) et **P13** (interruption DMA du canal 2) sur la même page : la photographier. Puis
