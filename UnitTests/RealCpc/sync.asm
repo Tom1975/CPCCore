@@ -1,4 +1,4 @@
-; Frame synchronisation on a known microsecond, shared by P1 and P8. Included by menu.asm.
+; Frame synchronisation on a known microsecond, shared by P1 and P8. Included by crtc.asm.
 ; sync_frame : with the firmware CRTC values (312 lines, VSYNC on line 240), returns on a fixed microsecond of the
 ; frame, interrupts off : the GATE ARRAY interrupt counter is reset 10 lines after the VSYNC, its interrupt comes at
 ; the end of the 52nd HSYNC from there, and HALT leaves on it (the code at #0038 is a RET while int_patch is on).

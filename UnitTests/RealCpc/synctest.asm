@@ -10,7 +10,7 @@
 ;   after it depends only on the interrupt.
 ; Compare the position of the first 1 with Sugarbox (README) : one place to the left = the code runs one
 ; microsecond earlier on the real CPC. Different between HALT and NOP : the HALT is in question.
-; Results : sync_halt, sync_nop (8 bytes, 0 or 1). Included by menu.asm.
+; Results : sync_halt, sync_nop (8 bytes, 0 or 1). Included by crtc.asm.
 
 SYNC_LINES equ 249      ; set with the emulator : the 0 -> 1 in the middle of the string (k = 3 -> 4)
 SYNC_NOPS  equ 46      ; after sync_frame (HALT)

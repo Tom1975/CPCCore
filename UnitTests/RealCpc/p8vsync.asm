@@ -14,7 +14,7 @@
 ;(d) As (a), R0=0 during 10, 14, 18 ... 38 us : about 100 while the VSYNC goes on after it, about 1850 once it
 ;     ended during R0=0. SHAKER #008D (18 us : the VSYNC goes on) and (a) (40 us : ended) : the first 1850 tells
 ;     how fast C3h counts the lines of 1 us (one line each us : from about 17 us ; one of two : about 33 us).
-; Results : p8_ref, p8_r0, p8_still, p8_rest, p8_c10, p8_c3c, p8_d (8 words). Included by menu.asm.
+; Results : p8_ref, p8_r0, p8_still, p8_rest, p8_c10, p8_c3c, p8_d (8 words). Included by crtc.asm.
 
 P8A_LINES equ 248         ; set with the emulator : I/O of R0 on C4=29, C9=7, C0=0
 P8A_NOPS  equ 43
@@ -306,6 +306,7 @@ p8b_show:
    call p8b_row
    ld hl,p8b_txt_e2
    call print_str
+   ld hl,p8b_e+16
    call p8b_row
    ld hl,p8b_txt_f
    call print_str
@@ -313,6 +314,7 @@ p8b_show:
    call p8b_row
    ld hl,p8b_txt_f2
    call print_str
+   ld hl,p8b_f+16
    jp p8b_row
 
 p8b_row:                ; 8 words from HL, HL moves past them

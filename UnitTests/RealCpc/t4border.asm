@@ -3,7 +3,7 @@
 ; Pen 0 goes from red to black with OUT (C),r on the 8 last lines of the screen, the border on the 8 first lines
 ; under the screen, at the same microsecond of the line. Two red bands, one above the other.
 ; Right ends aligned : same position. 8 Mode 2 pixels apart : the border is one byte early. Until a key is pressed.
-; Included by menu.asm.
+; Included by ga.asm.
 t4_run:
    di
    ld hl,#C000

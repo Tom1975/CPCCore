@@ -7,7 +7,7 @@
 ; Then : SEEK to track 1, 40 ms (the SEEK is finished, its interrupt not read), READ ID : its first result byte and
 ; the number of result bytes, then a SENSE INTERRUPT. Then : SEEK to track 1 and, 2 ms later (the head still stepping),
 ; READ DATA of sector C1 : first result byte, number of result bytes, then 30 ms later a SENSE INTERRUPT. Titan reads
-; right after a SENSE INTERRUPT that gave #80 (Sugarbox : invalid command while stepping). Included by seek1main.asm.
+; right after a SENSE INTERRUPT that gave #80 (Sugarbox : invalid command while stepping). Included by fdc.asm.
 
 ; 1000 us. Uses A, E.
 sk_ms:

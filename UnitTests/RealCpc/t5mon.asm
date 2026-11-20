@@ -2,7 +2,7 @@
 ; Monitor.cpp follows a model fitted on photos of two sessions that do not agree (README, P2). Each screen
 ; of this program isolates one unknown of the model ; all the photos must come from the same monitor,
 ; without touching its H-HOLD.
-; Screen n (A = 1 to 8, from menu.asm) until a key is pressed. Mode 2, rows "000102..27" (one byte = 16 Mode 2 pixels), white
+; Screen n (A = 1 to 8, from moniteur.asm) until a key is pressed. Mode 2, rows "000102..27" (one byte = 16 Mode 2 pixels), white
 ; paper, blue border. In a band of lines of the frame :
 ;   1 : no HSYNC, 64 lines                        free running oscillator : slant = H-HOLD
 ;   2 : no HSYNC, 200 lines

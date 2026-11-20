@@ -7,7 +7,7 @@
 ;     again after the next VSYNC. Frame ended : about 1536 steps ; one more row (C4=39) : about 1587. Sugarbox :
 ;     1587 on C0=60 to 62, 1536 on C0=63 and 0 (the state is taken at the start of the character C0=R0).
 ;     The first position where the frame ends says when the state is sampled.
-; Results : p1_a, p1_b (5 words). Included by menu.asm.
+; Results : p1_a, p1_b (5 words). Included by crtc.asm.
 
 P1A_LINES equ 8         ; set with the emulator : I/O of R0=20 on C4=38, C9=7, C0=20
 P1A_NOPS  equ 63

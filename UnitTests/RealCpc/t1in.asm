@@ -4,7 +4,7 @@
 ; on the bus the PSG register 0, which holds #4C : INKR, bright red. The pen selected is the border.
 ; Border stays blue : the GATE ARRAY ignores a read. Border red : it takes the value. Until a key is pressed.
 ; t1_value : value read, #4C (76) expected in both cases (it says the PPI did answer).
-; Included by menu.asm.
+; Included by ga.asm.
 t1_run:
    di
    ld bc,#7F10          ; pen : border

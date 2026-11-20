@@ -6,7 +6,7 @@
 ; interrupt. Time from the second VSYNC to that interrupt, in steps of 10 us (6.4 steps = 1 line).
 ; t2_odd : 17 HSYNC, t2_even : 18 HSYNC.
 ; Both about the same (about 345) : the bit 0 has no effect. The first about 6 less : it has one.
-; Included by menu.asm. The IM 2 table is built at #9000 (257 bytes #91) and the interrupt code, which sets t2_flag,
+; Included by ga.asm. The IM 2 table is built at #9000 (257 bytes #91) and the interrupt code, which sets t2_flag,
 ; copied to #9191 : the vector is #9191 whatever the data bus.
 t2_run:
    di

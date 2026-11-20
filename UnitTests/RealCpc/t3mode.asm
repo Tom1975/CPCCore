@@ -6,7 +6,7 @@
 ; times : mode 0 asked, R3 = 3, then R3 = 2 written 1 us later than in the row above, then mode 2 asked. It runs
 ; over the frame positions around the 3rd microsecond of the HSYNC : compare the rows with the capture of Sugarbox,
 ; zoomed, where the image restarts after the HSYNC. Until a key is pressed.
-; Included by menu.asm.
+; Included by ga.asm.
 t3_run:
    di
    ld hl,#C000

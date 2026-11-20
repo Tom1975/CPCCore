@@ -3,7 +3,7 @@
 ; READ ID (MFM, drive A, head 0) on the disk in the drive, then for each of its 7 result bytes : the byte, and the
 ; main status register read 5, 9, 13, 17 and 21 us after it (bit 7 = RQM, bit 6 = DIO, bit 4 = busy). #D0 : the
 ; next byte is ready ; #50 : RQM down ; #80 after the last byte : back to the command phase.
-; Results : fdc_smp (7 x 5 status bytes), fdc_ok (0 : no answer). Included by menu.asm.
+; Results : fdc_smp (7 x 5 status bytes), fdc_ok (0 : no answer). Included by fdc.asm.
 
 macro FDC_RESULT_BYTE i
    ld bc,#FB7F

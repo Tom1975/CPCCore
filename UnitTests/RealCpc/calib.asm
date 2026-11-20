@@ -1,4 +1,5 @@
-; Calibration build : calib.asm AUTO (1 : P1, 2 : P8, 3 : FDC) -> calib.dsk, the test in a loop, no menu.
-; rasm calib.asm -eo, after setting AUTO below. Not on realcpc.dsk.
+; Calibration build : the test AUTO_TEST runs again and again, no menu -> calib.dsk (not on realcpc.dsk).
+; rasm calib.asm -eo, after choosing the test below : p1_run, p8_run or sync_run (crtc.asm), fdc_run (fdc.asm).
 AUTO equ 1
-   include 'menu.asm'
+AUTO_TEST equ p1_run
+   include 'crtc.asm'
