@@ -46,6 +46,23 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   **À faire sur le CPC avec le HxC** (293 tr/min) : charger Hercule II 5 fois (`RUN"ESAT`, ESPACE à des moments
   différents) et noter s'il retombe au BASIC. Sugarbox prédit un échec à cette vitesse ; s'il passe toujours, un autre
   minutage de Sugarbox est faux (durée du chargement, de l'interruption du firmware ou du LDIR interrompu).
+- [ ] **`RUN"SEEK1` : durée d'un SEEK d'une piste** (`realcpc.dsk`, programme à part : le menu n'a plus de place ;
+  `seek1.asm`, 2026-11-20). Photo de la page. SPECIFY A1 (SRT A, comme AMSDOS et le démarrage CP/M), puis SEEK de la
+  piste 0 à 1 et SENSE INTERRUPT après 2 à 20 ms : le premier délai qui donne `20` au lieu de `80` est la durée du SEEK.
+  Ensuite : READ ID quand la fin du SEEK n'a pas été lue, et READ DATA 2 ms après un SEEK (tête encore en mouvement).
+  Sugarbox, ancien pas : fini entre 4 et 6 ms ; pas doublé (`2 x (16 - SRT)`) : entre 10 et 11 ms. Les deux : READ ID
+  accepté (`00`, 7 octets, puis SENSE `80`), READ DATA refusé (`80`, 1 octet, puis SENSE `20`).
+  Pourquoi : **Titan** (test `Dumps_Disk.Titan`) fait un SEEK d'une piste, attend environ 10,6 ms, SENSE INTERRUPT,
+  puis lit sans regarder le résultat. Avec le pas doublé, le SEEK n'est pas fini, la lecture est refusée et Titan se
+  bloque (écran noir). SEEKJIT4 donne pourtant un SEEK d'une piste au moins aussi long qu'avec le pas doublé.
+  Soit le vrai SEEK d'une piste est plus court (premier pas plus tôt), soit le vrai µPD765 accepte la lecture pendant
+  le pas. Lancer aussi Titan sur le CPC si la disquette est disponible.
+  *Bilan du pas doublé seul (2026-11-20)* : 11 tests disque sur 163 échouent. Hercule, Harricana, Little Puff,
+  Puffy's Saga, La Chose de Grotemburg : passent ou non selon la vitesse du lecteur (296 à 302 tr/min), avec l'ancien
+  pas aussi pour les deux premiers. Basun, Catch 23, Every Second Count, La Chose RAW : même jeu, capture à un autre
+  instant. Profession Détective : resté au menu (touches du test à revoir). Titan : ci-dessus. Le délai SENSE INTERRUPT
+  d'essai (RQM coupé 68 µs) cassait en plus SecuTrack, Cosa Nostra, Starfox, Captain Blood : abandonné, à modéliser
+  après la mesure FDCTEST2.
 - [ ] **Lecteur : READY après l'allumage du moteur** (disquettes_test READYTST, SPINDOWN, SPINDWN2, 2026-11-20).
   **Attention : le banc n'a pas de vrai lecteur 3" mais un émulateur HxC.** Ces photos décrivent le READY, l'index et la
   rotation simulés par le HxC, pas la mécanique d'un lecteur : elles ne servent pas à modéliser le lecteur de Sugarbox.

@@ -5,3 +5,4 @@ RASM="${1:-rasm}"
 cd "$(dirname "$0")"
 rm -f realcpc.dsk
 "$RASM" menu.asm -eo
+"$RASM" seek1main.asm -eo
