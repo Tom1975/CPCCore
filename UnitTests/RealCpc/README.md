@@ -40,23 +40,27 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   des encres du firmware (17 couleurs rechargées, +614 µs dans l'interruption de trame) : sa période (10 trames,
   199,7 ms) est presque celle d'un tour de disquette, donc la fin du chargement tombe toujours à la même phase.
   Dans Sugarbox, 10 instants d'ESPACE : ancien pas et pas doublé passent tous à 296 tr/min, échouent tous à
-  293 tr/min (vitesse mesurée par ROTATION sur ce lecteur). Hercule II ne juge donc pas le pas de piste.
-  **À faire sur le vrai CPC** : charger Hercule II 5 fois (`RUN"ESAT`, ESPACE à des moments différents) et noter s'il
-  retombe au BASIC. S'il passe toujours à 293 tr/min, un autre minutage de Sugarbox est faux (durée du chargement,
-  de l'interruption du firmware ou du LDIR interrompu).
-- [ ] **Lecteur : READY après l'allumage du moteur** (disquettes_test READYTST, SPINDOWN, SPINDWN2, 2026-11-20). Les photos
-  donnent : READY tombe dès la coupure ; après une coupure de 1 à 5 trames, il revient au bout de 10 à 18 trames (au moins
+  293 tr/min (vitesse mesurée par ROTATION avec l'émulateur de lecteur HxC du banc). Hercule II ne juge donc pas le
+  pas de piste. Avec un lecteur 3" à 300 tr/min (vitesse nominale, Sugarbox 298,5-299,5) il passe.
+  **À faire sur le CPC avec le HxC** (293 tr/min) : charger Hercule II 5 fois (`RUN"ESAT`, ESPACE à des moments
+  différents) et noter s'il retombe au BASIC. Sugarbox prédit un échec à cette vitesse ; s'il passe toujours, un autre
+  minutage de Sugarbox est faux (durée du chargement, de l'interruption du firmware ou du LDIR interrompu).
+- [ ] **Lecteur : READY après l'allumage du moteur** (disquettes_test READYTST, SPINDOWN, SPINDWN2, 2026-11-20).
+  **Attention : le banc n'a pas de vrai lecteur 3" mais un émulateur HxC.** Ces photos décrivent le READY, l'index et la
+  rotation simulés par le HxC, pas la mécanique d'un lecteur : elles ne servent pas à modéliser le lecteur de Sugarbox.
+  Seul un vrai lecteur 3" (FD-1, lecteur interne du 6128) donnerait la référence. Les photos HxC donnent : READY tombe dès la coupure ; après une coupure de 1 à 5 trames, il revient au bout de 10 à 18 trames (au moins
   un tour, selon la position du trou d'index) ; depuis l'arrêt, 22-23 trames, très régulier, après une coupure de 12 à 150
   trames (SPINDOWN, moteur allumé 3 s avant), mais 27-28 après une coupure de 250 trames (READYTST, moteur allumé moins
   d'une seconde avant). Aucun mécanisme unique n'explique les deux ; avant de modéliser, lancer `RUN"SPINDOWN` sur
   `RealCpc/spindwn3.dsk` (coupures 6 à 12 trames) et sur `RealCpc/spindwn4.dsk` (coupures 150, 175, 200, 225, 250, 255,
   100), une touche pour commencer, photo de chaque écran. Ce sont des copies de `MESURES.DSK` où seule la table des
   coupures de SPINDOWN change. Si la coupure de 250 donne 22 ici, c'est la durée de marche avant la coupure qui compte ;
-  si elle donne 27, c'est la durée de la coupure.
+  si elle donne 27, c'est la durée de la coupure. À faire seulement avec un vrai lecteur 3".
   *Essai (2026-11-20)* : READY retardé de 8, 22 ou 27 trames, avec le pas doublé : Hercule II retombe au BASIC aux mêmes
   instants. READY n'explique pas Hercule II.
-- [ ] **Lecteur : vitesse** (ROTATION) : 2050 trames pour 200 tours sur ce lecteur (293 tr/min, hors des ±1,5 % habituels :
-  courroie fatiguée ?). Si un autre lecteur 3" est disponible, y lancer ROTATION avant de changer la vitesse de Sugarbox.
+- [ ] **Lecteur : vitesse** (ROTATION) : 2050 trames pour 200 tours avec le HxC (293 tr/min). C'est la rotation simulée
+  par le HxC, pas celle d'un lecteur 3" (nominale 300 tr/min) : Sugarbox garde 298,5-299,5. Un vrai lecteur 3", s'il
+  est disponible, donnerait la référence.
 - [ ] SHAKER B `1` : pages 9 à 11 (`#00DD` à `#00DF`).
 - [ ] SHAKER B `COPY`, 2 espaces (`#01D6`).
 - [ ] SHAKER B `I`, 5 espaces (`#01E3`).
