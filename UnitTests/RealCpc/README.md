@@ -41,7 +41,8 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   199,7 ms) est presque celle d'un tour de disquette, donc la fin du chargement tombe toujours à la même phase.
   Dans Sugarbox, 10 instants d'ESPACE : ancien pas et pas doublé passent tous à 296 tr/min, échouent tous à
   293 tr/min (vitesse mesurée par ROTATION avec l'émulateur de lecteur HxC du banc). Hercule II ne juge donc pas le
-  pas de piste. Avec un lecteur 3" à 300 tr/min (vitesse nominale, Sugarbox 298,5-299,5) il passe.
+  pas de piste : à la vitesse par défaut de Sugarbox (298,5-299,5), 0 échec sur 10 avec l'ancien pas, 4 avec le pas
+  doublé ; le résultat bascule avec quelques tr/min de différence.
   **À faire sur le CPC avec le HxC** (293 tr/min) : charger Hercule II 5 fois (`RUN"ESAT`, ESPACE à des moments
   différents) et noter s'il retombe au BASIC. Sugarbox prédit un échec à cette vitesse ; s'il passe toujours, un autre
   minutage de Sugarbox est faux (durée du chargement, de l'interruption du firmware ou du LDIR interrompu).
