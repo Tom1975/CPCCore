@@ -9,7 +9,8 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 
 À faire sur le vrai CPC (CRTC 1), dans cet ordre. Rayer au fur et à mesure.
 
-- [ ] **6128 Plus, `PLUS` touche `1` : P12** (pauses du DMA à 1, 2, 3 canaux) : noter les 21 nombres de la page. Puis
+- [ ] **6128 Plus, cartouche `plusc.cpr`** (ou `RUN"PLUS"` touche `1` sur `realcpc.dsk`) : **P12**, pauses du DMA à 1, 2,
+  3 canaux : noter les 21 nombres de la page. Puis
   **PLUSDMA2** (disquettes_test) : une vidéo de quelques secondes de l'écran, pour voir si le rectangle jaune apparaît.
 - [ ] **`CRTC` touche `3` : P8 bis** (`realcpc.dsk` reconstruit le 2026-11-20 ; la 2e rangée de chaque mesure s'affichait mal avant) : noter les 32 nombres de la page. Lancer 2 fois.
 - [ ] **`CRTC` touche `2` : P8** : relancer 2 fois pour voir si (C) `99` est stable.
@@ -104,7 +105,9 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
 
 Disquette `realcpc.dsk` dans le lecteur. Cinq programmes, un par composant (`RUN"MENU"` en rappelle la liste) :
 `RUN"CRTC"` (SYNC, P1, P8, P8 bis, VSYNC fantôme CRTC 2), `RUN"GA"` (T1, T4, T2, T3), `RUN"MONITEUR"` (T5, écrans 1 à 8), `RUN"FDC"` (RQM entre
-les octets de résultat, SEEK d'une piste), `RUN"PLUS"` (6128 Plus seulement : P12, pauses du DMA). Chaque menu affiche le CRTC détecté (lecture du port
+les octets de résultat, SEEK d'une piste), `RUN"PLUS"` (6128 Plus seulement : P12, pauses du DMA). Les mêmes tests du Plus existent en **cartouche sans firmware**,
+`plusc.cpr` : elle démarre sur le test, affiche sa page en mode 2 avec sa propre police (`font.asm`, générée par `font.py`),
+et le bouton reset la relance. Chaque menu affiche le CRTC détecté (lecture du port
 `&BF00`, compendium §28.1.9 : R12 lisible sur les CRTC 0, 3 et 4, R4 relu comme R12 sur les CRTC 3 et 4, R31 non
 nul sur le CRTC 1) et range les tests par type de CRTC ; la rubrique du CRTC détecté est en rouge (`<== CE CPC`).
 On tape la touche du test : l'écran reste affiché **jusqu'à l'appui d'une touche** (le temps de faire la photo),
@@ -115,7 +118,8 @@ les écrans gardent le calage au µs près des anciens programmes (vérifié dan
 
 Sources : `menucore.asm` (menu, détection, clavier, affichage), inclus par `crtc.asm` (`sync.asm`, `synctest.asm`,
 `p1last.asm`, `p8vsync.asm`, `ghost2.asm`), `ga.asm` (`t1in.asm`, `t4border.asm`, `t2vsync.asm`, `t3mode.asm`), `moniteur.asm`
-(`t5mon.asm`) et `fdc.asm` (`fdcrqm.asm`, `seek1.asm`), `plus.asm` (`p12dma.asm`, org #8000) ; `menu.asm` : la liste des cinq. Reconstruire : `./build.sh
+(`t5mon.asm`) et `fdc.asm` (`fdcrqm.asm`, `seek1.asm`), `plus.asm` (`p12dma.asm`, org #8000), `plusc.asm` (la cartouche : `p12dma.asm` avec `CART`, listes DMA et résultats
+recopiés en RAM) ; `menu.asm` : la liste des cinq. Reconstruire : `./build.sh
 <chemin de rasm>`. Les mesures (`T1`, `T2`, `P1`, `P8`, `FDC`) affichent une page de résultats : noter les nombres.
 `calib.asm` assemble une variante sans menu (`calib.dsk`, pas sur la disquette) qui répète un test (`AUTO_TEST`) : elle
 sert à caler les écritures au µs près avec la trace de Sugarbox (positions dans les en-têtes de `p1last.asm` et

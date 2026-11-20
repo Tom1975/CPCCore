@@ -3,9 +3,16 @@
 ; PAUSE 30 of the three channels, never shows. For each case : PAUSE 30 (prescaler 0 or 1) then INT on the
 ; channels of the case, DCSR read once per line (64 us) for 400 lines from the line of the enable.
 ; p12_results : per case, the first line where the INT flag of channel 0, 1, 2 is set (#FFFF : never).
-; Included by plus.asm (org #8000 : the ASIC registers are paged in #4000-#7FFF during the test).
+; Included by plus.asm (org #8000 : the ASIC registers are paged in #4000-#7FFF during the test) and by plusc.asm
+; (cartridge, CART defined : no firmware, the DMA lists and the results go to the RAM at #8000).
 p12_run:
    di
+   ifdef CART
+   ld hl,p12_lists_src  ; the DMA reads the RAM, not the cartridge
+   ld de,P12_RAM
+   ld bc,p12_lists_end-p12_lists_src
+   ldir
+   endif
    ld bc,#BC00          ; ASIC unlock sequence on the CRTC select port
    ld hl,p12_unlock
    ld d,17
@@ -125,7 +132,7 @@ p12_show:
 .value:
    push bc
    ld a,' '
-   call #BB5A
+   call print_char
    ld l,(iy+0)
    ld h,(iy+1)
    inc iy
@@ -147,9 +154,24 @@ p12_show:
    ret
 
 ; Lists : PAUSE 30, INT + STOP ; PAUSE 30, LOAD R7 #3F, STOP (PLUSDMA2) ; PAUSE 30, LOAD R7 #3F, INT + STOP
-p12_list_int:  dw #101E, #4030
-p12_list_load: dw #101E, #073F, #4020
-p12_list_both: dw #101E, #073F, #4030
+   align 2              ; the DMA ignores bit 0 of the address : the lists on an even address
+p12_lists_src:
+p12_list_int_s:  dw #101E, #4030
+p12_list_load_s: dw #101E, #073F, #4020
+p12_list_both_s: dw #101E, #073F, #4030
+p12_lists_end:
+   ifdef CART
+P12_RAM       equ #8000
+p12_list_int  equ P12_RAM + p12_list_int_s - p12_lists_src
+p12_list_load equ P12_RAM + p12_list_load_s - p12_lists_src
+p12_list_both equ P12_RAM + p12_list_both_s - p12_lists_src
+p12_results   equ #8100
+p12_buf       equ #8200
+   else
+p12_list_int  equ p12_list_int_s
+p12_list_load equ p12_list_load_s
+p12_list_both equ p12_list_both_s
+   endif
 
 ; DCSR enable, prescaler, SAR 0, SAR 1, SAR 2
 p12_cases:
@@ -176,5 +198,7 @@ p12_unlock: db #FF,#00,#FF,#77,#B3,#51,#A8,#D4,#62,#39,#9C,#46,#2B,#15,#8A,#CD,#
 txt_res_p12:  db 15,2,"P12 : PAUSE 30 PUIS INT, LIGNE DU",13,10,"DRAPEAU INT DE C0, C1, C2",13,10,15,1,0
 txt_p12_none: db "--",0
 
+   ifndef CART
 p12_results: ds 7 * 6
 p12_buf:     ds 400
+   endif

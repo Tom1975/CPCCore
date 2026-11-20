@@ -230,6 +230,9 @@ section:
    ld hl,txt_newline
    jp print_str
 
+print_char:                 ; A on the screen (firmware TXT OUTPUT, keeps every register)
+   jp #BB5A
+
 print_str:                  ; text HL ending with 0
    ld a,(hl)
    or a

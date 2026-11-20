@@ -5,3 +5,5 @@ RASM="${1:-rasm}"
 cd "$(dirname "$0")"
 rm -f realcpc.dsk
 for f in menu crtc ga moniteur fdc plus; do "$RASM" $f.asm -eo; done
+# 6128 Plus cartridge, no firmware : plusc.cpr
+"$RASM" plusc.asm -o plusc
