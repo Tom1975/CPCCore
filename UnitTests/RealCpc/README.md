@@ -32,6 +32,18 @@ Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified again
   pressé à 600, 700, 740 ou 1100 tranches ramène au BASIC (à 650, 720, 760, 800, 900, 1000 : bon) ; avec l'ancien pas, jamais,
   même pendant le chargement. Une vérification de protection d'Hercule II échoue avec le pas réel : autre minutage du FDC
   à trouver (Harricana aussi). Titan, Puffy's Saga : écran noir.
+  *Hercule II expliqué (2026-11-20)* : ce n'est pas le pas. Sa protection (« PROTECTION LATIS V1/2.0 », &6079) efface la
+  mémoire par LDIR, fait `OUT &7F86` (ROM haute) puis `OUT &DF07` et `SUB (&C6E5)` (octet de la ROM AMSDOS), et met la
+  retenue dans AF' pour que l'interruption du `HALT` suivant passe par &B978. Si une interruption est prise entre
+  `OUT &7F86` et `SUB` (moins d'environ 22 µs), le firmware remet sa configuration de ROM, `SUB` lit la RAM, et le
+  déchiffrement (`LD A,R` après le `HALT`) rate : retour au BASIC. L'instant de cette interruption dépend du clignotement
+  des encres du firmware (17 couleurs rechargées, +614 µs dans l'interruption de trame) : sa période (10 trames,
+  199,7 ms) est presque celle d'un tour de disquette, donc la fin du chargement tombe toujours à la même phase.
+  Dans Sugarbox, 10 instants d'ESPACE : ancien pas et pas doublé passent tous à 296 tr/min, échouent tous à
+  293 tr/min (vitesse mesurée par ROTATION sur ce lecteur). Hercule II ne juge donc pas le pas de piste.
+  **À faire sur le vrai CPC** : charger Hercule II 5 fois (`RUN"ESAT`, ESPACE à des moments différents) et noter s'il
+  retombe au BASIC. S'il passe toujours à 293 tr/min, un autre minutage de Sugarbox est faux (durée du chargement,
+  de l'interruption du firmware ou du LDIR interrompu).
 - [ ] **Lecteur : READY après l'allumage du moteur** (disquettes_test READYTST, SPINDOWN, SPINDWN2, 2026-11-20). Les photos
   donnent : READY tombe dès la coupure ; après une coupure de 1 à 5 trames, il revient au bout de 10 à 18 trames (au moins
   un tour, selon la position du trou d'index) ; depuis l'arrêt, 22-23 trames, très régulier, après une coupure de 12 à 150
