@@ -4,4 +4,4 @@ set -e
 RASM="${1:-rasm}"
 cd "$(dirname "$0")"
 rm -f realcpc.dsk
-for f in menu crtc ga moniteur fdc; do "$RASM" $f.asm -eo; done
+for f in menu crtc ga moniteur fdc plus; do "$RASM" $f.asm -eo; done
