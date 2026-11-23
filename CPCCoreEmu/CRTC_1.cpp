@@ -326,8 +326,8 @@ void CRTC::SampleLastLine1()
 // the R.F.D. edge and 6 on the next row : one frame R12/R13 on every row, the next one VMA' followed (the former
 // test, (C9 & %11110) | ParitéC9 == R9, passed on the R9 = 6 row of the first kind of frame and turned it into one
 // row of R12/R13) ; "IVM ON/OFF BEFORE RFD" (ParitéC9 = 0 from the R8 write on C9 = 0) : R12/R13 on every row ;
-// "IVM ON/OFF AFTER RFD", R4 : no rupture. PROVISIONAL : "IVM ON/OFF AFTER RFD" with R9 (#0399, #039A) still
-// repeats the second row where the real one shows it once.
+// "IVM ON/OFF AFTER RFD" : the ParitéC9 of the test is held by the R.F.D. (CRTC.cpp, R8 write), the rows follow VMA'.
+// All 9 pages match the videos. PROVISIONAL.
 bool CRTC::ParityC9Test1()
 {
    return C9EqualsR9() && parity_c9_;

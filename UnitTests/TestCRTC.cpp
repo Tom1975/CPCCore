@@ -1886,6 +1886,31 @@ TEST(Compendium_13, Crtc1RfdByR4TakesTheOffsetOnEveryRowOneFrameOfTwo)
    }
 }
 
+// CRTC 1 : IVM ON/OFF (R8 = 3 then 0, 4 us apart) written after a R.F.D. (SHAKER D RFD ROUND 2 "IVM ON/OFF AFTER
+// RFD", R9 + R4 : R.F.D. on C4 = 7, R8 on C4 = 8, C9 = 0). Videos of a real CRTC 1 (2026-11-18, RealCpc README P9) : the
+// rows after it follow VMA' and the R.F.D. of the next frames always passes. The parity state of the R.F.D. holds the
+// ParitéC9 of its test ; the R8 write only reaches C9.0 and ParitéFrame (the next frame). PROVISIONAL.
+TEST(Compendium_19, Crtc1R8WrittenDuringTheRfdParityStateKeepsParityC9)
+{
+   for (bool parity : { false, true })
+   {
+      SCOPED_TRACE(testing::Message() << "ParitéC9 " << parity);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 8, 0));
+      crtc.rfd_parity_ = true;
+      crtc.parity_c9_ = parity;
+      AdvanceUntilHccEquals(crtc, 46);
+      WriteRegister(crtc, 8, 3);
+      AdvanceMicroseconds(crtc, 4);
+      WriteRegister(crtc, 8, 0);
+      AdvanceMicroseconds(crtc, 4);
+      EXPECT_EQ(parity, crtc.parity_c9_);
+      // ParitéFrame takes the value written to C9.0 (C9 = 0 : even), the next frame toggles it
+      EXPECT_TRUE(crtc.even_field_);
+   }
+}
+
 // 12.3 : R4 = 0 written on the last line makes C4 overflow. With R5 = 0 also during the character C0 = R0 : the
 // frame end needs C4 == R4 on the line end edge. Measured on a real CRTC 1 (RealCpc README, P1, 2026-11-18 : R4 = 39
 // written on C0 = 60 to 63 gives one more row, on C0 = 0 of the next line it does not). 11.2.4 says the state is

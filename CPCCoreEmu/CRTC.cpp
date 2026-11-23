@@ -766,7 +766,8 @@ void CRTC::ClockBusInterface()
    {
       const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
       unsigned int parity_frame = even_field_ ? 0 : 1;
-      unsigned int parity_c9 = parity_c9_ ? 1 : 0;
+      // During the parity state of a R.F.D. the value of the 3rd microsecond is in C9.0 only (see WriteBus, R8)
+      unsigned int parity_c9 = rfd_parity_ ? (vlc_ & 1) : (parity_c9_ ? 1 : 0);
       if (r8_parity_pending_ == 1)
       {
          if (parity_frame == 0)
@@ -777,7 +778,8 @@ void CRTC::ClockBusInterface()
       {
          parity_frame = parity_c9;
       }
-      parity_c9_ = (parity_c9 != 0);
+      if (!rfd_parity_)
+         parity_c9_ = (parity_c9 != 0);
       vlc_ = (vlc_ & 0x1E) | parity_c9;
       even_field_ = (parity_frame == 0);
       r8_parity_pending_ = 0;
@@ -865,8 +867,15 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
                      // of C9 is the ParitéC9 flip-flop (C9 carries the parity, 19.8.2) : it changes with it, in the middle
                      // of the line. The 4th microsecond is clocked on the next character (ClockBusInterface)
                      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
+                     // Once a R.F.D. has set the parity state (11.6), the ParitéC9 its C9 == R9 test uses is held to
+                     // the frame end : the R8 write gives its value to C9.0 and, on the 4th microsecond, to ParitéFrame
+                     // (so to the next frame) only. SHAKER D RFD ROUND 2, "IVM ON/OFF AFTER RFD" (#0399 to #039B,
+                     // videos of a real CRTC 1, 2026-11-18) : the rows after the IVM ON/OFF follow VMA', and the R.F.D.
+                     // of the next frame passes ; "BEFORE RFD" (#0396 to #0398) : R12/R13 on every row (PROVISIONAL,
+                     // RealCpc README P9).
                      const unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
-                     parity_c9_ = (parity_c9 != 0);
+                     if (!rfd_parity_)
+                        parity_c9_ = (parity_c9 != 0);
                      vlc_ = (vlc_ & 0x1E) | parity_c9;
                      r8_parity_pending_ = ivm_after ? 1 : 2;
                   }
