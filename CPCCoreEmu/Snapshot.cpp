@@ -491,7 +491,9 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
       //   AE	 1	 CRTC horizontal sync width counter (note 5)
       machine_->GetCRTC()->horinzontal_pulse_ = header[0xAE];
       //   AF	 1	 CRTC vertical sync width counter (note 6)
-      machine_->GetCRTC()->scanline_vbl_ = header[0xAF];
+      // In lines ; the CRTC 1 counts half lines (CRTC_1.cpp) : the count starts on a line start
+      machine_->GetCRTC()->scanline_vbl_ = (machine_->GetCRTC()->type_crtc_ == CRTC::UM6845R)
+         ? ((header[0xAF] << 1) & 0x1F) : header[0xAF];
 
       //   B0-B1	 2
       //   CRTC state flags. (note 7)
@@ -1517,7 +1519,9 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
    {
       CRTC* crtc = machine_->GetCRTC();
       const bool c3h = (crtc->type_crtc_ == CRTC::AMS40489 || crtc->type_crtc_ == CRTC::AMS40226);
-      header[0xAF] = c3h ? ((crtc->ff4_ ? (crtc->c3h_status_ - 1) : 0) & 0x0F) : crtc->scanline_vbl_;
+      // In lines : the CRTC 1 counts half lines (CRTC_1.cpp)
+      header[0xAF] = c3h ? ((crtc->ff4_ ? (crtc->c3h_status_ - 1) : 0) & 0x0F)
+         : (crtc->type_crtc_ == CRTC::UM6845R) ? (crtc->scanline_vbl_ >> 1) : crtc->scanline_vbl_;
    }
 
    //   B0-B1	 2

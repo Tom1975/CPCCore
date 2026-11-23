@@ -5484,13 +5484,16 @@ TEST(Compendium_13, R0UpdateChronograms)
    }
 }
 
-// CRTC 1 : the VSYNC line counter C3h is clocked by the line start pulse, which cannot come on two edges in a row :
-// with R0 = 0 (lines of 1 us) it counts one line each 2 us (PROVISIONAL, RealCpc README P8). Measured on a real CRTC 1
-// (P8 (D), 2026-11-18) : R0 = 0 written on C0 = 0 of the line C4 = 29, C9 = 7 (R7 = 30), R0 = 63 d us later : the
-// VSYNC goes on after 30 us, it ended after 34 us. SHAKER LOST VSYNC ON R0=0 (#008D) : 18 us, the VSYNC goes on.
-TEST(Compendium_16, Crtc1VsyncCountsOneLineEachTwoMicrosecondsWithR0Zero)
+// CRTC 1 : C3h counts half lines (edges of the line start and of C0 = (R0 + 1) / 2) : with R0 = 0 (lines of 1 us) one
+// half line each us (PROVISIONAL, RealCpc README P8 bis). R0 = 0 written on C0 = 0 of the line C4 = 29, C9 = 7
+// (R7 = 30), R0 = 63 d us later. Measured on a real CRTC 1 (P8 (D) 2026-11-18, P8 bis (F) 2026-11-21) : from 10 to
+// 17 us, each us takes about 33 us off the VSYNC (no pairs : half a line and the us). SHAKER LOST VSYNC ON R0=0
+// (#008D) : 18 us, the VSYNC goes on. The real VSYNC goes on up to 33 us, one us more than here : see
+// DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero.
+TEST(Compendium_16, Crtc1VsyncCountsOneHalfLineEachMicrosecondWithR0Zero)
 {
-   for (int d : { 18, 30, 34 })
+   int previous_end = 0;
+   for (int d : { 10, 11, 12, 13, 14, 15, 16, 17, 18, 28, 29, 30, 31, 32, 33, 34, 35 })
    {
       SCOPED_TRACE(testing::Message() << d << " us of R0 = 0");
       CRTC crtc; CSig sig;
@@ -5502,8 +5505,66 @@ TEST(Compendium_16, Crtc1VsyncCountsOneLineEachTwoMicrosecondsWithR0Zero)
       EXPECT_TRUE(seen);
       WriteRegister(crtc, 0, 63);
       Advance(crtc);
-      EXPECT_EQ(d <= 30, crtc.ff4_);
+      EXPECT_EQ(d <= 32, crtc.ff4_);
+      if (d > 18) continue;
+      // Time from the R0 = 0 write to the end of the VSYNC : each us of R0 = 0 counts a half line (32 us of R0 = 63)
+      // and lasts 1 us, the end comes 31 us earlier (from the R0 = 63 write, 33 : the photo)
+      int end = d + 1;
+      while (crtc.ff4_ && end < 2000) { Advance(crtc); ++end; }
+      if (previous_end != 0)
+         EXPECT_EQ(31, previous_end - end);
+      previous_end = end;
    }
+}
+
+// Divergence (RealCpc README P8 bis (F), 2026-11-21) : on the real CRTC 1 the VSYNC goes on up to 33 us of R0 = 0
+// and ends during 34 us (Sugarbox : 32, 33) ; every value of (D) and (F) is the Sugarbox one for one us more of R0 = 0.
+// A count enabled one character after the VSYNC start gives it, but then a VSYNC started on C0 = 31 misses the half
+// line edge C0 = 32 and ends half a line too late (SHAKER A1 #008F, #0090, photos). Measure to do : RealCpc README,
+// part 0.
+TEST(Compendium_16, DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero)
+{
+   for (int d : { 33, 34 })
+   {
+      SCOPED_TRACE(testing::Message() << d << " us of R0 = 0");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 29, 7));
+      WriteRegister(crtc, 0, 0);
+      for (int us = 0; us < d; ++us) Advance(crtc);
+      WriteRegister(crtc, 0, 63);
+      Advance(crtc);
+      EXPECT_EQ(d <= 33, crtc.ff4_);
+   }
+}
+
+// CRTC 1 : a VSYNC started by R7 = C4 during a line ends on a half line edge, 16 lines after the first half line edge
+// that follows its start : up to C0 = 31, on the start of the 16th line ; from C0 = 32, half a line later. Measured on
+// a real CRTC 1 (RealCpc README, P8 bis (E), 2026-11-21) : R7 = 20 written on the line C4 = 20, C9 = 0, I/O on C0 =
+// #00, #04 ... #3C (VSYNC up on C0 = 1, 5 ... 61), steps of 10 us from the write to the end : 102 102 101 101 101 100
+// 100 99 twice (16.4.2 says whole lines from C0 = 0 : 99 down to 96 on the second row). SHAKER A1 #008F, #0090
+// (photos) : I/O on C0 = #1E (VSYNC up on C0 = 31) ends on the line start.
+TEST(Compendium_16, Crtc1VsyncStartedInALineEndsOnAHalfLine)
+{
+   int first_half_end = -1, second_half_end = -1;
+   for (int c0 : { 0, 4, 8, 12, 16, 20, 24, 28, 30, 32, 36, 40, 44, 48, 52, 56, 60 })
+   {
+      SCOPED_TRACE(testing::Message() << "R7 on C0 = " << c0);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 20, 0));
+      int t = 0;
+      while (crtc.hcc_ != c0) { Advance(crtc); ++t; }
+      WriteRegister(crtc, 7, 20);
+      while (!crtc.ff4_ && t < 100) { Advance(crtc); ++t; }
+      ASSERT_TRUE(crtc.ff4_);
+      EXPECT_EQ(c0 + 1, crtc.hcc_);
+      while (crtc.ff4_ && t < 3000) { Advance(crtc); ++t; }
+      int& end = (c0 < 31) ? first_half_end : second_half_end;
+      if (end < 0) end = t;
+      EXPECT_EQ(end, t);
+   }
+   EXPECT_EQ(32, second_half_end - first_half_end);
 }
 
 // CRTC 1 : no HSYNC (R0 = 20 < R2 = 40) does not stop C3h : the VSYNC ends after 16 lines of 21 us. Measured on a real
@@ -5547,8 +5608,8 @@ TEST(Compendium_16, Crtc1VsyncCountsTheHsyncOfLengthZero)
 }
 
 // CRTC 1 : R0 = 0 (frames of 312 us with R4 = 38, R9 = 7) : the VSYNC comes back on every frame and lasts 16 lines
-// counted one each 2 us (SHAKER R52INC IN HSYNC #01F4 : the VSYNC must come back to reset R52 ; PROVISIONAL RealCpc
-// README P8)
+// counted in half lines, one each us : 32 us (SHAKER R52INC IN HSYNC #01F4 : the VSYNC must come back to reset R52 ;
+// PROVISIONAL, RealCpc README P8 bis ; the real CRTC 1 gives 33 us, see DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero)
 TEST(Compendium_16, Crtc1VsyncComesBackOnEveryFrameWithR0Zero)
 {
    CRTC crtc; CSig sig;
@@ -5572,9 +5633,8 @@ TEST(Compendium_16, Crtc1VsyncComesBackOnEveryFrameWithR0Zero)
    EXPECT_EQ(312, starts[1] - starts[0]);
    EXPECT_EQ(312, starts[2] - starts[1]);
    ASSERT_GE(lengths.size(), 2u);
-   // 16 pulses one each 2 us : 31 or 32 us depending on the phase of the pulse when the VSYNC starts
-   EXPECT_GE(lengths[1], 31);
-   EXPECT_LE(lengths[1], 32);
+   // 32 half lines of 1 us
+   EXPECT_EQ(32, lengths[1]);
 }
 
 // 13.4, 12.4 : R0 = 0 written on C0 = 29 of the last line (C4 = R4 = 38, C9 = R9 = 7), R0 = 63 again 512 or 1024 us

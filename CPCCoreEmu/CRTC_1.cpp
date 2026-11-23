@@ -65,22 +65,30 @@ void CRTC::ClockTick1 ()
       ma_++;
    }
 
-   // Vertical sync width counter C3h (16.3), 4 bits, R3h fixed to 16 on this CRTC : clocked by the line start pulse,
-   // which cannot come on two edges in a row. The VSYNC ends on the 16th line start after its own start, counted in
-   // whole lines from C0 = 0 (16.4.2 : a VSYNC triggered on C0 lasts 16 lines minus C0 + 1). With R0 = 0 (lines of
-   // 1 us) the pulse comes one edge of two : C3h counts one line each 2 us. Measured on a real CRTC 1 (RealCpc
-   // README, P8, 2026-11-18) : (A), (D) R0 = 0 for 10 to 38 us : each us takes half a line off the VSYNC, it ends
-   // between 30 and 34 us ; (B) no HSYNC (R0 = 20, R2 = 40) : the VSYNC still ends ; (C) R7 = C4 written on C0 = #10
-   // and #3C : 101 and 99 steps of 10 us (16.4.2). SHAKER LOST VSYNC ON R0=0 (#008D, 18 us of R0 = 0 : 9 lines, the
-   // VSYNC goes on) and R52INC IN HSYNC (#01F4, R0 = 0 : the VSYNC comes back every frame) agree. PROVISIONAL : the
-   // pulse "not on two edges in a row" is deduced from the measures (RealCpc README, P8). Replaces the C3h clocked
-   // by the end of the HSYNC (101c896), wrong : (B).
-   const bool line_pulse = c0_reset && !line_pulse_prev_;
-   line_pulse_prev_ = line_pulse;
-   if (line_pulse && ff4_)
+   // Vertical sync width counter C3h (16.3), R3h fixed to 16 on this CRTC, counts half lines : C3h (4 bits) behind a
+   // half line bit, 5 bits counted on each edge where the line starts (C0 = R0 -> 0) or where C0 reaches the half
+   // line comparator value (R0 + 1) / 2 (the middle of the R0 + 1 characters, 32 for R0 = 63). A VSYNC ends on the
+   // 32nd of these edges after the one that started it : started up to C0 = 31, on the start of the 16th line after
+   // its own ; started from C0 = 32, half a line later. With R0 = 0 (lines of 1 us) each edge is a line start : one half
+   // line each us. Measured on a real CRTC 1 (RealCpc README, P8 2026-11-18, P8 bis 2026-11-21) :
+   // - P8 bis (E) R7 = C4 written with its I/O on C0 = #00, #04 ... #3C (VSYNC up on C0 = 1, 5 ... 61) : 102 102 101
+   //   101 101 100 100 99, then the same row again from C0 = #20 : the end moves by half a line (steps of 10 us from
+   //   the write, all given) ; P8 (C) C0 = #10 and #3C : 101 and 99 (16.4.2, whole lines from C0 = 0, says 96) ;
+   // - SHAKER A1 #008F, #0090 (photos) : R7 = C4 with its I/O on C0 = #1E (VSYNC up on C0 = 31) ends on the line start ;
+   // - P8 (D), P8 bis (F) R0 = 0 for 10, 11 ... 17 us : 77 73 70 67 64 61 57 54 : no pairs, about 33 us less per us of
+   //   R0 = 0 (half a line and the us). Sugarbox gives the same values for one us more of R0 = 0 : the VSYNC lasts 32
+   //   us with R0 = 0, the real CRTC 1 33 (it goes on up to 33 us of R0 = 0). Not explained : a count enabled one
+   //   character after the VSYNC start gives the 33 us but loses the edge C0 = 32 of SHAKER #0090 (test
+   //   Compendium_16.DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero, RealCpc README P8 bis) ;
+   // - P8 (A) R0 = 0 for 40 us : ended (1849) ; (B) no HSYNC (R0 = 20, R2 = 40) : the VSYNC still ends.
+   // SHAKER LOST VSYNC ON R0=0 (#008D) and R52INC IN HSYNC (#01F4, R0 = 0 : the VSYNC comes back every frame) agree.
+   // PROVISIONAL : deduced from the measures. Replaces the C3h clocked by the line start one edge of two (91d637d,
+   // wrong : P8 bis (E), (F)) and by the end of HSYNC (101c896, wrong : P8 (B)).
+   const bool half_pulse = c0_reset || (hcc_ == ((registers_list_[0] + 1) >> 1));
+   if (half_pulse && ff4_)
    {
-      scanline_vbl_ = (scanline_vbl_ + 1) & 0x0F;
-      if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
+      scanline_vbl_ = (scanline_vbl_ + 1) & 0x1F;
+      if (scanline_vbl_ == ((vertical_sync_width_ << 1) & 0x1F))
       {
          scanline_vbl_ = 0;
          ff4_reset = true;

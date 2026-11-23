@@ -189,7 +189,6 @@ void CRTC::Reset()
    hsync_prev_ = false;
    hsync_restart_ = false;
    vsync_end_pending_ = false;
-   line_pulse_prev_ = false;
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
