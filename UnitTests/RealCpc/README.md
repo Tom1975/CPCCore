@@ -35,6 +35,15 @@ mesure.
   vient du début de la VSYNC quand R0=0 ; **décalées d'1 µs** (2e rangée commençant par `3` au lieu de `19xx`, 1re
   rangée `28 25 22 …`) : elle se perd dans le comptage pendant R0=0 (test
   `Compendium_16.DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero`).
+- [ ] **CRTC 1 : CRTCTEST « vsync r8 test (r8=1) »** (disquettes_test `ACID/crtc/crtc1.dsk`, 2026-11-23). Taper
+  `MEMORY &3FFF:LOAD"CRTCTEST",&4000:POKE &4020,&C3:CALL &4000` (le POKE saute le test « I/O decode », qui plante un
+  6128 et dont le résultat est faux de toute façon), touche `1` (UM6845R), puis **photographier chaque page** : l'écran
+  plein attend une touche avant de continuer (3 pages pour les 40 valeurs). Le test écrit R8=1, R7=1, puis lit la
+  VSYNC 10 fois toutes les 4 µs, sur 4 mesures espacées de 4, 5, 4, 5 trames. Valeurs attendues par le test (`expected`) :
+  `1111111111` / `0000000011` / `1111111111` / `0000001111` ; Sugarbox : `0` partout (VSYNC à +96 / +65 / +65 / +96 µs de
+  la 1re lecture : une ligne de retard, et la demi-ligne de MID-VSYNC sur les mesures 1 et 4 au lieu de 2 et 4).
+  La table attendue ne dépend pas du type de CRTC : seul le vrai CRTC 1 dit si Sugarbox se trompe (ligne additionnelle
+  de l'entrelacé, instant de l'interruption avec R3=8, ou parité de trame remise par l'écriture de R8=1).
 - [ ] **`GA` touche `4` : T3** : photo zoomée sur le début de chaque rangée, juste après le noir à gauche.
   *Photos 2026-11-21 (`../screenshots/20261121_t3mode_crtc1_1.jpg` à `_3`) non exploitables* : `_1` et `_2` floues (bougé),
   `_3` nette mais reflet de la fenêtre et moiré, 4 pixels mode 2 non tranchés. À refaire dans une pièce sombre, appareil
