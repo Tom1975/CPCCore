@@ -8,6 +8,7 @@
    include 'p1last.asm'
    include 'p8vsync.asm'
    include 'p8ter.asm'
+   include 'intack.asm'
    include 'ghost2.asm'
 
 menu_list:
@@ -32,6 +33,7 @@ entries:
    db '3' : dw p8b_run : db 0 : dw p8b_show
    db '4' : dw gh_run : db 0 : dw gh_show
    db '5' : dw p8t_run : db 0 : dw p8t_show
+   db '6' : dw ia_run : db 0 : dw ia_show
    db 'Q' : dw quit : db 0 : dw 0
    db 0
 
@@ -45,7 +47,9 @@ txt_tests1: db 15,1," 1  P1  ECHANTILLON DERNIERE LIGNE",13,10
             db " 3  P8  BIS : R7 SUR C0, R0=0 PAR US",13,10
             db " 5  P8  TER : R0=0 PENDANT LA VSYNC",13,10,13,10,0
 txt_crtc2:  db "CRTC 2",0
-txt_tests2: db 15,1," 4  VSYNC FANTOME (R2=50, R3L 11-15)",13,10,0
+txt_tests2: db 15,1," 4  VSYNC FANTOME (R2=50, R3L 11-15)",13,10,13,10
+            db 15,2,"CRTC 0, 1, 2",13,10
+            db 15,1," 6  INT : INSTRUCTION QUI LA PREND",13,10,13,10,0
 
 end:
    ifdef AUTO

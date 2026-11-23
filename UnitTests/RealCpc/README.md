@@ -44,6 +44,13 @@ mesure.
   À faire : `INTPOS` et `INTREP` sur le **CRTC 0 sans M4** ; puis un INTREP avec `CP (HL)`, `LD A,(HL)`, `LD HL,(nn)`,
   `LD A,(nn)` sur CRTC 1 et CRTC 2 (programme à écrire), pour savoir quelles instructions finissant par une lecture
   ratent l'interruption.
+  **Programme écrit (2026-11-23) : `RUN"CRTC"` touche `6` (`intack.asm`)**, à lancer 2 fois (à froid, puis à chaud) sur
+  CRTC 1 et CRTC 2, et sur un CRTC 0 sans M4 si possible ; photographier la page. Chaînes de 64 fois `LD A,(nn)`,
+  `LD HL,(nn)`, `LD A,(HL)`, `CP (HL)`, `LD A,(DE)`, `ADD A,(IX+0)`, et les témoins `INC HL`, `NOP`, après 0 à 3 NOP de
+  calage : la page donne, pour chaque calage, calage + rang de l'instruction qui prend l'INT x durée (µs). Sugarbox
+  (CRTC 0, 1, 2) : `36 37 38 39` / `40 36 37 38` / `36 37 36 37` / `36 37 36 37` / `36 37 36 37` / `40 36 37 38` /
+  `38 37 38 37` / `36 36 36 36`. Une valeur 4 ou 5 plus haut sur un calage (l'INT prise une instruction plus tard)
+  désigne les instructions concernées.
 - [ ] **FDC, délai commande -> résultat** (disquettes_test SEEKJIT3) : une boucle `SENSE INTERRUPT` dure ~36 µs de plus sur
   le vrai CPC que dans Sugarbox (résultat prêt vers 70 µs après l'octet `08` au lieu de moins de 34). Photographier chaque
   page de **FDCTEST2** (et FDCTEST3), qui lit l'état juste après chaque octet de commande.
