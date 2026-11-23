@@ -44,7 +44,7 @@ void CRTC::ClockTick1 ()
    // (R1.JIT, 17.4.2, chronogram p185). After a R.F.D. the test takes ParitéC9 in place of the bit 0 of C9
    // until the frame end : with the wrong parity it fails, VMA' is not updated and VMA keeps being loaded
    // from R12/R13 (11.6.1)
-   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
+   const bool r1_c9_test = rfd_parity_ ? ParityC9Test1() : C9EqualsR9();
    // The same edge resets DISPTMG : the R1 written during the character is compared (17.3, 17.5.1)
    const bool r1_end = (hcc_ == registers_list_[1]);
    if ( r1_end && r1_c9_test )
@@ -103,7 +103,7 @@ void CRTC::ClockTick1 ()
       const bool c9_eq_r9 = C9EqualsR9();
       // The same C9 == R9 test with ParitéC9 in place of C9.0, once a R.F.D. is set (now or before in the frame, 11.6)
       const bool c9_eq_r9_parity = (rfd_ || rfd_parity_)
-         ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : c9_eq_r9;
+         ? ParityC9Test1() : c9_eq_r9;
       const bool c4_eq_r4 = (vcc_ == registers_list_[4]);
 
       // Additional interlace line on the even frames, counted as one more R5 line (11.2.3, 19.6.2)
@@ -141,12 +141,15 @@ void CRTC::ClockTick1 ()
       if (!new_frame)
       {
          // C9 returns to 0 on R9 and increments C4, whatever R4 (C4 may overflow, 12.3).
-         // ParitéC9 toggles on each C4 when R9 is even ; in Interlace Video Mode C9 restarts from it
-         // and counts by 2 (19.5.3, 19.8.2)
+         // In Interlace Video Mode ParitéC9 toggles on each C4 when R9 is even, C9 restarts from it and counts
+         // by 2 ; out of it the count is C9 == R9 -> C9 = 0 and the C4 management only, ParitéC9 is not clocked
+         // (19.8.2). SHAKER D RFD ROUND 2 "OVERRIDE BY R4" (#0395, video 2026-11-18) : R9 = 6 on the row after the
+         // R.F.D. ; a toggle there would turn the frames where R12/R13 are taken on every row into frames where VMA'
+         // is frozen (PROVISIONAL, RealCpc README P9).
          if (c9_eq_r9)
          {
             vcc_ = (vcc_ + 1) & 0x7F;
-            if ((registers_list_[9] & 1) == 0)
+            if ((registers_list_[9] & 1) == 0 && interlace_video)
                parity_c9_ = !parity_c9_;
             vlc_ = interlace_video ? (parity_c9_ ? 1 : 0) : 0;
          }
@@ -315,4 +318,17 @@ void CRTC::SampleLastLine1()
       rfd_ = true;
    last_line_ = last_line;
    last_line_sampled_ = true;
+}
+
+// CRTC 1, the C9 == R9 test that VMA' (at C0 == R1) and the reset of "VMA reloaded from R12/R13" (on the line end)
+// use once a R.F.D. is set (11.6) : the C9 == R9 comparator gated by the ParitéC9 flip-flop, whatever the bit 0 of
+// R9. SHAKER D RFD ROUND 2 (videos of a real CRTC 1, 2026-11-18, RealCpc README P9) : "OVERRIDE BY R4", R9 = 7 on
+// the R.F.D. edge and 6 on the next row : one frame R12/R13 on every row, the next one VMA' followed (the former
+// test, (C9 & %11110) | ParitéC9 == R9, passed on the R9 = 6 row of the first kind of frame and turned it into one
+// row of R12/R13) ; "IVM ON/OFF BEFORE RFD" (ParitéC9 = 0 from the R8 write on C9 = 0) : R12/R13 on every row ;
+// "IVM ON/OFF AFTER RFD", R4 : no rupture. PROVISIONAL : "IVM ON/OFF AFTER RFD" with R9 (#0399, #039A) still
+// repeats the second row where the real one shows it once.
+bool CRTC::ParityC9Test1()
+{
+   return C9EqualsR9() && parity_c9_;
 }

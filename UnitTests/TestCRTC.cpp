@@ -1833,6 +1833,59 @@ TEST(Compendium_13, Crtc1RfdByR0LengthenedWithR9MovedTakesTheOffset)
    EXPECT_EQ(crtc.registers_list_[13] + ((crtc.registers_list_[12] & 0x3F) << 8), crtc.ma_);
 }
 
+// CRTC 1, R.F.D. by R0 lengthened on the last line then R4 moved away ("OVERRIDE BY R4", SHAKER D RFD ROUND 2
+// #0395 with the positions of SHAKER : R0 = #BD on C0 = 63, #7F 6 us later, R4 = 38 on C0 = 102 of the line C4 = 7,
+// C9 = R9 = 7 ; R0 = 63 and R9 = 6 on the row C4 = 8, R9 = 7 again on C4 = 9). Video of a real CRTC 1 (2026-11-18,
+// RealCpc README P9) : one frame R12/R13 on every row below, the next one VMA' followed (the row after the rupture
+// once, then the next ones). The C9 == R9 test used after a R.F.D. is gated by ParitéC9, which R9 = 6 does not toggle
+// out of IVM (19.8.2). PROVISIONAL.
+TEST(Compendium_13, Crtc1RfdByR4TakesTheOffsetOnEveryRowOneFrameOfTwo)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 7, 0, 7);
+   std::vector<std::vector<bool>> frames;
+   for (int frame = 0; frame < 4; ++frame)
+   {
+      SCOPED_TRACE(testing::Message() << "frame " << frame);
+      ASSERT_TRUE(ReachLine(crtc, 7, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 0, 0xBD);
+      AdvanceMicroseconds(crtc, 6);
+      WriteRegister(crtc, 0, 0x7F);
+      AdvanceUntilHccEquals(crtc, 102);
+      WriteRegister(crtc, 4, 38);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_EQ(Line(8, 0), Line(crtc.vcc_, crtc.vlc_));
+      AdvanceUntilHccEquals(crtc, 12);
+      WriteRegister(crtc, 0, 63);
+      AdvanceUntilHccEquals(crtc, 26);
+      WriteRegister(crtc, 9, 6);
+      std::vector<bool> reload;
+      reload.push_back(crtc.vma_reload_);
+      ASSERT_TRUE(ReachLine(crtc, 9, 0));
+      reload.push_back(crtc.vma_reload_);
+      AdvanceUntilHccEquals(crtc, 12);
+      WriteRegister(crtc, 9, 7);
+      for (int c4 = 10; c4 <= 12; ++c4)
+      {
+         ASSERT_TRUE(ReachLine(crtc, c4, 0));
+         reload.push_back(crtc.vma_reload_);
+      }
+      // Next frame : R4 = 7 again on C4 = 0
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      AdvanceUntilHccEquals(crtc, 26);
+      WriteRegister(crtc, 4, 7);
+      frames.push_back(reload);
+   }
+   for (size_t f = 0; f < frames.size(); ++f)
+   {
+      SCOPED_TRACE(testing::Message() << "frame " << f);
+      // The same state on every row of a frame (R12/R13 every row, or VMA' followed), the other one on the next frame
+      for (size_t r = 1; r < frames[f].size(); ++r) EXPECT_EQ(frames[f][0], frames[f][r]) << "row " << r;
+      if (f > 0) EXPECT_NE(frames[f - 1][0], frames[f][0]);
+   }
+}
+
 // 12.3 : R4 = 0 written on the last line makes C4 overflow. With R5 = 0 also during the character C0 = R0 : the
 // frame end needs C4 == R4 on the line end edge. Measured on a real CRTC 1 (RealCpc README, P1, 2026-11-18 : R4 = 39
 // written on C0 = 60 to 63 gives one more row, on C0 = 0 of the next line it does not). 11.2.4 says the state is
