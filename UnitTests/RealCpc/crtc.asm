@@ -7,6 +7,7 @@
    include 'synctest.asm'
    include 'p1last.asm'
    include 'p8vsync.asm'
+   include 'p8ter.asm'
    include 'ghost2.asm'
 
 menu_list:
@@ -30,6 +31,7 @@ entries:
    db '2' : dw p8_run : db 0 : dw p8_show
    db '3' : dw p8b_run : db 0 : dw p8b_show
    db '4' : dw gh_run : db 0 : dw gh_show
+   db '5' : dw p8t_run : db 0 : dw p8t_show
    db 'Q' : dw quit : db 0 : dw 0
    db 0
 
@@ -40,7 +42,8 @@ txt_all:    db 13,10,15,2,"TOUS LES CRTC",13,10
 txt_crtc1:  db "CRTC 1",0
 txt_tests1: db 15,1," 1  P1  ECHANTILLON DERNIERE LIGNE",13,10
             db " 2  P8  COMPTEUR DE LIGNES VSYNC",13,10
-            db " 3  P8  BIS : R7 SUR C0, R0=0 PAR US",13,10,13,10,0
+            db " 3  P8  BIS : R7 SUR C0, R0=0 PAR US",13,10
+            db " 5  P8  TER : R0=0 PENDANT LA VSYNC",13,10,13,10,0
 txt_crtc2:  db "CRTC 2",0
 txt_tests2: db 15,1," 4  VSYNC FANTOME (R2=50, R3L 11-15)",13,10,0
 
