@@ -5,7 +5,7 @@ Tout se fait sur **CRTC 1** (la machine disponible). Reporter le résultat dans 
 
 Schéma cité : `40010-simplified_V03.pdf` (révision 0.3, « Not verified against real 40010 »).
 
-## 0. Prochaine séance (liste à jour, 2026-11-23)
+## 0. Prochaine séance (liste à jour, 2026-11-24)
 
 À faire sur les vrais CPC (6128 Plus pour la 1re ligne, CRTC 1 pour les autres), dans cet ordre. Rayer au fur et à
 mesure.
@@ -46,6 +46,22 @@ mesure.
   touche) : elle vient sans doute d'un CRTC de Plus. Seul le vrai CRTC 1 dit si Sugarbox se trompe (ligne additionnelle
   de l'entrelacé, instant de l'interruption avec R3=8, ou parité de trame remise par l'écriture de R8=1). Les autres
   tests de CRTCTEST comparent au type choisi : `POKE &400D,&31` force le type 1.
+- [ ] **CRTC 1 : CRTCTEST « R8 - count lines »** (même disquette, 2026-11-24). Taper
+  `MEMORY &3FFF:LOAD"CRTCTEST",&4000:POKE &400D,&31:POKE &4020,&D8:POKE &4021,&41:CALL &4000`, une touche, photographier
+  les deux pages. **Lancer au moins 4 fois** (la phase de départ change le résultat). Le test compte par pas de 64 µs
+  l'intervalle entre deux VSYNC (R7=0, R6=25 > R4 ; R9/R4 = 8/16, 8/15, 7/16, 7/15, deux fois chacun).
+  Table du test pour R8=1 (lignes `0010` à `001F`, une valeur sur deux) : `9A 9A 91 91 89 89 81 81`, soit N+1 partout ;
+  R8=3 (`0030` à `003F`) : `4E 4D 49 49 45 45 41 41`.
+  Sugarbox (64 instants de départ) : les intervalles valent N+1/2 ligne -1 µs et +1 µs en alternance (MID-VSYNC sur C0=31,
+  19.7 : 9823 et 9825 µs), et toujours **une** des 8 valeurs de R8=1 tombe une unité plus bas, à un endroit qui dépend
+  de la phase. MID-VSYNC essayée sur C0=30, 32, 33 : une valeur au moins reste en dessous à chaque fois (0 lancement sur 64
+  conforme) : avec N+1/2 en moyenne, l'attente de VSYNC (boucle de 8 µs) passe toujours par la mauvaise phase. Les types 3
+  et 4 ont des écarts de même nature dans Sugarbox (16 lancements chacun, aucun conforme), et la table du type 4 contient
+  une faute de frappe (`44` pour `4C`) : elles ont sans doute été complétées à la main. Rien n'est changé dans Sugarbox.
+  Lecture : R8=1 avec **une** valeur trop basse qui se déplace = modèle actuel ; **toujours** `9A 9A 91 91 89 89 81 81` =
+  chaque trame fait une ligne de plus (ParitéFrame figée paire avec R6 > R4 ?, contraire au 19.5.3). Position de MID-VSYNC :
+  avec une valeur basse dans la première paire de R8=1 (`9A 99` ou `99 9A`), la 1re paire de R8=3 est toujours
+  `4E 4C` ou `4C 4E` pour C0=31, toujours `4D 4D` pour C0=33, et l'un ou l'autre selon le lancement pour C0=32.
 - [ ] **`GA` touche `4` : T3** : photo zoomée sur le début de chaque rangée, juste après le noir à gauche.
   *Photos 2026-11-21 (`../screenshots/20261121_t3mode_crtc1_1.jpg` à `_3`) non exploitables* : `_1` et `_2` floues (bougé),
   `_3` nette mais reflet de la fenêtre et moiré, 4 pixels mode 2 non tranchés. À refaire dans une pièce sombre, appareil
