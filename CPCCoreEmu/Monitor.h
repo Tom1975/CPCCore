@@ -5,6 +5,7 @@
 #include "CRTC.h"
 #include "KeyboardHandler.h"
 #include "IPlayback.h"
+#include "FramePacer.h"
 
 /*#ifdef CPCCOREEMU_EXPORTS
 #define CPCCOREEMU_API __declspec(dllexport)
@@ -28,10 +29,20 @@ public:
    void SetCRTC (CRTC * crtc){crtc_ = crtc;};
    // Horizontal position setting of the monitor, in Mode 2 pixels (positive : image to the right)
    void SetHorizontalPosition(int pixels) { horizontal_position_ = pixels; }
+   // H-HOLD setting of the monitor (VR403 / VR404) : free running line period minus 64 us, in Mode 2
+   // pixels per line. kStandardHorizontalHold is the setting of the monitor of the SHAKER photos : without
+   // HSYNC, its picture slides to the left by about 10 pixels in 64 lines (D8, #0392). The CTM644 of the
+   // RealCpc T5 photos is at +4.8 (80 pixels in 64 lines).
+   static constexpr double kStandardHorizontalHold = 0.75;
+   void SetHorizontalHold(double pixels_per_line) { horizontal_hold_ = pixels_per_line; }
    void SetVGA(GateArray * vga);
    void SetKeyboard(IKeyboardHandler* keyboard){keyboard_ = keyboard;}
 
    void SetScreen ( IDisplay* screen) {screen_ = screen;video_buffer_ = screen_->GetVideoBuffer (0); };
+   // Paces each frame before it is handed to the screen (nullptr : no pacing)
+   void SetFramePacer(FramePacer* frame_pacer) { frame_pacer_ = frame_pacer; }
+   // Emulated time since the last call, in us (the monitor is ticked every us)
+   unsigned int TakeElapsedTime() { const unsigned int elapsed = elapsed_us_; elapsed_us_ = 0; return elapsed; }
    void Reset ();
    void Tick ( );
 
@@ -53,16 +64,22 @@ public:
 
    ///////////////////////////
    // Sync attributes
-   int tmp_sync_count_;
    int line_sync_;
-   int hsync_total_;
-   bool hsync_found_;
+   // Beam position x_ where the line flyback of the picture starts : kNoFlyback until the oscillator
+   // ends its ramp
+   static const int kNoFlyback = 0x40000000;
    int x_total_;
-   int expected_hbl_;
-   int offset_;
-   int hsync_count_;
+   bool flyback_asked_;
+   // AFC loop (LA7800) : position since the flyback start, voltages of pin 1 (C413) and of C414, ramp of
+   // the oscillator (0 to 1), true flyback start before the pixel 0 of the line (fraction of pixel)
+   int line_position_;
+   double afc_pin1_;
+   double afc_c414_;
+   double oscillator_ramp_;
+   double flyback_phase_;
+   double horizontal_hold_;
+   double LinePeriod() const;
    MonitorState horizontal_state_;
-   int horizontal_synchronisation_;
    int horizontal_position_;
    int horizontal_hold_count_;
    bool syncv_;
@@ -78,6 +95,8 @@ public:
    int* video_buffer_;
 
    IDisplay*   screen_;
+   FramePacer* frame_pacer_;
+   unsigned int elapsed_us_;
    GateArray* gate_array_;
    Memory* memory_;
    IPlayback* playback_;

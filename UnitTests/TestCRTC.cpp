@@ -261,7 +261,8 @@ TEST(CRTC_RegisterDefaults, MatchTheEuropeanRomTableAfterReset)
       EXPECT_EQ(0x3F, crtc.registers_list_[0]);
       EXPECT_EQ(0x28, crtc.registers_list_[1]);
       EXPECT_EQ(0x2E, crtc.registers_list_[2]);
-      EXPECT_EQ(0x8E, crtc.registers_list_[3]);
+      // R3h does not exist on CRTC 1, 2 (4.3)
+      EXPECT_EQ((type == CRTC::UM6845R || type == CRTC::MC6845) ? 0x0E : 0x8E, crtc.registers_list_[3]);
       EXPECT_EQ(0x26, crtc.registers_list_[4]);
       EXPECT_EQ(0x00, crtc.registers_list_[5]);
       EXPECT_EQ(0x19, crtc.registers_list_[6]);
@@ -401,8 +402,12 @@ TEST(CRTC_DisplayEnable, BorderAssertedAtR1AndClearedAtNewLine)
       AdvanceUntilHccEquals(crtc, 0);
       EXPECT_TRUE(crtc.ff1_) << "display should be enabled right after C0 == 0";
 
+      // CRTC 0, 1, 2 : on C0 == R1 the live comparator gates the DISPTMG output, the flip-flop falls at the end of
+      // the character (17.3) ; CRTC 3, 4 : the flip-flop falls at its start
       AdvanceUntilHccEquals(crtc, 0x28);  // R1 == 40
-      EXPECT_FALSE(crtc.ff1_) << "display should be disabled once C0 == R1";
+      EXPECT_FALSE(crtc.ff1_ && !crtc.R1BorderNow()) << "display should be disabled once C0 == R1";
+      Advance(crtc);
+      EXPECT_FALSE(crtc.ff1_) << "display should stay disabled after C0 == R1";
 
       AdvanceUntilHccEquals(crtc, 0);
       EXPECT_TRUE(crtc.ff1_) << "display should re-enable at the next C0 == 0";
@@ -774,6 +779,20 @@ TEST(CRTC_RegisterRead, Crtc34UseAThreeBitTable)
    }
 }
 
+// CRTC 1 status bit 6 : the light pen register full flip-flop is only set by a LPSTB edge, nothing drives it on a
+// bare CPC : 0 on a whole frame from the reset (SHAKER CRTC 1 - BE00 CHECK #0216, photo)
+TEST(CRTC_RegisterRead, Crtc1LightPenFullStaysClearWithoutStrobe)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   ProgramStandardEuropeanScreen(crtc);
+   for (int us = 0; us < 19968; ++us)
+   {
+      Advance(crtc);
+      ASSERT_EQ(0, crtc.In(kStatusPort) & 0x40) << "us " << us;
+   }
+}
+
 // 21.3: &BE00 is a status register on CRTC 1 only (bits 0-4 and 7 read 0),
 // a mirror of &BF00 on CRTC 3/4, and nothing on CRTC 0/2 (open bus, 0xFF
 // observed on a CRTC 2). SAFETY NET.
@@ -1044,6 +1063,62 @@ TEST(CRTC_SkewDispTmg, Crtc0BorderDisintegration)
    EXPECT_EQ("1111", trace);
 }
 
+// 19.2.5.1-19.2.5.4, chronograms p197-198 : CRTC 0, R0 = R1 = 63, R8 = #10 (DELAI +1) written during C0 = A,
+// then R8 = #00 during C0 = B = A + 4 (the I/O of two OUT (C),r8 in a row). Border on C0 = 63 and on the C0 = 0
+// that follows :
+// - A = 57, 58, 59 : the 1st OUT is ignored, the border stays on C0 = 63 (19.2.5.1) ;
+// - A = 60 (B = 0) : both conditions cancelled, no border (19.2.5.2) ;
+// - A = 61, 62 : the 2nd OUT is too late, the border moves to C0 = 0 (19.2.5.3) ;
+// - A = 63 : too late for C0 = 63, taken for the next character : a border on both (19.2.5.4, "combo").
+namespace
+{
+std::pair<bool, bool> BorderOn63And0(int a)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::HD6845S);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 1, 63);
+   ReachDisplayedLine(crtc);
+   AdvanceUntilHccEquals(crtc, (unsigned char)a);
+   const int b = (a + 4) & 63;
+   WriteRegister(crtc, 8, 0x10);
+   bool border_63 = (a == 63) && !crtc.DispEn();
+   bool border_0 = false;
+   for (int i = 0; i < 8; ++i)
+   {
+      Advance(crtc);
+      if (crtc.hcc_ == b) WriteRegister(crtc, 8, 0x00);
+      if (crtc.hcc_ == 63) border_63 = !crtc.DispEn();
+      if (crtc.hcc_ == 0) border_0 = !crtc.DispEn();
+   }
+   return { border_63, border_0 };
+}
+}
+
+TEST(Compendium_19, Crtc0BorderDisintegrationChronograms)
+{
+   const struct { int a; bool border_63, border_0; } cases[] = {
+      { 57, true, false }, { 58, true, false }, { 59, true, false }, { 60, false, false },
+      { 61, false, true }, { 62, false, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R8 = #10 written on C0 = " << c.a);
+      EXPECT_EQ(std::make_pair(c.border_63, c.border_0), BorderOn63And0(c.a));
+   }
+}
+
+// 19.2.5.4 "combo border" : R8 = #10 written during C0 = R1 = 63 would be too late for the border of C0 = 63 and
+// taken for C0 = 0 : a border on both. DIVERGENCE : the emulation takes a R8 write within the character it lands
+// on (the SKEW multiplexer is selected at once), which 19.2.5.2 needs (R8 = #00 written during C0 = 0 removes the
+// delayed border of that character at once) ; both writes are the I/O of an OUT (C),r8, at the same instant of
+// their microsecond. The chronograms are given per microsecond while the text speaks of border bytes (1/2 us) :
+// kept until a finer measure tells how the two can coexist.
+TEST(Compendium_19, DISABLED_Crtc0ComboBorder)
+{
+   EXPECT_EQ(std::make_pair(true, true), BorderOn63And0(63));
+}
+
 // ---------------------------------------------------------------------------
 // Group H: CRTC 0 vertical logic (Compendium 10.3.1, 11.2.2, 11.3.1, 12.2,
 // 13.2, 13.7.2, 16.4.1). A register written after AdvanceUntilHccEquals(k)
@@ -1116,6 +1191,192 @@ TEST(CRTC_Crtc0Vertical, R5IsSampledUntilC0Equals2)
       ASSERT_TRUE(ReachLine(crtc, 10, 3));
       AdvanceUntilHccEquals(crtc, 3);
       WriteRegister(crtc, 5, 2);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "R5 STORIES 2 PG 1", #03FA, self-checked by the page : on the last line (C4 = R4 = 38,
+// C9 = R9 = 7) of a frame with R5 = 20, R5 = 0 written during the character C0 = 0, 1, 2, 3, #3D, #3E or #3F :
+// C4 returns to 0 at the end of that line on every position. Up to C0 = 2 the additional management is
+// cancelled (13.2.1) ; later it is confirmed, and the frame ends because the next C9 (0) is R5.
+// 11.3.1 : R5 written after C0 = 2 on the line where C9 + 1 == R5 does not prevent the frame end either.
+TEST(Compendium_11, Crtc0R5ZeroWrittenOnTheLastLineEndsTheFrameOnEveryPosition)
+{
+   for (int p : { 0, 1, 2, 3, 30, 0x3D, 0x3E, 0x3F })
+   {
+      SCOPED_TRACE(testing::Message() << "R5 = 0 written on C0 = " << p);
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      if (p > 0) AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 5, 0);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   for (int p : { 3, 30, 0x3F })
+   {
+      SCOPED_TRACE(testing::Message() << "11.3.1 : R5 written on C0 = " << p << " of the line C9 + 1 == R5");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 3, 7);
+      ASSERT_TRUE(ReachLine(crtc, 39, 2));
+      AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 5, 10);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "R5 STORIES 2 PG 2", #03FB, self-checked by the page : last line (C4 = R4 = 38, C9 = R9 = 7),
+// R5 = 20, R4 = 50 written during the character C0 = p :
+// - #3D, #3E : C4 != R4, C9 is compared with R5 and counts on from 8 : 12 more lines, C4 kept (11.2.2 example 2) ;
+// - #3F = R0 : too late for this line end, C4 is incremented and C9 returns to 0 (as without any write,
+//   example 1), then the 20 lines of R5. 11.2.2 gives "between C0 == 2 and C0 == R0" for R4 : the page of
+//   SHAKER excludes C0 == R0.
+TEST(Compendium_11, Crtc0R4WrittenOnTheLastCharacterOfTheLastLine)
+{
+   for (int p : { 0x3D, 0x3E })
+   {
+      SCOPED_TRACE(testing::Message() << "R4 = 50 written on C0 = " << p);
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, p);
+      WriteRegister(crtc, 4, 50);
+      for (int c9 = 8; c9 < 20; ++c9)
+         EXPECT_EQ(Line(38, c9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R4 = 50 written on C0 = R0");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 0x3F);
+      WriteRegister(crtc, 4, 50);
+      for (int c9 = 0; c9 < 20; ++c9)
+         EXPECT_EQ(Line(39, c9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+}
+
+// 11.2.2, examples p83 : last line C4 = R4 = 38, C9 = R9 = 7, with an additional management (R5 > 0).
+// - R4 written between C0 = 2 and C0 = R0 : C4 != R4, C9 is compared with R5 instead of R9 and counts on ;
+//   the frame ends after the line C9 + 1 == R5 (example 2) ;
+// - R9 written between C0 = 2 and C0 = R0 - 1 : C9 != R9, C9 counts on, C4 is kept (38, 8) (example 3) ;
+// - R9 written exactly on C0 = R0 : C9 was compared with the old R9 for C4 (C4 + 1), then C4 != R4 and C9
+//   is compared with R5 : both are incremented (39, 8).
+TEST(Compendium_11, Crtc0R4R9WrittenOnTheLastLineOfAnAdjustment)
+{
+   {
+      SCOPED_TRACE("example 2 : R4 written on C0 = 10");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 4, 10);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+      EXPECT_EQ(Line(38, 9), NextLine(crtc));
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("example 3 : R9 written on C0 = 10");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R9 written on C0 = R0");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 10, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 9, 3);
+      EXPECT_EQ(Line(39, 8), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "C4/C9 COUNTER LOGIC, UPD R9=C9 ON C0==R0 WHEN C9<>R9", #0405, self-checked by the page :
+// on the line C4 = C9 = 3 with R9 = 7, R9 = 3 written during the last character (C0 = R0). The C4 increment
+// latch was registered false at the start of that character, the comparator of the character that ends
+// still sets it : C4 is incremented at this line end, with C4 != R4 (R4 = 38) and with C4 == R4 (R4 = 3,
+// no last line was sampled on C0 = 0 and 1). C9 returns to 0 (10.3.1).
+// Written earlier on the line, the latch is registered at the start of a character : same result.
+// R9 moved away from C9 during the last character does not clear the latch (10.3.1, R9 written on C0 == R0).
+TEST(Compendium_10, Crtc0R9SetToC9OnTheLastCharacterIncrementsC4)
+{
+   for (int r4 : { 38, 3 })
+   {
+      for (int p : { 2, 30, 0x3E, 0x3F })
+      {
+         SCOPED_TRACE(testing::Message() << "R4 = " << r4 << ", R9 = 3 written on C0 = " << p);
+         CRTC crtc; CSig sig;
+         Crtc0Screen(crtc, sig, r4, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 3, 3));
+         AdvanceUntilHccEquals(crtc, p);
+         WriteRegister(crtc, 9, 3);
+         EXPECT_EQ(Line(4, 0), NextLine(crtc));
+      }
+   }
+   {
+      SCOPED_TRACE("R9 = 3 -> 7 written on C0 = R0 of the line C9 = 3 : the latch stays set");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 3);
+      ASSERT_TRUE(ReachLine(crtc, 3, 3));
+      AdvanceUntilHccEquals(crtc, 0x3F);
+      WriteRegister(crtc, 9, 7);
+      EXPECT_EQ(Line(4, 4), NextLine(crtc));
+   }
+}
+
+// SHAKER module E, "SWITCH COMPARATOR C9 WITH R9 TO R5 (PG1)", #0407, lines 04 and 05, self-checked by the page.
+// Last line (C4 = R4 = 38, C9 = R9 = 7), R5 = 0, R9 = 6 written during the character C0 = p, then R9 = 7
+// written back later on the line (SHAKER : C0 = 60 after C0 = 1, C0 = 5 after C0 = 0) :
+// - p = 0 : the last line is not sampled, C9 == R9 at the line end increments C4 (39, 0) ;
+// - p = 1 : last line sampled on C0 = 0, lost on C0 = 1 : the additional management is confirmed on C0 = 2
+//   (10.3.1.2). At the line end C9 == R9 increments C4, C4 then differs from R4 and the C9 of the next line (0)
+//   is R5 : the adjustment ends at once, new frame (11.2.2 : it ends when the C9 computed for the new line
+//   is R5). Before, C4 went to 39 and 32 lines were added (#00FE instead of #0032) ;
+// - p = 2 : the last line stays true, new frame (10.3.1.2).
+TEST(Compendium_11, Crtc0R9MovedAwayThenBackOnTheLastLine)
+{
+   for (int back : { 5, 10, 30, 60, 62, 63 })
+   {
+      for (int p : { 0, 1, 2, 3 })
+      {
+         if (back <= p) continue;
+         SCOPED_TRACE(testing::Message() << "R9 = 6 written on C0 = " << p << ", R9 = 7 on C0 = " << back);
+         CRTC crtc; CSig sig;
+         Crtc0Screen(crtc, sig, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         if (p > 0) AdvanceUntilHccEquals(crtc, p);
+         WriteRegister(crtc, 9, 6);
+         AdvanceUntilHccEquals(crtc, back);
+         WriteRegister(crtc, 9, 7);
+         EXPECT_EQ(p == 0 ? Line(39, 0) : Line(0, 0), NextLine(crtc));
+         EXPECT_EQ(p == 0 ? Line(39, 1) : Line(0, 1), NextLine(crtc));
+      }
+   }
+   {
+      SCOPED_TRACE("R9 = 6 on C0 = 1, not written back : first additional line, C4 kept, C9 counts on");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 9, 6);
+      EXPECT_EQ(Line(38, 8), NextLine(crtc));
+   }
+   {
+      SCOPED_TRACE("R5 = 20 : the C9 of the next line (0) is not R5, C4 is incremented and the 20 lines follow");
+      CRTC crtc; CSig sig;
+      Crtc0Screen(crtc, sig, 38, 20, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 9, 6);
+      AdvanceUntilHccEquals(crtc, 60);
+      WriteRegister(crtc, 9, 7);
+      for (int c9 = 0; c9 < 20; ++c9)
+         EXPECT_EQ(Line(39, c9), NextLine(crtc));
       EXPECT_EQ(Line(0, 0), NextLine(crtc));
    }
 }
@@ -1235,6 +1496,27 @@ TEST(CRTC_Crtc0Vertical, R0EnlargedOnC0Equals1OfALastLine)
    EXPECT_EQ(0, crtc.vlc_);
    for (int c9 = 1; c9 < 32; ++c9)
       EXPECT_EQ(Line(1, c9), NextLine(crtc));
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+}
+
+// 13.2.5 : with R0 = 1, R4 = 0, R9 = 2, R5 = 0, every frame is the rows C9 = 0, 1, 2 then one additional line
+// (C4 = 1, C9 = 0). The C9 computed on the last line end (0) equals R5 : the adjustment stops one line later, even
+// when that additional line is a long one (R0 = 43 written on its C0 = 0) whose C0 = 2 confirms the adjustment.
+// SHAKER B RVNI LTD (#01CB to #01CF, SHAKE27B #6D3B) : 10 lines of R0 = 1 and one of R0 = 43 every 64 us, the photo
+// is stable and the expected C9 list goes on 2, 0, 0, 1 across the long line. Before, C9 counted up to 31 there.
+TEST(CRTC_Crtc0Vertical, LongAdditionalLineOfAShortLineFrameEndsIt)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 0, 0, 2);
+   WriteRegister(crtc, 0, 1);
+   AdvanceMicroseconds(crtc, 64);
+   ASSERT_TRUE(ReachLine(crtc, 1, 0));
+   WriteRegister(crtc, 0, 43);
+   EXPECT_EQ(Line(0, 0), NextLine(crtc));
+   WriteRegister(crtc, 0, 1);
+   EXPECT_EQ(Line(0, 1), NextLine(crtc));
+   EXPECT_EQ(Line(0, 2), NextLine(crtc));
+   EXPECT_EQ(Line(1, 0), NextLine(crtc));
    EXPECT_EQ(Line(0, 0), NextLine(crtc));
 }
 
@@ -1498,8 +1780,141 @@ TEST(CRTC_Crtc1, AdjustmentUsesC5)
    EXPECT_EQ(Line(0, 0), NextLine(crtc));
 }
 
-// 12.3 : R4 = 0 written on the last line makes C4 overflow ; written when C0
-// reached R0 the frame end is already decided (11.2.4). SAFETY NET.
+// 11.2.4 : CRTC 1, the last line is sampled on the rising edge of the C0 == R0 comparator. R0 63 -> 1 written on
+// C0 = 1 makes it rise at the write : on the last line (C4 = R4, C9 = R9) the frame ends on the next edge, on another
+// line C9 just goes on (SHAKER CRTC RVMB #000F : R4 = 0, R9 = 7, then R0 = 1).
+TEST(Compendium_11, Crtc1R0WrittenWithC0SamplesTheLastLine)
+{
+   for (int c4 : { 0, 3 })
+   {
+      SCOPED_TRACE(c4);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 0, 0, 7);
+      WriteRegister(crtc, 4, (unsigned char)c4);
+      AdvanceMicroseconds(crtc, 2 * 128 * 64);
+      ASSERT_TRUE(ReachLine(crtc, c4, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 0, 1);
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      if (c4 == 3) continue;
+      // R4 = 0, R9 = 7 : every eighth line ends the frame, C4 stays 0
+      for (int i = 0; i < 40; ++i)
+         EXPECT_EQ(0, NextLine(crtc).first);
+   }
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 10, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 5, 7));
+   AdvanceUntilHccEquals(crtc, 1);
+   WriteRegister(crtc, 0, 1);
+   EXPECT_EQ(Line(6, 0), NextLine(crtc));
+}
+
+// 13.7.1.2 : R0 lengthened on C0 = R0 of the last line of the frame, then R4 and R9 moved away during the
+// lengthening (SHAKER D RFD ROUND 2, "OVERRIDE BY R9+R4") : a R.F.D. at the end of the line. The VMA' load of
+// C0 = R1 earlier in the line does not cancel it, C9 != R9 on the line end : VMA keeps being reloaded from R12/R13
+// (PROVISIONAL, RealCpc README P9).
+TEST(Compendium_13, Crtc1RfdByR0LengthenedWithR9MovedTakesTheOffset)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 7, 0, 7);
+   ASSERT_TRUE(ReachLine(crtc, 7, 7));
+   AdvanceUntilHccEquals(crtc, 63);
+   WriteRegister(crtc, 0, 0xBD);
+   AdvanceMicroseconds(crtc, 6);
+   WriteRegister(crtc, 0, 0x7F);
+   AdvanceUntilHccEquals(crtc, 88);
+   WriteRegister(crtc, 4, 0x25);
+   WriteRegister(crtc, 9, 0x0E);
+   AdvanceUntilHccEquals(crtc, 0);
+   // The line end : C9 went on (C9 != R9), C4 stays 7, and VMA is reloaded from R12/R13
+   EXPECT_EQ(Line(7, 8), Line(crtc.vcc_, crtc.vlc_));
+   EXPECT_TRUE(crtc.vma_reload_);
+   EXPECT_TRUE(crtc.rfd_parity_);
+   EXPECT_EQ(crtc.registers_list_[13] + ((crtc.registers_list_[12] & 0x3F) << 8), crtc.ma_);
+}
+
+// CRTC 1, R.F.D. by R0 lengthened on the last line then R4 moved away ("OVERRIDE BY R4", SHAKER D RFD ROUND 2
+// #0395 with the positions of SHAKER : R0 = #BD on C0 = 63, #7F 6 us later, R4 = 38 on C0 = 102 of the line C4 = 7,
+// C9 = R9 = 7 ; R0 = 63 and R9 = 6 on the row C4 = 8, R9 = 7 again on C4 = 9). Video of a real CRTC 1 (2026-11-18,
+// RealCpc README P9) : one frame R12/R13 on every row below, the next one VMA' followed (the row after the rupture
+// once, then the next ones). The C9 == R9 test used after a R.F.D. is gated by ParitéC9, which R9 = 6 does not toggle
+// out of IVM (19.8.2). PROVISIONAL.
+TEST(Compendium_13, Crtc1RfdByR4TakesTheOffsetOnEveryRowOneFrameOfTwo)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 7, 0, 7);
+   std::vector<std::vector<bool>> frames;
+   for (int frame = 0; frame < 4; ++frame)
+   {
+      SCOPED_TRACE(testing::Message() << "frame " << frame);
+      ASSERT_TRUE(ReachLine(crtc, 7, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 0, 0xBD);
+      AdvanceMicroseconds(crtc, 6);
+      WriteRegister(crtc, 0, 0x7F);
+      AdvanceUntilHccEquals(crtc, 102);
+      WriteRegister(crtc, 4, 38);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_EQ(Line(8, 0), Line(crtc.vcc_, crtc.vlc_));
+      AdvanceUntilHccEquals(crtc, 12);
+      WriteRegister(crtc, 0, 63);
+      AdvanceUntilHccEquals(crtc, 26);
+      WriteRegister(crtc, 9, 6);
+      std::vector<bool> reload;
+      reload.push_back(crtc.vma_reload_);
+      ASSERT_TRUE(ReachLine(crtc, 9, 0));
+      reload.push_back(crtc.vma_reload_);
+      AdvanceUntilHccEquals(crtc, 12);
+      WriteRegister(crtc, 9, 7);
+      for (int c4 = 10; c4 <= 12; ++c4)
+      {
+         ASSERT_TRUE(ReachLine(crtc, c4, 0));
+         reload.push_back(crtc.vma_reload_);
+      }
+      // Next frame : R4 = 7 again on C4 = 0
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      AdvanceUntilHccEquals(crtc, 26);
+      WriteRegister(crtc, 4, 7);
+      frames.push_back(reload);
+   }
+   for (size_t f = 0; f < frames.size(); ++f)
+   {
+      SCOPED_TRACE(testing::Message() << "frame " << f);
+      // The same state on every row of a frame (R12/R13 every row, or VMA' followed), the other one on the next frame
+      for (size_t r = 1; r < frames[f].size(); ++r) EXPECT_EQ(frames[f][0], frames[f][r]) << "row " << r;
+      if (f > 0) EXPECT_NE(frames[f - 1][0], frames[f][0]);
+   }
+}
+
+// CRTC 1 : IVM ON/OFF (R8 = 3 then 0, 4 us apart) written after a R.F.D. (SHAKER D RFD ROUND 2 "IVM ON/OFF AFTER
+// RFD", R9 + R4 : R.F.D. on C4 = 7, R8 on C4 = 8, C9 = 0). Videos of a real CRTC 1 (2026-11-18, RealCpc README P9) : the
+// rows after it follow VMA' and the R.F.D. of the next frames always passes. The parity state of the R.F.D. holds the
+// ParitéC9 of its test ; the R8 write only reaches C9.0 and ParitéFrame (the next frame). PROVISIONAL.
+TEST(Compendium_19, Crtc1R8WrittenDuringTheRfdParityStateKeepsParityC9)
+{
+   for (bool parity : { false, true })
+   {
+      SCOPED_TRACE(testing::Message() << "ParitéC9 " << parity);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 8, 0));
+      crtc.rfd_parity_ = true;
+      crtc.parity_c9_ = parity;
+      AdvanceUntilHccEquals(crtc, 46);
+      WriteRegister(crtc, 8, 3);
+      AdvanceMicroseconds(crtc, 4);
+      WriteRegister(crtc, 8, 0);
+      AdvanceMicroseconds(crtc, 4);
+      EXPECT_EQ(parity, crtc.parity_c9_);
+      // ParitéFrame takes the value written to C9.0 (C9 = 0 : even), the next frame toggles it
+      EXPECT_TRUE(crtc.even_field_);
+   }
+}
+
+// 12.3 : R4 = 0 written on the last line makes C4 overflow. With R5 = 0 also during the character C0 = R0 : the
+// frame end needs C4 == R4 on the line end edge. Measured on a real CRTC 1 (RealCpc README, P1, 2026-11-18 : R4 = 39
+// written on C0 = 60 to 63 gives one more row, on C0 = 0 of the next line it does not). 11.2.4 says the state is
+// sampled when C0 reaches R0 : kept for the additional management (R5 > 0, SHAKER E R5 STORIES 2).
 TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)
 {
    {
@@ -1516,7 +1931,17 @@ TEST(CRTC_Crtc1, R4WrittenOnTheLastLine)
       ASSERT_TRUE(ReachLine(crtc, 38, 7));
       AdvanceUntilHccEquals(crtc, 63);
       WriteRegister(crtc, 4, 0);
-      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      EXPECT_EQ(Line(39, 0), NextLine(crtc));
+   }
+   {
+      // R5 > 0 : the additional management was decided on the start of C0 = R0
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 2, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 4, 0);
+      EXPECT_EQ(Line(39, 0), NextLine(crtc));
+      EXPECT_TRUE(crtc.adjust_);
    }
 }
 
@@ -1595,6 +2020,31 @@ TEST(CRTC_Crtc1, R6ZeroBorder)
       ASSERT_TRUE(ReachLine(crtc, 3, 0));
       Advance(crtc);
       EXPECT_FALSE(crtc.DispEn());
+   }
+}
+
+// 18.2.3, 18.3.3 : CRTC 1, the exception on the last character of the frame. R6 = 0 written up to C0 = R0 of the
+// last line : C4 = R6 = 0 is met on the frame start, which allows the display again ; the border then only comes
+// from R6 = 0, and R6 = 25 written on the first line cancels it. Written on C0 = 0 of the first line, C4 = R6 = 0
+// makes it definitive until the next frame.
+TEST(Compendium_18, Crtc1R6ZeroOnTheLastCharacterOfTheFrame)
+{
+   for (int on_the_last_character : { 1, 0 })
+   {
+      SCOPED_TRACE(on_the_last_character ? "R6 = 0 written on C0 = R0 of the last line" : "R6 = 0 written on C0 = 0 of the first line");
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      if (on_the_last_character) WriteRegister(crtc, 6, 0);
+      Advance(crtc);
+      ASSERT_EQ(0, crtc.vcc_);
+      ASSERT_EQ(0, crtc.hcc_);
+      if (!on_the_last_character) WriteRegister(crtc, 6, 0);
+      AdvanceUntilHccEquals(crtc, 5);
+      WriteRegister(crtc, 6, 25);
+      Advance(crtc);
+      EXPECT_EQ(on_the_last_character != 0, crtc.DispEn());
    }
 }
 
@@ -1736,6 +2186,21 @@ TEST(CRTC_Compendium, Crtc2GhostVSync)
    }
 }
 
+// 15.4.4 against a video : VSINT (disquettes_test, real CRTC 2 with a M4 card, 2026-11-19) programs R2 = 50, R3 = #0D
+// and waits for the VSYNC pin after each interrupt : the real CPC hangs there and the picture rolls (no VSYNC to the
+// monitor), as with a ghost VSYNC ; the schema p156 of the compendium and Sugarbox give a VSYNC with R3l = 13. The
+// measure RUN"CRTC" key 4 (RealCpc/ghost2.asm) tells which R3l still gives a VSYNC (RealCpc README, part 0).
+TEST(CRTC_Compendium, DISABLED_Crtc2GhostVSyncWithR3l13)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 2, 50);
+   WriteRegister(crtc, 3, 0x0D);
+   AdvanceMicroseconds(crtc, 19968);
+   EXPECT_FALSE(VSyncSeen(crtc, sig, 2 * 19968));
+}
+
 // 15.4.4 : with R2 = 0 the HSYNC starts on C0 = 0, but a VSYNC condition met
 // on C0 = 0 is processed first : normal VSYNC. (With R2 = 0 the last line is
 // never reached on CRTC 2, 15.6 : C4 = R7 is met here by the counting.)
@@ -1755,8 +2220,9 @@ TEST(CRTC_Compendium, Crtc2NoGhostVSyncWithR2Zero)
    EXPECT_TRUE(sig.v_sync_);
 }
 
-// 15.5 : CRTC 2 does not lift the border on C0 = 0 during a HSYNC : with a
-// HSYNC spanning C0 = 0 (R2 = 62, R3l = 6) the displayed lines stay border.
+// 15.5, 15.6 : on CRTC 2, with a HSYNC spanning C0 = 0 on every line (R2 = 62, R3l = 6), the screen stays
+// border : the last line is cancelled, C4 overflows and the frame never starts again (the vertical border
+// stays, see Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay for the horizontal one).
 TEST(CRTC_Compendium, Crtc2BorderNotLiftedDuringHSync)
 {
    struct { CRTC::TypeCRTC type; bool displayed; } const cases[] = {
@@ -1968,6 +2434,189 @@ TEST(CRTC_Compendium, AsicStatus1)
    }
 }
 
+// 21.3.4.1 : STATUS 1 on every C0 of a line : bit 4 = 0 on C0 = R2 + R3l (60) only ; bit 7 = 0 when VMA.Lsb = &FF
+// (C0 < R0) or when VMA'.Lsb = &00 (C0 = R0). R12/R13 = &30D8 : on C4 = 0, VMA.Lsb = &FF on C0 = 39 ; on C9 = R9
+// VMA' = VMA of C0 = R1 = &3100 : its Lsb is &00 on C0 = R0.
+TEST(Compendium_21, AsicStatus1OnEveryPosition)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (int c9 : { 3, 7 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", C4 = 0, C9 = " << c9);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 12, 0x30);
+         WriteRegister(crtc, 13, 0xD8);
+         AdvanceMicroseconds(crtc, 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, c9));
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            const unsigned char s = ReadStatus(crtc, 10);
+            EXPECT_EQ(c0 == 60, (s & 0x10) == 0);
+            EXPECT_EQ(c0 == 39 || (c0 == 63 && c9 == 7), (s & 0x80) == 0);
+         }
+      }
+   }
+}
+
+// 21.3.4.1 : STATUS 1 bit 5, line by line around the VSYNC (R7 = 30, C0 = 10). The status has its own line counter : 1
+// on the first VSYNC line, then 2 .. 15, back to 0 where it stops, whatever R3h ; the bit is 0 when it equals R3h.
+// R3h = 7 : 0 on the 7th VSYNC line only ; R3h = 8 : on the 8th ; R3h = 0 : 0 except on the 15 first lines.
+// PROVISIONAL (RealCpc/README.md, P6) : SHAKER D3 #03C8, #03C9, #03D2 photos, #03C0 "STATUS 1 BIT 5 : OK".
+TEST(Compendium_21, AsicStatus1Bit5AroundTheVsync)
+{
+   const struct { unsigned char r3; const char* expected; } cases[] = {
+      { 0x7E, "11111111011111111111111" },
+      { 0x8E, "11111111101111111111111" },
+      { 0x0E, "00111111111111111000000" } };
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (const auto& c : cases)
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", R3 = " << std::hex << int(c.r3));
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 3, c.r3);
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         // From 2 lines before the VSYNC (C4 = 29, C9 = 6) to 20 lines after its start
+         ASSERT_TRUE(ReachLine(crtc, 29, 6));
+         std::string bits;
+         for (int line = 0; line < 23; ++line)
+         {
+            AdvanceUntilHccEquals(crtc, 10);
+            bits += (ReadStatus(crtc, 10) & 0x20) ? '1' : '0';
+            AdvanceUntilHccEquals(crtc, 0);
+         }
+         EXPECT_EQ(c.expected, bits);
+      }
+   }
+}
+
+// 21.3.4.2 : STATUS 2 bits 0 and 4 over a whole frame, R4 = 37 and R5 = 8 (312 lines), as SHAKER STATUS FIESTA does
+// (SHAKE27D #9339, #9736 : one read per microsecond from the frame start). Bit 0 = 0 on the last character of the last
+// line only (#4BFF), not on the last additional line ; bit 4 = 0 everywhere but the last character of the additional
+// lines (#4DFF). With R5 = 0, bit 4 stays 1 and bit 0 is 0 on #4DFF.
+TEST(Compendium_21, AsicStatus2Bits0And4OverAFrame)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (bool adjust : { true, false })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << (adjust ? ", R4 = 37, R5 = 8" : ", R4 = 38, R5 = 0"));
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         if (adjust)
+         {
+            WriteRegister(crtc, 4, 37);
+            WriteRegister(crtc, 5, 8);
+         }
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         std::vector<int> bit0_low, bit4_high;
+         for (int us = 0; us < 19968; ++us)
+         {
+            if (us > 0) Advance(crtc);
+            const unsigned char s = ReadStatus(crtc, 11);
+            if ((s & 0x01) == 0) bit0_low.push_back(us);
+            if ((s & 0x10) != 0) bit4_high.push_back(us);
+         }
+         EXPECT_EQ(std::vector<int>{ adjust ? 0x4BFF : 0x4DFF }, bit0_low);
+         if (adjust)
+            EXPECT_EQ(std::vector<int>{ 0x4DFF }, bit4_high);
+         else
+            EXPECT_EQ(19968u, bit4_high.size());
+         // The next frame starts there
+         Advance(crtc);
+         EXPECT_EQ(Line(0, 0), Line(crtc.vcc_, crtc.vlc_));
+      }
+   }
+}
+
+// Status 2 bit 4 is the output of the magnitude comparator "C5 next >= R5" that ends the additional lines
+// (PROVISIONAL, RealCpc README P7) : on the additional line C5 = 3 (R4 = 37, R5 = 8), R5 written to 3 sets it at once
+// on every character ; R5 = 4 sets it on the last character of the line only (C5 next = 4)
+TEST(Compendium_21, AsicStatus2Bit4FollowsTheAdditionalLineComparator)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (unsigned char r5 : { 3, 4 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", R5 = " << int(r5) << " on C5 = 3");
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 4, 37);
+         WriteRegister(crtc, 5, 8);
+         AdvanceMicroseconds(crtc, 2 * 19968);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         AdvanceMicroseconds(crtc, 38 * 8 * 64 + 3 * 64);
+         ASSERT_TRUE(crtc.adjust_);
+         ASSERT_EQ(3, crtc.vlc_);
+         ASSERT_EQ(0, crtc.hcc_);
+         WriteRegister(crtc, 5, r5);
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            EXPECT_EQ(r5 == 3 || c0 == 63, (ReadStatus(crtc, 11) & 0x10) != 0);
+         }
+      }
+   }
+}
+
+// 21.3.4.2 : STATUS 2 on every C0 of the lines C4 = R4, R6 - 1, R7 - 1 (C9 = R9), and C9 = 0, 3 :
+// bits 0, 1, 2 = 0 on C0 = R0 of their line ; bit 5 = 0 while C9 = R9 ; bit 7 = 1 on (C9 = R9, C0 = R0) and on
+// (C9 = 0, C0 < R0).
+TEST(Compendium_21, AsicStatus2OnEveryPosition)
+{
+   struct { int c4, c9; } const lines[] = { { 38, 7 }, { 24, 7 }, { 29, 7 }, { 10, 0 }, { 10, 3 } };
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (const auto& l : lines)
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << ", C4 = " << l.c4 << ", C9 = " << l.c9);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         ASSERT_TRUE(ReachLine(crtc, l.c4, l.c9));
+         for (int c0 = 0; c0 < 64; ++c0)
+         {
+            if (c0 > 0) Advance(crtc);
+            SCOPED_TRACE(testing::Message() << "C0 = " << c0);
+            const unsigned char s = ReadStatus(crtc, 11);
+            const bool last_char = (l.c9 == 7 && c0 == 63);
+            EXPECT_EQ(last_char && l.c4 == 38, (s & 0x01) == 0);
+            EXPECT_EQ(last_char && l.c4 == 24, (s & 0x02) == 0);
+            EXPECT_EQ(last_char && l.c4 == 29, (s & 0x04) == 0);
+            EXPECT_EQ(l.c9 == 7, (s & 0x20) == 0);
+            EXPECT_EQ(last_char || (l.c9 == 0 && c0 < 63), (s & 0x80) != 0);
+         }
+      }
+   }
+}
+
+// 21.3.3 : CRTC 1, status bit 5 (BORDER R6), chronogram p247 : IN A,(C) reads on its 4th microsecond ; read on
+// C0 = 61, 62, 63 (&3D..&3F) of the line before, the old state ; on C0 = 0 of the line C4 = R6, C9 = 0 the new one
+// (1), and of the line C4 = C9 = 0 (0).
+TEST(Compendium_21, Crtc1StatusBorderR6AroundTheLineStart)
+{
+   struct { int c4, c9; unsigned char before, after; } const cases[] = { { 24, 7, 0x00, 0x20 }, { 38, 7, 0x20, 0x00 } };
+   for (const auto& c : cases)
+   {
+      for (int c0 : { 61, 62, 63, 0 })
+      {
+         SCOPED_TRACE(testing::Message() << "line C4 = " << c.c4 << ", read on C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Crtc1Screen(crtc, sig, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+         AdvanceUntilHccEquals(crtc, (unsigned char)(c0 == 0 ? 63 : c0));
+         if (c0 == 0) Advance(crtc);
+         EXPECT_EQ(c0 == 0 ? c.after : c.before, crtc.In(0xBE00) & 0x20);
+      }
+   }
+}
+
 // STATUS 2 : bit 0 = 0 on C4 = R4, C9 = R9, C0 = R0 ; bit 4 always 1 ; bit 5 =
 // 0 while C9 = R9 ; bit 6 always 0.
 TEST(CRTC_Compendium, AsicStatus2)
@@ -2113,6 +2762,34 @@ TEST(CRTC_Compendium, InterlaceMidVSync)
    }
 }
 
+// 19.7.2, 19.7.3 : MID-VSYNC with R7 = 0 (R8 = 1) : the VSYNC handling coincides with the frame start.
+// CRTC 0, 1, 2 : ParitéFrame toggles first, the MID-VSYNC (C0 = R0/2) happens when the new frame is even ;
+// CRTC 3, 4 : the VSYNC is handled before ParitéFrame toggles, the MID-VSYNC happens when the new frame is odd.
+TEST(Compendium_19, MidVSyncWithR7Zero)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool asic = (type == CRTC::AMS40489 || type == CRTC::AMS40226);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 7, 0);
+      WriteRegister(crtc, 8, 1);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      std::string starts;
+      for (int frame = 0; frame < 2; ++frame)
+      {
+         ASSERT_NE(-1, TicksUntilVSyncRisingEdge(crtc, sig, 2 * 19968));
+         ASSERT_EQ(0, crtc.vcc_);
+         const bool mid = (crtc.hcc_ == 31);
+         ASSERT_TRUE(mid || crtc.hcc_ == 0) << "C0 = " << int(crtc.hcc_);
+         starts += mid ? 'M' : 'L';
+         EXPECT_EQ(asic ? !crtc.even_field_ : crtc.even_field_, mid) << "frame " << frame;
+      }
+      EXPECT_TRUE(starts == "LM" || starts == "ML") << starts;
+   }
+}
+
 // 19.4, 19.8 : Interlace Video Mode (R8 = 3), 8-line characters (R9 = 6 on
 // CRTC 0, 3, 4 ; R9 = 7 on CRTC 1) : one frame displays the even lines of the
 // characters, the other one the odd lines.
@@ -2134,6 +2811,46 @@ TEST(CRTC_Compendium, InterlaceVideoModeAlternatesTheLines)
       const std::string b = RowAddressC9s(crtc, 5);   // row 5 of the next frame
       EXPECT_TRUE((a == "0246" && b == "1357") || (a == "1357" && b == "0246")) << a << " / " << b;
    }
+}
+
+// 19.4.1, 19.4.3, 19.4.4 : vertical programming in Interlace Video Mode (R8 = 3), address C9 of the lines of the row
+// C4 = 5 on 2 consecutive frames :
+// - CRTC 0, 3, 4, R9 = 0 : 1 line per frame (2 lines in all) ;
+// - CRTC 2, R9 = N - 1 = 7 : 8 lines on each frame, VMA changes after 4 lines (C9.IVM, 19.8.3) ;
+// - CRTC 2, R9 = 6 : an odd number of lines (7) on each frame, the line C9 = 7 is displayed on the odd frames.
+TEST(Compendium_19, VerticalProgrammingInIvmByType)
+{
+   struct { CRTC::TypeCRTC type; unsigned char r9; const char* even; const char* odd; } const cases[] = {
+      { CRTC::HD6845S, 0, "0", "1" }, { CRTC::AMS40489, 0, "0", "1" }, { CRTC::AMS40226, 0, "0", "1" },
+      { CRTC::MC6845, 7, "02460246", "13571357" }, { CRTC::MC6845, 6, "0246024", "1357135" },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << ", R9 = " << int(c.r9));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, c.type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 8, 3);
+      WriteRegister(crtc, 9, c.r9);
+      AdvanceMicroseconds(crtc, 3 * 19968);
+      for (int frame = 0; frame < 2; ++frame)
+      {
+         const std::string rows = RowAddressC9s(crtc, 5);
+         // even_field_ : ParitéFrame of the frame of the row (still in it, on C4 = 6)
+         EXPECT_EQ(crtc.even_field_ ? c.even : c.odd, rows) << "frame " << frame;
+      }
+   }
+   // CRTC 2, R9 = 7 : VMA changes after 4 lines
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::MC6845);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 8, 3);
+   AdvanceMicroseconds(crtc, 3 * 19968);
+   ASSERT_TRUE(ReachLine(crtc, 5, crtc.even_field_ ? 0 : 1));
+   std::vector<unsigned short> starts;
+   while (crtc.vcc_ == 5) { starts.push_back(crtc.ma_); AdvanceUntilHccEquals(crtc, 0); }
+   ASSERT_EQ(8u, starts.size());
+   for (int i = 0; i < 8; ++i) EXPECT_EQ(starts[0] + (i < 4 ? 0 : 40), starts[i]) << "line " << i;
 }
 
 // --- Interlace Video Mode, details (second batch) ------------------------------
@@ -2357,6 +3074,20 @@ TEST(CRTC_Compendium, R6ZeroOnTheFirstLine)
       ASSERT_TRUE(ReachLine(crtc, 0, 1));
       EXPECT_EQ("000000", DispEnHalves(crtc, 0, 2));
    }
+}
+
+// 18.3.2 against a photo : KUKU (disquettes_test, CLG 1 then R6 = 0, 2026-11-19) shows a continuous line on a real
+// CRTC 0, dashes on a real CRTC 2 (as the compendium says for both). The compendium and Sugarbox alternate on CRTC 0
+// too. Two real CRTC 0 also disagree by 1 us on R0ZTEST (GT65 and CTM644 photos) : two kinds of CRTC 0 (HD6845S,
+// UM6845) ? Divergence kept here until the chips are identified (RealCpc README, part 0).
+TEST(CRTC_Compendium, DISABLED_Crtc0R6ZeroOnTheFirstLineDisplaysTheWholeLine)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::HD6845S);
+   WriteRegister(crtc, 6, 0);
+   AdvanceMicroseconds(crtc, 19968);
+   ASSERT_TRUE(ReachLine(crtc, 0, 0));
+   EXPECT_EQ("111111", DispEnHalves(crtc, 0, 2));
 }
 
 // 18.3.2 : on the first line, R6 set back to a value > 0 before C0 = R1 cancels
@@ -2695,12 +3426,12 @@ void HSyncLineSetup(CRTC& crtc, CSig& sig, CRTC::TypeCRTC type, unsigned char r2
 }
 
 // R3l = 2, R2 programmed before : black from the 5th / 6th / 4th pixel (CRTC 0 / 1 / 2) for
-// 32 / 32 / 33 pixels. CRTC 3 (supposed), 4 : one block later, from the 17th / 19th pixel.
+// 32 / 32 / 33 pixels. CRTC 4 : one block later, from the 19th pixel ; CRTC 3 (not measured) : like the CRTC 4.
 TEST(GateArray_HSyncBlack, R2ProgrammedBefore)
 {
    struct { CRTC::TypeCRTC type; int start; int length; } const cases[] = {
       { CRTC::HD6845S, 4, 32 }, { CRTC::UM6845R, 5, 32 }, { CRTC::MC6845, 3, 33 },
-      { CRTC::AMS40489, 16, 32 }, { CRTC::AMS40226, 18, 32 },
+      { CRTC::AMS40489, 18, 32 }, { CRTC::AMS40226, 18, 32 },
    };
    for (const auto& c : cases)
    {
@@ -2761,6 +3492,32 @@ TEST(GateArray_HSyncBlack, R3Jit)
       });
       EXPECT_EQ(c.start, run.start);
       EXPECT_EQ(16 + 8 - c.start, run.length);
+   }
+}
+
+// 14.5.4.4 : no R3.JIT on CRTC 3, 4 (chronogram p142, CRTC 4 ; CRTC 3 : like the CRTC 4). R3l written with C3l on the
+// microsecond where the ASIC takes it (C0 = R2 + R3l : 5th microsecond of OUTI, 4th of OUT (C),r8 whose I/O is one
+// microsecond before) ends the HSYNC as if R3l had been programmed before : 16 / 32 pixels of black for R3l = 1 / 2.
+TEST(GateArray_HSyncBlack, NoR3JitOnTheAsic)
+{
+   for (CRTC::TypeCRTC type : kAsicTypes)
+   {
+      for (int r3l : { 1, 2 })
+      {
+         for (unsigned int t_state : { kOuti, kOutCR8 })
+         {
+            SCOPED_TRACE(testing::Message() << TypeName(type) << ", R3l = " << r3l << (t_state == kOuti ? ", OUTI" : ", OUT (C),r8"));
+            CRTC crtc; CSig sig;
+            HSyncLineSetup(crtc, sig, type, 46, 0x8E);
+            const int taken = 46 + r3l;
+            const int io = (t_state == kOuti) ? taken : taken - 1;
+            const BlackRun run = MeasureHSyncBlack(crtc, [&](int c0) {
+               if (c0 == io) WriteRegisterAt(crtc, 3, (unsigned char)(0x80 | r3l), t_state);
+            });
+            EXPECT_EQ(18, run.start);
+            EXPECT_EQ(16 * r3l, run.length);
+         }
+      }
    }
 }
 
@@ -3298,6 +4055,304 @@ TEST(Compendium_16, Crtc2R7WrittenDuringALine)
    EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
 }
 
+// 17.4.3 : CRTC 2, AND bug. VMA' is loaded with R12/R13 by an AND (bits at 0 cleared) then an OR (bits at 1
+// set), both on C0 = R1 while the last line state holds. With R1 = 0 on the first line of a frame, the last line
+// state falls on C0 = 0 between the two : only the AND is done, on the VMA' loaded with VMA on C0 = 0 of the
+// last line. R12/R13 = &2C55 written on C0 = 10 of the last line ; with R1 = 40 it is taken as it is.
+// R1 = 0 then 50 written on C0 = 55 of the last line : no C0 = R1 while the last line state holds, VMA' keeps
+// VMA of the last line, the first line repeats it.
+TEST(Compendium_17, Crtc2R1ZeroOnTheFrameStartOnlyAndsTheOffset)
+{
+   struct { unsigned char r1; int r1_late; } const cases[] = { { 0, -1 }, { 40, -1 }, { 0, 50 } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R1 = " << int(c.r1) << ", then " << c.r1_late);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      ASSERT_TRUE(ReachLine(crtc, 38, 6));
+      AdvanceUntilHccEquals(crtc, 50);
+      WriteRegister(crtc, 1, c.r1);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_EQ(Line(38, 7), Line(crtc.vcc_, crtc.vlc_));
+      const unsigned short vma_last = crtc.ma_;
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 12, 0x2C);
+      WriteRegister(crtc, 13, 0x55);
+      if (c.r1_late >= 0)
+      {
+         AdvanceUntilHccEquals(crtc, 55);
+         WriteRegister(crtc, 1, (unsigned char)c.r1_late);
+      }
+      EXPECT_EQ(Line(0, 0), NextLine(crtc));
+      const unsigned short expected = (c.r1_late >= 0) ? vma_last : (c.r1 == 0) ? (vma_last & 0x2C55) : 0x2C55;
+      EXPECT_EQ(expected, crtc.ma_) << std::hex << "VMA last line = " << vma_last;
+   }
+}
+
+// 19.6.3 : CRTC 2, IVM switched on (R8 = 3) during the first line of an odd frame, on any C0 : that line becomes
+// an additional line and a new line 0 follows (the frame is one line longer). Its address C9 is odd at once.
+// On an even frame it stays line 0.
+TEST(Compendium_19, Crtc2IvmOnTheFirstLineOfAnOddFrame)
+{
+   for (bool odd : { true, false })
+   {
+      for (int c0 : { 0, 10, 63 })
+      {
+         SCOPED_TRACE(testing::Message() << (odd ? "odd" : "even") << " frame, R8 = 3 written on C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, CRTC::MC6845);
+         ASSERT_TRUE(ReachLine(crtc, 0, 0));
+         if (crtc.even_field_ == odd) NextFrameLines(crtc);
+         ASSERT_EQ(odd, !crtc.even_field_);
+         if (c0 > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c0);
+         WriteRegister(crtc, 8, 3);
+         if (odd && c0 < 63) EXPECT_EQ(1, AddressC9(crtc));
+         const Line next = NextLine(crtc);
+         if (odd) EXPECT_EQ(Line(0, 0), next);
+         else EXPECT_NE(Line(0, 0), next);
+      }
+   }
+}
+
+// 15.6 : the three examples of p158 on CRTC 2 (R0 = 63), over 4 frames (C4 overflows up to 127 before
+// it meets R7 = 30 again) :
+// - R2 = 50, R3l = 14 : the HSYNC covers C0 = 63, the position before C0 = 0 : GHOST VSYNC, display kept ;
+// - R2 = 50, R3l = 15 : the HSYNC covers C0 = 0 : border kept, no VSYNC, the last line is cancelled (C4 overflows) ;
+// - R2 = 0, R3l = 6 : border kept, C4 overflows, but the VSYNC condition is seen early enough : VSYNC present.
+TEST(Compendium_15, Crtc2HSyncExamples)
+{
+   struct { unsigned char r2, r3; bool vsync, display, overflow; } const cases[] = {
+      { 50, 0x8E, false, true, false }, { 50, 0x8F, false, false, true }, { 0, 0x86, true, false, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R2 = " << int(c.r2) << ", R3l = " << (c.r3 & 0x0F));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      WriteRegister(crtc, 2, c.r2);
+      WriteRegister(crtc, 3, c.r3);
+      AdvanceMicroseconds(crtc, 19968);
+      bool vsync = false, display = false;
+      int max_c4 = 0;
+      for (int i = 0; i < 4 * 19968; ++i)
+      {
+         Advance(crtc);
+         vsync |= sig.v_sync_;
+         display |= crtc.DispEn();
+         max_c4 = std::max<int>(max_c4, crtc.vcc_);
+      }
+      EXPECT_EQ(c.vsync, vsync);
+      EXPECT_EQ(c.display, display);
+      EXPECT_EQ(c.overflow, max_c4 > 38) << "max C4 = " << max_c4;
+   }
+}
+
+// 15.5 against the photos of SHAKER, CRTC 2. PROVISIONAL model (RealCpc/README.md, P3).
+// - SHAKER D3 (2 CSYNC RELATIVE, #0316 #0321 #032C #0337, module D) : R0 = 63, R1 = 40, a second HSYNC from
+//   R2 = #3B to #3E that ends on C0 = 1, on each line of a band. The photo keeps the text, as on CRTC 0 and 1.
+//   #037F and #0380 (module D, CSYNC MULTIPLES) look the same.
+// - SHAKER A3 (RVMB, #000B to #001E, module A, validated against the photo and Amspirit) : R0 = 3, R1 = 3, a HSYNC
+//   of 14 characters started on C0 = 1 covers C0 = 0 of the next short lines : the photo keeps a yellow border
+//   margin.
+// Model : the line start (C0 = 0) met during a HSYNC lifts the border when the HSYNC ends, unless C0 = R1 comes
+// first or on the same character (A3 : the HSYNC ends on C0 = 3 = R1). The screens of 15.6 that stay border
+// have a HSYNC on C0 = 0 on every line : there the frame never restarts and the vertical border stays
+// (Crtc2HSyncExamples).
+// The HSYNC goes from C0 = 60 to C0 = 1 (R3l = 6) ; R2 is set back to 46 on C0 = 2 of the next line.
+TEST(Compendium_15, Crtc2HSyncOnC0ZeroInTheMiddleOfTheScreenKeepsTheDisplay)
+{
+   for (CRTC::TypeCRTC type : { CRTC::MC6845, CRTC::HD6845S, CRTC::UM6845R })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 50);
+      WriteRegister(crtc, 3, 0x86);
+      WriteRegister(crtc, 2, 60);
+      AdvanceUntilHccEquals(crtc, 0);
+      ASSERT_TRUE(sig.h_sync_);
+      AdvanceUntilHccEquals(crtc, 2);
+      WriteRegister(crtc, 2, 46);
+      AdvanceUntilHccEquals(crtc, 10);
+      EXPECT_TRUE(crtc.DispEn());
+      // and the next frames are still displayed
+      AdvanceMicroseconds(crtc, 19968);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      AdvanceUntilHccEquals(crtc, 10);
+      EXPECT_TRUE(crtc.DispEn());
+   }
+}
+
+// 13.4 : CRTC 2 with lines of 4 us (R0 = 3, R4 = R9 = 0) : R2 must be > 0, or the HSYNC covers C0 = 0
+// and the border is never lifted (15.5). CRTC 0 lifts it.
+TEST(Compendium_13, Crtc2ShortLinesNeedR2AboveZero)
+{
+   struct { CRTC::TypeCRTC type; unsigned char r2; bool display; } const cases[] = {
+      { CRTC::MC6845, 0, false }, { CRTC::MC6845, 1, true }, { CRTC::HD6845S, 0, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " R2 = " << int(c.r2));
+      CRTC crtc; CSig sig;
+      MakeCrtc(crtc, sig, c.type);
+      ProgramStandardEuropeanScreen(crtc);
+      WriteRegister(crtc, 0, 3);
+      WriteRegister(crtc, 1, 2);
+      WriteRegister(crtc, 2, c.r2);
+      WriteRegister(crtc, 3, 0x81);
+      WriteRegister(crtc, 4, 0);
+      WriteRegister(crtc, 9, 0);
+      AdvanceMicroseconds(crtc, 19968);
+      bool display = false;
+      for (int i = 0; i < 1000; ++i) { Advance(crtc); display |= crtc.DispEn(); }
+      EXPECT_EQ(c.display, display);
+   }
+}
+
+// 16.4.1-16.4.4 : R7 = C4 written during the character C0 = p of a line C4 = 10 (C9 = 0 or 3), for every type
+// (R2 = 46, R3l = 14 : HSYNC from C0 = 46 to 59) :
+// - CRTC 0 : on C0 < 2 the VSYNC is blocked, later it starts at once (16.4.1.1) ;
+// - CRTC 1 : it starts at once (16.4.2) ;
+// - CRTC 2 : it starts at once, except when written from C0 = R2 to C0 = R2 + R3l - 1 : a GHOST VSYNC, no pin
+//   (16.4.3 ; the chronogram p156 places the last ghost on C0 = 59 and a real VSYNC on C0 = 60 = R2 + R3l) ;
+// - CRTC 3, 4 : the VSYNC starts only on C4 = R7, C9 = 0, C0 = 0 : none with C0 > 0 or C9 > 0 (16.4.4).
+// "At once" : the pin is up within 2 us. Not played : CRTC 3, 4 written on C0 = 0 of C9 = 0 (not given).
+TEST(Compendium_16, R7WrittenWithC4OnEveryPosition)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      for (int c9 : { 0, 3 })
+      {
+         for (int p : { 0, 1, 2, 5, 30, 45, 46, 59, 60, 61 })
+         {
+            const int g = (type == CRTC::HD6845S) ? 0 : (type == CRTC::UM6845R) ? 1 : (type == CRTC::MC6845) ? 2 : 3;
+            if (g == 3 && p == 0 && c9 == 0) continue;
+            SCOPED_TRACE(testing::Message() << TypeName(type) << " R7 = C4 written on C0 = " << p << " of C9 = " << c9);
+            CRTC crtc; CSig sig;
+            TypedScreen(crtc, sig, type, 38, 0, 7);
+            ASSERT_TRUE(ReachLine(crtc, 10, c9));
+            if (p > 0) AdvanceUntilHccEquals(crtc, (unsigned char)p);   // ReachLine stops on C0 = 0
+            ASSERT_FALSE(sig.v_sync_);
+            WriteRegister(crtc, 7, 10);
+            bool at_once = true;
+            if (g == 0) at_once = (p >= 2);
+            if (g == 2) at_once = (p < 46 || p >= 46 + 14);
+            if (g == 3) at_once = false;
+            if (at_once)
+               EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+            else
+               EXPECT_FALSE(VSyncSeen(crtc, sig, 8 * 64));
+         }
+      }
+   }
+}
+
+// 28.1.3 : VSYNC started by R7 = C4 written with C0 > 0 (C0 = 20 of C4 = 10, C9 = 3 ; R3h = 8) : its line counter
+// starts from 0 on CRTC 0 (8 more line starts : R3h lines after the current one), from 1 on CRTC 1 (16 lines fixed :
+// 15 more line starts) ; no VSYNC on CRTC 3, 4. CRTC 2 : not given by 28.1.3 (see 16.4.3).
+TEST(Compendium_28, VSyncLineCounterWhenR7IsWrittenDuringALine)
+{
+   struct { CRTC::TypeCRTC type; int line_starts; } const cases[] = {
+      { CRTC::HD6845S, 8 }, { CRTC::UM6845R, 15 }, { CRTC::AMS40489, -1 }, { CRTC::AMS40226, -1 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 20);
+      WriteRegister(crtc, 7, 10);
+      if (c.line_starts < 0)
+      {
+         EXPECT_FALSE(VSyncSeen(crtc, sig, 20 * 64));
+         continue;
+      }
+      ASSERT_TRUE(VSyncSeen(crtc, sig, 2));
+      int line_starts = 0;
+      for (int i = 0; i < 40 * 64 && sig.v_sync_; ++i)
+      {
+         Advance(crtc);
+         if (crtc.hcc_ == 0 && sig.v_sync_) ++line_starts;
+      }
+      EXPECT_EQ(c.line_starts, line_starts);
+   }
+}
+
+// 16.4 : on every CRTC, R7 can be written with the next C4 up to the last microsecond before it : R7 = C4 + 1
+// written on C0 = R0 of the line C9 = R9 starts the VSYNC on the first line of C4 = R7.
+TEST(Compendium_16, R7WrittenOnTheLastMicrosecondBeforeC4)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 7, 11);
+      EXPECT_FALSE(sig.v_sync_);
+      EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+      EXPECT_EQ(11, crtc.vcc_);
+   }
+}
+
+// 16.4.3, SHAKER OUTI STORY #019D (R7 LAST CHANCE 4TH, photos) : R7 = C4 written during the last character of the
+// row (C0 = R0 of the line C9 = R9), the next edge starting the row C4 + 1 :
+// - CRTC 2 : the C4 = R7 comparator sets the VSYNC flip-flop during that character : VSYNC (photo #1F) ;
+// - CRTC 0, 3, 4 : the comparator is taken with the C4 of the next row : no VSYNC (photos #1E).
+// CRTC 1 : not given at this position (the OUTI of SHAKER writes it one character earlier, CRTC::CharacterEdgeCycle).
+TEST(Compendium_16, R7WrittenWithC4OnTheLastCharacterOfTheRow)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::MC6845, CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      AdvanceUntilHccEquals(crtc, 63);
+      WriteRegister(crtc, 7, 10);
+      if (type == CRTC::MC6845)
+         EXPECT_TRUE(VSyncSeen(crtc, sig, 2));
+      else
+         EXPECT_FALSE(VSyncSeen(crtc, sig, 8 * 64));
+   }
+}
+
+// 14.7.2 : CRTC 3, 4, R2.JIT. The start comparator (C0vs == R2) acts as soon as R2 is written with the current C0,
+// and the pin, deferred by one character, is the same as with R2 written before : same start, same length, for
+// R3l = 14 and R3l = 0 (16 us). SHAKER #00B5 / #00B6 (OUT R2,#0A on C0 = #0A, third zone R3 = 0).
+TEST(Compendium_14, Asic34R2WrittenWithC0StartsTheSameHSync)
+{
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      for (unsigned char r3 : { 0x8E, 0x80 })
+      {
+         std::string pins[2];
+         for (int jit = 0; jit < 2; ++jit)
+         {
+            SCOPED_TRACE(testing::Message() << TypeName(type) << " R3 = " << int(r3) << (jit ? " R2.JIT" : ""));
+            CRTC crtc; CSig sig;
+            Screen(crtc, sig, type);
+            WriteRegister(crtc, 3, r3);
+            ASSERT_TRUE(ReachLine(crtc, 5, 2));
+            if (!jit) WriteRegister(crtc, 2, 20);
+            AdvanceUntilHccEquals(crtc, 20);
+            if (jit) WriteRegister(crtc, 2, 20);
+            for (int i = 0; i < 24; ++i)
+            {
+               pins[jit] += sig.h_sync_ ? '1' : '0';
+               Advance(crtc);
+            }
+         }
+         SCOPED_TRACE(testing::Message() << TypeName(type) << " R3 = " << int(r3));
+         EXPECT_EQ(r3 == 0x80 ? "011111111111111110000000" : "011111111111111000000000", pins[0]);
+         EXPECT_EQ(pins[0], pins[1]);
+      }
+   }
+}
+
 // 17.3 : a second C0 = R1 on the line C9 = R9 (R1 rewritten after C0 went past it) loads VMA' again :
 // R1 40 -> 50 on C0 = 45 : the next character row starts 50 characters further.
 TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)
@@ -3314,6 +4369,35 @@ TEST(Compendium_17, SecondC0EqualsR1LoadsVmaPrimeAgain)
       NextLine(crtc);
       EXPECT_EQ(row + 50, crtc.ma_);
       WriteRegister(crtc, 1, 40);
+   }
+}
+
+// 17.4.2, 17.4.3, chronograms p185-186 : R1 = 255 written on the line C9 = R9 during the character C0 = p
+// (R1 = 40). VMA' is loaded with VMA (row start + 40) if the C0 = R1 condition was taken, else it keeps the row
+// start : the next row starts there.
+// - CRTC 1 : written on C0 = 39 or C0 = R1 = 40 (R1.JIT) VMA' is not loaded ; on C0 = 41 it is ;
+// - CRTC 2 : written on C0 = 39 it is not loaded ; on C0 = R1 = 40 the update comes too late : loaded.
+// CRTC 3, 4 : not given. CRTC 0 : not given either ; it samples C0 == R1 at the end of the character as CRTC 1
+// (SHAKER R1 STORIES #009A : R1 = 63 written on C0 = 63 loads VMA', the photo shows the rows moving on), so it
+// behaves as CRTC 1.
+TEST(Compendium_17, R1WrittenAroundC0EqualsR1)
+{
+   const struct { CRTC::TypeCRTC type; int p; bool loaded; } cases[] = {
+      { CRTC::HD6845S, 39, false }, { CRTC::HD6845S, 40, false }, { CRTC::HD6845S, 41, true },
+      { CRTC::UM6845R, 39, false }, { CRTC::UM6845R, 40, false }, { CRTC::UM6845R, 41, true },
+      { CRTC::MC6845, 39, false }, { CRTC::MC6845, 40, true }, { CRTC::MC6845, 41, true },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " R1 written on C0 = " << c.p);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      const unsigned short row = crtc.ma_;
+      AdvanceUntilHccEquals(crtc, (unsigned char)c.p);
+      WriteRegister(crtc, 1, 255);
+      AdvanceUntilHccEquals(crtc, 0);
+      EXPECT_EQ(c.loaded ? row + 40 : row, crtc.ma_);
    }
 }
 
@@ -3352,6 +4436,96 @@ TEST(Compendium_17, R1EqualsR0GivesOneBorderMicrosecond)
       for (int i = 0; i < 64; ++i) { Advance(crtc); trace += crtc.DispEn() ? '1' : '0'; }
       EXPECT_EQ(std::string(62, '1') + "01", trace);
    }
+}
+
+// 17.3, 17.5 : R1 written with the current C0 (R1 > R0 before), then set back above R0 on the next character, as
+// SHAKER R1 STORIES does (#0099 : R1 = 0 on C0 = 0, #009A : R1 = 63 on C0 = 63). CRTC 0, 1, 2 compare C0 with the
+// R1 written during the character : that character and the rest of the line are border, the next line is displayed
+// (photos : a white screen, a white column on C0 = 63). CRTC 3, 4 compare at the start of the character : the
+// write is missed and the line stays displayed (photos : text everywhere). Each position of the line is covered,
+// HSYNC included (R2 = 46, 14 characters).
+TEST(Compendium_17, R1WrittenWithTheCurrentC0)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      const bool taken = (type == CRTC::HD6845S || type == CRTC::UM6845R || type == CRTC::MC6845);
+      for (int p : { 0, 1, 2, 3, 20, 39, 40, 46, 50, 59, 62, 63 })
+      {
+         SCOPED_TRACE(testing::Message() << TypeName(type) << " R1 = C0 = " << p);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, type);
+         WriteRegister(crtc, 1, 70);
+         ASSERT_TRUE(ReachLine(crtc, 5, 3));
+         if (p != 0) AdvanceUntilHccEquals(crtc, (unsigned char)p);
+         WriteRegister(crtc, 1, (unsigned char)p);
+         std::string line;
+         line += crtc.DispEn() ? '1' : '0';
+         Advance(crtc);
+         WriteRegister(crtc, 1, 70);
+         while (crtc.hcc_ != 0) { line += crtc.DispEn() ? '1' : '0'; Advance(crtc); }
+         if (p == 63)
+         {
+            // The line end : only C0 = 63 itself
+            line.resize(1);
+         }
+         EXPECT_EQ(std::string(64 - p, taken ? '0' : '1'), line);
+         // The next line is displayed (C0 = 0 to 62 ; C0 = 63 = R0 shows the R1 > R0 border on its 2nd half only)
+         std::string next;
+         while (crtc.hcc_ != 63) { next += crtc.DispEn() ? '1' : '0'; Advance(crtc); }
+         EXPECT_EQ(std::string(63, '1'), next);
+      }
+   }
+}
+
+// 17.4.3, SHAKER R1 STORIES #009A : R1 written with the current C0 on the last line of a character, then set back
+// above R0. CRTC 0 and 1 sample C0 == R1 at the end of the character : full load, VMA' = VMA. CRTC 2 has already done
+// the strobe of the start of the character : only the OR strobe of the end is done, VMA' |= VMA. PROVISIONAL for
+// CRTC 2 (RealCpc/README.md, P5). R12/R13 = &0101, R1 = 1 written on C0 = 1 : the next row starts on &0102 (full)
+// or &0103 (OR).
+TEST(Compendium_17, R1WrittenWithTheCurrentC0LoadsVmaPrime)
+{
+   const struct { CRTC::TypeCRTC type; unsigned short expected; } cases[] = {
+      { CRTC::HD6845S, 0x0102 }, { CRTC::UM6845R, 0x0102 }, { CRTC::MC6845, 0x0103 } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(TypeName(c.type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, c.type);
+      WriteRegister(crtc, 12, 0x01);
+      WriteRegister(crtc, 13, 0x01);
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      ASSERT_EQ(0x0101, crtc.ma_);
+      WriteRegister(crtc, 1, 70);
+      ASSERT_TRUE(ReachLine(crtc, 0, 7));
+      AdvanceUntilHccEquals(crtc, 1);
+      WriteRegister(crtc, 1, 1);
+      Advance(crtc);
+      WriteRegister(crtc, 1, 70);
+      ASSERT_TRUE(ReachLine(crtc, 1, 0));
+      EXPECT_EQ(c.expected, crtc.ma_) << std::hex << crtc.ma_;
+   }
+}
+
+// 17.4.3, SHAKER R1 STORIES #0098 : CRTC 2, R1 = 0 at the start of the line C9 = R9 (not the last line of the frame),
+// then R1 = 40 written on C0 = 10. VMA' takes "the VMA of the position C0 = 0", the start of the row : the line
+// keeps its address, and the next row starts 40 characters further, as on the photo.
+TEST(Compendium_17, Crtc2R1ZeroOnARowEndKeepsTheRows)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::MC6845);
+   ASSERT_TRUE(ReachLine(crtc, 5, 0));
+   const unsigned short row = crtc.ma_;
+   ASSERT_TRUE(ReachLine(crtc, 5, 6));
+   AdvanceUntilHccEquals(crtc, 60);
+   WriteRegister(crtc, 1, 0);
+   AdvanceUntilHccEquals(crtc, 0);
+   ASSERT_EQ(Line(5, 7), Line(crtc.vcc_, crtc.vlc_));
+   EXPECT_EQ(row, crtc.ma_);
+   AdvanceUntilHccEquals(crtc, 10);
+   WriteRegister(crtc, 1, 40);
+   ASSERT_TRUE(ReachLine(crtc, 6, 0));
+   EXPECT_EQ(row + 40, crtc.ma_);
 }
 
 // 18.1 : the R6 border has priority over R1 : on the row C4 = R6, the border is on before C0 = R1.
@@ -3435,6 +4609,54 @@ TEST(Compendium_19, Crtc1IvmCounting)
    EXPECT_TRUE(c9s == "0246" || c9s == "1357") << c9s;
 }
 
+// 19.8.1 : CRTC 0, R8 = 3 written with R9 = 6 on C9 = 4 : C9 overflows. C9 x 2 is compared with R9 on
+// 5 bits, its high bit is lost : the character ends on C9 = 19 (38 & 31 = 6), not after C9 wrapped to 3.
+TEST(Compendium_19, Crtc0IvmOverflowEndsOnTheLostHighBit)
+{
+   CRTC crtc; CSig sig;
+   Crtc0Screen(crtc, sig, 38, 0, 6);
+   ASSERT_TRUE(ReachLine(crtc, 5, 4));
+   WriteRegister(crtc, 8, 3);
+   int last = 4;
+   for (auto line = NextLine(crtc); line.first == 5 && line.second != 0; line = NextLine(crtc))
+   {
+      EXPECT_EQ(last + 1, line.second);
+      last = line.second;
+      ASSERT_LE(last, 31);
+   }
+   EXPECT_EQ(19, last);
+   EXPECT_EQ(6, crtc.vcc_);
+}
+
+// 11.3.2 : CRTC 1, R5 written to 0 during the additional lines : C4 does not return to 0 at their end, it
+// goes on and is still compared with R4. Once back on R4, the next frame starts and is a normal one : a R5
+// written during it gives the additional lines at its end. The compendium says the additional state stays
+// active ; the photos of SHAKER (#02D3, #00D7) only match if this return to 0 ends it.
+TEST(Compendium_11, Crtc1R5WrittenToZeroDuringTheAdjustment)
+{
+   CRTC crtc; CSig sig;
+   MakeCrtc(crtc, sig, CRTC::UM6845R);
+   ProgramStandardEuropeanScreen(crtc);
+   WriteRegister(crtc, 4, 38);
+   WriteRegister(crtc, 5, 4);
+   WriteRegister(crtc, 9, 7);
+   AdvanceMicroseconds(crtc, 2 * 128 * 64);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   EXPECT_EQ(std::make_pair(39, 0), NextLine(crtc));
+   WriteRegister(crtc, 5, 0);
+   for (int i = 0; i < 16; ++i)
+      EXPECT_NE(0, NextLine(crtc).first);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   EXPECT_EQ(std::make_pair(0, 0), NextLine(crtc));
+
+   ASSERT_TRUE(ReachLine(crtc, 10, 0));
+   WriteRegister(crtc, 5, 4);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   for (int c9 = 0; c9 < 4; ++c9)
+      EXPECT_EQ(std::make_pair(39, c9), NextLine(crtc));
+   EXPECT_EQ(std::make_pair(0, 0), NextLine(crtc));
+}
+
 // 19.8.4 : CRTC 3, 4 in IVM (R9 = N - 2 = 6) : C9 += 2 | parity : rows C9 = 0, 2, 4, 6 or 1, 3, 5,
 // 7 ; the parity of the frame changes at every frame.
 TEST(Compendium_19, AsicIvmCounting)
@@ -3459,6 +4681,46 @@ TEST(Compendium_19, AsicIvmCounting)
    }
 }
 
+// 10.3.4, 19.8.4 : CRTC 3, 4, the magnitude comparator C9 >= R9 that ends the character also loads VMA' with
+// VMA on C0 = R1. In IVM with R9 odd (7) the rows alternate C9 = 0, 2, 4, 6, 8 and 1, 3, 5, 7 : the even rows
+// end on C9 = 8 > R9 and the pointer moves on every row (SHAKER B_3 INTERLACE C4/C9 COUNTERS #00D2). A R9
+// written lower than C9 ends the character the same way.
+TEST(Compendium_19, AsicIvmRowsMoveThePointerOnEveryRow)
+{
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      WriteRegister(crtc, 9, 7);
+      WriteRegister(crtc, 8, 3);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      for (int i = 0; i < 400 && crtc.vcc_ != 2; ++i) NextLine(crtc);
+      ASSERT_EQ(2, crtc.vcc_);
+      std::string lines;
+      for (int row = 2; row < 8; ++row)
+      {
+         const unsigned short start = crtc.ma_;
+         int n = 0;
+         while (crtc.vcc_ == row && n < 16) { ++n; NextLine(crtc); }
+         lines += char('0' + n);
+         EXPECT_EQ((start + 40) & 0x3FFF, crtc.ma_ & 0x3FFF) << "C4 = " << row + 1;
+      }
+      EXPECT_TRUE(lines == "545454" || lines == "454545") << lines;
+   }
+   for (CRTC::TypeCRTC type : { CRTC::AMS40489, CRTC::AMS40226 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, type);
+      ASSERT_TRUE(ReachLine(crtc, 5, 5));
+      const unsigned short row = crtc.ma_;
+      WriteRegister(crtc, 9, 3);   // C9 = 5 > R9 : the character ends on this line
+      EXPECT_EQ(Line(6, 0), NextLine(crtc));
+      EXPECT_EQ((row + 40) & 0x3FFF, crtc.ma_ & 0x3FFF);
+   }
+}
+
 // 20.3.1, 20.3.4 : CRTC 0, 3, 4 take R12/R13 on C4 = C9 = C0 = 0 only : an offset written during the
 // frame changes nothing until the next frame.
 TEST(Compendium_20, OffsetTakenAtTheFrameStart)
@@ -3475,6 +4737,89 @@ TEST(Compendium_20, OffsetTakenAtTheFrameStart)
       EXPECT_EQ(row + 40, crtc.ma_);
       ASSERT_TRUE(ReachLine(crtc, 0, 0));
       EXPECT_EQ(kOffset, crtc.ma_);
+   }
+}
+
+// 19.5.3 : CRTC 1, tables p211-212 : OUT R8,3 then OUT R8,0 (I/O on C0 = 4 and 8) on a line of given ParitéFrame,
+// C4.0, R9.0 and C9.0. C9.0 is ParitéC9 : on the I/O microsecond (3rd of the OUT) ParitéC9 = C9.0 xor (C4.0 and
+// not R9.0) ; on the next one (4th), IVM on : with ParitéFrame even, ParitéC9 = C4.0 and not R9.0, ParitéFrame =
+// ParitéFrame and (ParitéC9 xor (C4.0 and not R9.0)) ; IVM off : ParitéFrame = ParitéC9.
+// Expected : C9.0 on the I/O microsecond of the on, after the on, after the off ; ParitéFrame at the end.
+TEST(Compendium_19, Crtc1ParityTables)
+{
+   struct { int frame, c4, r9, c9; int c9_3rd, c9_on, c9_off, frame_end; } const cases[] = {
+      // ParitéFrame even (p211)
+      { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 1, 1, 0, 0, 0 }, { 0, 0, 1, 0, 0, 0, 0, 0 }, { 0, 0, 1, 1, 1, 0, 0, 0 },
+      { 0, 1, 0, 0, 1, 1, 0, 0 }, { 0, 1, 0, 1, 0, 1, 0, 0 }, { 0, 1, 1, 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1, 0, 0, 0 },
+      // ParitéFrame odd (p212)
+      { 1, 0, 0, 0, 0, 0, 0, 0 }, { 1, 0, 0, 1, 1, 1, 1, 1 }, { 1, 0, 1, 0, 0, 0, 0, 0 }, { 1, 0, 1, 1, 1, 1, 1, 1 },
+      { 1, 1, 0, 0, 1, 1, 0, 0 }, { 1, 1, 0, 1, 0, 0, 1, 1 }, { 1, 1, 1, 0, 0, 0, 0, 0 }, { 1, 1, 1, 1, 1, 1, 1, 1 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "ParitéFrame " << c.frame << ", C4.0 " << c.c4 << ", R9.0 " << c.r9 << ", C9.0 " << c.c9);
+      CRTC crtc; CSig sig;
+      Crtc1Screen(crtc, sig, 38, 0, c.r9 ? 5 : 4);
+      AdvanceMicroseconds(crtc, 2 * 19968);
+      bool found = false;
+      for (int i = 0; i < 4 && !found; ++i)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 2 + c.c4, c.c9));
+         found = ((crtc.even_field_ ? 0 : 1) == c.frame);
+      }
+      ASSERT_TRUE(found);
+      AdvanceUntilHccEquals(crtc, 4);
+      WriteRegisterAt(crtc, 8, 3, kOutCR8);
+      EXPECT_EQ(c.c9_3rd, crtc.vlc_ & 1) << "3rd microsecond of OUT R8,3";
+      AdvanceUntilHccEquals(crtc, 7);
+      EXPECT_EQ(c.c9_on, crtc.vlc_ & 1) << "after OUT R8,3";
+      AdvanceUntilHccEquals(crtc, 8);
+      WriteRegisterAt(crtc, 8, 0, kOutCR8);
+      AdvanceUntilHccEquals(crtc, 11);
+      EXPECT_EQ(c.c9_off, crtc.vlc_ & 1) << "after OUT R8,0";
+      EXPECT_EQ(c.frame_end, crtc.even_field_ ? 0 : 1) << "ParitéFrame";
+   }
+}
+
+// 20.3.1-20.3.4 : chronograms p242-243. R12 = &10 (R13 = 0), then R12 = &30 by OUT (C),r8 taken on C0 = p (the
+// dark cell : the I/O microsecond, on the ASIC the 4th microsecond of the OUT, 4.4.3) :
+// - CRTC 0, 3, 4 : on C0 = 63 of the last line, taken by the frame start ; on C0 = 0 of the first line, too late ;
+// - CRTC 1 : on C0 = 63 and on C0 = 0 (C4 = 0) taken, the update is immediate ;
+// - CRTC 2 (R1 = 40), on the last line : on C0 = 39 and on C0 = R1 = 40 taken, on C0 = 41 too late.
+// The offset is read on the character C0 = 1 of the first line of the frame (VMA = offset + 1).
+TEST(Compendium_20, OffsetWrittenAroundItsLoad)
+{
+   struct { CRTC::TypeCRTC type; int c4, c9, c0; unsigned char high; } const cases[] = {
+      { CRTC::HD6845S, 38, 7, 63, 0x30 }, { CRTC::HD6845S, 0, 0, 0, 0x10 },
+      { CRTC::AMS40489, 38, 7, 63, 0x30 }, { CRTC::AMS40489, 0, 0, 0, 0x10 },
+      { CRTC::AMS40226, 38, 7, 63, 0x30 }, { CRTC::AMS40226, 0, 0, 0, 0x10 },
+      { CRTC::UM6845R, 38, 7, 63, 0x30 }, { CRTC::UM6845R, 0, 0, 0, 0x30 },
+      { CRTC::MC6845, 38, 7, 39, 0x30 }, { CRTC::MC6845, 38, 7, 40, 0x30 }, { CRTC::MC6845, 38, 7, 41, 0x10 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << ", I/O on C0 = " << c.c0 << " of C4 = " << c.c4);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, c.type);
+      WriteRegister(crtc, 12, 0x10);
+      WriteRegister(crtc, 13, 0x00);
+      ASSERT_TRUE(ReachLine(crtc, 37, 0));
+      ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+      // On the ASIC, OUT (C),r8 is taken 1 us after its I/O : the I/O is on C0 = p - 1
+      const bool asic = (c.type == CRTC::AMS40489 || c.type == CRTC::AMS40226);
+      if (asic && c.c0 == 0)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         AdvanceUntilHccEquals(crtc, 63);
+      }
+      else if (c.c0 > 0)
+      {
+         AdvanceUntilHccEquals(crtc, (unsigned char)(asic ? c.c0 - 1 : c.c0));
+      }
+      WriteRegisterAt(crtc, 12, 0x30, kOutCR8);
+      if (c.c4 != 0 || asic) ASSERT_TRUE(ReachLine(crtc, 0, 0));
+      AdvanceUntilHccEquals(crtc, 1);
+      EXPECT_EQ(c.high, (crtc.ma_ - 1) >> 8) << std::hex << "VMA = " << crtc.ma_;
    }
 }
 
@@ -3648,6 +4993,44 @@ TEST(Compendium_12, Crtc2LastLineStaysPreviousWithoutHSync)
    EXPECT_EQ(0, crtc.vlc_);
 }
 
+// 12.4.1, CRTC 2 :
+// - on C0 = 0 the last line comparison takes the new R4 but the R9 of the line start : on the last line
+//   C4 = R4 = 38, C9 = R9 = 7, R4 = 10 written on C0 = 0 cancels it (C4 + 1, no offset), R9 = 0 written on
+//   C0 = 0 does not (frame end, offset) ;
+// - "Gestion Derniere Ligne" is inactive on the first line of a frame (C4 = C9 = 0) : R4 = R9 = 0 written
+//   before the HSYNC does not make it a last line (C9 == R9 : C4 + 1) ; written after the last HSYNC character,
+//   which re-enabled it (C4 != R4 there), the line becomes a last line : frame end, but after C0 = R1, so
+//   VMA' was not loaded from R12/R13 (no offset, 17.4.3).
+TEST(Compendium_12, Crtc2LastLineEvaluationOnC0Zero)
+{
+   const struct { const char* what; int c4, c9; int p; int reg; unsigned char value; Line next; bool offset; } cases[] = {
+      { "R4 written on C0 = 0", 38, 7, 0, 4, 10, Line(39, 0), false },
+      { "R9 written on C0 = 0", 38, 7, 0, 9, 0, Line(0, 0), true },
+      { "R4 = R9 = 0 written on C0 = 10 of the first line", 0, 0, 10, -1, 0, Line(1, 0), false },
+      { "R4 = R9 = 0 written on C0 = 61 of the first line", 0, 0, 61, -1, 0, Line(0, 0), false },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(c.what);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, c.c4, c.c9));
+      if (c.p > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c.p);   // ReachLine stops on C0 = 0
+      SetOffset(crtc);
+      if (c.reg < 0)
+      {
+         WriteRegister(crtc, 4, 0);
+         WriteRegister(crtc, 9, 0);
+      }
+      else
+      {
+         WriteRegister(crtc, (unsigned char)c.reg, c.value);
+      }
+      EXPECT_EQ(c.next, NextLine(crtc));
+      EXPECT_EQ(c.offset, crtc.ma_ == kOffset);
+   }
+}
+
 namespace
 {
 // RVI row : C9 of the visible line, its R0 (R0.1), R9, C9 of the next visible line ; the hidden
@@ -3716,4 +5099,653 @@ TEST(Compendium_13, AsicRvi)
 {
    CheckRvi(CRTC::AMS40489, RviAsic());
    CheckRvi(CRTC::AMS40226, RviAsic());
+}
+
+// 15.3.3 : CRTC 0, R2 = 11, R3l = 10 ; R2 rewritten to 21 (= R2 + R3l) during the HSYNC. On C0 = 21 C3l
+// reaches R3l : the HSYNC ends and cannot restart while C3l == R3l (two HSYNC are never glued). R3l
+// rewritten on that position (OUT(C),r8) releases C0 == R2 : a new HSYNC starts on the T-state of the I/O
+// (as an R2.JIT, about 4 pixels after the end), C3l is not reset : 10, 11 .. 15, 0, 1 -> ends on C0 = 28.
+TEST(Compendium_15, Crtc0R3lRewrittenOnTheEndPositionRestartsTheHSync)
+{
+   for (bool rewrite_r3 : { false, true })
+   {
+      SCOPED_TRACE(rewrite_r3 ? "R3l rewritten on C0 = 21" : "R3l unchanged");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::HD6845S);
+      WriteRegister(crtc, 2, 11);
+      WriteRegister(crtc, 3, 0x8A);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      std::string pin;
+      int falls = 0;
+      unsigned char quarters_on_21 = 0xFF;
+      while (crtc.hcc_ != 40)
+      {
+         const int c0 = crtc.hcc_;
+         if (c0 == 15) WriteRegisterAt(crtc, 2, 21, kOutCR8);
+         if (rewrite_r3 && c0 == 21) WriteRegisterAt(crtc, 3, 0x81, kOutCR8);
+         if (c0 == 21) quarters_on_21 = crtc.hsync_quarters_;
+         sig.hsync_fall_ = sig.hsync_raise_ = false;
+         Advance(crtc);
+         if (sig.hsync_fall_) ++falls;
+         if (crtc.hcc_ >= 10 && crtc.hcc_ < 30) pin += sig.h_sync_ ? '1' : '0';
+      }
+      // Pin on the clock edge of each character, C0 = 10 to 29 (on C0 = 21 : low on the edge, high again
+      // from the I/O, see the quarters)
+      if (rewrite_r3)
+      {
+         EXPECT_EQ("01111111111011111100", pin);
+         EXPECT_EQ(0x0E, quarters_on_21);   // low on the T-state of the end, high again from the I/O
+         EXPECT_EQ(2, falls);
+      }
+      else
+      {
+         EXPECT_EQ("01111111111000000000", pin);
+         EXPECT_EQ(0x00, quarters_on_21);
+         EXPECT_EQ(1, falls);
+      }
+   }
+}
+
+// 19.2.4 : CRTC 0, R1 > R0 (R0 = 63, R1 = 64) : C0 == R0 replaces C0 == R1, a border byte on the second half
+// of C0 = 63. The SKEW delay of R8 counts character clocks : the delayed border is a whole character, on
+// C0 = 0 (+1) or C0 = 1 (+2), as it would be on C0 == R1 (schematic p196).
+TEST(Compendium_19, SkewDelaysTheR0BorderByWholeCharacters)
+{
+   const struct { unsigned char r8; const char* halves; } cases[] = {
+      { 0x00, "10 11 11 11" }, { 0x10, "11 00 11 11" }, { 0x20, "11 11 00 11" } };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(c.r8);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::HD6845S);
+      WriteRegister(crtc, 1, 64);
+      WriteRegister(crtc, 8, c.r8);
+      ASSERT_TRUE(ReachLine(crtc, 5, 2));
+      AdvanceUntilHccEquals(crtc, 63);
+      std::string halves;
+      for (int i = 0; i < 4; ++i)
+      {
+         if (i > 0) { Advance(crtc); halves += ' '; }
+         halves += crtc.DispEn(0) ? '1' : '0';
+         halves += crtc.DispEn(1) ? '1' : '0';
+      }
+      EXPECT_EQ(c.halves, halves);   // C0 = 63, 0, 1, 2
+   }
+}
+
+// 13.7.1.2 : CRTC 1, last line of the frame (C4 = R4 = 38, C9 = R9 = 7, R5 = 0). R0 lengthened (63 -> 70) on
+// C0 = R0, then R9 changed during the lengthening so that C9 != R9 : the frame end states set on the first
+// C0 == R0 meet a line that is no longer the last one, a R.F.D. at the end of the line. The frame does not
+// end (C4 = 38, C9 = 8) and the next line starts from R12/R13.
+TEST(Compendium_13, Crtc1LastLineCancelledDuringALengthenedR0GivesARfd)
+{
+   CRTC crtc; CSig sig;
+   Crtc1Screen(crtc, sig, 38, 0, 7);
+   SetOffset(crtc);
+   ASSERT_TRUE(ReachLine(crtc, 38, 7));
+   AdvanceUntilHccEquals(crtc, 63);
+   WriteRegister(crtc, 0, 70);
+   Advance(crtc);
+   Advance(crtc);
+   WriteRegister(crtc, 9, 8);
+   AdvanceUntilHccEquals(crtc, 70);
+   Advance(crtc);   // C0 = 0 of the next line
+   EXPECT_EQ(38, crtc.vcc_);
+   EXPECT_EQ(8, crtc.vlc_);
+   EXPECT_EQ(kOffset, crtc.ma_);
+}
+
+// 4.3 : bits kept by each register on a write of &FF (table p22). R3 : the VSYNC width (bits 7-4) only
+// exists on CRTC 0, 3, 4. R8, R9 : CRTC_RegisterMasks. R10/R11 are read-only status on CRTC 3, 4.
+TEST(Compendium_4, RegistersKeepTheBitsOfTheirType)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      const bool crtc12 = (type == CRTC::UM6845R || type == CRTC::MC6845);
+      const struct { int reg; unsigned char kept; } cases[] = {
+         { 0, 0xFF }, { 1, 0xFF }, { 2, 0xFF }, { 3, (unsigned char)(crtc12 ? 0x0F : 0xFF) }, { 4, 0x7F },
+         { 5, 0x1F }, { 6, 0x7F }, { 7, 0x7F }, { 12, 0x3F }, { 13, 0xFF } };
+      for (const auto& c : cases)
+      {
+         SCOPED_TRACE(c.reg);
+         CRTC crtc; CSig sig;
+         MakeCrtc(crtc, sig, type);
+         WriteRegister(crtc, (unsigned char)c.reg, 0xFF);
+         EXPECT_EQ(c.kept, crtc.registers_list_[c.reg]);
+      }
+   }
+}
+
+// 10.3, tables p79-80 : R9 written during the character C0 = p of a line (C4, C9). Expected on the next
+// line : C9, C4 and whether VMA starts from R12/R13. Every branch of the notes of the tables is played :
+// p = 0, 1 (C0 < 2), 2 and 10 (C0 > 1, outside the HSYNC, before R1), and 42 (after R1, outside the HSYNC :
+// the offset of the CRTC 2 is taken only if C0 <= R1). Not played : R9 written during the HSYNC on a CRTC 2
+// (its result is not given), CRTC 2 of the last table (R9 0 -> n, depends on the last line authorised in the
+// HSYNC : not given).
+// CRTC 0, table p79 case 8 (R9 7 -> 0 on C9 = 7, C4 = R4) written on C0 < 2 : the note (***) gives C9 = 0,
+// C4 + 1, which disagrees with 10.3.1.2, 12.2 and the note (**) of table p80 ; the emulation follows the
+// text (DISABLED_ test below).
+namespace
+{
+enum class C4Next { kSame, kPlusOne, kZero };
+struct R9Case { int c9_next; C4Next c4; bool offset; };   // c9_next < 0 : C9 + 1
+R9Case Next(int c9, C4Next c4, bool offset) { return { c9, c4, offset }; }
+
+const int kR9WritePositions[] = { 0, 1, 2, 10, 42 };
+const int kR1 = 40;
+
+void CheckR9Write(CRTC::TypeCRTC type, unsigned char r4, unsigned char r9, int c4, int c9, int new_r9, int position,
+                  const R9Case& e)
+{
+   SCOPED_TRACE(testing::Message() << TypeName(type) << " R4=" << (int)r4 << " R9=" << (int)r9 << " on C4=" << c4
+                                   << " C9=" << c9 << " -> R9=" << new_r9 << " written on C0=" << position);
+   CRTC crtc; CSig sig;
+   TypedScreen(crtc, sig, type, r4, 0, r9);
+   ASSERT_TRUE(ReachLine(crtc, c4, c9));
+   SetOffset(crtc);
+   if (position > 0) AdvanceUntilHccEquals(crtc, (unsigned char)position);   // ReachLine stops on C0 = 0
+   if (new_r9 >= 0) WriteRegister(crtc, 9, (unsigned char)new_r9);
+   const Line next = NextLine(crtc);
+   EXPECT_EQ(e.c9_next < 0 ? c9 + 1 : e.c9_next, next.second);
+   EXPECT_EQ(e.c4 == C4Next::kSame ? c4 : e.c4 == C4Next::kPlusOne ? c4 + 1 : 0, next.first);
+   EXPECT_EQ(e.offset, crtc.ma_ == kOffset);
+}
+
+int Group(CRTC::TypeCRTC type)
+{
+   switch (type)
+   {
+   case CRTC::HD6845S: return 0;
+   case CRTC::UM6845R: return 1;
+   case CRTC::MC6845: return 2;
+   default: return 3;
+   }
+}
+}
+
+TEST(Compendium_10, R9TablesPages79And80)
+{
+   const R9Case plus1 = Next(-1, C4Next::kSame, false);
+   const R9Case end = Next(0, C4Next::kZero, true);
+   const R9Case end_no_offset = Next(0, C4Next::kZero, false);
+   const R9Case next_row = Next(0, C4Next::kPlusOne, false);
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      const int g = Group(type);
+      for (int p : kR9WritePositions)
+      {
+         // CRTC 0 : the last line is evaluated on C0 < 2 (notes ** and ***) ; CRTC 2 : the offset is taken if
+         // C0 <= R1 (note *)
+         const bool early = (p < 2);
+         const R9Case end_crtc2 = (p <= kR1) ? end : end_no_offset;
+         for (int c9 = 0; c9 < 8; ++c9)
+         {
+            // Table 1 : R9 7 -> 0, C4 = R4 (> 0)
+            R9Case t1 = plus1;
+            if (g == 3) t1 = end;
+            else if (c9 == 0) t1 = (g == 0) ? (early ? end : next_row) : (g == 2) ? end_crtc2 : end;
+            else if (c9 == 7 && g == 0) t1 = early ? plus1 : end;   // note (***) not followed, see above
+            else if (c9 == 7 && g == 2) t1 = end;
+            if (!(g == 2 && c9 == 7 && p > kR1)) CheckR9Write(type, 38, 7, 38, c9, 0, p, t1);
+            // Table 2 : R9 7 -> 0, C4 != R4
+            CheckR9Write(type, 38, 7, 10, c9, 0, p, (g == 3 || c9 == 0) ? next_row : plus1);
+            // Table 3 : R9 7 -> C9, C4 = R4 (case 8 : R9 already 7)
+            R9Case t3 = end;
+            if (g == 0 && c9 != 7) t3 = early ? end : next_row;
+            else if (g == 2 && c9 != 7) t3 = end_crtc2;
+            if (!(g == 2 && c9 == 7 && p > kR1)) CheckR9Write(type, 38, 7, 38, c9, c9 == 7 ? -1 : c9, p, t3);
+            // Table 4 : R9 7 -> C9, C4 != R4
+            CheckR9Write(type, 38, 7, 10, c9, c9 == 7 ? -1 : c9, p, next_row);
+            // Table 6 : R4 = R9 = 0 (every line is C4 = C9 = 0), R9 0 -> n
+            if (g != 2)
+            {
+               const int n = c9;
+               R9Case t6 = end;
+               if (n > 0 && g == 0 && early) t6 = Next(1, C4Next::kZero, false);
+               if (n > 0 && g == 1) t6 = Next(1, C4Next::kZero, true);
+               if (n > 0 && g == 3) t6 = Next(1, C4Next::kZero, false);
+               CheckR9Write(type, 0, 0, 0, 0, n == 0 ? -1 : n, p, t6);
+            }
+         }
+         // Table 5 : R9 7 -> 1 on C9 = 2, C4 = R4
+         CheckR9Write(type, 38, 7, 38, 2, 1, p, g == 3 ? end : plus1);
+      }
+   }
+}
+
+// 10.3, table p79 case 8, note (***) : on CRTC 0, R9 7 -> 0 written on C0 < 2 of the last line (C9 = 7,
+// C4 = R4) would give C9 = 0 and C4 + 1. DIVERGENCE : 10.3.1.2 and 12.2 make the line the first additional
+// line (written on C0 = 1) or cancel the last line (C0 = 0), so C9 counts on (C4, 8) ; the note (**) of table
+// p80 (R9 0 -> n on C0 < 2 : C9 = 1, C4 = 0) agrees with the text. Kept until a measure on a CRTC 0 decides.
+TEST(Compendium_10, DISABLED_Crtc0Table79Case8WrittenOnC0Below2)
+{
+   for (int p : { 0, 1 })
+      CheckR9Write(CRTC::HD6845S, 38, 7, 38, 7, 0, p, Next(0, C4Next::kPlusOne, false));
+}
+
+// 11.2.5 : CRTC 2, R4 = 10, R9 = 3, R5 = 16. R9 / R4 written on the last line of the frame are taken at once
+// for the counting of C9 and C4 during the additional lines (C4 + 1 on each C9 == R9, whatever R4) ; the
+// frame still ends after the 16 R5 lines.
+TEST(Compendium_11, Crtc2R4R9WrittenOnTheLastLineCountDuringTheAdjustment)
+{
+   const struct { int reg; unsigned char value; std::vector<Line> lines; } cases[] = {
+      { 9, 5, { {10, 4}, {10, 5}, {11, 0}, {11, 1}, {11, 2}, {11, 3}, {11, 4}, {11, 5}, {12, 0}, {12, 1},
+                {12, 2}, {12, 3}, {12, 4}, {12, 5}, {13, 0}, {13, 1}, {0, 0} } },
+      { 4, 5, { {11, 0}, {11, 1}, {11, 2}, {11, 3}, {12, 0}, {12, 1}, {12, 2}, {12, 3}, {13, 0}, {13, 1},
+                {13, 2}, {13, 3}, {14, 0}, {14, 1}, {14, 2}, {14, 3}, {0, 0} } },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "R" << c.reg << " = " << (int)c.value);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 10, 16, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, (unsigned char)c.reg, c.value);
+      for (const Line& expected : c.lines)
+         EXPECT_EQ(expected, NextLine(crtc));
+   }
+}
+
+// 11.3.1 : CRTC 2, R5 = 16, rewritten on the additional line C5 = 5 : with C5 + 1 (6) the adjustment stops
+// after that line (6 lines) ; with a lower value (3) C5 overflows up to 31, then 0, 1, 2 (35 lines).
+TEST(Compendium_11, Crtc2R5WrittenDuringTheAdjustment)
+{
+   for (const auto& c : { std::make_pair(6, 6), std::make_pair(3, 35) })
+   {
+      SCOPED_TRACE(c.first);
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 10, 16, 3);
+      ASSERT_TRUE(ReachLine(crtc, 10, 3));
+      for (int i = 0; i < 6; ++i) NextLine(crtc);   // additional lines C5 = 0 .. 5
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 5, (unsigned char)c.first);
+      int lines = 6;
+      while (NextLine(crtc) != Line(0, 0) && lines < 100) ++lines;
+      EXPECT_EQ(c.second, lines);
+   }
+}
+
+// 11.9 : CRTC 2, interlace (R8 = 1), R4 = 37, R9 = 7 : one frame out of two ends with the interlace line
+// (38, 0). R8 = 0 written during it : it is no longer an interlace line, the last line is cancelled, C9
+// counts up to R9 and C4 goes on (39). R4 then written with C4 (38) : C4 == R4 makes a last line again
+// when C9 reaches R9.
+TEST(Compendium_11, Crtc2InterlaceSwitchedOffDuringTheInterlaceLine)
+{
+   for (bool r4_with_c4 : { false, true })
+   {
+      SCOPED_TRACE(r4_with_c4 ? "R4 = C4" : "R4 unchanged");
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, CRTC::MC6845, 37, 0, 7);
+      WriteRegister(crtc, 8, 1);
+      AdvanceMicroseconds(crtc, 3 * 19968);
+      bool found = false;
+      for (int frame = 0; frame < 3 && !found; ++frame)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 37, 7));
+         if (NextLine(crtc) != Line(38, 0)) continue;   // the frame without the interlace line
+         found = true;
+         AdvanceUntilHccEquals(crtc, 10);
+         WriteRegister(crtc, 8, 0);
+         if (r4_with_c4) WriteRegister(crtc, 4, 38);
+         for (int c9 = 1; c9 < 8; ++c9)
+            EXPECT_EQ(Line(38, c9), NextLine(crtc));
+         EXPECT_EQ(r4_with_c4 ? Line(0, 0) : Line(39, 0), NextLine(crtc));
+      }
+      EXPECT_TRUE(found);
+   }
+}
+
+// 11.3.1 : CRTC 2, R5 written with the value of C5 during the additional lines : C5 overflows (counts up to 31, back to 0)
+// before it meets R5. SHAKER C ADD LINE R5 ON LAST LINE #02C9 ("#0080 expected" on CRTC 2) : R5 = 1, R5 = 0 written
+// on the first additional line ; R5 = 3, R5 = 1 written on the second one. Written on C0 = 2, 30 and 62.
+TEST(Compendium_11, Crtc2R5WrittenWithC5Overflows)
+{
+   const struct { unsigned char r5; int line; unsigned char r5_new; int lines_left; } cases[] = {
+      { 1, 0, 0, 32 },   // C5 = 0 .. 31 : 32 lines from the first additional line
+      { 3, 1, 1, 32 },   // C5 = 1 .. 31, 0 : 32 lines from the second one
+      { 2, 0, 1, 1 } };  // R5 = C5 + 1 : this line is the last one
+   for (const auto& c : cases)
+   {
+      for (int c0 : { 2, 30, 62 })
+      {
+         SCOPED_TRACE(testing::Message() << "R5 = " << int(c.r5) << ", " << int(c.r5_new) << " written on the additional line "
+                      << c.line << ", C0 = " << c0);
+         CRTC crtc; CSig sig;
+         Screen(crtc, sig, CRTC::MC6845);
+         WriteRegister(crtc, 5, c.r5);
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         for (int l = 0; l <= c.line; ++l) NextLine(crtc);
+         ASSERT_TRUE(crtc.adjust_);
+         AdvanceUntilHccEquals(crtc, (unsigned char)c0);
+         WriteRegister(crtc, 5, c.r5_new);
+         int lines = 1;
+         while (NextLine(crtc) != Line(0, 0) && lines < 100) ++lines;
+         EXPECT_EQ(c.lines_left, lines);
+      }
+   }
+}
+
+// 11.9, 19.6.3 : CRTC 2, the interlace line (after the R5 lines, on the frames where ParitéR6 asks for it) ends the
+// frame whatever R5 : SHAKER C ADD LINE R8 #02CB, R5 = 1, R8 = 3, R5 = 0 written on the interlace line ("#0004 exp").
+// R8 = 0 written on it : it is no longer the interlace line, C4 counts on.
+TEST(Compendium_11, Crtc2InterlaceLineEndsTheFrameWhateverR5)
+{
+   for (bool r8_off : { false, true })
+   {
+      SCOPED_TRACE(r8_off ? "R8 = 0 written on the interlace line" : "R5 = 0 written on the interlace line");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::MC6845);
+      WriteRegister(crtc, 5, 1);
+      WriteRegister(crtc, 8, 3);
+      bool found = false;
+      for (int frame = 0; frame < 4 && !found; ++frame)
+      {
+         ASSERT_TRUE(ReachLine(crtc, 38, 7));
+         NextLine(crtc);
+         NextLine(crtc);
+         found = crtc.interlace_add_line_;
+      }
+      ASSERT_TRUE(found);
+      AdvanceUntilHccEquals(crtc, 10);
+      if (r8_off) WriteRegister(crtc, 8, 0); else WriteRegister(crtc, 5, 0);
+      const Line next = NextLine(crtc);
+      if (r8_off) EXPECT_NE(Line(0, 0), next); else EXPECT_EQ(Line(0, 0), next);
+   }
+}
+
+// 11.2.3, 17.4.3 : CRTC 1, 2, R4 = 10, R5 = 24, R9 = 7, R9 = 3 written on the additional line C9 = 1 (SHAKER
+// R5 STORIES #01F6). During the additional lines C9 == R9 on C0 = R1 still loads VMA' with VMA : the pointer
+// goes on (+ R1 on each C4). The last additional line is the last line of the frame : VMA' takes R12/R13 there
+// and the next frame starts on the offset.
+TEST(Compendium_11, Crtc12AdjustmentWithC9ReachingR9EndsOnTheOffset)
+{
+   for (CRTC::TypeCRTC type : { CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(TypeName(type));
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, type, 10, 24, 7);
+      SetOffset(crtc);
+      ASSERT_TRUE(ReachLine(crtc, 0, 1));   // a frame start with the offset
+      ASSERT_TRUE(ReachLine(crtc, 10, 7));
+      EXPECT_EQ(Line(11, 0), NextLine(crtc));
+      // First additional line : CRTC 1 goes on in memory (R12/R13 only on a frame start, 17.4.2), CRTC 2 took
+      // R12/R13 on the line C4 = R4, C9 = R9 (17.4.3)
+      const unsigned short first = (type == CRTC::UM6845R) ? (kOffset + 11 * 40) & 0x3FFF : kOffset;
+      EXPECT_EQ(first, crtc.ma_ & 0x3FFF);
+      EXPECT_EQ(Line(11, 1), NextLine(crtc));
+      AdvanceUntilHccEquals(crtc, 10);
+      WriteRegister(crtc, 9, 3);
+      int lines = 2;
+      std::vector<unsigned short> row_start;
+      Line line;
+      while ((line = NextLine(crtc)) != Line(0, 0) && lines < 100)
+      {
+         if (line.second == 0) row_start.push_back(crtc.ma_ & 0x3FFF);
+         ++lines;
+      }
+      EXPECT_EQ(24, lines);
+      ASSERT_EQ(5u, row_start.size());   // C4 = 12 to 16
+      for (size_t i = 0; i < row_start.size(); ++i)
+         EXPECT_EQ((first + 40 * (i + 1)) & 0x3FFF, row_start[i]) << "C4 = " << 12 + i;
+      EXPECT_EQ(kOffset, crtc.ma_ & 0x3FFF);
+   }
+}
+
+// 13.2.1, 12.2 : CRTC 0 evaluates the last line at the end of C0 = 0 and C0 = 1 ; on C0 = 2 the fate of C4 is
+// sealed. R9 7 -> 0 on a line with C4 = R4 = 38 :
+// - line C9 = 7 (a last line) : written on C0 = 0 the last line is cancelled, written on C0 = 1 the line
+//   becomes the first additional line (10.3.1.2) : C9 counts on in both cases (38, 8) ; written on C0 = 2
+//   the frame ends ;
+// - line C9 = 0 : written on C0 = 0 or 1 it becomes the last line (frame end, R12/R13), on C0 = 2 C4 + 1.
+TEST(Compendium_13, Crtc0LastLineEvaluatedOnTheFirstTwoMicroseconds)
+{
+   for (int c0 = 0; c0 <= 2; ++c0)
+   {
+      for (int c9 : { 7, 0 })
+      {
+         SCOPED_TRACE(testing::Message() << "R9 written on C0 = " << c0 << " of C9 = " << c9);
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, CRTC::HD6845S, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 38, c9));
+         SetOffset(crtc);
+         if (c0 > 0) AdvanceUntilHccEquals(crtc, (unsigned char)c0);   // ReachLine stops on C0 = 0
+         WriteRegister(crtc, 9, 0);
+         const bool frame_end = (c9 == 7) ? (c0 == 2) : (c0 < 2);
+         const Line expected = frame_end ? Line(0, 0) : (c9 == 7) ? Line(38, 8) : Line(39, 0);
+         EXPECT_EQ(expected, NextLine(crtc));
+         EXPECT_EQ(frame_end, crtc.ma_ == kOffset);
+      }
+   }
+}
+
+// 13.6.1-13.6.3, chronograms p124-125, every type : R0 = &3F rewritten with &7F during the character
+// C0 = R0 is taken in time (C0 goes on to &40) ; landing on the C0 = 0 that follows it is too late (C0 = 0).
+// R0 = 0 (C0 stays on 0) rewritten with 10 during a C0 = 0 : C0 goes to 1 on the next character. (The column
+// of the I/O in each instruction is the I/O microsecond of 4.4, tested there.)
+TEST(Compendium_13, R0UpdateChronograms)
+{
+   for (CRTC::TypeCRTC type : kAllTypes)
+   {
+      SCOPED_TRACE(TypeName(type));
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         AdvanceUntilHccEquals(crtc, 0x3F);
+         WriteRegister(crtc, 0, 0x7F);
+         Advance(crtc);
+         EXPECT_EQ(0x40, crtc.hcc_);
+      }
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         AdvanceUntilHccEquals(crtc, 0x3F);
+         Advance(crtc);
+         ASSERT_EQ(0, crtc.hcc_);
+         WriteRegister(crtc, 0, 0x7F);
+         Advance(crtc);
+         EXPECT_EQ(1, crtc.hcc_);
+      }
+      {
+         CRTC crtc; CSig sig;
+         TypedScreen(crtc, sig, type, 38, 0, 7);
+         ASSERT_TRUE(ReachLine(crtc, 10, 2));
+         WriteRegister(crtc, 0, 0);
+         for (int i = 0; i < 3; ++i) { Advance(crtc); ASSERT_EQ(0, crtc.hcc_); }
+         WriteRegister(crtc, 0, 10);
+         Advance(crtc);
+         EXPECT_EQ(1, crtc.hcc_);
+      }
+   }
+}
+
+// CRTC 1 : C3h counts half lines (edges of the line start and of C0 = (R0 + 1) / 2) : with R0 = 0 (lines of 1 us) one
+// half line each us (PROVISIONAL, RealCpc README P8 bis). R0 = 0 written on C0 = 0 of the line C4 = 29, C9 = 7
+// (R7 = 30), R0 = 63 d us later. Measured on a real CRTC 1 (P8 (D) 2026-11-18, P8 bis (F) 2026-11-21) : from 10 to
+// 17 us, each us takes about 33 us off the VSYNC (no pairs : half a line and the us). SHAKER LOST VSYNC ON R0=0
+// (#008D) : 18 us, the VSYNC goes on. The real VSYNC goes on up to 33 us, one us more than here : see
+// DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero.
+TEST(Compendium_16, Crtc1VsyncCountsOneHalfLineEachMicrosecondWithR0Zero)
+{
+   int previous_end = 0;
+   for (int d : { 10, 11, 12, 13, 14, 15, 16, 17, 18, 28, 29, 30, 31, 32, 33, 34, 35 })
+   {
+      SCOPED_TRACE(testing::Message() << d << " us of R0 = 0");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 29, 7));
+      WriteRegister(crtc, 0, 0);
+      bool seen = false;
+      for (int us = 0; us < d; ++us) { Advance(crtc); seen |= crtc.ff4_; }
+      EXPECT_TRUE(seen);
+      WriteRegister(crtc, 0, 63);
+      Advance(crtc);
+      EXPECT_EQ(d <= 32, crtc.ff4_);
+      if (d > 18) continue;
+      // Time from the R0 = 0 write to the end of the VSYNC : each us of R0 = 0 counts a half line (32 us of R0 = 63)
+      // and lasts 1 us, the end comes 31 us earlier (from the R0 = 63 write, 33 : the photo)
+      int end = d + 1;
+      while (crtc.ff4_ && end < 2000) { Advance(crtc); ++end; }
+      if (previous_end != 0)
+         EXPECT_EQ(31, previous_end - end);
+      previous_end = end;
+   }
+}
+
+// Divergence (RealCpc README P8 bis (F), 2026-11-21) : on the real CRTC 1 the VSYNC goes on up to 33 us of R0 = 0
+// and ends during 34 us (Sugarbox : 32, 33) ; every value of (D) and (F) is the Sugarbox one for one us more of R0 = 0.
+// A count enabled one character after the VSYNC start gives it, but then a VSYNC started on C0 = 31 misses the half
+// line edge C0 = 32 and ends half a line too late (SHAKER A1 #008F, #0090, photos). Measure to do : RealCpc README,
+// part 0.
+TEST(Compendium_16, DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero)
+{
+   for (int d : { 33, 34 })
+   {
+      SCOPED_TRACE(testing::Message() << d << " us of R0 = 0");
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 29, 7));
+      WriteRegister(crtc, 0, 0);
+      for (int us = 0; us < d; ++us) Advance(crtc);
+      WriteRegister(crtc, 0, 63);
+      Advance(crtc);
+      EXPECT_EQ(d <= 33, crtc.ff4_);
+   }
+}
+
+// CRTC 1 : a VSYNC started by R7 = C4 during a line ends on a half line edge, 16 lines after the first half line edge
+// that follows its start : up to C0 = 31, on the start of the 16th line ; from C0 = 32, half a line later. Measured on
+// a real CRTC 1 (RealCpc README, P8 bis (E), 2026-11-21) : R7 = 20 written on the line C4 = 20, C9 = 0, I/O on C0 =
+// #00, #04 ... #3C (VSYNC up on C0 = 1, 5 ... 61), steps of 10 us from the write to the end : 102 102 101 101 101 100
+// 100 99 twice (16.4.2 says whole lines from C0 = 0 : 99 down to 96 on the second row). SHAKER A1 #008F, #0090
+// (photos) : I/O on C0 = #1E (VSYNC up on C0 = 31) ends on the line start.
+TEST(Compendium_16, Crtc1VsyncStartedInALineEndsOnAHalfLine)
+{
+   int first_half_end = -1, second_half_end = -1;
+   for (int c0 : { 0, 4, 8, 12, 16, 20, 24, 28, 30, 32, 36, 40, 44, 48, 52, 56, 60 })
+   {
+      SCOPED_TRACE(testing::Message() << "R7 on C0 = " << c0);
+      CRTC crtc; CSig sig;
+      Screen(crtc, sig, CRTC::UM6845R);
+      ASSERT_TRUE(ReachLine(crtc, 20, 0));
+      int t = 0;
+      while (crtc.hcc_ != c0) { Advance(crtc); ++t; }
+      WriteRegister(crtc, 7, 20);
+      while (!crtc.ff4_ && t < 100) { Advance(crtc); ++t; }
+      ASSERT_TRUE(crtc.ff4_);
+      EXPECT_EQ(c0 + 1, crtc.hcc_);
+      while (crtc.ff4_ && t < 3000) { Advance(crtc); ++t; }
+      int& end = (c0 < 31) ? first_half_end : second_half_end;
+      if (end < 0) end = t;
+      EXPECT_EQ(end, t);
+   }
+   EXPECT_EQ(32, second_half_end - first_half_end);
+}
+
+// CRTC 1 : no HSYNC (R0 = 20 < R2 = 40) does not stop C3h : the VSYNC ends after 16 lines of 21 us. Measured on a real
+// CRTC 1 (RealCpc README, P8 (B), 2026-11-18 : the VSYNC is over 3 ms after its start)
+TEST(Compendium_16, Crtc1VsyncEndsWithoutHsync)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::UM6845R);
+   ASSERT_TRUE(ReachLine(crtc, 25, 0));
+   WriteRegister(crtc, 2, 40);
+   WriteRegister(crtc, 0, 20);
+   int us = 0;
+   while (!crtc.ff4_ && us < 2000) { Advance(crtc); ++us; }
+   ASSERT_TRUE(crtc.ff4_);
+   int len = 0;
+   while (crtc.ff4_ && len < 3000) { Advance(crtc); ++len; }
+   EXPECT_FALSE(sig.h_sync_);
+   EXPECT_EQ(16 * 21, len);
+}
+
+// CRTC 1 : R3l = 0 gives no HSYNC on the pin (14.5.2) ; C3h counts the lines, the VSYNC keeps its 16 lines (SHAKER
+// INTER TEST IM1 #01F2, R3 = 0 with a photo)
+TEST(Compendium_16, Crtc1VsyncCountsTheHsyncOfLengthZero)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::UM6845R);
+   WriteRegister(crtc, 3, 0x00);
+   ASSERT_TRUE(ReachLine(crtc, 10, 0));
+   int len = 0;
+   bool prev = crtc.ff4_, seen = false;
+   for (int us = 0; us < 2 * 19968 && !seen; ++us)
+   {
+      Advance(crtc);
+      EXPECT_FALSE(sig.h_sync_);
+      if (crtc.ff4_) ++len;
+      else if (prev) seen = true;
+      prev = crtc.ff4_;
+   }
+   EXPECT_TRUE(seen);
+   EXPECT_EQ(16 * 64, len);
+}
+
+// CRTC 1 : R0 = 0 (frames of 312 us with R4 = 38, R9 = 7) : the VSYNC comes back on every frame and lasts 16 lines
+// counted in half lines, one each us : 32 us (SHAKER R52INC IN HSYNC #01F4 : the VSYNC must come back to reset R52 ;
+// PROVISIONAL, RealCpc README P8 bis ; the real CRTC 1 gives 33 us, see DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero)
+TEST(Compendium_16, Crtc1VsyncComesBackOnEveryFrameWithR0Zero)
+{
+   CRTC crtc; CSig sig;
+   Screen(crtc, sig, CRTC::UM6845R);
+   WriteRegister(crtc, 2, 0);
+   WriteRegister(crtc, 3, 1);
+   ASSERT_TRUE(ReachLine(crtc, 10, 3));
+   WriteRegister(crtc, 0, 0);
+   std::vector<int> starts, lengths;
+   int len = 0;
+   bool prev = crtc.ff4_;
+   for (int us = 0; us < 1500; ++us)
+   {
+      Advance(crtc);
+      if (crtc.ff4_ && !prev) starts.push_back(us);
+      if (crtc.ff4_) ++len;
+      else if (prev) { lengths.push_back(len); len = 0; }
+      prev = crtc.ff4_;
+   }
+   ASSERT_GE(starts.size(), 3u);
+   EXPECT_EQ(312, starts[1] - starts[0]);
+   EXPECT_EQ(312, starts[2] - starts[1]);
+   ASSERT_GE(lengths.size(), 2u);
+   // 32 half lines of 1 us
+   EXPECT_EQ(32, lengths[1]);
+}
+
+// 13.4, 12.4 : R0 = 0 written on C0 = 29 of the last line (C4 = R4 = 38, C9 = R9 = 7), R0 = 63 again 512 or 1024 us
+// later, then the time to the next VSYNC in steps of 12 us (disquettes_test R0ZTEST, photos of real CPCs,
+// 2026-11-19). C0 counts on to 255 and overflows : the line crosses its HSYNC (DLP samples this last line) and
+// passes C0 = 0 without a line start. CRTC 2 (GT65 photo) : 1429 and 2496 ; the frame ends as on the CRTC 1. The
+// "Derniere Ligne" state is clocked by the line start only, not by the overflow (CRTC_2.cpp, PROVISIONAL).
+TEST(Compendium_13, R0ZeroWrittenOnTheLastLineThenR0Again)
+{
+   struct { CRTC::TypeCRTC type; int hold; int units; } const cases[] = {
+      { CRTC::HD6845S, 512, 1280 }, { CRTC::HD6845S, 1024, 1280 },
+      { CRTC::UM6845R, 512, 1429 }, { CRTC::UM6845R, 1024, 362 },
+      { CRTC::MC6845, 512, 1429 }, { CRTC::MC6845, 1024, 2496 },
+   };
+   for (const auto& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << TypeName(c.type) << " " << c.hold << " us");
+      CRTC crtc; CSig sig;
+      TypedScreen(crtc, sig, c.type, 38, 0, 7);
+      ASSERT_TRUE(ReachLine(crtc, 38, 7));
+      while (crtc.hcc_ != 29) Advance(crtc);
+      WriteRegister(crtc, 0, 0);
+      AdvanceMicroseconds(crtc, c.hold);
+      WriteRegister(crtc, 0, 63);
+      int us = 0;
+      bool prev = sig.v_sync_;
+      while (us < 100000)
+      {
+         Advance(crtc);
+         ++us;
+         if (sig.v_sync_ && !prev) break;
+         prev = sig.v_sync_;
+      }
+      EXPECT_EQ(c.units, us / 12);
+   }
 }

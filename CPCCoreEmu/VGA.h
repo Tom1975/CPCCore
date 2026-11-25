@@ -42,6 +42,9 @@ public:
    void Reset ();
    // R52 asks the Z80 for an interrupt
    void RequestRasterInterrupt();
+   unsigned char InterruptVisibleTState() const;
+   // Power on : the colour latches, which the RESET line does not touch, start from 0
+   void PowerOn ();
 
    DMA* GetDMAChannel(int channel);
    void SetDMA(DMA* dma_list) {
@@ -92,6 +95,7 @@ public:
    // Sync is already devided into two usable signals
    bool hsync_;
    bool vsync_;
+   bool c_vsync_;   // SIG_GA_VSYNC : vertical sync sent to the monitor (C-VSYNC), from the end of the 2nd HSYNC to the end of the 6th (16.2.3)
    bool speed_;
 
 //protected:
@@ -134,6 +138,7 @@ public:
    bool vsync_rise_pending_;       // the CRTC VSYNC rose on this character : for the block drawn at its end
    bool cblack_vsync_;
    unsigned char v26_;
+   int vsync_black_end_in_;        // pixels before CBLACK_VSYNC ends, after the 26th HSYNC (-1 : not ending)
 
    // 
    int scanline_type_;       // 1 : scanlines / 0 : copylines
@@ -173,7 +178,6 @@ public:
 
    unsigned char hsync_counter_;
    unsigned char vsync_counter_;
-   unsigned char activation_mode_;
    bool mode_window_;                // this microsecond is the 2nd to 6th of the HSYNC of the GATE ARRAY
 
    Monitor* monitor_;

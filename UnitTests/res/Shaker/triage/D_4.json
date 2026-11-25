@@ -1,0 +1,602 @@
+{
+ "02E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02EE": {
+  "verdict": "doute",
+  "why": "texte différent : photo VSYNC STRETCH TEST C, Sugarbox VSYNC STRETCHING (version de SHAKER différente ?) ; ligne pointillée sur la photo, pleine chez Sugarbox"
+ },
+ "02EF": {
+  "verdict": "doute",
+  "why": "texte différent : photo VSYNC STRETCH TEST C, Sugarbox VSYNC STRETCHING (version de SHAKER différente ?) ; ligne pointillée sur la photo, pleine chez Sugarbox"
+ },
+ "02F0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "02FD": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0300": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0301": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0302": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0303": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0304": {
+  "verdict": "ok",
+  "why": "même page ; valeur réglée à la barre d'espace par l'opérateur"
+ },
+ "0305": {
+  "verdict": "moniteur",
+  "why": "valeur réglée à la barre d'espace par l'opérateur, donc libre sur la photo ; photo en cours de décrochage (voulu par le test), Sugarbox stable"
+ },
+ "0306": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0307": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0308": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0309": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "030E": {
+  "verdict": "moniteur",
+  "why": "barres droites sur la photo, en biais chez Sugarbox ; même contenu"
+ },
+ "030F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0310": {
+  "verdict": "moniteur",
+  "why": "haut de page et décalage de la zone : effet moniteur plus marqué sur la photo ; contenu identique"
+ },
+ "0311": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0314": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0315": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0316": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0317": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0318": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0319": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031A": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031B": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031C": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031D": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031E": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "031F": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0320": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0321": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0322": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0323": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0324": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0325": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0326": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0327": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0328": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0329": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032A": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032B": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032C": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032D": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032E": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "032F": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0330": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0331": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0332": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0333": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0334": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0335": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0336": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0337": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0338": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "0339": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033A": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033B": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033C": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033D": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033E": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "033F": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
+ },
+ "037F": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 : rectangles noirs et texte entre eux comme sur la photo ; seule la déformation de la bande diffère (moniteur)"
+ },
+ "0380": {
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 : rectangles noirs et texte entre eux comme sur la photo ; seule la déformation de la bande diffère (moniteur)"
+ },
+ "0381": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0382": {
+  "verdict": "doute",
+  "why": "défilement horizontal : Sugarbox, Amspirit et Amspirit-lite identiques entre eux, la photo est à une autre position du défilement"
+ },
+ "0383": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0384": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0385": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0386": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0387": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0388": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "0389": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038A": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038B": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038C": {
+  "verdict": "moniteur",
+  "why": "bandes et motifs identiques ; petites encoches du bord et peigne du bord droit : effet moniteur"
+ },
+ "038D": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038E": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "038F": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0390": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0391": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "0392": {
+  "verdict": "moniteur",
+  "why": "contenu identique ; la photo ondule la zone privée de HSYNC, Sugarbox reste droit"
+ },
+ "03BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03BD": {
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : la recherche de R3h (#82B0) trouve #9D comme la photo (relue au zoom : #9D, pas #8D)"
+ },
+ "03BE": {
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E comme la photo : Status 2 bit 4 = 1 sur le dernier caractère des lignes additionnelles, compté par #835A"
+ },
+ "03BF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C0": {
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : FIESTA page 2 : tous les tests OK comme la photo (Status 1 bit 5, Status 2 bit 0 hors lignes additionnelles, Status 2 bit 4)"
+ },
+ "03C1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03C8": {
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : colonne jaune de 15 lignes à la VSYNC sur fond rouge, comme la photo"
+ },
+ "03C9": {
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : R3=#7E : un seul trait rouge sur fond jaune, comme la photo"
+ },
+ "03CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CB": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03CC": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03CD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03CF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D2": {
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : IVM : marques obliques comme la photo"
+ },
+ "03D3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D4": {
+  "verdict": "doute",
+  "why": "STATUS 1 BIT 7 : tirets présents mais moins nombreux chez Sugarbox et à d'autres places ; dépend peut-être de la phase"
+ },
+ "03D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03DC": {
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 0 avec R4=37/R5=8 : le seul point à 0 est sur #4BFF (fin de la dernière ligne normale), comme l'attend la FIESTA"
+ },
+ "03DD": {
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 4 avec R4=37/R5=8 : 0 partout sauf le dernier caractère de la trame, rouge comme la photo"
+ },
+ "03DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
+ },
+ "03DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
+ },
+ "03E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
+ },
+ "03E1": {
+  "verdict": "doute",
+  "why": "2026-11-17 : Status 2 bit 4 en IVM : Sugarbox alterne d'une trame à l'autre (ligne interlace une trame sur deux), carte en bandes ; la photo est tramée et plutôt jaune. Règle IVM non confirmée"
+ },
+ "03E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
+ },
+ "03E3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
+ }
+}

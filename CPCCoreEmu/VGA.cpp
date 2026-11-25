@@ -96,6 +96,7 @@ GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr),
    vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
+   vsync_black_end_in_ = -1;
    memory_ram_buffer_ = 0;
    scanline_type_ = 0;
 
@@ -170,12 +171,12 @@ void GateArray::Reset()
    screen_mode_ = 0; // TODO : Check this
    buffered_screen_mode_ = screen_mode_;
    sr_mode_ = sr_div_mode_ = screen_mode_;
-   activation_mode_ = 2;
 
    hsync_counter_ = 0;
    h_old_sync_ = false;
    hsync_ = false;
    vsync_ = false;
+   c_vsync_ = false;
 
    last_block_ = nullptr;
    monitor_pending_ = false;
@@ -190,6 +191,39 @@ void GateArray::Reset()
    vsync_rise_pending_ = false;
    cblack_vsync_ = false;
    v26_ = 0;
+   vsync_black_end_in_ = -1;
+}
+
+// T-state of this microsecond from which the Z80A sees INT after the end of the HSYNC, the GATE ARRAY handling it at the
+// start of the microsecond (TickSignals).
+// - INT : the HSYNC pin clocks the ripple counter R52 (40010-simplified, sheet VSync, U801, U815 to U835) ; its clear at
+//   52 (U807, U816, U831) or the bit 5 going down clocks U836, which pulls INT_n down. No clock samples this path :
+//   INT_n falls a few gate delays after the HSYNC pin.
+// - The pin falls on the pixel given by the CRTC (HSyncPinEdge) : in this microsecond for an end on the clock (0 to 3
+//   for the CRTC 0, 1, 2 ; ASIC : the register of 1 us, then 2 pixels), in the previous one for an end by an R3 write.
+// - The Z80A samples INT on the rising edge of its clock that starts the last T-state of an instruction (Zilog UM0080,
+//   27.7.2). The T-state t of the microsecond spans the pixels 4t-4 to 4t (an I/O on the T-state t acts on the pixel
+//   4t, see HSyncPinEdge) : it sees INT if it starts strictly after the pin edge.
+// On CRTC 0, 1, 2 (pixel 4, 5) the T-state 2 starts on the edge and misses INT, the T-state 3 sees it : the last T-state
+// of DEC DE misses it, the one of ADD HL,DE or CP (HL) sees it (27.7.2, SHAKER #02E3). On CRTC 3, 4 (pixel 2), DEC DE sees
+// it.
+unsigned char GateArray::InterruptVisibleTState() const
+{
+   int pixel = crtc_->HSyncPinEdge(false, 0);
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   for (unsigned int q = 1; q < 4; ++q)
+   {
+      // Pin high on the quarter q-1 and low on the quarter q of the previous microsecond : ended by an R3 write
+      if (((quarters >> (q - 1)) & 1) != 0 && ((quarters >> q) & 1) == 0)
+      {
+         pixel = static_cast<int>(crtc_->HSyncPinEdge(false, q)) - 16;
+         break;
+      }
+   }
+   // First T-state t whose start 4t-4 is strictly after the edge. The edge of an R3 write is handled at the start of
+   // the next microsecond : INT is not seen before its T-state 1.
+   const int t = (pixel >= 0) ? (pixel / 4 + 2) : ((pixel - 3) / 4 + 2);
+   return static_cast<unsigned char>(t < 1 ? 1 : t);
 }
 
 void GateArray::RequestRasterInterrupt()
@@ -202,9 +236,30 @@ void GateArray::RequestRasterInterrupt()
    {
       sig_handler_->interrupt_io_data_ = (plus_ ? 0x00 : 0xFF);
    }
-   sig_handler_->InterruptRaster();
+   // Taken on the character edge, edge_cycle_ cycles after the start of the microsecond (CRTC::Tick)
+   const int t = static_cast<int>(InterruptVisibleTState()) - crtc_->edge_cycle_;
+   sig_handler_->InterruptRaster(static_cast<unsigned char>(t < 1 ? 1 : t));
    sig_handler_->int_is_gate_array_ = true;
    interrupt_raised_ = true;
+}
+
+void GateArray::PowerOn()
+{
+   pen_r_ = 0;
+   buffered_ink_available_ = false;
+   buffered_ink_reg_ = 0;
+   buffered_pen_ = 0;
+   border_reg_ = 0;
+   memset(ink_regs_, 0, sizeof(ink_regs_));
+   for (int i = 0; i < 16; i++) ink_list_[i] = ListeColorsIndex[0];
+   for (int i = 0; i < NB_BYTE_BORDER; i++) video_border_[i] = ListeColorsIndex[0];
+   // The shift register and the HSYNC timing start empty
+   sr_ = 0;
+   sr_div_ = 0;
+   sr_shown_ = false;
+   mode_window_ = false;
+   r52_reset_held_ = false;
+   Reset();
 }
 
 void GateArray::SetBus(Bus* address, Bus* data)
@@ -283,18 +338,28 @@ void GateArray::FinalizeBlock()
    const int kChsyncStart = 2 * 16 + 3;
    const int kChsyncMaxLength = 4 * 16;
    chsync_mask_ = 0;
-   // CBLACK_VSYNC : set by the rising edge of the CRTC VSYNC (on the start of the block), cleared on the
-   // end of the 26th HSYNC counted by V26, whatever the length of the CRTC VSYNC
-   if (vsync_rise_in_block_)
-   {
-      vsync_rise_in_block_ = false;
-      cblack_vsync_ = true;
-      v26_ = 0;
-   }
+   // CBLACK_VSYNC : set by the rising edge of the CRTC VSYNC (VSyncPinEdge in the block), cleared on the
+   // end of the 26th HSYNC counted by V26 (VSyncBlackEndDelay pixels later), whatever the length of the
+   // CRTC VSYNC
+   const int vsync_rise = vsync_rise_in_block_ ? (int)crtc_->VSyncPinEdge() : -1;
+   vsync_rise_in_block_ = false;
    unsigned char next = 0;
    for (int p = 0; p < 16; ++p)
    {
       bool fall = false;
+      if (vsync_black_end_in_ == 0)
+      {
+         cblack_vsync_ = false;
+         vsync_black_end_in_ = -1;
+      }
+      if (p == vsync_rise)
+      {
+         // HCNT (40010 sheet 8) : the rising edge (U810) clears U814-U829, not U809, its bit 0. A VSYNC
+         // restarted before the 26th HSYNC, after an odd number of them, counts from 1 (see TickSignals)
+         v26_ = (cblack_vsync_ && v26_ < 26) ? (v26_ & 1) : 0;
+         cblack_vsync_ = true;
+         vsync_black_end_in_ = -1;
+      }
       while (next < nb_black_edges_ && black_edges_[next].pixel == p)
       {
          cblack_hsync_ = black_edges_[next++].level;
@@ -305,11 +370,20 @@ void GateArray::FinalizeBlock()
             chsync_countdown_ = -1;
             fall = true;
             if (cblack_vsync_ && ++v26_ == 26)
-               cblack_vsync_ = false;
+            {
+               vsync_black_end_in_ = (int)crtc_->VSyncBlackEndDelay();
+               if (vsync_black_end_in_ == 0)
+               {
+                  cblack_vsync_ = false;
+                  vsync_black_end_in_ = -1;
+               }
+            }
          }
       }
       if ((cblack_hsync_ || cblack_vsync_) && last_block_ != nullptr)
          last_block_[p] = 0xFF000000;
+      if (vsync_black_end_in_ > 0)
+         --vsync_black_end_in_;
 
       if (chsync_countdown_ == 0 && cblack_hsync_)
       {
@@ -354,7 +428,9 @@ const unsigned char kShiftPeriod[4] = { 4, 2, 1, 4 };
 // out of the shift register. 'buffer' is nullptr out of the screen : the register runs all the same.
 // - Mode 2 is one pixel early (9.1) : its bytes are loaded one pixel earlier than in the other modes ;
 // - a mode changed during the HSYNC reaches the decoder on the pixel 5, the divider on the pixel 6 :
-//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ;
+//   the rest of the byte is decoded in the new mode, with the bits already shifted (9.3.4.3) ; the ASIC
+//   40226 has no divider : its shifts follow the position in the byte, its mode changes on the pixel 3
+//   (9.3.4.5) ;
 // - a written ink is taken on the pixel 8 of the output whatever the mode ; on the ASIC 40226, the
 //   pixel 7 in Mode 2 (9.2.2).
 void GateArray::ShiftRegisterBlock(int* buffer)
@@ -366,21 +442,43 @@ void GateArray::ShiftRegisterBlock(int* buffer)
    bool loaded = false;
    for (int p = 0; p < 16; ++p)
    {
-      if (p == 5) sr_mode_ = target;
-      if (p == 6) sr_div_mode_ = target;
       const int q = p & 7;
       if (q == 0) loaded = false;
-      if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+      if (asic_40226)
       {
-         sr_ = bytes[p >> 3];
-         sr_div_ = 0;
-         sr_shown_ = shown[p >> 3];
-         loaded = true;
+         // ASIC 40226 (9.3.4.5) : no divider of its own, the shift follows the position c in the byte of the
+         // modes 0, 1, 3 (c = 0 on its load) : the register shifts before each pixel whose c is a multiple of
+         // the period of the mode of the pixel that ends. One mode for the decoder and the shift, taken after
+         // the shift on the pixel 3 of the block (4th Mode 2 pixel, c = 2 ; 9.3.4.1)
+         const int c = (q + 7) & 7;
+         if (!loaded && ((q == 0 && sr_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (c % kShiftPeriod[sr_mode_] == 0)
+         {
+            sr_ <<= 1;
+         }
+         if (p == 3) sr_mode_ = sr_div_mode_ = target;
       }
-      else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+      else
       {
-         sr_ <<= 1;
-         sr_div_ = 0;
+         if (p == 5) sr_mode_ = target;
+         if (p == 6) sr_div_mode_ = target;
+         if (!loaded && ((q == 0 && sr_div_mode_ == 2) || q == 1))
+         {
+            sr_ = bytes[p >> 3];
+            sr_div_ = 0;
+            sr_shown_ = shown[p >> 3];
+            loaded = true;
+         }
+         else if (++sr_div_ >= kShiftPeriod[sr_div_mode_])
+         {
+            sr_ <<= 1;
+            sr_div_ = 0;
+         }
       }
       if (buffered_ink_available_ && p >= ((asic_40226 && sr_mode_ == 2) ? 7 : 8))
          monitor_->RecomputeColors();
@@ -415,6 +513,9 @@ void GateArray::TickSignals()
       // of the HSYNC, it wins over the increment of its end (27.2)
       if (!r52_reset_held_)
          interrupt_counter_ = (interrupt_counter_ + 1) & 0x3F;
+      // Interrupt acknowledge in progress (IRQACK_RST, see CSig::irq_ack_hold_) : bit 5 stays at 0 (27.7.1)
+      if (sig_handler_->irq_ack_hold_ != 0)
+         interrupt_counter_ &= 0x1F;
 
       // Plus ?
       if (plus_ && memory_->GetPRI() != 0)
@@ -455,7 +556,12 @@ void GateArray::TickSignals()
       }
 
       if (vsync_)
+      {
          vsync_counter_++;
+         // SIG_GA_VSYNC (compendium 16.2.3) : the same HSYNC counter (HCNT) decoded on 2 sets it, on 6 clears it
+         if (vsync_counter_ == 2) c_vsync_ = true;
+         if (vsync_counter_ == 6) c_vsync_ = false;
+      }
 
       if (vsync_ && (vsync_counter_ == 26))
       {
@@ -527,13 +633,21 @@ void GateArray::TickSignals()
    // The mode is taken during the HSYNC of the GATE ARRAY (at most 6 us), from its 2nd microsecond : an
    // HSYNC of 1 us does not change it (9.3.1). A write during such a microsecond is taken at its end.
    // (An older note said that taking it after the 1st microsecond broke "Imperial Mahjong".)
-   if (mode_window_ && activation_mode_ != 0)
+   // The mode latch is enabled from H06 = 2, at the end of the 2nd character of the HSYNC (like SIG_GA_HSYNC,
+   // 16.2.2) : a fall of the pin inside that character (R3.JIT on the 2nd microsecond) resets H06 before, the
+   // mode is not taken (9.3.4.1 : 1.25 us is not enough, 2.25 us is)
+   const unsigned char quarters = crtc_->hsync_quarters_previous_;
+   if (hsync_counter_ == 2 && (quarters & 0x1) != 0 && (quarters & 0x8) == 0)
    {
-      activation_mode_--;
-      if (activation_mode_ == 0)
-      {
-         buffered_screen_mode_ = screen_mode_;
-      }
+      mode_window_ = false;
+   }
+   // Mode latch (40010-simplified, sheet VideoControl, U1003, U1004), open while SIG_GA_HSYNC is high. The sheet
+   // draws an edge triggered flip-flop on the end of SIG_GA_HSYNC : it gives the same windows (9.3.1 to 9.3.3)
+   // and the same pixels with a R3.NJIT, but moves the change 4 pixels later with a R3.JIT, when the schematics
+   // say it does not move (9.3.4.4). A latch that lets the mode through agrees with both : to measure.
+   if (mode_window_)
+   {
+      buffered_screen_mode_ = screen_mode_;
    }
    if (hsync_)
    {
@@ -554,10 +668,16 @@ void GateArray::TickSignals()
 
    if (v_old_sync_ == false && sig_handler_->v_sync_ == true)
    {
-      // Wait for two HSync
-      wait_for_hsync_ = 2;
+      // HCNT (40010 sheet 8, U809 U814 U820 U825 U829) : ripple counter of the HSYNC falling edges, held
+      // by U805 once it reaches 26 HSYNC (HCNTLT28). The VSYNC rising edge (U803/U810, sampled by CCLK)
+      // clears U814 to U829 but not U809, its bit 0 : a VSYNC restarted before the 26th HSYNC, after an
+      // odd number of them, keeps the bit 0 at 1. HCNT then reaches 2 (U806, INTCNTCLR_4 : R52 back to 0)
+      // after 1 HSYNC instead of 2, and 26 (end of the VSYNC of the GATE ARRAY) after 25.
+      // Measured on a real CPC (RealCpc T2, 2026-11-18) : 17 HSYNC 334 or 346, 18 HSYNC 340.
+      const unsigned char hcnt_bit0 = (vsync_ && vsync_counter_ < 26) ? (vsync_counter_ & 1) : 0;
+      wait_for_hsync_ = 2 - hcnt_bit0;
       vsync_ = true;
-      vsync_counter_ = 0;
+      vsync_counter_ = hcnt_bit0;
       vsync_rise_pending_ = true;
 
    }
@@ -565,6 +685,12 @@ void GateArray::TickSignals()
    v_old_sync_ = sig_handler_->v_sync_;
    h_old_sync_ = sig_handler_->h_sync_;
 
+   if (plus_)
+   {
+      // DMA sequencer : the fetches and executions scheduled at a previous HSYNC rise
+      for (int c = 0; c < 3; ++c)
+         dma_list_[c].Clock();
+   }
    if (sig_handler_->hsync_raise_)
    {
       // DMA ?
@@ -645,7 +771,9 @@ unsigned int GateArray::TickVideo()
          {
             // The GATE ARRAY takes DISPEN for each of the 2 bytes of the character (17.6, 18.3.2)
             half_border_ = (dispen_buffered_ != dispen_buffered_h_);
-            switch (buffered_screen_mode_)
+            // Mode 3 is decoded as mode 0 with the 2 upper bits of the pen forced to 0 (9.1 : 0 0 A1 A0)
+            const unsigned int pen_mask = (buffered_screen_mode_ == 3) ? 0x3 : 0xF;
+            switch ((plus_ && buffered_screen_mode_ == 3) ? 0 : buffered_screen_mode_)
             {
             case 0:
             {
@@ -676,7 +804,7 @@ unsigned int GateArray::TickVideo()
                   {
                      int col;
                      #define PUTPIXEL(i)\
-                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & 0xF];\
+                        col = ink_list_[(c1 >> (16 - (i * 4 + 4))) & pen_mask];\
                         buffer_to_display[i*4] = col;\
                         buffer_to_display[i*4+1] = col;\
                         buffer_to_display[i*4+2] = col;\
@@ -839,17 +967,6 @@ unsigned int GateArray::TickVideo()
                }
 
             }
-            case 3:
-            {
-               if (plus_)
-               {
-                  // Sprite
-                  if ((sprite_lines_[((crtc_->vcc_) << 3) + crtc_->vlc_] & sprite_column_[crtc_->hcc_ - 1]) != 0)
-                  DrawSprites(buffer_to_display);
-
-                  END_OF_DISPLAY
-               }
-            }
             }
          }
          else
@@ -890,39 +1007,31 @@ void GateArray::TickIO()
          break;
       case 0x40:  // INKR
       case 0x60:  // INKR
-         // TODO : Decaller le changement de couleur par 8 pixels (9 sur 40010 en mode 2)
-         if ((pen_r_ & 0x10) == 0x10)
+         // The border and the 16 inks are written by the same strobe (40010-simplified, sheet Registers, U401) and
+         // reach the colour register through the same path : same position on the screen (9.2)
+         if (monitor_->screen_->IsDisplayed())
          {
-            // Border
-            //monitor_->SetBorder ( ListeColorsIndex [data & 0x5F] );
+            // The new colour is displayed from the 2nd byte of the character of this microsecond
+            // (9.2.2) : the colours are changed when the block is drawn, the palette of the ASIC now.
+            // A colour still pending (written out of the screen, or twice in the microsecond) first
+            if (buffered_ink_available_) { monitor_->RecomputeColors(); }
+            const bool border = (pen_r_ & 0x10) == 0x10;
+            memory_->UpdateAsicPalette(border ? 17 : pen_r_, data - 0x40, false);
+            buffered_pen_     = border ? 0x10 : pen_r_;
+            buffered_ink_     = ListeColorsIndex[data & 0x5F];
+            buffered_ink_reg_ = data & 0x5F;
+            buffered_ink_available_ = true;
+         }
+         else if ((pen_r_ & 0x10) == 0x10)
+         {
             for (int i = 0; i < NB_BYTE_BORDER; i++)video_border_[i] = ListeColorsIndex[data & 0x5F];
             border_reg_ = data & 0x5F;
             memory_->UpdateAsicPalette(17, data - 0x40);
          }
          else
          {
-            if (monitor_->screen_->IsDisplayed())
-            {
-               // The new colour is displayed from the 2nd byte of the character of this microsecond
-               // (9.2.2) : the inks are changed when the block is drawn, the palette of the ASIC now.
-               // An ink still pending (written out of the screen, or twice in the microsecond) first
-               if (buffered_ink_available_) { monitor_->RecomputeColors(); }
-               memory_->UpdateAsicPalette(pen_r_, data - 0x40, false);
-               buffered_pen_     = pen_r_;
-               buffered_ink_     = ListeColorsIndex[data & 0x5F];
-               buffered_ink_reg_ = data & 0x5F;
-               buffered_ink_available_ = true;
-               /*if ( m_bSpeed)
-               {
-                  monitor_->RecomputeColors ();
-               }*/
-            }
-            else
-            {
-               ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
-               ink_regs_[pen_r_] = data & 0x5F;
-            }
-
+            ink_list_[pen_r_] = ListeColorsIndex[data & 0x5F];
+            ink_regs_[pen_r_] = data & 0x5F;
          }
 
          break;
@@ -936,7 +1045,6 @@ void GateArray::TickIO()
          else
          {
             screen_mode_ = data & 0x3;
-            activation_mode_ = 1;
 
             // l'indiquer � la m�moire
             memory_->SetInfROMConnected((data & 0x4) ? false : true);
@@ -948,6 +1056,7 @@ void GateArray::TickIO()
                interrupt_counter_ = 0;
                r52_reset_held_ = true;
                sig_handler_->req_int_ = false;
+               sig_handler_->int_delay_ = 0;
                sig_handler_->int_ = false;
                //m_Sig->AcqInt ();
 
@@ -968,10 +1077,11 @@ void GateArray::TickIO()
    }
    // PAL
 
-   // Selected by A15 = 0. A14 must be 1 on the CPC "old" (compendium 5.1 : with A14 = 0 the PAL is
-   // selected on a few CPC only), it can be 0 or 1 with the ASIC of the CPC+.
+   // Selected by A15 = 0 alone, A14 = 0 or 1. Measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test, PALA14,
+   // 2026-11-19) : &01C4 selects the bank on all of them, &3FC4 on the CRTC 0 and 2. The compendium (5.1, note *) finds
+   // A14 = 0 selecting the PAL "on some CPC only" : on &3Fxx / &3Exx the CRTC 1 drives the bus too (CSig::Out).
    const unsigned short pal_address = address_bus_->GetShortBus();
-   if (pal_present_ && (pal_address & 0x8000) == 0x0000 && (plus_ || (pal_address & 0x4000) == 0x4000))
+   if (pal_present_ && (pal_address & 0x8000) == 0x0000)
    {
       // todo
       switch (data & 0xE0)
@@ -1100,22 +1210,43 @@ void GateArray::DrawSprites(int * buffer_display)
    }
 }
 
+// DMA sequencer of the ASIC, started by the rise of the HSYNC. PROVISIONAL MODEL (no schematic : model of the
+// measures of plusdma on a real 6128 Plus, 2026-11-20, RealCpc README "1 bis", P12). A slot counter clocked
+// by the microsecond, cleared by the HSYNC rise. From its 3rd microsecond, the RAM goes to the channels that
+// asked for it at the HSYNC (channel enabled in DCSR, not in PAUSE), one microsecond each, channel 0 first
+// (priority encoder) : the 2 bytes of the instruction. The instructions are then executed in the same order,
+// one per microsecond, after the last fetch. Measured, section A (DCSR read after d us, synchro on the PRI) :
+// one channel alone, any of the three, sets its INT flag 3 us after the HSYNC rise ; the 3 channels set
+// theirs 5, 6 and 7 us after it (channel 0, 1, 2). PLUSDMA2 : the INT of channel 0 alone comes 3 us
+// after the PRI.
 void GateArray::HandleDMA()
 {
-   unsigned char dcsr = memory_->GetDCSR();
-   if ((dcsr & 0x1) == 0x1)
+   const unsigned char dcsr = memory_->GetDCSR();
+   bool fetch[3] = { false, false, false };
+   int requests = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[0].Hbl();
+      if ((dcsr & (1 << c)) == 0)
+      {
+         dma_list_[c].ClearPrescalarWrite();
+      }
+      else if (dma_list_[c].HsyncTick())
+      {
+         fetch[c] = true;
+         ++requests;
+      }
    }
-   if ((dcsr & 0x2) == 0x2)
+   int slot = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[1].Hbl();
-   }
-   if ((dcsr & 0x4) == 0x4)
-   {
-      dma_list_[2].Hbl();
+      if (fetch[c])
+      {
+         dma_list_[c].Schedule(2 + slot, 2 + requests + slot);
+         ++slot;
+      }
    }
 }
+
 DMA* GateArray::GetDMAChannel(int channel)
 {
    return &dma_list_[channel];

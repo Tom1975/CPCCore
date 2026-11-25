@@ -41,6 +41,12 @@ public:
    virtual void AddBufferToPlay(IWaveHDR*) = 0;
    virtual void SyncOnSound(bool set) = 0;
    virtual void SyncWithSound() {};
+
+   // Samples handed to the device and not played yet (-1 : unknown)
+   virtual int GetPendingSamples() { return -1; }
+   // The stream (re)starts only once this many samples wait to be played (0 : at once). Starting
+   // with some audio ahead absorbs the irregular arrival of the buffers without any underrun.
+   virtual void SetPrebuffer(unsigned int nb_samples) {}
 };
 
 

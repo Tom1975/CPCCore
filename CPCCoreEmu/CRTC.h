@@ -87,26 +87,41 @@ public:
    bool last_line_;             // C4==R4 && C9==R9, sampled at the end of characters 0 and 1
    bool adjust_;                // additional management armed
    bool adjust_confirmed_;      // additional management confirmed at the end of character 2 : C9 compared to R5
-   bool adjust_end_;            // next C9 == R5, sampled at the end of characters 0 to 2
+   bool adjust_end_;            // next C9 == R5 : follows the comparator on characters 0 to 2, set only later
+   bool r5_mode_reg_;           // adjust_ && C4 != R4, registered at the start of the character
+   bool adjust_end_pending_;    // CRTC 0 : end of an unconfirmed adjustment decided on the last line, taken on the next line end
    bool vsync_allowed_;         // C4==R7 may start a VSYNC : set at the end of character 2, cleared at C0 reset
    bool c3h_load_;              // VSYNC started during a line : C3h is cleared at the next C0 reset
    // CRTC 1 (see CRTC_1.cpp)
    bool vma_reload_;            // VMA is loaded from R12/R13 at the line start instead of VMA'
    bool vma_reload_clear_;      // C0==R1 && C9==R9 seen : the reload state is cleared at the line end
    bool rfd_;                   // R5 0 -> !0 written on C0==R0 (R.F.D.)
+   bool hsync_prev_;            // CRTC 1 : internal HSYNC at the end of the previous character (C3h clock edge)
+   bool hsync_restart_;         // CRTC 1 : HSYNC end strobe of this character without a fall of hsync_ (restart on C0 = R2 + R3l, 15.3.4 ; R3l = 0)
+   bool vsync_end_pending_;     // CRTC 1 : C3h reached R3h, the VSYNC ends on the next line start (unused since P8)
+   bool last_line_sampled_;     // CRTC 1 : last_line_ already sampled on C0==R0 of this line (13.7.1.2)
    bool status_border_r6_;      // status bit 5 : BORDER R6 state, updated at the line end
    // CRTC 2 (see CRTC_2.cpp)
    bool c9_eq_r9_at_start_;     // C9==R9 sampled at the line start, before the writes on C0=0
-   bool hsync_on_line_start_;   // a HSYNC started on C0=0
+   bool hsync_on_line_start_;   // HSYNC output active on C0=0
+   bool c0_from_reset_;         // CRTC 2 : C0 = 0 reached by the line reset (C0 == R0), not by the overflow of C0
+   // CRTC 2 : C0=0 met during a HSYNC, waiting for its end to lift the border ; C4 returned to 0 by a frame
+   // start, not by an overflow
+   bool line_start_pending_;
+   bool r1_load_at_start_;      // CRTC 2 : VMA' strobe of the start of the character done (C0 == R1 then)
+   unsigned char c3h_status_;   // CRTC 3/4 : C3h, the VSYNC line counter (1 on the first VSYNC line, runs up to 0), compared with R3h (16.3, 21.3.4.1)
+   bool frame_started_;
    bool last_line_eq_;          // previous C4==R4 && C9==R9, for the rising edge on a register write
    bool dlp_;                   // "Dernière Ligne Précédente"
    bool gdl_reenabled_;         // "Gestion Dernière Ligne" re-enabled on the last HSYNC character
    bool vsync_ghost_;           // GHOST VSYNC : counted, but the pin is not raised
+   unsigned char r8_parity_pending_;  // CRTC 1 : 4th microsecond of an OUT R8 that switched the IVM (1 : on, 2 : off)
+   bool frame_end_no_extra_;    // the previous line end ended the frame without additional interlace line
    // CRTC 3/4
    unsigned char frame_counter_; // frames counter : STATUS 2 bit 3 toggles every 16 frames (21.3.4.2)
    // Interlace (19.5 to 19.7) : even_field_ is ParitéFrame (true = even frame)
    bool parity_r6_;             // CRTC 0/2 ParitéR6 (true = odd) : loaded with !ParitéFrame when C4 reaches R6
-   bool r6_eq_prev_;            // previous C4==R6, for the rising edge loading ParitéR6
+   bool r6_eq_prev_;            // previous C4==R6 : CRTC 0/2 rising edge loading ParitéR6, CRTC 1 rising edge of BORDER R6
    bool vsync_mid_pending_;     // MID-VSYNC : the VSYNC starts when C0 reaches R0/2
    bool interlace_line_;        // CRTC 3/4 : additional interlace line in progress (C9 forced to 0)
    bool parity_c9_;             // CRTC 1/3/4 ParitéC9 (true = odd) : bit 0 of C9 in Interlace Video Mode
@@ -118,10 +133,22 @@ public:
    bool io_pending_;
    unsigned short io_pending_address_;
    unsigned char io_pending_data_;
+   // Character clock edge in the microsecond, in Z80 clock cycles after the start of the microsecond of the
+   // GATE ARRAY (see CharacterEdgeCycle) : edge_pending_ is the edge still to come in this microsecond (0 : none ;
+   // bit 7 : abandoned by a power on), edge_cycle_ the cycle of the last edge
+   unsigned char edge_pending_;
+   unsigned char edge_cycle_;
+   unsigned int CharacterEdgeCycle() const { return (type_crtc_ == UM6845R) ? 2 : 0; }
+   // Power on : the microsecond in progress has no character edge, the CRTC starts again with the next one
+   void AbandonCharacterEdge() { if (edge_pending_ != 0) edge_pending_ |= 0x80; }
    // HSYNC pin level on each quarter of microsecond (bit q = T-state q) of the current / previous
    // character : an I/O can move an edge inside the character (R2.JIT, R3.JIT - 14.5.4, 14.7.1)
    unsigned char hsync_quarters_;
    unsigned char hsync_quarters_previous_;
+   // CRTC 0 : the HSYNC ended on this character with C0==R2 (the end comparator won) and C3l then
+   // (15.3.3 : R3l rewritten on this character restarts it without resetting C3l)
+   bool hsync_ended_on_r2_;
+   unsigned char hsync_end_c3l_;
    // Internal HSYNC (C0==R2 / C3l==R3l logic) and its events on the current character ; the pin
    // follows it directly on CRTC 0, 1, 2, through a one character delay on CRTC 3, 4 (14.7.2)
    bool hsync_;
@@ -137,7 +164,7 @@ public:
    bool mux_set_ ;
    bool mux_reset_ ;
 
-   bool lightpen_input_;
+   bool lightpen_input_;        // CRTC 1 : light pen register full (status bit 6), set by a LPSTB rising edge
    unsigned char dispen_history_;   // DISPEN of the previous characters, 2 bits (halves) per character, for the R8 SKEW
    bool dispen_half0_;          // DISPEN for the first half (byte) of the current character
    bool dispen_half1_;          // DISPEN for the second half (byte) of the current character
@@ -145,6 +172,7 @@ public:
    unsigned char vertical_sync_width_;
    unsigned char horizontal_sync_width_;   
    unsigned char vertical_adjust_counter_;
+   bool interlace_add_line_;    // CRTC 2 : the additional line in progress is the interlace line (after the R5 lines)
 
    unsigned short bu_;
 
@@ -171,15 +199,26 @@ public:
    void WriteBus(unsigned short address, unsigned char data, unsigned int t_state);
    bool HSyncPinFollowsComparators() const;
    unsigned int HSyncPinEdge(bool rise, unsigned int t_state) const;
+   unsigned int VSyncPinEdge() const;
+   unsigned int VSyncBlackEndDelay() const;
    void HSyncStartComparatorChanged(unsigned int t_state);
    void HSyncEndComparatorChanged(unsigned int t_state);
-   unsigned int LastTStateInWindow() const;
+   void SampleLastLine1();
+   bool ParityC9Test1();
+   unsigned int LastTStateInWindow(unsigned short address) const;
    void ClockBusInterface();
    void ClockHSyncPin();
    void ComputeSyncWidths();
    void ClockHSync(bool& started, bool& ended);
-   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | (dispen_half1_ ? 2 : 0) | (dispen_half0_ ? 1 : 0); }
+   // The SKEW delay line is clocked by the character clock (19.2.4) : it takes DISPEN at the end of the
+   // character and gives it back for a whole character
+   void ClockDispTmg() { dispen_history_ = (dispen_history_ << 2) | ((dispen_half1_ && !R1BorderNow()) ? 3 : 0); }
+   // CRTC 0, 1, 2 : the live C0 == R1 comparator gates DISPTMG during the character, with the R1 written in its bus
+   // window (17.3, 17.5.1). DISPTMG itself is reset at the end of that character (ClockTick0/1/2). CRTC 3, 4 compare
+   // at the start of the character (17.5.2)
+   bool R1BorderNow() const { return (type_crtc_ == HD6845S || type_crtc_ == UM6845R || type_crtc_ == MC6845) && hcc_ == registers_list_[1]; }
    void ClockDispEnHalvesCrtc02();
+   bool LastAdditionalLine2() const;
    void ClockDispEnHalves() { dispen_half0_ = dispen_half1_ = (ff1_ && ff3_); }
    // DISPEN for the first (half = 0) or the second (half = 1) half of the current character
    bool DispEn(int half = 0) const;

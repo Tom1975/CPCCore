@@ -39,6 +39,7 @@
 #include "MachineSettings.h"
 #include "EmulatorSettings.h"
 #include "KeyboardHandler.h"
+#include "FramePacer.h"
 
 #define CPCCOREEMU_API
 
@@ -145,7 +146,10 @@ public:
    void HandleSnapshots();
    void HandlePaste(bool before);
    void HandleSyncro(int run_time);
+   void RunOptimized(unsigned int nb_cycles);
    virtual int RunTimeSlice(bool dbg = false);
+   // Runs exactly nb_cycles 4 MHz ticks, without waiting for the real time
+   void RunCycles(unsigned int nb_cycles);
 
    typedef enum
    {
@@ -333,6 +337,9 @@ protected:
    unsigned long long time_computed_;
 
    std::chrono::time_point<std::chrono::steady_clock> time_elapsed_;
+
+   // G-Sync mode : the frames are paced on the emulated time
+   FramePacer frame_pacer_;
 
    ILog* log_;
    IFdcNotify* notifier_;

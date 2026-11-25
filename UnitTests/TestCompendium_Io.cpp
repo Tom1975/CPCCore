@@ -12,6 +12,8 @@
 
 #include "gtest/gtest.h"
 
+#include <set>
+
 using namespace compendium;
 
 namespace
@@ -80,9 +82,10 @@ TEST(Compendium_5, OneOutReachesEveryDecodedChip)
    EXPECT_EQ(0x0E, m.Engine().GetPPI()->port_a_);
 }
 
-// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected with A14 = 0 or 1 on the CPC+ (CRTC
-// 3, 4) ; on the CPC "old" A14 must be 1 (only a few CPC select it with A14 = 0). The GATE ARRAY
-// itself always needs A14 = 1.
+// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected by A15 = 0, A14 = 0 or 1. The compendium finds A14 = 0
+// working "on some CPC only" ; measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test PALA14, 2026-11-19) : &01C4
+// selects the bank on all of them, &3FC4 on the CRTC 0 and 2. On the CRTC 1, &3Fxx is also a read of the CRTC, which
+// spoils the byte (Compendium_5.Crtc1DrivesTheBusOnAnOutToItsReadPort). The GATE ARRAY itself always needs A14 = 1.
 TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
 {
    Machine m(CRTC::AMS40489, "6128PLUS");
@@ -92,13 +95,62 @@ TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
    EXPECT_EQ(1, m.Engine().GetMem()->GetRamBankConfig());
 }
 
-TEST(Compendium_5, PalNeedsA14OneOnTheCpcOld)
+TEST(Compendium_5, PalSelectedByA15AloneOnTheCpcOld)
 {
-   Machine m(CRTC::HD6845S);
-   std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0x3F00, 0xC1));
-   RunProgram(m, p);
-   EXPECT_EQ(0, m.Engine().GetMem()->GetRamBankConfig());
+   for (auto type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0x01C4, 0xC2));   // A15 = 0, A14 = 0, A9 = 0
+      RunProgram(m, p);
+      EXPECT_EQ(2, m.Engine().GetMem()->GetRamBankConfig());
+      if (type == CRTC::UM6845R) continue;     // &3Fxx : see below
+      Machine m2(type);
+      std::vector<unsigned char> p2 = { z80::kDi };
+      z80::Append(p2, z80::Out(0x3F00, 0xC1));
+      RunProgram(m2, p2);
+      EXPECT_EQ(1, m2.Engine().GetMem()->GetRamBankConfig());
+   }
+}
+
+// PALA14B (photo of a real CRTC 1) : R15 written, then OUT &3Fxx with the RAM configuration. The CRTC 1 reads R15 on the
+// bus at the same time : bits 0 to 5 = AND of both, bits 6, 7 from the Z80A (CSig::Out, PROVISIONAL). Real CPC : C0 for
+// R15 = &00 (no configuration written, C0 stays), C4 for &C4, &C7, &FF, &44, and Z = &C5 with R15 = &C6.
+TEST(Compendium_5, Crtc1DrivesTheBusOnAnOutToItsReadPort)
+{
+   struct Case { unsigned char z, r15, config; };
+   const Case cases[] = { { 0xC4, 0x00, 0 }, { 0xC4, 0xC4, 4 }, { 0xC4, 0xC7, 4 }, { 0xC5, 0xC6, 4 }, { 0xC4, 0xFF, 4 }, { 0xC4, 0x44, 4 } };
+   for (const Case& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "Z = " << (int)c.z << ", R15 = " << (int)c.r15);
+      Machine m(CRTC::UM6845R);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0xBC00, 15));
+      z80::Append(p, z80::Out(0xBD00, c.r15));
+      z80::Append(p, z80::Out(0x3F00, c.z));
+      RunProgram(m, p);
+      EXPECT_EQ(c.config, m.Engine().GetMem()->GetRamBankConfig());
+   }
+}
+
+// 5.1 : the CRTC has no RD / WR, its R/W line is A9 (select and write on A9 = 0, status and read on A9 = 1). It drives
+// the data bus only for A9 = 1 : an IN on &B5xx (CRTC write, PPI port B) reads port B as &F5xx does. acid (Kevin
+// Thacker), ppi.dsk, "ppi i/o decode (f5xx)" : port B decoded on x x x x 0 x 0 1, A14 not decoded.
+TEST(Compendium_5, CrtcDoesNotDriveTheBusOnAnInToItsWritePorts)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::In(0xF500, kResult));       // PPI port B alone
+      z80::Append(p, z80::In(0xB500, kResult + 1));   // PPI port B and CRTC write : the CRTC leaves the bus
+      z80::Append(p, z80::In(0xB400, kResult + 2));   // PPI port A and CRTC select
+      z80::Append(p, z80::In(0xF400, kResult + 3));   // PPI port A alone
+      RunProgram(m, p);
+      EXPECT_EQ(m.Ram()[kResult] & 0xFE, m.Ram()[kResult + 1] & 0xFE) << "CRTC " << (int)type;
+      EXPECT_EQ(m.Ram()[kResult + 3], m.Ram()[kResult + 2]) << "CRTC " << (int)type;
+   }
 }
 
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)
@@ -279,4 +331,226 @@ TEST(Compendium_29, PpiPortBOutputReadsBackOnTheCpcOld)
    z80::Append(p, z80::Out(0xF700, 0x82));
    RunProgram(m, p);
    EXPECT_EQ(0x5A, m.Ram()[kResult]);
+}
+
+/////////////////////////////////////////////////////////////
+// 4.4.2, 4.4.3 : microsecond of each I/O instruction where the access is taken
+
+namespace
+{
+// Writes : R12 is selected, 'setup' prepares the registers, 'io' writes R12. Returns the microsecond of
+// the instruction (1 = its first) on whose end the CRTC first clocks with the new R12.
+int WriteMicrosecond(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& setup,
+                     const std::vector<unsigned char>& io)
+{
+   Machine m(type, config);
+   std::vector<unsigned char> p = { z80::kDi, 0x01, 0x0C, 0xBC, 0xED, 0x49 };   // LD BC,&BC0C : OUT (C),C
+   z80::Append(p, setup);
+   // A NOP marks the start : InstructionStart follows PC, which an instruction with an operand only moves
+   // once the operand is read
+   const unsigned short at = (unsigned short)(kProgram + p.size());
+   p.push_back(z80::kNop);
+   z80::Append(p, io);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   if (m.InstructionStart(at, nullptr) < 0) return -1;
+   for (int c = 0; c < 4; ++c) m.Cycle();   // the NOP
+   const unsigned char before = m.Crtc().registers_list_[12];
+   for (int us = 1; us <= 8; ++us)
+   {
+      // Cycles 2, 3, 4 of the microsecond : sampled just before the clock edge (4th cycle)
+      for (int c = 0; c < 2; ++c) m.Cycle();
+      if (m.Crtc().registers_list_[12] != before) return us;
+      for (int c = 0; c < 2; ++c) m.Cycle();
+   }
+   return -1;
+}
+
+// Reads : 'io' reads PPI port B (bit 0 : CRTC VSYNC) to kResult, 'setup' prepares the registers. The
+// instruction starts k us before the VSYNC ; returns the last microsecond of the instruction (1 = its
+// first) on which a rising VSYNC is still seen.
+int ReadMicrosecond(const std::vector<unsigned char>& setup, const std::vector<unsigned char>& io)
+{
+   int last_seen = -1;
+   for (int start = 52; start < 64; ++start)
+   {
+      Machine m(CRTC::HD6845S);
+      if (!UntilPosition(m, kVSyncLine - 1, start)) return -2;
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, setup);
+      const unsigned short at = (unsigned short)(kProgram + p.size());
+      p.push_back(z80::kNop);   // marks the start (see WriteMicrosecond)
+      z80::Append(p, io);
+      z80::Append(p, z80::kJrSelf);
+      m.Ram()[kResult] = 0;
+      m.Run(p);
+      if (m.InstructionStart(at, nullptr) < 0) return -3;
+      for (int c = 0; c < 4; ++c) m.Cycle();   // the NOP
+      // Microsecond of the instruction on which the VSYNC is high first (first cycle of each microsecond)
+      int us = 1;
+      while (!m.Sig().v_sync_ && us < 20)
+      {
+         for (int c = 0; c < 4; ++c) m.Cycle();
+         ++us;
+      }
+      for (int i = 0; i < 4 * 20; ++i) m.Cycle();
+      if ((m.Ram()[kResult] & 1) && us > last_seen) last_seen = us;
+   }
+   return last_seen;
+}
+}
+
+// 4.4.3 : writes taken on the 3rd us of OUT (C),r8 / OUT (C),0 (4th on CRTC 3, 4 : the ASIC misses the
+// I/O and takes it on the next window), the 3rd of OUT (n),A, the 5th of OUTI / OUTD, on every CRTC.
+TEST(Compendium_4, WriteTakenOnTheMicrosecondOfEachInstruction)
+{
+   const std::vector<unsigned char> to_bd00 = { 0x01, 0x15, 0xBD };                                   // LD BC,&BD15
+   const struct { CRTC::TypeCRTC type; const char* config; int out_c; } types[] = {
+      { CRTC::HD6845S, "6128", 3 }, { CRTC::UM6845R, "6128", 3 }, { CRTC::MC6845, "6128", 3 },
+      { CRTC::AMS40489, "6128PLUS", 4 }, { CRTC::AMS40226, "6128PLUS", 4 } };
+   for (const auto& t : types)
+   {
+      SCOPED_TRACE(t.config);
+      SCOPED_TRACE((int)t.type);
+      EXPECT_EQ(t.out_c, WriteMicrosecond(t.type, t.config, to_bd00, { 0xED, 0x49 }));   // OUT (C),C
+      EXPECT_EQ(t.out_c, WriteMicrosecond(t.type, t.config, to_bd00, { 0xED, 0x71 }));   // OUT (C),0
+      EXPECT_EQ(3, WriteMicrosecond(t.type, t.config, { 0x3E, 0xBD }, { 0xD3, 0x00 })); // LD A,&BD : OUT (&00),A
+      // LD HL,&5000 : LD (HL),&15 : LD BC,&BE00 (OUTI / OUTD decrement B first)
+      const std::vector<unsigned char> hl = { 0x21, 0x00, 0x50, 0x36, 0x15, 0x01, 0x00, 0xBE };
+      EXPECT_EQ(5, WriteMicrosecond(t.type, t.config, hl, { 0xED, 0xA3 }));   // OUTI
+      EXPECT_EQ(5, WriteMicrosecond(t.type, t.config, hl, { 0xED, 0xAB }));   // OUTD
+   }
+}
+
+// 4.4.3 : reads taken on the 4th us of IN r8,(C), INI, IND and the 3rd of IN A,(n).
+TEST(Compendium_4, ReadTakenOnTheMicrosecondOfEachInstruction)
+{
+   const std::vector<unsigned char> store_a = { 0x32, (unsigned char)(kResult & 0xFF), (unsigned char)(kResult >> 8) };
+   std::vector<unsigned char> in_c = { 0xED, 0x78 };   // IN A,(C)
+   z80::Append(in_c, store_a);
+   std::vector<unsigned char> in_n = { 0xDB, 0x00 };   // IN A,(&00) : port &F500
+   z80::Append(in_n, store_a);
+   const std::vector<unsigned char> hl = { 0x21, (unsigned char)(kResult & 0xFF), (unsigned char)(kResult >> 8) };
+   std::vector<unsigned char> bc_hl = { 0x01, 0x00, 0xF5 };
+   z80::Append(bc_hl, hl);
+   EXPECT_EQ(4, ReadMicrosecond({ 0x01, 0x00, 0xF5 }, in_c));
+   EXPECT_EQ(3, ReadMicrosecond({ 0x3E, 0xF5 }, in_n));
+   EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xA2 }));   // INI
+   EXPECT_EQ(4, ReadMicrosecond(bc_hl, { 0xED, 0xAA }));   // IND
+}
+
+// 12.5 : CRTC 3, an I/O on the CRTC with the ROM select active (A13 = 0 : OUT (C),0 with B = %00000001)
+// is taken 1 us earlier, on the 3rd us of the OUT (C),r8 instead of the 4th ; not with B = %00100001
+// (printer and PPI selected as well, without effect). The ASIC of the CRTC 4 is not concerned.
+TEST(Compendium_12, Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier)
+{
+   const std::vector<unsigned char> rom_select = { 0x01, 0x00, 0x01 };   // LD BC,&0100
+   const std::vector<unsigned char> no_rom_select = { 0x01, 0x00, 0x21 };   // LD BC,&2100
+   const std::vector<unsigned char> out_c_0 = { 0xED, 0x71 };
+   EXPECT_EQ(3, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", rom_select, out_c_0));
+   EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", no_rom_select, out_c_0));
+   EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40226, "6128PLUS", rom_select, out_c_0));
+   EXPECT_EQ(3, WriteMicrosecond(CRTC::HD6845S, "6128", rom_select, out_c_0));
+}
+
+namespace
+{
+// PSG register 0 = value through the PPI port A, port A then an input and the PSG in read mode : an IN on &7400
+// selects the PPI port A (A11 = 0) and the GATE ARRAY (A15 = 0, A14 = 1), and reads the PSG register 0. Optionally
+// the border selected first. The value read is stored at kResult.
+void InOnThePpiAndTheGateArray(Machine& m, unsigned char value, bool border_first)
+{
+   std::vector<unsigned char> p = { z80::kDi };
+   if (border_first) z80::Append(p, z80::OutGateArray(0x10));
+   z80::Append(p, z80::Out(0xF700, 0x82));   // PPI port A output
+   z80::Append(p, z80::Out(0xF400, 0x00));   // PSG register 0
+   z80::Append(p, z80::Out(0xF600, 0xC0));
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF400, value));
+   z80::Append(p, z80::Out(0xF600, 0x80));   // PSG write
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF700, 0x92));   // PPI port A input
+   z80::Append(p, z80::Out(0xF600, 0x40));   // PSG read
+   z80::Append(p, z80::In(0x7400, kResult));
+   const unsigned short end = (unsigned short)(kProgram + p.size());
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   ASSERT_GE(m.CyclesUntil([&]() { return m.Cpu().pc_ == end; }, 4 * 400), 0);
+   for (int i = 0; i < 4 * 8; ++i) m.Cycle();   // the LD (nn),A ends
+}
+}
+
+// 4.4 against the GATE ARRAY 40010 : its registers are strobed without RD nor WR (40010-simplified, sheet Registers,
+// U401), so an IN that selects it writes it with the byte on the bus. Measured on a real CPC (RealCpc README, T1,
+// 2026-11-18) : IN A,(C) on &7400 reads #4C from the PSG through the PPI, and the border turns bright red. The
+// compendium (4.4) says a read is not taken by the GATE ARRAY.
+TEST(Compendium_4, InOnThePpiAndTheGateArrayWritesTheGateArray)
+{
+   {
+      // #10 : PENR, the border selected
+      Machine m(CRTC::UM6845R);
+      m.Ga().pen_r_ = 0;
+      InOnThePpiAndTheGateArray(m, 0x10, false);
+      EXPECT_EQ(0x10, m.Ram()[kResult]);
+      EXPECT_EQ(0x10, m.Ga().pen_r_);
+   }
+   {
+      // #4C : INKR, bright red on the border
+      Machine m(CRTC::UM6845R);
+      InOnThePpiAndTheGateArray(m, 0x4C, true);
+      EXPECT_EQ(0x4C, m.Ram()[kResult]);
+      EXPECT_TRUE(m.Ga().border_reg_ == 0x4C || (m.Ga().buffered_ink_available_ && m.Ga().buffered_ink_reg_ == 0x4C
+                                                  && m.Ga().buffered_pen_ == 0x10));
+   }
+}
+
+namespace
+{
+// R0 = 19 (lines of 20 us), then 'io' writes R0 = 63 after 'nops' NOP : returns C0 on the microsecond the CRTC takes
+// the write, or -1.
+int C0WhenR0IsWritten(CRTC::TypeCRTC type, const char* config, const std::vector<unsigned char>& io, int nops)
+{
+   Machine m(type, config);
+   if (!UntilPosition(m, 100, 0)) return -1;
+   std::vector<unsigned char> p = { z80::kDi };
+   z80::Append(p, { 0x01, 0x00, 0xBC, 0xED, 0x49 });   // LD BC,&BC00 : OUT (C),C : select R0
+   z80::Append(p, { 0x01, 0x13, 0xBD, 0xED, 0x49 });   // LD BC,&BD13 : OUT (C),C : R0 = 19
+   z80::Append(p, { 0x21, 0x00, 0x50, 0x36, 0x3F });   // LD HL,&5000 : LD (HL),&3F
+   p.insert(p.end(), nops, z80::kNop);
+   z80::Append(p, io);
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   if (m.CyclesUntil([&]() { return m.Crtc().registers_list_[0] == 0x13; }, 4 * 200) < 0) return -1;
+   if (m.CyclesUntil([&]() { return m.Crtc().registers_list_[0] == 0x3F; }, 4 * 200) < 0) return -1;
+   return m.C0OfTheMicrosecond();
+}
+}
+
+// 13.3 remark 3, 13.7.1.1 : R0 written by OUTI (I/O on its 5th us) on CRTC 1 is compared with C0 on the clock edge of
+// the microsecond of the write : on the microsecond where C0 restarts at 0 (C0 = old R0 before it), C0 goes on to old
+// R0 + 1 and the line ends on the new R0. The I/O of OUTI is on the T-state 0 of the microsecond, before the edge of
+// the CRTC 1 (CRTC::CharacterEdgeCycle) ; the one of OUT (C),r8 on the T-state 1, after it, as the edges of the other
+// CRTC. C0 of the microsecond of the write, for each position in the line of 20 us.
+TEST(Compendium_13, Crtc1ComparesC0WithR0WrittenByOuti)
+{
+   const std::vector<unsigned char> outi = { 0x01, 0x00, 0xBE, 0xED, 0xA3 };   // LD BC,&BE00 : OUTI
+   const std::vector<unsigned char> out_c = { 0x01, 0x3F, 0xBD, 0xED, 0x49 };  // LD BC,&BD3F : OUT (C),C
+   std::set<int> line, crtc1_outi;
+   for (int c0 = 0; c0 < 20; ++c0) line.insert(c0);
+   for (int c0 = 1; c0 < 21; ++c0) crtc1_outi.insert(c0);
+   const struct { CRTC::TypeCRTC type; const char* config; } types[] = {
+      { CRTC::HD6845S, "6128" }, { CRTC::UM6845R, "6128" }, { CRTC::MC6845, "6128" },
+      { CRTC::AMS40489, "6128PLUS" }, { CRTC::AMS40226, "6128PLUS" } };
+   for (const auto& t : types)
+   {
+      SCOPED_TRACE((int)t.type);
+      std::set<int> by_outi, by_out_c;
+      for (int nops = 0; nops < 20; ++nops)
+      {
+         by_outi.insert(C0WhenR0IsWritten(t.type, t.config, outi, nops));
+         by_out_c.insert(C0WhenR0IsWritten(t.type, t.config, out_c, nops));
+      }
+      EXPECT_EQ(t.type == CRTC::UM6845R ? crtc1_outi : line, by_outi);
+      EXPECT_EQ(line, by_out_c);
+   }
 }

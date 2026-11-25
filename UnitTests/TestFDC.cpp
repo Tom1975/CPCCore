@@ -299,3 +299,66 @@ TEST(FDC_Overrun, ADataByteMustBeReadWithinTwentySixMicroseconds)
    EXPECT_EQ(0x00, St1WhenServedAfter(13) & 0x10);   // 26 us : in time
    EXPECT_EQ(0x10, St1WhenServedAfter(14) & 0x10);   // 28 us : overrun
 }
+
+namespace
+{
+// FORMAT of the current track with 'sc' sectors of size 'n' : IDs C = &14, H = 0, R = &C1.., N = n ; returns the result
+std::vector<unsigned char> Format(FdcBench& bench, unsigned char n, unsigned char sc)
+{
+   bench.Command({ 0x4D, 0x00, n, sc, 0x2A, 0xE5 });
+   std::vector<unsigned char> ids;
+   for (unsigned char k = 0; k < sc; k++) ids.insert(ids.end(), { 0x14, 0x00, (unsigned char)(0xC1 + k), n });
+   size_t next = 0;
+   std::vector<unsigned char> results;
+   for (unsigned int g = 0; g < 3000000; g++)
+   {
+      const unsigned char st = bench.Status();
+      if ((st & 0xF0) == 0xB0 && next < ids.size()) bench.fdc_.Out(0xFB7F, ids[next++]);   // execution, CPU -> FDC
+      else if ((st & 0xF0) == 0xD0) results.push_back(bench.fdc_.In(0xFB7F));             // result
+      else if (!results.empty() && (st & 0x10) == 0) break;
+      bench.fdc_.Tick();
+   }
+   return results;
+}
+
+std::vector<unsigned char> ReadId(FdcBench& bench)
+{
+   bench.Command({ 0x4A, 0x00 });
+   std::vector<unsigned char> results;
+   for (unsigned int g = 0; g < 3000000; g++)
+   {
+      const unsigned char st = bench.Status();
+      if ((st & 0xF0) == 0xD0) results.push_back(bench.fdc_.In(0xFB7F));
+      else if (!results.empty() && (st & 0x10) == 0) break;
+      bench.fdc_.Tick();
+   }
+   return results;
+}
+}
+
+// FORMAT on a real CPC (disquettes de test FDCRES, 2026-11-19) : result C = the C of the IDs, H = 2^N, R = the number of
+// sectors, N = N ; the GAP 4B goes up to the index, a READ ID after it finds the first new sector with the new N (the old
+// sectors of a longer track are gone).
+TEST(FDC_Format, ResultAndReadIdFollowTheNewFormat)
+{
+   FdcBench bench;
+   bench.Command({ 0x0F, 0x00, 0x14 });   // Seek track 20
+   bench.Run(300000);
+   bench.Command({ 0x08 });
+   bench.ReadResults();
+   struct Case { unsigned char n, sc; };
+   for (const Case c : { Case{ 1, 4 }, Case{ 3, 2 }, Case{ 2, 9 } })
+   {
+      SCOPED_TRACE(testing::Message() << "N = " << (int)c.n << ", SC = " << (int)c.sc);
+      const std::vector<unsigned char> f = Format(bench, c.n, c.sc);
+      ASSERT_EQ(7u, f.size());
+      EXPECT_EQ(0x14, f[3]);
+      EXPECT_EQ(1 << c.n, f[4]);
+      EXPECT_EQ(c.sc, f[5]);
+      EXPECT_EQ(c.n, f[6]);
+      const std::vector<unsigned char> id = ReadId(bench);
+      ASSERT_EQ(7u, id.size());
+      EXPECT_EQ(0xC1, id[5]);
+      EXPECT_EQ(c.n, id[6]);
+   }
+}

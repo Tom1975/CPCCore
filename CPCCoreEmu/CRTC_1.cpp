@@ -16,7 +16,12 @@
 // - vma_reload_         VMA is loaded from R12/R13 at each line start instead of VMA' : set by a new
 //                       frame or a R.F.D., cleared at the line end after C0==R1 && C9==R9 (or C9==R9 alone
 //                       when R1>R0), unless C4==R4 at that line end (17.4.2, 11.2.4, 11.6).
+// - ff3_ / r6_eq_prev_  BORDER R6 flip-flop : reset by the rising edge of C4 == R6, set by the frame start, which
+//                       wins when both come together (18.2.3, 18.3.3). R6 = 0 also forces the border while it
+//                       stays 0 (DispEn).
 // - status_border_r6_   status bit 5, updated at the line end (21.3.3).
+// - last_line_sampled_  last_line_ already sampled on this line : R0 lengthened on the last line which is
+//                       then cancelled gives a R.F.D. (13.7.1.2).
 // Not yet handled : the frame parity used by the R.F.D. in the C9==R9 test on C0==R1 (11.6.1, 19.5.3).
 //
 ///////////////////////////////////////////////////////////////
@@ -34,6 +39,20 @@ void CRTC::ClockTick1 ()
 
    const bool interlace_video = ((registers_list_[8] & 0x3) == 0x3);
 
+   // VMA' is a register loaded on the clock edge that ends the character C0 == R1 of the last line of a
+   // character (C9 == R9), with the VMA of that character : R1 written during that character removes the load
+   // (R1.JIT, 17.4.2, chronogram p185). After a R.F.D. the test takes ParitéC9 in place of the bit 0 of C9
+   // until the frame end : with the wrong parity it fails, VMA' is not updated and VMA keeps being loaded
+   // from R12/R13 (11.6.1)
+   const bool r1_c9_test = rfd_parity_ ? ParityC9Test1() : C9EqualsR9();
+   // The same edge resets DISPTMG : the R1 written during the character is compared (17.3, 17.5.1)
+   const bool r1_end = (hcc_ == registers_list_[1]);
+   if ( r1_end && r1_c9_test )
+   {
+      bu_ = ma_;
+      vma_reload_clear_ = true;
+   }
+
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
    if (c0_reset)
@@ -46,24 +65,45 @@ void CRTC::ClockTick1 ()
       ma_++;
    }
 
+   // Vertical sync width counter C3h (16.3), R3h fixed to 16 on this CRTC, counts half lines : C3h (4 bits) behind a
+   // half line bit, 5 bits counted on each edge where the line starts (C0 = R0 -> 0) or where C0 reaches the half
+   // line comparator value (R0 + 1) / 2 (the middle of the R0 + 1 characters, 32 for R0 = 63). A VSYNC ends on the
+   // 32nd of these edges after the one that started it : started up to C0 = 31, on the start of the 16th line after
+   // its own ; started from C0 = 32, half a line later. With R0 = 0 (lines of 1 us) each edge is a line start : one half
+   // line each us. Measured on a real CRTC 1 (RealCpc README, P8 2026-11-18, P8 bis 2026-11-21) :
+   // - P8 bis (E) R7 = C4 written with its I/O on C0 = #00, #04 ... #3C (VSYNC up on C0 = 1, 5 ... 61) : 102 102 101
+   //   101 101 100 100 99, then the same row again from C0 = #20 : the end moves by half a line (steps of 10 us from
+   //   the write, all given) ; P8 (C) C0 = #10 and #3C : 101 and 99 (16.4.2, whole lines from C0 = 0, says 96) ;
+   // - SHAKER A1 #008F, #0090 (photos) : R7 = C4 with its I/O on C0 = #1E (VSYNC up on C0 = 31) ends on the line start ;
+   // - P8 (D), P8 bis (F) R0 = 0 for 10, 11 ... 17 us : 77 73 70 67 64 61 57 54 : no pairs, about 33 us less per us of
+   //   R0 = 0 (half a line and the us). Sugarbox gives the same values for one us more of R0 = 0 : the VSYNC lasts 32
+   //   us with R0 = 0, the real CRTC 1 33 (it goes on up to 33 us of R0 = 0). Not explained : a count enabled one
+   //   character after the VSYNC start gives the 33 us but loses the edge C0 = 32 of SHAKER #0090 (test
+   //   Compendium_16.DISABLED_Crtc1VsyncLastsThirtyThreeMicrosecondsWithR0Zero, RealCpc README P8 bis) ;
+   // - P8 (A) R0 = 0 for 40 us : ended (1849) ; (B) no HSYNC (R0 = 20, R2 = 40) : the VSYNC still ends.
+   // SHAKER LOST VSYNC ON R0=0 (#008D) and R52INC IN HSYNC (#01F4, R0 = 0 : the VSYNC comes back every frame) agree.
+   // PROVISIONAL : deduced from the measures. Replaces the C3h clocked by the line start one edge of two (91d637d,
+   // wrong : P8 bis (E), (F)) and by the end of HSYNC (101c896, wrong : P8 (B)).
+   const bool half_pulse = c0_reset || (hcc_ == ((registers_list_[0] + 1) >> 1));
+   if (half_pulse && ff4_)
+   {
+      scanline_vbl_ = (scanline_vbl_ + 1) & 0x1F;
+      if (scanline_vbl_ == ((vertical_sync_width_ << 1) & 0x1F))
+      {
+         scanline_vbl_ = 0;
+         ff4_reset = true;
+      }
+   }
+
    if (c0_reset)
    {
-      // Vertical sync width counter
-      if (ff4_)    // CE
-      {
-         // C3h is a 4-bit counter : R3h=0 (or a fixed 16) ends the VSYNC after 16 lines
-         scanline_vbl_ ++;
-         scanline_vbl_ &= 0x0F;
-
-         if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
-         {
-            scanline_vbl_ = 0;
-            ff4_reset = true;
-         }
-      }
+      last_line_sampled_ = false;
 
       // Comparators on the line that ends, with the registers written during the line
       const bool c9_eq_r9 = C9EqualsR9();
+      // The same C9 == R9 test with ParitéC9 in place of C9.0, once a R.F.D. is set (now or before in the frame, 11.6)
+      const bool c9_eq_r9_parity = (rfd_ || rfd_parity_)
+         ? ParityC9Test1() : c9_eq_r9;
       const bool c4_eq_r4 = (vcc_ == registers_list_[4]);
 
       // Additional interlace line on the even frames, counted as one more R5 line (11.2.3, 19.6.2)
@@ -72,9 +112,12 @@ void CRTC::ClockTick1 ()
       bool new_frame = false;
       if (adjust_)
       {
-         // C5 counts the additional lines ; R5=0 does not end them (11.3.2)
+         // C5 counts the additional lines ; R5=0 does not end them : C5 loops, and C4 is still compared with R4
+         // to return to 0 (11.3.2)
          vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
          new_frame = (adjust_lines != 0 && vertical_adjust_counter_ == adjust_lines);
+         if (adjust_lines == 0 && last_line_)
+            new_frame = true;
       }
       else if (last_line_)
       {
@@ -83,8 +126,14 @@ void CRTC::ClockTick1 ()
             adjust_ = true;
             vertical_adjust_counter_ = 0;
          }
-         else
+         else if (c4_eq_r4 && c9_eq_r9)
          {
+            // Without additional line, C4 returns to 0 only if the comparators still give the last line on this edge :
+            // R4 (or R9) moved away during the character C0 = R0 cancels the frame end. Measured on a real CRTC 1
+            // (RealCpc README, P1, 2026-11-18) : R5 = 0, R4 = 38 -> 39 written with its I/O on C0 = 60 to 63 (= R0)
+            // gives one more row, on C0 = 0 of the next line it does not. With R5 > 0 the additional management is
+            // decided on the start of C0 = R0 (SHAKER E R5 STORIES 2, R5 = 20, R4 = 50 on C0 = #3F : no effect,
+            // photographed on the same machine). PROVISIONAL : two decisions on two positions, from two measures.
             new_frame = true;
          }
       }
@@ -92,12 +141,15 @@ void CRTC::ClockTick1 ()
       if (!new_frame)
       {
          // C9 returns to 0 on R9 and increments C4, whatever R4 (C4 may overflow, 12.3).
-         // ParitéC9 toggles on each C4 when R9 is even ; in Interlace Video Mode C9 restarts from it
-         // and counts by 2 (19.5.3, 19.8.2)
+         // In Interlace Video Mode ParitéC9 toggles on each C4 when R9 is even, C9 restarts from it and counts
+         // by 2 ; out of it the count is C9 == R9 -> C9 = 0 and the C4 management only, ParitéC9 is not clocked
+         // (19.8.2). SHAKER D RFD ROUND 2 "OVERRIDE BY R4" (#0395, video 2026-11-18) : R9 = 6 on the row after the
+         // R.F.D. ; a toggle there would turn the frames where R12/R13 are taken on every row into frames where VMA'
+         // is frozen (PROVISIONAL, RealCpc README P9).
          if (c9_eq_r9)
          {
             vcc_ = (vcc_ + 1) & 0x7F;
-            if ((registers_list_[9] & 1) == 0)
+            if ((registers_list_[9] & 1) == 0 && interlace_video)
                parity_c9_ = !parity_c9_;
             vlc_ = interlace_video ? (parity_c9_ ? 1 : 0) : 0;
          }
@@ -107,14 +159,23 @@ void CRTC::ClockTick1 ()
          }
       }
 
-      // VMA reload state (17.4.2, 11.6)
+      // VMA reload state (17.4.2, 11.6) : a flip-flop set by the R.F.D. and by the frame start, reset on the line end
+      // by "the border reached on the last line of the character" : the latch of C0 == R1 met with C9 == R9 (or
+      // R1 > R0, C0 == R1 never met) AND the C9 == R9 test on this edge, with the parity once a R.F.D. is set. The
+      // reset wins : a R.F.D. by R5 on a line C9 = R9 is cancelled when the parity matches (11.6.1, case 2).
+      // A R.F.D. by R0 lengthened on the last line (13.7.1.2), from SHAKER D RFD ROUND 2 :
+      // - R9 moved away from C9 during the lengthening ("OVERRIDE BY R9", "R9+R4") : C9 != R9 on the edge, R12/R13
+      //   are taken ;
+      // - R4 only ("OVERRIDE BY R4", C9 == R9) : the test with the parity fails one frame of two, R12/R13 are taken
+      //   one frame of two (13.7.1.2) ; with the parity fixed even (IVM ON/OFF), on every frame.
+      // PROVISIONAL (RealCpc/README.md, P9)
       if (rfd_)
       {
          vma_reload_ = true;
          rfd_parity_ = true;
          rfd_ = false;
       }
-      if ((vma_reload_clear_ || (registers_list_[1] > registers_list_[0] && c9_eq_r9)) && !c4_eq_r4)
+      if (c9_eq_r9_parity && (vma_reload_clear_ || registers_list_[1] > registers_list_[0]) && !c4_eq_r4)
       {
          vma_reload_ = false;
       }
@@ -147,20 +208,10 @@ void CRTC::ClockTick1 ()
       }
    }
 
-   // Last line, sampled when C0 reaches R0
+   // Last line, sampled when C0 reaches R0 (see SampleLastLine1)
    if (hcc_ == registers_list_[0])
    {
-      last_line_ = (vcc_ == registers_list_[4]) && C9EqualsR9();
-   }
-
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17). After a R.F.D. the test
-   // takes ParitéC9 in place of the bit 0 of C9 until the frame end : with the wrong parity it fails, VMA'
-   // is not updated and VMA keeps being loaded from R12/R13 (11.6.1)
-   const bool r1_c9_test = rfd_parity_ ? (((vlc_ & 0x1E) | (parity_c9_ ? 1 : 0)) == registers_list_[9]) : C9EqualsR9();
-   if ( hcc_ == registers_list_[1] && r1_c9_test )
-   {
-      bu_ = ma_;
-      vma_reload_clear_ = true;
+      SampleLastLine1();
    }
 
    // VSYNC (16.3, 16.4.2) : R7 is ignored during a VSYNC ; a new one needs the C4==R7 equality to change
@@ -186,46 +237,50 @@ void CRTC::ClockTick1 ()
    }
 
 
-   if (vcc_ == registers_list_[6])
+   // BORDER R6 (18.2.3) : its flip-flop is reset by the rising edge of the C4 == R6 comparator and set by the frame
+   // start. When the edge comes on the frame start (R6 = 0 written up to C0 = R0 of the last line) the set wins :
+   // the display is allowed again, the border then only comes from R6 = 0 and a R6 != C4 cancels it (18.3.3)
+   const bool r6_eq = (vcc_ == registers_list_[6]);
+   if (r6_eq && !r6_eq_prev_)
    {
       ff3_reset = true;
    }
+   r6_eq_prev_ = r6_eq;
 
-   // Flip flop computations
+   // DISPTMG : set by the line start, reset by C0 == R1 at the end of the character (r1_end) ; the live comparator
+   // gates its output during that character (R1BorderNow). R1 = R0 borders the last character only (17.6.1)
    if (hcc_ == 0)
    {
        ff1_set = true;
    }
-
-   bool hsync_started, hsync_ended;
-   ClockHSync(hsync_started, hsync_ended);
-
-   if (hcc_ == registers_list_[1])
+   else if (r1_end)
    {
       ff1_reset = true;
    }
 
+   bool hsync_started, hsync_ended;
+   hsync_restart_ = false;
+   ClockHSync(hsync_started, hsync_ended);
+
+   hsync_prev_ = hsync_;
+
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }
 
-   if ( ff3_reset && !ff3_set)
-   {
-      ff3_ = false;
-   }
-   else if ( !ff3_reset && ff3_set)
+   if (ff3_set)
    {
       ff3_ = true;
+   }
+   else if (ff3_reset)
+   {
+      ff3_ = false;
    }
 
    if ( ff4_reset && !ff4_set)
@@ -236,6 +291,44 @@ void CRTC::ClockTick1 ()
    {
       ff4_ = true;
    }
+   if (ff4_set)
+   {
+      // A VSYNC start (also one that restarts on its end) starts C3h from 0
+      scanline_vbl_ = 0;
+   }
 
    ClockDispEnHalves();
+}
+
+// Last line flip-flop (CRTC 1) : it samples C4 == R4 && C9 == R9 on the rising edge of the C0 == R0 comparator
+// output. Counting, that edge is the one that starts the character C0 == R0 : a R4 / R9 written during that
+// character no longer changes the state (11.2.4). R0 written with the current C0 makes the output rise at the
+// write : the state is sampled then, and the line ends on the next edge as the last one (SHAKER CRTC RVMB #000F,
+// R0 63 -> 1 written on C0 = 1 of the line C4 = R4 = 0, C9 = R9).
+// PROVISIONAL MODEL : a flip-flop clocked by a comparator output and not by the character clock is unusual ; it
+// is the one that explains both the photos and 11.2.4. To be confirmed on a real CRTC 1 (UnitTests/RealCpc/README.md,
+// P1) : if a R4 written during the character C0 == R0 still cancels the frame end, the sampling is synchronous.
+// R0 lengthened on C0==R0 of the last line, the last line cancelled (R4, R9) during the lengthening : the
+// frame end states set on the first C0==R0 meet a line that is no longer the last one, a R.F.D. at the end of
+// the line (13.7.1.2)
+void CRTC::SampleLastLine1()
+{
+   const bool last_line = (vcc_ == registers_list_[4]) && C9EqualsR9();
+   if (last_line_sampled_ && last_line_ && !last_line)
+      rfd_ = true;
+   last_line_ = last_line;
+   last_line_sampled_ = true;
+}
+
+// CRTC 1, the C9 == R9 test that VMA' (at C0 == R1) and the reset of "VMA reloaded from R12/R13" (on the line end)
+// use once a R.F.D. is set (11.6) : the C9 == R9 comparator gated by the ParitéC9 flip-flop, whatever the bit 0 of
+// R9. SHAKER D RFD ROUND 2 (videos of a real CRTC 1, 2026-11-18, RealCpc README P9) : "OVERRIDE BY R4", R9 = 7 on
+// the R.F.D. edge and 6 on the next row : one frame R12/R13 on every row, the next one VMA' followed (the former
+// test, (C9 & %11110) | ParitéC9 == R9, passed on the R9 = 6 row of the first kind of frame and turned it into one
+// row of R12/R13) ; "IVM ON/OFF BEFORE RFD" (ParitéC9 = 0 from the R8 write on C9 = 0) : R12/R13 on every row ;
+// "IVM ON/OFF AFTER RFD" : the ParitéC9 of the test is held by the R.F.D. (CRTC.cpp, R8 write), the rows follow VMA'.
+// All 9 pages match the videos. PROVISIONAL.
+bool CRTC::ParityC9Test1()
+{
+   return C9EqualsR9() && parity_c9_;
 }

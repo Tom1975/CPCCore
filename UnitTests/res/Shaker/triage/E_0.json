@@ -1,0 +1,46 @@
+{
+ "03FA": {
+  "verdict": "ok",
+  "why": "autocontrôle : les 7 lignes donnent la valeur attendue (2026-11-16, bascule de fin d'ajustement du CRTC 0)"
+ },
+ "03FB": {
+  "verdict": "ok",
+  "why": "autocontrôle : les 12 lignes donnent la valeur attendue (2026-11-16, comparaison C4/R4 enregistrée au début du caractère)"
+ },
+ "03FC": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "03FD": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0403": {
+  "verdict": "ok",
+  "why": "autocontrôle : Y (Y expected)"
+ },
+ "0404": {
+  "verdict": "ok",
+  "why": "autocontrôle : Y (Y expected)"
+ },
+ "0405": {
+  "verdict": "ok",
+  "why": "autocontrôle : les 4 lignes donnent la valeur attendue (2026-11-16, le comparateur C9==R9 du dernier caractère arme encore l'incrément de C4)"
+ },
+ "0407": {
+  "verdict": "ok",
+  "why": "autocontrôle : les 11 lignes donnent la valeur attendue (2026-11-16, fin d'ajustement en cascade en fin de ligne, ligne 04)"
+ },
+ "0408": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "0409": {
+  "verdict": "ok",
+  "why": "autocontrôle de la page : toutes les valeurs égales aux valeurs attendues (exp) ; pas de photo sur le site"
+ },
+ "040A": {
+  "verdict": "doute",
+  "why": "la page demande de vérifier l'absence de scintillement : une seule capture ne le dit pas"
+ }
+}

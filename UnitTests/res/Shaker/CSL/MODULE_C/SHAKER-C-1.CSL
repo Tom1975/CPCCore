@@ -1,0 +1,193 @@
+;
+; Fichier de script CSL 
+; Execution du module SHAKE27C du DSK SHAKER27.DSK en CRTC 1
+; Le module genere des instructions au format SSM
+;
+csl_version 1.0
+crtc_select 1
+reset
+wait 3000000
+disk_insert 'shaker27.dsk'
+key_delay 70000 70000 400000
+key_output 'RUN"SHAKE27C"\(RET)'
+wait 10000000
+;
+; Test 1 est interactif. Pas traite par ce CSL
+;
+; R8 IVM ODD C9
+key_output '2'
+wait_ssm 0x022A
+wait_ssm 0x022B
+key_output ' '
+wait_ssm 0x022C
+wait_ssm 0x022D
+key_output ' '
+wait_ssm 0x022E
+wait_ssm 0x022F
+key_output ' '
+wait_ssm 0x0230
+wait_ssm 0x0231
+key_output ' '
+wait_ssm 0x0232
+wait_ssm 0x0233
+key_output ' '
+wait_ssm 0x0234
+wait_ssm 0x0235
+key_output ' '
+wait_ssm 0x0236
+wait_ssm 0x0237
+key_output ' '
+wait_ssm 0x0238
+wait_ssm 0x0239
+key_output ' '
+wait_ssm 0x023A
+wait_ssm 0x023B
+key_output ' '
+
+; Parity Switch Status
+key_output '3'
+wait_ssm 0x023C
+key_output ' ' ; menu
+
+; Ivm On/Off
+key_output '4'
+wait_ssm 0x023D
+key_output ' '
+wait_ssm 0x023E
+key_output ' '
+wait_ssm 0x023F
+key_output ' '
+wait_ssm 0x027F
+key_output ' '
+wait_ssm 0x0280
+key_output ' '
+wait_ssm 0x0281
+key_output ' '
+wait_ssm 0x0282
+key_output ' '
+wait_ssm 0x0283
+key_output ' '
+wait_ssm 0x0284
+key_output ' '
+wait_ssm 0x0285
+wait_ssm 0x0286
+key_output ' '
+wait_ssm 0x0287
+wait_ssm 0x0288
+key_output ' '
+wait_ssm 0x0289
+key_output ' '
+wait_ssm 0x028A
+key_output ' '
+wait_ssm 0x028B
+key_output ' '
+wait_ssm 0x028C
+key_output ' '
+wait_ssm 0x028D
+key_output ' '
+wait_ssm 0x028E
+key_output ' '
+wait_ssm 0x028F
+key_output ' '
+wait_ssm 0x0290
+key_output ' '
+wait_ssm 0x0291
+key_output ' '
+wait_ssm 0x0292
+key_output ' '
+wait_ssm 0x0293
+key_output ' '
+wait_ssm 0x0294
+key_output ' '
+wait_ssm 0x0295
+key_output ' '
+wait_ssm 0x0296
+wait_ssm 0x0297
+key_output ' '
+wait_ssm 0x0298
+wait_ssm 0x0299
+key_output ' '
+wait_ssm 0x029A
+key_output ' '
+wait_ssm 0x029B
+key_output ' '
+wait_ssm 0x029C
+key_output ' '
+wait_ssm 0x029D
+key_output ' '
+
+; test prevu pour CRTC 2 mais disp autre crc  Last Line cond
+key_output '7'
+wait_ssm 0x02BF
+key_output ' ' 
+
+; test crtc 2 vma' sur R1=0
+key_output 'T'
+wait_ssm 0x02CF
+key_output ' '
+wait_ssm 0x02D0
+key_output ' '
+wait_ssm 0x02D1
+key_output ' '
+wait_ssm 0x02D2
+key_output ' '
+
+; crtc 2 ghost vsync vs Last Line (others crtc welcome)
+key_output '\(RET)'
+wait_ssm 0x02CD
+key_output ' '
+wait_ssm 0x02CE
+key_output ' '
+
+; Add Line R5 on last line
+key_output 'E'
+wait_ssm 0x02C9
+key_output ' '
+wait_ssm 0x02CA
+key_output ' '
+
+; Add line R8
+key_output 'P'
+wait_ssm 0x02CB
+key_output ' '
+
+; r5 additional line in interlace mode
+key_output 'S'
+wait_ssm 0x02D3
+key_output ' '
+
+; CRTC 1 Interlace vsync nightmare (tests unique CRTC1)
+key_output 'O'
+wait_ssm 0x02D4	; crt 1 ; cvsct1_a
+key_output ' '
+wait_ssm 0x02D5	; crt 1 ; cvsct1_b
+key_output ' '
+wait_ssm 0x02D6	; cvstot
+key_output ' '
+wait_ssm 0x02D8 ; parity00
+wait_ssm 0x02D9
+key_output ' '
+wait_ssm 0x02DA ; cvms_a
+key_output ' '
+wait_ssm 0x02DB ; cvms_b
+key_output ' '
+wait_ssm 0x02DC ; cvms_b
+key_output ' '
+wait_ssm 0x02DD ; cvms_c
+key_output ' '
+wait_ssm 0x02DE ; cvms_c
+key_output ' '
+wait_ssm 0x03F1	; crt 1; parity01a
+key_output ' '
+wait_ssm 0x03F2	; crt 1; parity01b
+key_output ' '
+wait_ssm 0x03F3	; crt 1; parity01c
+key_output ' '
+wait_ssm 0x03F4	; crt 1; parity01d
+key_output ' '
+wait_ssm 0x03F5	; crt 1; parity01e
+key_output ' '
+wait_ssm 0x03F6	; crt 1; parity01f
+key_output ' '
+
+csl_load 'SHAKER-C-2'

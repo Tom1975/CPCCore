@@ -59,10 +59,9 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 
 KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
 {
-   fs::path exe_path((directories_ != nullptr) ? directories_->GetBaseDirectory() : ".");
-   exe_path /= "Keyboards";
-   exe_path /= KEYBOARD_SCANCODES_FILE;   
-   InitKeyboard (exe_path.string().c_str());
+   // The scan code file is loaded by LoadKeyboardMap, once the base directory is known (SetDirectories) :
+   // loaded here it was looked for in the current directory, and missing when run from elsewhere
+   InitKeyboard();
    memset ( keyboard_config_, 0, sizeof keyboard_config_);
 }
 
@@ -347,17 +346,13 @@ void KeyboardHandler::LoadKeyboardMap (const char * config)
 #endif
 }
 
-void KeyboardHandler::InitKeyboard (const char* path)
+void KeyboardHandler::InitKeyboard ()
 {
    memset ( keyboard_lines_, 0xff, sizeof (keyboard_lines_));
    memset ( keyboard_lines_cached_, 0xff, sizeof (keyboard_lines_cached_));
-
-#ifndef CPCCORE_NO_HOST_KEYBOARD
-   LoadScanCodeToMatrix(path, raw_to_cpc_map_, dead_key_, &keyboard_map_, raw_to_functions_);
-#else
-   (void)path;
-#endif
-
+   memset ( raw_to_cpc_map_, 0, sizeof (raw_to_cpc_map_));
+   memset ( dead_key_, 0, sizeof (dead_key_));
+   memset ( raw_to_functions_, 0, sizeof (raw_to_functions_));
 }
 
 void KeyboardHandler::CharPressed (char c)
@@ -368,6 +363,44 @@ void KeyboardHandler::CharPressed (char c)
 void KeyboardHandler::CharReleased(char c)
 {
    CharAction(c, false);
+}
+
+void KeyboardHandler::KeyAction(unsigned int line, unsigned int bit, bool pressed)
+{
+   if (line >= 10 || bit >= 8) return;
+   if (pressed) keyboard_lines_cached_[line] &= ~(1 << bit);
+   else keyboard_lines_cached_[line] |= (1 << bit);
+   if (register_replaced_ != nullptr) *register_replaced_ = true;
+}
+
+bool KeyboardHandler::FindCharKey(char c, unsigned int& line, unsigned int& bit, bool& shift) const
+{
+   // The key of the main keyboard first : the keypad (lines 0 and 1, and f4 on line 2 bit 4) types
+   // the digits without SHIFT, but a program reading the matrix waits for the main key (an AZERTY
+   // '4' is SHIFT + the key of line 7 bit 0, not f4). Pass 0 : main keyboard, 1 : with the alternate
+   // characters, 2 : keypad as a last resort.
+   auto keypad = [](unsigned int l, unsigned int b) { return l <= 1 || (l == 2 && b == 4); };
+   for (int pass = 0; pass < 3; pass++)
+   {
+      for (unsigned int l = 0; l < 10; l++)
+      {
+         for (unsigned int b = 0; b < 8; b++)
+         {
+            if (keypad(l, b) != (pass == 2)) continue;
+            const Key& k = keyboard_map_[l][b];
+            const bool plain = (k.c == c) || (pass >= 1 && k.c_alt == c);
+            const bool upper = (k.c_upper == c) || (pass >= 1 && k.c_upper_alt == c);
+            if (plain || upper)
+            {
+               line = l;
+               bit = b;
+               shift = !plain;
+               return true;
+            }
+         }
+      }
+   }
+   return false;
 }
 
 void KeyboardHandler::CharAction (char c, bool bPressed)

@@ -65,6 +65,9 @@ add_executable( unitTests
                      TestSnapshotMachineType.cpp
                      TestStateDeterminism.cpp
                      TestCRTC.cpp
+                     TestDemoSnapshots.cpp
+                     TestShaker.cpp
+                     TestMonitor.cpp
                      TestCompendium_Interrupts.cpp
                      TestCompendium_Io.cpp
                      TestCompendium_Z80.cpp
@@ -75,6 +78,8 @@ add_executable( unitTests
                      TestMachineStateSize.cpp
                      TestMachineStateExpansions.cpp
                      TestReset.cpp
+                     TestAsicPalette.cpp
+                     TestAsicDma.cpp
 
 )
 
@@ -106,8 +111,6 @@ endif()
 # Link test executable against gtest & gtest_main
 target_link_libraries(unitTests PUBLIC zlibstatic gtest gtest_main CPCCoreEmu sfml-graphics ${LIBZA} )
 
-set (WORKING_DIR_TEST "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
-MESSAGE ( STATUS "Unit test working dir = ${WORKING_DIR_TEST}")
 MESSAGE ( STATUS "Unit test Current binary dir = ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
 
 # Same directory as the single-binary test below: that is where the fixtures
@@ -133,8 +136,6 @@ gtest_discover_tests(  unitTests
                 PROPERTIES TIMEOUT 600
                           ENVIRONMENT "CPCCORE_TEST_PATHS=FIXTURES=${FIXTURE_DIR}|FIXTURES_EXTRA=${CMAKE_CURRENT_SOURCE_DIR}|WORK=${CMAKE_CURRENT_BINARY_DIR}/test-work"
 )
-
-add_test( NAME unitTests COMMAND unitTests WORKING_DIRECTORY ${WORKING_DIR_TEST})
 
 install(TARGETS unitTests 
             RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"

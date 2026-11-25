@@ -61,18 +61,21 @@ void CRTC::ClockTick34 ()
    // Counter actions, all evaluated when C0 restarts at 0 (Compendium 10.3.4, 11.2.6, 12.5)
    if (hcc_ == 0 )
    {
-      // Vertical sync width counter
-      if (ff4_)    // CE
+      // Vertical sync width counter C3h (16.3), 4 bits : loaded with 1 by the VSYNC start (flip flop below), it
+      // counts the lines. The C3h == R3h comparator, true during the last VSYNC line, resets the VSYNC on the line
+      // start that follows it ; R3h = 0 gives 16 lines (C3h wraps to 0). The counter is enabled by a value other
+      // than 0, or by the VSYNC as long as the comparator does not end it : it runs past the VSYNC up to 0, where it
+      // stops. The same comparator output is the status 1 bit 5 (21.3.4.1, CRTC::ReadRegister).
+      // PROVISIONAL (RealCpc/README.md, P6) : the run past the VSYNC comes from SHAKER D3 #03C8 (R3h = 8 : bit 5 at
+      // 1 on 15 lines), #03C9 (R3h = 7 : 0 on one line)
+      const bool c3h_eq_r3h = (c3h_status_ == (vertical_sync_width_ & 0x0F));
+      if (ff4_ && c3h_eq_r3h)
       {
-         // C3h is a 4-bit counter : R3h=0 (or a fixed 16) ends the VSYNC after 16 lines
-         scanline_vbl_ ++;
-         scanline_vbl_ &= 0x0F;
-
-         if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
-         {
-            scanline_vbl_ = 0;
-            ff4_reset = true;
-         }
+         ff4_reset = true;
+      }
+      if (c3h_status_ != 0 || (ff4_ && !c3h_eq_r3h))
+      {
+         c3h_status_ = (c3h_status_ + 1) & 0x0F;
       }
 
       // VMA is reloaded from VMA'
@@ -220,9 +223,16 @@ void CRTC::ClockTick34 ()
       }
       else
       {
+         // VMA' is loaded with VMA on the last line of the character : the output of the magnitude comparator
+         // C9 >= R9 that ends the character (10.3.4). In IVM with R9 odd the rows of even C9 end on C9 = R9 + 1,
+         // and the pointer moves on every row (19.8.4, SHAKER B_3/B_4 INTERLACE C4/C9 COUNTERS #00D2) ; a R9
+         // written lower than C9 ends the character the same way. With the ASIC vertical soft scroll the
+         // compared C9 is shifted (SSCR) and keeps its 3-bit equality.
          // VMA' is not updated during the additional lines (11.2.6)
          int vertical_shift = (gate_array_->memory_->GetSSCR()&0x7F) >> 4;
-         if ( !adjust_ && !interlace_line_ && ((vlc_ + vertical_shift) &0x7)== ((registers_list_[9] ) & 0x7))
+         const bool last_line = (vertical_shift == 0) ? (vlc_ >= registers_list_[9])
+                                                       : (((vlc_ + vertical_shift) & 0x7) == (registers_list_[9] & 0x7));
+         if ( !adjust_ && !interlace_line_ && last_line)
          {
             bu_ = ma_;
          }
@@ -296,20 +306,11 @@ void CRTC::ClockTick34 ()
    {
       ff4_ = false;
    }
-   else
+   else if (ff4_set)
    {
-      if (!ff4_reset && ff4_set)
-      {
-         ff4_ = true;
-         if ((scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
-      }
-      else if (ff4_reset && ff4_set)
-      {
-         // Nothing .
-         int dbg = 1;
-         if (ff4_ && (scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
-      }
-      
+      // A VSYNC start (also one that restarts on its end, 16.4.4) loads C3h with 1
+      ff4_ = true;
+      c3h_status_ = 1;
    }
 
 

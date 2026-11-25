@@ -35,8 +35,19 @@ public:
    void AcqInt() { interrupt_on_ = false; }
 
    virtual unsigned int Tick();
-   virtual void Hbl();
    virtual void M1 ();
+
+   // DMA sequencer of the ASIC (PROVISIONAL, see GateArray::HandleDMA) :
+   // - HsyncTick() : start of the HSYNC. A channel in PAUSE clocks its prescaler, the others ask for the RAM
+   //   to fetch their instruction (returns true) ;
+   // - Schedule() : the sequencer gives the channel its fetch and execute microseconds ;
+   // - Clock() : every microsecond, fetches then executes the instruction on its microseconds.
+   bool HsyncTick();
+   void ClearPrescalarWrite();
+   void Schedule(int fetch_in, int exec_in) { fetch_in_ = fetch_in; exec_in_ = exec_in; }
+   void Clock();
+   void Fetch();
+   void Execute();
 
 public:
 
@@ -65,4 +76,9 @@ public:
    bool interrupt_on_;
    unsigned char prescalar_;
    unsigned char prescalar_counter_;
+   // Microseconds before the fetch and the execution of the instruction (0 : nothing scheduled)
+   unsigned char fetch_in_;
+   unsigned char exec_in_;
+   // Write of the prescaler register, latched until the next HSYNC
+   bool prescalar_write_;
 };

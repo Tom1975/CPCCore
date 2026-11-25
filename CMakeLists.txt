@@ -43,7 +43,6 @@ set (CPCCORE			${PROJECT_SOURCE_DIR}/CPCCoreEmu 		CACHE STRING "Dossier CPC Core
 set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(zlib)
 add_subdirectory(CPCCoreEmu)
-add_subdirectory(AmstradCore)
 #add_subdirectory(ShakerGenerator)
 
 # Without this at the top level, "ctest" from the build root reports "No tests
@@ -56,7 +55,6 @@ if (GENERATE_UNITTESTS)
    add_subdirectory(googletest)
    set (USE_SFML TRUE)
    add_subdirectory(UnitTests)
-   add_subdirectory(AmstradCoreTests)
 
 endif()
 

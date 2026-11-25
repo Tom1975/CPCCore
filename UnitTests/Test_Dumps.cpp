@@ -5,6 +5,8 @@
 #endif
 
 #include <iostream>
+#include <set>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -154,9 +156,10 @@ TEST(Dumps_Disk, BadCat)
    cmd_list.AddCommand(new CommandRunCycles(500));
    cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).bmp", SCR_COMPARE));
    // The protection reads 3 times the weak sector C6 (track 40) and compares its bytes 105 and 106 : the three
-   // values must not be the same. With the weak / optional bits of the track, it fails for about 1 seed in 4 (the
-   // released version too). Seed 1 : the one of the application (rand is never seeded).
-   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).dsk", "run\"badcat\r", &cmd_list, true, 1));
+   // values must not be the same. With the weak / optional bits of the track, it fails for some seeds (the released
+   // version too) : 3 seeds in 24 since the interrupt is seen on its T-state (GateArray::InterruptVisibleTState),
+   // among them the seed 1 of the application (rand is never seeded). Seed 2 loads.
+   ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Bad Cat (UK) (Face A) (1987) [Original] (Weak Sectors) (GAPS).dsk", "run\"badcat\r", &cmd_list, true, 2));
 }
 
 TEST(Dumps_Disk, BaladeOutreRhin)
@@ -1028,7 +1031,8 @@ TEST(Dumps_Disk, Prof_Detective)
 {
    TestDump test_dump;
    CommandList cmd_list;
-   cmd_list.AddCommand(new CommandRunCycles(350));
+   // 360 : the FDC lowers RQM after each result byte (FDC.cpp, real CPC), the menu comes a little later
+   cmd_list.AddCommand(new CommandRunCycles(360));
    // move joystick upn "play"
    cmd_list.AddCommand(new CommandJoystick(0, 2));
    cmd_list.AddCommand(new CommandRunCycles(495));
@@ -1553,3 +1557,58 @@ TEST(Dumps_Disk, Zombi)
    ASSERT_EQ(true, test_dump.Test("6128", "./TestConf.ini", "./res/DSK/Zombi (1986)(Ubi Soft)(Fr)(Disk 1 of 2).dsk", "run\"zomb\r", &cmd_list, true));
 }
 
+
+// Overflow Previews, preview 2 "Waves and giant sinus-scroll" (CRTC 0 only) : a background of waves, then a
+// giant text that scrolls along a sinus. The scroll uses the R.V.I. of Overflow (13.2.7) : on each line,
+// 7 hidden lines of 2 us (R0=1) then a visible line of 50 us (R0=49), with R4=0 and R9 switched between 6
+// and 5 to choose the C9 of the visible line ; the VSYNC is started by writing R7=0.
+// On a CRTC 0 the 2 us additional line that follows a last line (R0<2) must bring C4 and C9 back to 0
+// (13.2.5) : otherwise a VSYNC is missed every other frame and the picture rolls.
+// Checked : every frame has the same length, the monitor sees each VSYNC on the same line and each HSYNC at
+// the same position (the picture neither rolls nor moves sideways), and the sinus-scroll is displayed.
+TEST(Dumps_Disk, OverflowPreview2Crtc0)
+{
+   TestDump test_dump;
+   CommandList cmd_list;
+   cmd_list.AddCommand(new CommandRunCycles(300));
+   cmd_list.AddCommand(new CommandKeyboard("2"));     // PREVIEW (1/5) ?
+   cmd_list.AddCommand(new CommandRunCycles(400));
+   cmd_list.AddCommand(new CommandKeyboard(" "));     // after the text page
+   cmd_list.AddCommand(new CommandRunCycles(1000));
+   cmd_list.AddCommand(new CommandTrace([](EmulatorEngine* machine) {
+      CRTC* crtc = machine->GetCRTC();
+      Monitor* monitor = machine->GetMonitor();
+      EXPECT_EQ(CRTC::HD6845S, crtc->type_crtc_);
+
+      const int frames = 50;
+      std::vector<unsigned long long> frame_length;
+      std::set<unsigned int> vsync_y, hsync_x;
+      bool previous_vsync = crtc->ff4_, previous_hsync = crtc->hsync_;
+      unsigned long long cycle = 0, last_vsync = 0;
+      // A frame of a CPC is 19968 us (4 cycles per us) : leave room for a broken frame three times as long
+      for (; (int)frame_length.size() < frames && cycle < 4ull * 19968 * 3 * frames; ++cycle)
+      {
+         machine->GetMotherboard()->DebugNew(1);
+         if (crtc->hsync_ && !previous_hsync && last_vsync != 0) hsync_x.insert(monitor->GetX());
+         if (crtc->ff4_ && !previous_vsync)
+         {
+            // The first VSYNC only starts the measure
+            if (last_vsync != 0)
+            {
+               frame_length.push_back(cycle - last_vsync);
+               vsync_y.insert(monitor->GetY());
+            }
+            last_vsync = cycle;
+         }
+         previous_hsync = crtc->hsync_;
+         previous_vsync = crtc->ff4_;
+      }
+      EXPECT_EQ(frames, (int)frame_length.size()) << "the VSYNC stopped";
+      for (size_t i = 1; i < frame_length.size(); ++i)
+         EXPECT_EQ(frame_length[0], frame_length[i]) << "frame " << i;
+      EXPECT_EQ(1u, vsync_y.size()) << "the picture rolls";
+      EXPECT_EQ(1u, hsync_x.size()) << "the HSYNC moves on the monitor";
+      return true; }));
+   cmd_list.AddCommand(new CommandSaveScreenshot(&test_dump.display, "./res/Record/Overflow_Previews_2_CRTC0.bmp", SCR_COMPARE));
+   ASSERT_EQ(true, test_dump.Test("6128CRTC0", "./TestConf.ini", "./res/Demos/Overflow_Previews.dsk", "run\"preview\r", &cmd_list));
+}

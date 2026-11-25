@@ -156,6 +156,8 @@ public:
 
    bool IsDiskModified() { return (disk_ != nullptr) ? disk_->IsDiskModified() : false; };
    int GetSizeOfTrack(int side, int track) { return disk_->GetSizeOfTrack(side, track); }
+   // Size of the track under the head, in MFM bit cells (16 per byte)
+   int GetSizeOfCurrentTrack() { return (disk_ != nullptr) ? disk_->GetSizeOfTrack(current_side_, current_track_) : 0; }
 
    void InsertBlankDisk(IDisk::DiskType);
 

@@ -87,7 +87,9 @@ protected:
    int m_Width;
    int m_Height;
 
-   sf::RenderTexture *renderTexture_;
+   // Last finished frame, in memory : without a window, no OpenGL context nor X11 connection is opened.
+   sf::Image frame_;
+   // Only with a window
    sf::Texture* framebuffer_;
    sf::RenderWindow *window_;
 

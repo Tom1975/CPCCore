@@ -1,0 +1,886 @@
+{
+ "00FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0100": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0101": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0102": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0103": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0104": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0105": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0106": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0107": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0108": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0109": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "010A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010B": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "010C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "010F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0110": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0111": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0112": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0113": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0114": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0115": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0116": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0117": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0118": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0119": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011A": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011C": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "011E": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "011F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0120": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0121": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0122": {
+  "verdict": "ok",
+  "why": "AUTOSYNC R4=#26 R5=#00 comme la photo depuis le correctif du comparateur C9 x 2 (19.8.1)"
+ },
+ "0123": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0124": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0125": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "03EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "013B": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "013C": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "013D": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "013E": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "013F": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "017F": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : résultat du test C9=1, AUTOSYNC #2B/#00 comme la photo"
+ },
+ "0180": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, écran du test C9=2. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0181": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, résultat C9=2. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0182": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0183": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0184": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, écran du test C9=4. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0185": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, résultat C9=4. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0186": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, écran du test C9=5. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0187": {
+  "verdict": "ko",
+  "why": "base 5, parité paire, résultat C9=5. SHAKE27B #7607 : R9=5 en C0=#14 puis R8=3 en C0=#22 sur la ligne C4=6, C9=x (x=0..7), sortie R8=0 puis R9=7 à instant fixe. Résultat (AUTOSYNC affiché à la page suivante) photo / Sugarbox, x=0..7 : 2B00 2B00 2602 2602 2A02 2602 2602 2602 / 2B00 2B00 2B00 2602 2602 2A02 2602 2602. La photo est notre séquence retardée d'une ligne : la 1re ligne après l'écriture compare C9 à R9 (5), le régime doublé suit ; la ligne d'entrée ne finit pas le caractère même avec C9=R9=5, contre le §19.8.1. La parité impaire et les séries R9=6 sont justes avec le même modèle. Photos SHAKER 2.2 : non forcé, mesure dans RealCpc/README.md (partie 3)"
+ },
+ "0188": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0189": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "018A": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "018B": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "018C": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "018D": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "018E": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "03EF": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "03F0": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0126": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0127": {
+  "verdict": "doute",
+  "why": "base 5 : la page affiche l'AUTOSYNC du test passé juste avant, qui dépend de l'ordre de passage (photo SHAKER 2.2 : #29/#04 ou #2B/#05 ; Sugarbox : #xx ou #2B/#01) ; le reste de la page est identique"
+ },
+ "0128": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0129": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012A": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012B": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012C": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012D": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012E": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "012F": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0130": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0131": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0132": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0133": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0134": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0135": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0136": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0137": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0138": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "0139": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "013A": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "03ED": {
+  "verdict": "doute",
+  "why": "base 5 : la page affiche l'AUTOSYNC du test passé juste avant, qui dépend de l'ordre de passage (photo SHAKER 2.2 : #29/#04 ou #2B/#05 ; Sugarbox : #xx ou #2B/#01) ; le reste de la page est identique"
+ },
+ "03EE": {
+  "verdict": "ok",
+  "why": "INTERLACE C4/C9 COUNTERS en base 5 (R9E57, comme la photo SHAKER 2.2 : UPD R9=5) : mêmes valeurs AUTOSYNC et mêmes bandes que la photo"
+ },
+ "01C7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "00CB": {
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
+ },
+ "00CC": {
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
+ },
+ "00CD": {
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
+ },
+ "00CE": {
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
+ },
+ "00CF": {
+  "verdict": "ok",
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
+ },
+ "0192": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0193": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0194": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0195": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0196": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0197": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0198": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0199": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019A": {
+  "verdict": "doute",
+  "why": "page encore en train de se caler au moment du code (2 trames mêlées) ; photo stable, Amspirit-lite aussi en transition. Délai de table 3 images"
+ },
+ "019B": {
+  "verdict": "doute",
+  "why": "photo : page pâle avec du texte en haut ; Amspirit-lite : tout noir ; Sugarbox : noir, titre et bruit. Page en transition"
+ },
+ "019C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01FD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0200": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0201": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0202": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0203": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0204": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0205": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0206": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0207": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0208": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0209": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020B": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "020F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0210": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0211": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0212": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0213": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0214": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0215": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01CB": {
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
+ },
+ "01CC": {
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
+ },
+ "01CD": {
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
+ },
+ "01CE": {
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
+ },
+ "01CF": {
+  "verdict": "ok",
+  "why": "RVNI LTD (SHAKE27B #6D3B : 10 lignes R0=1 et une ligne R0=43 toutes les 64 us, R4=0, R9=2, R5=0) : stable comme la photo, même ordre des barres. Corrigé par la bascule adjust_end_pending_ du CRTC 0 (13.2.5) : la ligne longue posée sur la ligne additionnelle ne relance plus C9 jusqu'à 31"
+ },
+ "01F0": {
+  "verdict": "ok",
+  "why": "SHAKER KILLER : #CC partout, #C4 sur ED A1, 2B, FD 2B, ED 57, ED 5F comme la photo, depuis le maintien de IRQACK_RST"
+ },
+ "01F1": {
+  "verdict": "ok",
+  "why": "R52 BIT 5 RESET : toutes les lignes = Exp (#0D02 compris), depuis le maintien de IRQACK_RST"
+ },
+ "01F2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01F5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01DF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E3": {
+  "verdict": "doute",
+  "why": "texte coloré chez Sugarbox alors que photo et Amspirit-lite ont le texte normal ; le texte coloré est juste sur #01E0 #01E1 #01E4 #01E5. La page change d'une image à l'autre"
+ },
+ "01E4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D7": {
+  "verdict": "doute",
+  "why": "pas de photo sur le site pour ce code"
+ },
+ "01D8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01D9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "019F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01A7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01AF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01B7": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BD": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01BF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C0": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C1": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C2": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C3": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C4": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C5": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01C6": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0217": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0218": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0219": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021A": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021B": {
+  "verdict": "ko",
+  "why": "zone rayée haute et 2e bloc de texte chez Sugarbox ; photo et Amspirit-lite : une seule ligne pointillée sous le titre, puis tout bleu"
+ },
+ "021C": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021D": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021E": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "021F": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0220": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0221": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0222": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0223": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0224": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0225": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0226": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0227": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0228": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "0229": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E8": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01E9": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EA": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EB": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EC": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01ED": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EE": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ },
+ "01EF": {
+  "verdict": "ok",
+  "why": "même image (motifs, positions, texte)"
+ }
+}

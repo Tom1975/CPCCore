@@ -18,16 +18,43 @@
 // - c4_increment_     registered C9==R9, sampled at the start of each character while C9 is handled : the
 //                     value seen at the start of the last character increments C4. C9 itself is compared
 //                     with R9 on the C0 reset : R9 written on C0==R0 increments both C4 and C9 (10.3.1).
+//                     At the line end the latch is ORed with the comparator of the character that ends :
+//                     R9 written with the value of C9 during the last character (C9 != R9 before) still
+//                     increments C4 (SHAKER E, C4/C9 COUNTER LOGIC, #0405), R9 moved away from C9 during
+//                     it does not prevent the increment (10.3.1). Set, not cleared, as adjust_end_.
 // - c9_managed_       C9 handling, enabled when C0 reaches 1, disabled when C0 restarts at 0. With R0=0
 //                     C0 never reaches 1 : C9, C3h and the C4 increment latch freeze (13.2.4, 13.2.6).
 // - last_line_        C4==R4 && C9==R9, sampled at the end of characters 0 and 1 only (12.2).
 // - adjust_           additional management, armed as soon as last_line_ is sampled true. At the end of
 //                     character 2 it is cancelled if it is the last line and no line is to be added
 //                     (R5=0), confirmed otherwise (13.2.1). With R0<2 it is never cancelled (13.2.5).
+//                     R4 or R9 written on C0 = 1 of a last line : armed by the C0 = 0 sample, confirmed
+//                     on C0 = 2, the line becomes the first additional line (C4 kept, C9 counts on :
+//                     10.3.1.2, 12.2, table p80 R9 0 -> n), as R4 or R9 written after C0 = 2 on a last
+//                     line with R5 > 0 (11.2.2, examples 2 and 3). The note (***) of table p79 case 8
+//                     (C9 = 0, C4 + 1) disagrees with these : not followed.
 // - adjust_confirmed_ C9 no longer returns to 0 on R9 (11.2.2). Once C4 differs from R4, C9 is compared
 //                     with R5 instead of R9 and C4 is kept.
-// - adjust_end_       next C9 == R5, sampled at the end of characters 0 to 2 : R5 written later on the
-//                     line is not taken into account (11.3.1, 11.4.2).
+//                     Line end with C4 == R4 while confirmed : C9 == R9 increments C4, C4 then differs from
+//                     R4 and the C9 computed for the next line (0) is compared with R5 in the same line end
+//                     (cascade of 11.2.2). With R5 = 0 the frame ends there (SHAKER E #03FA, #0407 line 04).
+// - adjust_end_       next C9 == R5 : the latch follows the comparator at the end of characters 0 to 2 ;
+//                     later on the line the comparator can still set it, not clear it. R5 written after
+//                     C0 = 2 on the line where C9 + 1 == R5 does not prevent the frame end (11.3.1), and
+//                     R5 = 0 written anywhere on a last line whose additional management is confirmed ends
+//                     the frame on that line : the next C9 (0) is R5 (SHAKER E, R5 STORIES 2, #03FA :
+//                     C0 = 0 to 3 and #3D to #3F = R0). PROVISIONAL : the set-only part is deduced from
+//                     these two cases (RealCpc/README.md, P4).
+// - r5_mode_reg_      C4 != R4 during an additional management, registered at the start of each character
+//                     as c4_increment_ : R4 written during the last character of a last line (C0 = R0) does
+//                     not switch C9 to the R5 comparison for this line end, C4 is incremented and C9 returns
+//                     to 0 (SHAKER E, R5 STORIES 2 PG 2, #03FB : R4 = 50 written on C0 = #3F, C4 = #27 one
+//                     line later, C4 = 0 after the 20 lines of R5 ; written on #3D or #3E, C9 counts on to R5).
+// - adjust_end_pending_ end of an adjustment never confirmed, decided when C0 restarts at 0 at the end of its last
+//                     line (C4 == R4, C9 == R9) : the C9 loaded for the next line (0) equals R5. The frame ends on
+//                     the next line end, also when C0 reaches 2 on that line and confirms the adjustment (13.2.5,
+//                     SHAKER B RVNI LTD). Not set while C9 is frozen (R0 = 0, 13.2.6) nor without the C0 reset
+//                     (R0 enlarged on C0 = 1, 13.7.2.2) : C9 is not loaded.
 // - vsync_allowed_    set at the end of character 2, cleared on the C0 reset : C4==R7 starts a VSYNC only
 //                     if C0 reached 2 since (13.2.2, 16.4.1).
 //
@@ -47,27 +74,81 @@ void CRTC::ClockTick0 ()
 
    // Comparators on the character that ends
    const bool c9_eq_r9 = C9EqualsR9();
+
+   // C0 == R1 on the character that ends, with the R1 written during it : the register is latched in the bus
+   // window at the start of the character, the comparator is sampled by this edge (17.3, 17.5.1 : OUT R1,0
+   // taken on C0 = 0 still borders the line ; R1.JIT, 17.4.2 : R1 moved away from C0 during C0 == R1 misses it).
+   // It resets DISPTMG and loads VMA' with VMA on the last line of a character, before VMA is reloaded on a
+   // line end (R1 = R0)
+   const bool r1_end = (prev == registers_list_[1]);
+   if (r1_end && c9_eq_r9)
+   {
+      bu_ = ma_;
+   }
    // Additional management, once C4 differs from R4 : C9 is compared with R5 (11.2.2)
-   const bool r5_mode = adjust_ && (vcc_ != registers_list_[4]);
+   // On the character that ends the line it is the value registered at its start : R4 written during the
+   // last character comes too late for this line end (r5_mode_reg_)
+   const bool r5_mode = (line_end_ || hcc_ == registers_list_[0]) ? r5_mode_reg_ : (adjust_ && (vcc_ != registers_list_[4]));
+
+   // End of the additional management, as the comparator gives it on the character that ends (R5 written
+   // during it) : the next C9 is R5
+   bool end_live;
+   {
+      unsigned char next_c9 = (c9_eq_r9 && !(r5_mode && adjust_confirmed_)) ? 0 : ((vlc_ + 1) & 0x1F);
+      if (adjust_ && !adjust_confirmed_ && vcc_ != registers_list_[4])
+         next_c9 = vlc_;
+      end_live = (next_c9 == ((registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0)) & 0x1F));
+   }
+   const bool adjust_end = adjust_end_ || (prev > 2 && end_live);
 
    ///////////////////////////////
    // Line end : C4 and frame
    // Returning C4 and C9 to 0 is part of the C9 handling : with R0=0 it is frozen (13.2.3)
    bool new_frame = false;
+   // C4 increment : the registered C9 == R9, which the comparator of the character that ends can still set
+   // (R9 written with C9 during the last character, SHAKER E #0405), not clear (10.3.1)
+   const bool c4_increment = c4_increment_ || (c9_managed_ && c9_eq_r9);
    if (line_end_)
    {
-      if (last_line_ && !adjust_)
+      // End of an unconfirmed adjustment decided on the line end before (adjust_end_pending_) : taken now, even if
+      // C0 reached 2 on this line and confirmed the adjustment (SHAKER B RVNI LTD #01CB)
+      const bool pending_end = adjust_end_pending_ && c9_managed_;
+      // The last line of an adjustment not confirmed (R0 < 2, 13.2.5) ends with C9 == R9 : the C9 computed for the next
+      // line (0) is compared with R5 when C0 restarts at 0 and loads it, and the adjustment stops one line later.
+      // Only while C9 is handled : with R0 = 0 C9 is frozen, nothing is computed and R5 must be C9 + 1 once R0 > 1
+      // again (13.2.6). Nor without the C0 reset : R0 enlarged on C0 = 1 of the last line, C9 is not loaded and the
+      // adjustment goes on (13.7.2.2)
+      adjust_end_pending_ = c9_managed_ && adjust_ && !adjust_confirmed_ && vcc_ == registers_list_[4] && c4_increment
+                            && hcc_ == registers_list_[0]
+                            && ((registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0)) & 0x1F) == 0;
+      if (pending_end)
+      {
+         new_frame = true;
+      }
+      else if (last_line_ && !adjust_)
       {
          new_frame = c9_managed_;
       }
       else if (r5_mode)
       {
          // C4 is kept : the adjustment ends when the next C9 reaches R5
-         new_frame = c9_managed_ && adjust_end_;
+         new_frame = c9_managed_ && adjust_end;
       }
-      else if (c4_increment_)
+      else if (c4_increment)
       {
-         vcc_ = (vcc_ + 1) & 0x7F;
+         if (adjust_confirmed_ && adjust_end && !(InterlaceOn() && parity_r6_))
+         {
+            // Additional management confirmed with C4 == R4 : C9 == R9 increments C4, C4 then differs from R4
+            // and the C9 computed for the next line (0) is compared with R5 in the same line end (the cascade
+            // of 11.2.2, "R9 written exactly on C0 == R0"). With R5 = 0 the adjustment ends before its first
+            // line : R5 = 0 written on a last line (SHAKER E #03FA), or R9 moved away from C9 on C0 = 1 of a
+            // last line then set back to C9 (SHAKER E #0407, line 04)
+            new_frame = c9_managed_;
+         }
+         else
+         {
+            vcc_ = (vcc_ + 1) & 0x7F;
+         }
       }
       c4_increment_ = false;
    }
@@ -173,16 +254,26 @@ void CRTC::ClockTick0 ()
       vsync_allowed_ = true;
    }
 
-   if (prev <= 2)
    {
-      const unsigned char next_c9 = (c9_eq_r9_now && !adjust_confirmed_) ? 0 : ((vlc_ + 1) & 0x1F);
-      adjust_end_ = (next_c9 == ((registers_list_[5] + (interlace_line ? 1 : 0)) & 0x1F));
+      const bool r5_mode_now = adjust_ && (vcc_ != registers_list_[4]);
+      unsigned char next_c9 = (c9_eq_r9_now && !(r5_mode_now && adjust_confirmed_)) ? 0 : ((vlc_ + 1) & 0x1F);
+      // Additional line of an adjustment never confirmed (R0<2) : it is compared with R5 with its own C9, so
+      // with R5=0 it lasts one line and C4, C9 return to 0 whatever R9 (13.2.5, 13.2.7)
+      if (adjust_ && !adjust_confirmed_ && vcc_ != registers_list_[4])
+         next_c9 = vlc_;
+      const bool end = (next_c9 == ((registers_list_[5] + (interlace_line ? 1 : 0)) & 0x1F));
+      // The latch follows the comparator on characters 0 to 2, later it can only be set
+      if (prev <= 2)
+         adjust_end_ = end;
+      else if (end)
+         adjust_end_ = true;
    }
 
    if (c9_managed_)
    {
       c4_increment_ = c9_eq_r9_now;
    }
+   r5_mode_reg_ = adjust_ && (vcc_ != registers_list_[4]);
 
    if (c0_reset)
    {
@@ -196,12 +287,6 @@ void CRTC::ClockTick0 ()
    line_end_ = (hcc_ == registers_list_[0]);
 
    ClockParityR6();
-
-   // VMA' is updated when C0 reaches R1 on the last line of a character (17, 19.8.1)
-   if ( hcc_ == registers_list_[1] && C9EqualsR9() )
-   {
-      bu_ = ma_;
-   }
 
    ///////////////////////////////
    // VSYNC (16.3, 16.4.1)
@@ -250,30 +335,27 @@ void CRTC::ClockTick0 ()
    }
 
 
-   // DISPEN is enabled by the C0 reset, not by C0 overflowing to 0 (17.1)
+   // DISPTMG is set by the C0 reset, not by C0 overflowing to 0 (17.1), and reset by C0 == R1 sampled at the
+   // end of the character. The live comparator gates its output during the character itself (R1BorderNow) :
+   // R1 = R0 borders the last character and displays the next line (17.6.1), R1 = 0 borders the whole line
    if (c0_reset)
    {
        ff1_set = true;
+   }
+   else if (r1_end)
+   {
+      ff1_reset = true;
    }
 
    bool hsync_started, hsync_ended;
    ClockHSync(hsync_started, hsync_ended);
 
-   if (hcc_ == registers_list_[1])
-   {
-      ff1_reset = true;
-   }
-
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }
