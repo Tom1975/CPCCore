@@ -180,188 +180,188 @@
   "why": "même image (motifs, positions, texte)"
  },
  "0314": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0315": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0316": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0317": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0318": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0319": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031A": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031B": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031C": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031D": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031E": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "031F": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0320": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0321": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0322": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0323": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0324": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0325": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0326": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0327": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0328": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0329": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032A": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032B": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032C": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032D": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032E": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "032F": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0330": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0331": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0332": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0333": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0334": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0335": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0336": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0337": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0338": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "0339": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033A": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033B": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033C": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033D": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033E": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "033F": {
-  "verdict": "ko",
-  "why": "2 C-HSYNC : photo stable, zone rectangulaire et rectangle noir net ; Sugarbox : déformation bien plus forte, zone de texte coupée, rectangle noir absent ou tordu. Modèle moniteur peut-être en cause, à établir"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 (modèle LA7800 du moniteur) : même structure que la photo (texte visible dans la bande, rectangle noir au même octet) ; seule l'ampleur du décalage de la bande diffère (moniteur de la photo)"
  },
  "037F": {
-  "verdict": "ko",
-  "why": "grands rectangles noirs de la photo absents chez Sugarbox (de petites pointes noires ou une bande blanche à la place)"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 : rectangles noirs et texte entre eux comme sur la photo ; seule la déformation de la bande diffère (moniteur)"
  },
  "0380": {
-  "verdict": "ko",
-  "why": "grands rectangles noirs de la photo absents chez Sugarbox (de petites pointes noires ou une bande blanche à la place)"
+  "verdict": "moniteur",
+  "why": "re-tri 2026-11-16 : rectangles noirs et texte entre eux comme sur la photo ; seule la déformation de la bande diffère (moniteur)"
  },
  "0381": {
   "verdict": "doute",
@@ -441,19 +441,19 @@
  },
  "03BD": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, SHAKE27D désassemblé : la recherche de R3h (#82B0) trouve #9D comme la photo (relue au zoom : #9D, pas #8D)"
  },
  "03BE": {
-  "verdict": "ko",
-  "why": "registres trouvés : photo R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E ; Sugarbox R3=#0C R4=#00 R5=#00 R6=#00 R7=#00"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : R3=#7C R4=#25 R5=#08 R6=#19 R7=#1E comme la photo : Status 2 bit 4 = 1 sur le dernier caractère des lignes additionnelles, compté par #835A"
  },
  "03BF": {
   "verdict": "ok",
   "why": "même image (motifs, positions, texte)"
  },
  "03C0": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5, STATUS 2 BIT 0, STATUS 2 BIT 4 : WRONG chez Sugarbox, OK sur la photo"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : FIESTA page 2 : tous les tests OK comme la photo (Status 1 bit 5, Status 2 bit 0 hors lignes additionnelles, Status 2 bit 4)"
  },
  "03C1": {
   "verdict": "ok",
@@ -484,12 +484,12 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03C8": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 : photo rouge avec colonne jaune, Sugarbox tout jaune"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : colonne jaune de 15 lignes à la VSYNC sur fond rouge, comme la photo"
  },
  "03C9": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 variante R3=#7E : trait vertical sur la photo, absent chez Sugarbox"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : R3=#7E : un seul trait rouge sur fond jaune, comme la photo"
  },
  "03CA": {
   "verdict": "ok",
@@ -524,8 +524,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "03D2": {
-  "verdict": "ko",
-  "why": "STATUS 1 BIT 5 en IVM : marques obliques sur la photo, absentes chez Sugarbox"
+  "verdict": "ok",
+  "why": "2026-11-17, Status 1 bit 5 = compteur de lignes du statut (1 sur la 1re ligne de VSYNC .. 15, puis 0) comparé à R3h : IVM : marques obliques comme la photo"
  },
  "03D3": {
   "verdict": "ok",
@@ -565,31 +565,31 @@
  },
  "03DC": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 0 avec R4=37/R5=8 : le seul point à 0 est sur #4BFF (fin de la dernière ligne normale), comme l'attend la FIESTA"
  },
  "03DD": {
-  "verdict": "ko",
-  "why": "STATUS 2 BIT 4 variante R4=37 : photo rouge, Sugarbox jaune"
+  "verdict": "ok",
+  "why": "2026-11-17, SHAKE27D désassemblé : Status 2 bit 4 avec R4=37/R5=8 : 0 partout sauf le dernier caractère de la trame, rouge comme la photo"
  },
  "03DE": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03DF": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E0": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E1": {
-  "verdict": "ko",
-  "why": "STATUS 2 BIT 4 en IVM : photo tramée, Sugarbox jaune uni"
+  "verdict": "doute",
+  "why": "2026-11-17 : Status 2 bit 4 en IVM : Sugarbox alterne d'une trame à l'autre (ligne interlace une trame sur deux), carte en bandes ; la photo est tramée et plutôt jaune. Règle IVM non confirmée"
  },
  "03E2": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  },
  "03E3": {
   "verdict": "ok",
@@ -597,6 +597,6 @@
  },
  "03E4": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image (motifs, positions, texte) ; 2026-11-17 : capture refaite (carte relevée sur plusieurs trames, la phase a bougé avec le nouveau Status 1 bit 5)"
  }
 }

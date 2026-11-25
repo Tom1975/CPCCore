@@ -160,6 +160,19 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P, unsigned int t_stat
    address_ = Addr_P;
    data_ = Data_P;
    address_bus_->SetBus (address_);
+   // The CRTC is not wired to RD / WR : A14 = 0 selects it and A9 is its R/W line (5.1). An OUT on &BExx / &BFxx (A9 = 1)
+   // is a read for it : it drives the data bus with the status or the register while the Z80A drives the byte written.
+   // Measured on a real CRTC 1 (disquettes de test, PALA14 / PALA14B, 2026-11-19) : OUT (C),&C4 on &3Fxx with R15 selected
+   // gives the RAM configuration C0 for R15 = &00, C4 for R15 = &44, &C4, &C7, &FF, C4 for &C5 with R15 = &C6 : the bits
+   // 0 to 5 of the bus are the AND of both drivers (the low level wins), the bits 6, 7 stay those of the Z80A. The CPC
+   // with CRTC 0 or 2 of the same series take the byte of the Z80A. PROVISIONAL : why only the bits 0 to 5 and only the
+   // CRTC 1 is not known (RealCpc/README.md, part 1 bis, P10). It is also why the compendium (5.1, note *) finds the PAL
+   // selected by A14 = 0 "on some CPC only" : an RAM configuration written on &3Fxx of a CRTC 1 is spoiled.
+   if (!plus_ && crtc_->type_crtc_ == CRTC::UM6845R && (address_ & 0x4200) == 0x0200)
+   {
+      const unsigned char driven = crtc_->In(address_);
+      data_ = data_ & (driven | 0xC0);
+   }
    data_bus_->SetBus (data_);
 
    if ( address_ == 256)
@@ -260,8 +273,11 @@ void CSig::In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode
       *a = fdc_->In ( address_ );
       found = true;
    }
-   // CRTC
-   if ((b &0x40) ==0x00 && (int_mode_0 == false))
+   // CRTC : selected by A14 = 0, its R/W line is A9 (no RD / WR, compendium 5.1 : select and write on A9 = 0,
+   // status and read on A9 = 1). It drives the data bus only for A9 = 1 : an IN on &BCxx / &BDxx leaves the bus
+   // to the other circuits, as the PPI with A11 = 0 (acid, ppi.dsk, "ppi i/o decode (f5xx)" : port B reads the
+   // same with A14 = 0 or 1).
+   if ((b &0x40) ==0x00 && (b & 0x02) == 0x02 && (int_mode_0 == false))
    {
       *a = crtc_->In ( address_ );
       found = true;
@@ -270,6 +286,19 @@ void CSig::In (unsigned char* a, unsigned char b, unsigned char c, bool int_mode
    {
        data_bus_->SetBus( (unsigned char)memory_->GetLastValueRead()  ); // 0x76 on 464 / 0x79 on 6128 todo
       asic_->In(a, address_);
+   }
+   else if (int_mode_0 == false && (address_ & 0xC000) == 0x4000 && (*a & 0xC0) != 0xC0)
+   {
+      // GATE ARRAY 40010 : its registers are strobed by A15 = 0, A14 = 1, IORQ low and M1 high, neither RD nor WR
+      // (40010-simplified, sheet Registers, U401) : an IN that selects it gives it the byte on the data bus, as a
+      // write. Measured on a real CPC (UnitTests/RealCpc/README.md, T1, 2026-11-18) : IN A,(C) with BC = &7400 reads
+      // the PSG register 0 (#4C) through the PPI port A, and the border turns bright red. Compendium 4.4 says the
+      // opposite ("une lecture sur ce circuit n'est pas prise en compte"). The RAM configuration (#C0 to #FF) is
+      // decoded by the PAL of the 6128, not by the 40010 : not known, a read leaves it (and an IN that reads nothing,
+      // the bus at #FF, then has no effect).
+      address_bus_->SetBus(address_);
+      data_bus_->SetBus(*a);
+      vga_->TickIO();
    }
 
    if ( (int_mode_0 == false)) // TODO !!!!

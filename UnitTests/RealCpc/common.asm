@@ -39,16 +39,10 @@ macro CRTC_WRITE reg,value
    out (c),c
 mend
 
-; Back to BASIC : standard CRTC values, ROMs as the firmware expects them, mode 1, screen cleared.
-macro BACK_TO_BASIC
-   CRTC_WRITE 1,40
-   CRTC_WRITE 3,#8E
-   CRTC_WRITE 7,30
-   ld bc,#7F85
-   out (c),c
-   im 1
-   ei
-   ld a,1
-   call #BC0E
-   ret
+; End of a frame loop of a test : 14 us, then a JP Z,frame (3 us) back to the frame while no key is down (the flag
+; 'key' is set by the 'call keyscan' of the frame) : 17 us as the frame counter it replaces. Uses A.
+macro KEY_UP_TEST
+   ld a,(key)           ; 4
+   or a                 ; 1
+   NOPS 9
 mend

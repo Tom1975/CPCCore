@@ -188,8 +188,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0316": {
-  "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0317": {
   "verdict": "moniteur",
@@ -232,8 +232,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0321": {
-  "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0322": {
   "verdict": "moniteur",
@@ -276,8 +276,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "032C": {
-  "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "032D": {
   "verdict": "moniteur",
@@ -320,8 +320,8 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "0337": {
-  "verdict": "ko",
-  "why": "zone de texte remplacée par du BORDER : le texte reste visible sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0338": {
   "verdict": "moniteur",
@@ -356,12 +356,12 @@
   "why": "structure et position de la zone noire justes ; déformation par le moniteur plus forte chez Sugarbox que sur la photo (double C-HSYNC, même cause que #00C2)"
  },
  "037F": {
-  "verdict": "ko",
-  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0380": {
-  "verdict": "ko",
-  "why": "entre les zones noires : BORDER chez Sugarbox ; blanc et texte sur la photo, Amspirit et Amspirit-lite"
+  "verdict": "moniteur",
+  "why": "2026-11-16 : texte affiché dans la bande comme sur la photo depuis le modèle provisoire du CRTC 2 (début de ligne retenu pendant la HSYNC, RealCpc README P3) ; seule la déformation de la bande diffère (moniteur)"
  },
  "0381": {
   "verdict": "doute",

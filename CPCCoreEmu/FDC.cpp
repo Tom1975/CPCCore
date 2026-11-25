@@ -122,6 +122,8 @@ FDC::FDC(void) : load_progress_(-1)
    start_dio_ = false;
    start_dio_pending_ = false;
    data_service_ticks_ = 0;
+   result_gap_ = 0;
+   result_last_ = false;
 
    for (int i = 0; i < NB_COMMAND_MAX; i++)
    {
@@ -338,6 +340,7 @@ void FDC::Out (unsigned short addr, unsigned char data)
          delay_for_instruction_ = DELAY_INSTR;
          rqm_ = false;
          time_ = 0;
+         result_gap_ = 0;   // a command written before the end of the result gap takes over
 
          switch (fdc_command_[data&0x1F].seek_cmd)
          {
@@ -563,20 +566,20 @@ unsigned char FDC::In ( unsigned short Addr_P )
                LOGB(data_register_);
             }
          }
+         // RQM falls on the read and comes back about 16 us later (FDC::Tick, result_gap_). Measured on a real CPC
+         // (RealCpc README, FDC, 2026-11-18) : READ ID, the main status 5, 9, 13, 17, 21 us after each result byte :
+         // 50 10 10 50 D0 (DIO down from about 8 us, back about 16 us, RQM about 18 us), after the last one
+         // 50 10 90 80 80 (command phase with RQM from about 12 us, busy down about 16 us). The uPD765 datasheet and
+         // 64nops give no time : PROVISIONAL, from this measure only.
+         rqm_ = false;
+         result_gap_ = 1;
+         result_last_ = (results_count_ == 0);
          if ( results_count_ == 0)
          {
             if (current_command_ != C_SENSE_INT_STATE)
             {
                LOGEOL;
             }
-
-            // special case : If Seekend but no seek command, dont do this
-            // After a while, reset m_bSeekEnd
-            if ( time_ == 0) //!m_bSeekEnd  || (m_bSeekCmd))
-               cb_ = false;
-            // if (!m_bSeekEnd) // FAUX !
-            rqm_ = true;
-            dio_ = false;
             //interrupt_occured_ = false;
             state_ = INSTRUCTION;
          }
@@ -964,6 +967,31 @@ unsigned int FDC::Tick( )
       && fdc_command_[index_fdc_command_].transfer_type == READ)
    {
       or_ = true;
+   }
+
+   // Result byte read : RQM and DIO come back as measured (see FDC::In), one tick = 2 us
+   if (result_gap_ > 0)
+   {
+      ++result_gap_;
+      if (result_gap_ == 5)
+      {
+         dio_ = false;
+      }
+      if (!result_last_)
+      {
+         if (result_gap_ == 9) dio_ = true;
+         if (result_gap_ == 10) { rqm_ = true; result_gap_ = 0; }
+      }
+      else
+      {
+         if (result_gap_ == 7) rqm_ = true;
+         if (result_gap_ == 9)
+         {
+            // special case : If Seekend but no seek command, dont do this
+            if (time_ == 0) cb_ = false;
+            result_gap_ = 0;
+         }
+      }
    }
 
    if (delay_for_instruction_>0)
@@ -2372,6 +2400,7 @@ void FDC::FormatTrack()
    fb_ = parameters_[4] ;  // FB
 
    format_sector_count_ = 0;
+   format_c_ = 0;
 
    status_1_ |= disk_[current_drive_].IsWriteProtected()?0x02:0;
 
@@ -2451,8 +2480,12 @@ void FDC::FormatTrackTick ()
             results_[i++] = status_1_;
             results_[i++] = status_2_;
 
-            results_[i++] = tr_;
-            results_[i++] = hd_;
+            // C H R N of the result : "no meaning" for the datasheet. A real CPC (disquettes de test FDCRES, 2026-11-19 ;
+            // track 20, N = 0 to 4, SC = 9, 4, 2, 1, 5) gives C = the C of the IDs (&14), H = 2^N (the sector length in
+            // units of 128 bytes : 01 02 04 08 10), R = the number of sectors formatted, N = N. PROVISIONAL for H : the
+            // register is taken as reused by the byte count, not documented.
+            results_[i++] = format_c_;
+            results_[i++] = (unsigned char)(1 << (sz_ & 0x07));
             results_[i++] = format_sector_count_;
             results_[i++] = sz_;
 
@@ -4111,7 +4144,12 @@ void FDC::InitHandleFormat ( MFMPhase formatPhase )
          write_byte_counter_ = 1;
 
          // This should be checked...
-         if (chrn_byte_count_ == 2)
+         if (chrn_byte_count_ == 1)
+         {
+            format_c_ = byte_to_write_;
+            rqm_ = true;
+         }
+         else if (chrn_byte_count_ == 2)
          {
             hd_ = (byte_to_write_&1)<<2;
             rqm_ = true;
@@ -4226,11 +4264,15 @@ void FDC::InitHandleFormat ( MFMPhase formatPhase )
       }
       break;
    case MFM_GAB4_B:
+      // GAP 4B : the 4E bytes up to the index hole, which ends the command (uPD765 datasheet, FORMAT). Without it the end
+      // of the previous track stays : a FORMAT with fewer or smaller sectors left the old sectors after the new ones, READ ID
+      // found them (disquettes de test FDCRES, photo of a real CPC : READ ID gives the first new sector, C1, with the new N)
       byte_is_sync_ = false;
-      if ( (disk_[current_drive_].GetPos()) >= DEFAULT_TRACK_SIZE)
-         write_byte_counter_ = DEFAULT_TRACK_SIZE - disk_[current_drive_].GetPos();
-      else
-         write_byte_counter_ = 1;
+      {
+         const int track_bytes = disk_[current_drive_].GetSizeOfCurrentTrack() / 16;
+         const int pos = disk_[current_drive_].GetPos();
+         write_byte_counter_ = (pos < track_bytes) ? (track_bytes - pos) : 1;
+      }
       byte_to_write_ = 0x4E;
       next_phase_ = MFM_END;
       break;

@@ -82,9 +82,10 @@ TEST(Compendium_5, OneOutReachesEveryDecodedChip)
    EXPECT_EQ(0x0E, m.Engine().GetPPI()->port_a_);
 }
 
-// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected with A14 = 0 or 1 on the CPC+ (CRTC
-// 3, 4) ; on the CPC "old" A14 must be 1 (only a few CPC select it with A14 = 0). The GATE ARRAY
-// itself always needs A14 = 1.
+// 5.1 (*) : the PAL (RAM configuration, &C0-&FF) is selected by A15 = 0, A14 = 0 or 1. The compendium finds A14 = 0
+// working "on some CPC only" ; measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test PALA14, 2026-11-19) : &01C4
+// selects the bank on all of them, &3FC4 on the CRTC 0 and 2. On the CRTC 1, &3Fxx is also a read of the CRTC, which
+// spoils the byte (Compendium_5.Crtc1DrivesTheBusOnAnOutToItsReadPort). The GATE ARRAY itself always needs A14 = 1.
 TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
 {
    Machine m(CRTC::AMS40489, "6128PLUS");
@@ -94,13 +95,62 @@ TEST(Compendium_5, PalSelectedWithA14ZeroOnTheCpcPlus)
    EXPECT_EQ(1, m.Engine().GetMem()->GetRamBankConfig());
 }
 
-TEST(Compendium_5, PalNeedsA14OneOnTheCpcOld)
+TEST(Compendium_5, PalSelectedByA15AloneOnTheCpcOld)
 {
-   Machine m(CRTC::HD6845S);
-   std::vector<unsigned char> p = { z80::kDi };
-   z80::Append(p, z80::Out(0x3F00, 0xC1));
-   RunProgram(m, p);
-   EXPECT_EQ(0, m.Engine().GetMem()->GetRamBankConfig());
+   for (auto type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      SCOPED_TRACE(testing::Message() << "CRTC type " << (int)type);
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0x01C4, 0xC2));   // A15 = 0, A14 = 0, A9 = 0
+      RunProgram(m, p);
+      EXPECT_EQ(2, m.Engine().GetMem()->GetRamBankConfig());
+      if (type == CRTC::UM6845R) continue;     // &3Fxx : see below
+      Machine m2(type);
+      std::vector<unsigned char> p2 = { z80::kDi };
+      z80::Append(p2, z80::Out(0x3F00, 0xC1));
+      RunProgram(m2, p2);
+      EXPECT_EQ(1, m2.Engine().GetMem()->GetRamBankConfig());
+   }
+}
+
+// PALA14B (photo of a real CRTC 1) : R15 written, then OUT &3Fxx with the RAM configuration. The CRTC 1 reads R15 on the
+// bus at the same time : bits 0 to 5 = AND of both, bits 6, 7 from the Z80A (CSig::Out, PROVISIONAL). Real CPC : C0 for
+// R15 = &00 (no configuration written, C0 stays), C4 for &C4, &C7, &FF, &44, and Z = &C5 with R15 = &C6.
+TEST(Compendium_5, Crtc1DrivesTheBusOnAnOutToItsReadPort)
+{
+   struct Case { unsigned char z, r15, config; };
+   const Case cases[] = { { 0xC4, 0x00, 0 }, { 0xC4, 0xC4, 4 }, { 0xC4, 0xC7, 4 }, { 0xC5, 0xC6, 4 }, { 0xC4, 0xFF, 4 }, { 0xC4, 0x44, 4 } };
+   for (const Case& c : cases)
+   {
+      SCOPED_TRACE(testing::Message() << "Z = " << (int)c.z << ", R15 = " << (int)c.r15);
+      Machine m(CRTC::UM6845R);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::Out(0xBC00, 15));
+      z80::Append(p, z80::Out(0xBD00, c.r15));
+      z80::Append(p, z80::Out(0x3F00, c.z));
+      RunProgram(m, p);
+      EXPECT_EQ(c.config, m.Engine().GetMem()->GetRamBankConfig());
+   }
+}
+
+// 5.1 : the CRTC has no RD / WR, its R/W line is A9 (select and write on A9 = 0, status and read on A9 = 1). It drives
+// the data bus only for A9 = 1 : an IN on &B5xx (CRTC write, PPI port B) reads port B as &F5xx does. acid (Kevin
+// Thacker), ppi.dsk, "ppi i/o decode (f5xx)" : port B decoded on x x x x 0 x 0 1, A14 not decoded.
+TEST(Compendium_5, CrtcDoesNotDriveTheBusOnAnInToItsWritePorts)
+{
+   for (CRTC::TypeCRTC type : { CRTC::HD6845S, CRTC::UM6845R, CRTC::MC6845 })
+   {
+      Machine m(type);
+      std::vector<unsigned char> p = { z80::kDi };
+      z80::Append(p, z80::In(0xF500, kResult));       // PPI port B alone
+      z80::Append(p, z80::In(0xB500, kResult + 1));   // PPI port B and CRTC write : the CRTC leaves the bus
+      z80::Append(p, z80::In(0xB400, kResult + 2));   // PPI port A and CRTC select
+      z80::Append(p, z80::In(0xF400, kResult + 3));   // PPI port A alone
+      RunProgram(m, p);
+      EXPECT_EQ(m.Ram()[kResult] & 0xFE, m.Ram()[kResult + 1] & 0xFE) << "CRTC " << (int)type;
+      EXPECT_EQ(m.Ram()[kResult + 3], m.Ram()[kResult + 2]) << "CRTC " << (int)type;
+   }
 }
 
 TEST(Compendium_5, GateArrayNeedsA14OneOnTheCpcOld)
@@ -401,6 +451,57 @@ TEST(Compendium_12, Crtc3TakesAnIoWithTheRomSelectOneMicrosecondEarlier)
    EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40489, "6128PLUS", no_rom_select, out_c_0));
    EXPECT_EQ(4, WriteMicrosecond(CRTC::AMS40226, "6128PLUS", rom_select, out_c_0));
    EXPECT_EQ(3, WriteMicrosecond(CRTC::HD6845S, "6128", rom_select, out_c_0));
+}
+
+namespace
+{
+// PSG register 0 = value through the PPI port A, port A then an input and the PSG in read mode : an IN on &7400
+// selects the PPI port A (A11 = 0) and the GATE ARRAY (A15 = 0, A14 = 1), and reads the PSG register 0. Optionally
+// the border selected first. The value read is stored at kResult.
+void InOnThePpiAndTheGateArray(Machine& m, unsigned char value, bool border_first)
+{
+   std::vector<unsigned char> p = { z80::kDi };
+   if (border_first) z80::Append(p, z80::OutGateArray(0x10));
+   z80::Append(p, z80::Out(0xF700, 0x82));   // PPI port A output
+   z80::Append(p, z80::Out(0xF400, 0x00));   // PSG register 0
+   z80::Append(p, z80::Out(0xF600, 0xC0));
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF400, value));
+   z80::Append(p, z80::Out(0xF600, 0x80));   // PSG write
+   z80::Append(p, z80::Out(0xF600, 0x00));
+   z80::Append(p, z80::Out(0xF700, 0x92));   // PPI port A input
+   z80::Append(p, z80::Out(0xF600, 0x40));   // PSG read
+   z80::Append(p, z80::In(0x7400, kResult));
+   const unsigned short end = (unsigned short)(kProgram + p.size());
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   ASSERT_GE(m.CyclesUntil([&]() { return m.Cpu().pc_ == end; }, 4 * 400), 0);
+   for (int i = 0; i < 4 * 8; ++i) m.Cycle();   // the LD (nn),A ends
+}
+}
+
+// 4.4 against the GATE ARRAY 40010 : its registers are strobed without RD nor WR (40010-simplified, sheet Registers,
+// U401), so an IN that selects it writes it with the byte on the bus. Measured on a real CPC (RealCpc README, T1,
+// 2026-11-18) : IN A,(C) on &7400 reads #4C from the PSG through the PPI, and the border turns bright red. The
+// compendium (4.4) says a read is not taken by the GATE ARRAY.
+TEST(Compendium_4, InOnThePpiAndTheGateArrayWritesTheGateArray)
+{
+   {
+      // #10 : PENR, the border selected
+      Machine m(CRTC::UM6845R);
+      m.Ga().pen_r_ = 0;
+      InOnThePpiAndTheGateArray(m, 0x10, false);
+      EXPECT_EQ(0x10, m.Ram()[kResult]);
+      EXPECT_EQ(0x10, m.Ga().pen_r_);
+   }
+   {
+      // #4C : INKR, bright red on the border
+      Machine m(CRTC::UM6845R);
+      InOnThePpiAndTheGateArray(m, 0x4C, true);
+      EXPECT_EQ(0x4C, m.Ram()[kResult]);
+      EXPECT_TRUE(m.Ga().border_reg_ == 0x4C || (m.Ga().buffered_ink_available_ && m.Ga().buffered_ink_reg_ == 0x4C
+                                                  && m.Ga().buffered_pen_ == 0x10));
+   }
 }
 
 namespace

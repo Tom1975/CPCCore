@@ -134,7 +134,10 @@ void CRTC::Reset()
 
    
 
-   lightpen_input_ = true;
+   // CRTC 1 status bit 6 : the "light pen register full" flip-flop, set by a rising edge on LPSTB (pin 3, expansion
+   // port pin 47, 21.3.3), cleared by a read of R16 / R17. Nothing is connected to it on a bare CPC : it stays at 0
+   // (SHAKER CRTC 1 - BE00 CHECK #0216 : bit 6 at 0 on every read of the status, photo)
+   lightpen_input_ = false;
 
    adddress_register_ = 0;
    ComputeSyncWidths();
@@ -154,6 +157,8 @@ void CRTC::Reset()
    adjust_ = false;
    adjust_confirmed_ = false;
    adjust_end_ = false;
+   r5_mode_reg_ = false;
+   adjust_end_pending_ = false;
    vsync_allowed_ = false;
    c3h_load_ = false;
    frame_counter_ = 0;
@@ -181,9 +186,18 @@ void CRTC::Reset()
    vma_reload_clear_ = false;
    rfd_ = false;
    last_line_sampled_ = false;
+   hsync_prev_ = false;
+   hsync_restart_ = false;
+   vsync_end_pending_ = false;
    status_border_r6_ = false;
    c9_eq_r9_at_start_ = false;
    hsync_on_line_start_ = false;
+   c0_from_reset_ = true;
+   line_start_pending_ = false;
+   r1_load_at_start_ = false;
+   interlace_add_line_ = false;
+   c3h_status_ = 0;
+   frame_started_ = true;
    last_line_eq_ = false;
    dlp_ = false;
    gdl_reenabled_ = false;
@@ -288,6 +302,7 @@ void CRTC::ClockHSync(bool& started, bool& ended)
             {
                hsync_fall_ = true;
                hsync_rise_ = true;
+               hsync_restart_ = true;   // end strobe without a falling edge of hsync_
             }
          }
          else
@@ -306,6 +321,12 @@ void CRTC::ClockHSync(bool& started, bool& ended)
          hsync_fall_ = true;
          horinzontal_pulse_ = 0;
       }
+   }
+   else if (c0_is_r2 && horizontal_sync_width_ == 0 && type_crtc_ == UM6845R)
+   {
+      // CRTC 1, R3l = 0 : the HSYNC flip-flop is set by C0 = R2 and reset at once by C3l == R3l (0) : no HSYNC on
+      // the pin (14.5.2), but the end strobe of the HSYNC is there (C3h clock, ClockTick1)
+      hsync_restart_ = true;
    }
    else if (c0_is_r2 && horizontal_sync_width_ != 0)
    {
@@ -473,7 +494,7 @@ bool CRTC::DispEn(int half) const
    {
    case 0:
       // CRTC 1 : R6=0 forces the border as long as it stays 0 (18.3.3)
-      return (half ? dispen_half1_ : dispen_half0_) && !(type_crtc_ == UM6845R && registers_list_[6] == 0);
+      return (half ? dispen_half1_ : dispen_half0_) && !(type_crtc_ == UM6845R && registers_list_[6] == 0) && !R1BorderNow();
    case 3:
       return false;
    default:
@@ -491,7 +512,10 @@ bool CRTC::DispEn(int half) const
 // On the first line with R6=0 both happen on every character : one displayed byte, one border byte.
 void CRTC::ClockDispEnHalvesCrtc02()
 {
-   if (vcc_ == 0 && vlc_ == 0 && ff1_)
+   // CRTC 2, PROVISIONAL (RealCpc/README.md, P3) : the R6 border is cleared by the first line of a frame that
+   // really started (C4 returned to 0 by the last line), not by a C4 that overflowed back to 0 : 15.5.2 "as long
+   // as C4 never reached R6", and the screens of 15.6 that stay border while C4 overflows
+   if (vcc_ == 0 && vlc_ == 0 && ff1_ && !R1BorderNow() && (type_crtc_ != MC6845 || frame_started_))
       ff3_ = true;
    else if (vcc_ == registers_list_[6])
       ff3_ = false;
@@ -594,10 +618,13 @@ unsigned char CRTC::ReadRegister()
          return registers_list_[17];
       case 2: // Status 1 (R10) - 21.3.4.1
       {
-         // Bits 3, 4, 5 (HSYNC start / end, VSYNC line) are latched by the tick ; the others decode
-         // the counters and registers
+         // Bits 3, 4 (HSYNC start / end) are latched by the tick ; the others decode the counters and registers.
+         // Bit 5 : the inverted output of the C3h == R3h comparator (4 bits) that ends the VSYNC (CRTC_3_4.cpp) : 0 on
+         // the last VSYNC line (R3h = 1 .. 15). C3h runs past the VSYNC up to 0 : with R3h = 0 the bit is 1 on the
+         // first 15 VSYNC lines and 0 elsewhere (21.3.4.1). PROVISIONAL (RealCpc/README.md, P6)
          const unsigned char r0 = registers_list_[0];
-         unsigned char status = (status1_ & 0x38) | 0x40;
+         unsigned char status = (status1_ & 0x18) | 0x40;
+         if (c3h_status_ != ((registers_list_[3] >> 4) & 0x0F)) status |= 0x20;
          if (hcc_ == r0) status |= 0x01;
          if (hcc_ != r0 / 2) status |= 0x02;
          if (!(r0 >= registers_list_[1] && hcc_ == ((registers_list_[1] - 1) & 0xFF))) status |= 0x04;
@@ -609,8 +636,22 @@ unsigned char CRTC::ReadRegister()
       {
          const bool c9_eq_r9 = (vlc_ == registers_list_[9]);
          const bool last_char_of_line = c9_eq_r9 && hcc_ == registers_list_[0];
-         unsigned char status = 0x10;
-         if (!(last_char_of_line && vcc_ == registers_list_[4])) status |= 0x01;
+         // Bit 4 ("always 1", 21.3.4.2) : the output of a magnitude comparator "C5 next >= R5", the one that ends the
+         // additional lines (C9 >= R5, 11.2.6 ; magnitude comparators as C9 >= R9, 10.3.4). C5 is C9 counting the
+         // additional lines ; out of them its path gives 0. "Next" is the incrementer output : the count + 1 on the
+         // last character of a line (C0 = R0), when the counter is about to take it. Without R5 (0 >= 0) the bit
+         // stays 1 ; with R5 it is 0 except on the last character of the last additional line.
+         // PROVISIONAL (RealCpc/README.md, P7), from the SHAKER code : STATUS FIESTA (SHAKE27D #9736) expects, with
+         // R4 = 37 and R5 = 8, a 0 on the microseconds 0 to #4DFE of the frame and a 1 on #4DFF ; the R5 search
+         // (#835A) counts the lines up to that 1 ; photos D3 #03D7 (R5 = 0 : 1), #03DD (R5 = 8 : 0). The additional
+         // interlace line (19.6.4) is not known to take part : no term for it (D3 #03E1, IVM, in doubt)
+         const unsigned char c5_next = adjust_ ? ((vlc_ + ((hcc_ == registers_list_[0]) ? 1 : 0)) & 0x1F) : 0;
+         unsigned char status = (c5_next >= registers_list_[5]) ? 0x10 : 0x00;
+         // Bit 0 : the last character of the last line (C4 = R4, C9 = R9, C0 = R0). During the additional lines C9
+         // is compared with R5, not R9 (11.2.6), and the additional interlace line is not a last line (19.6.4) :
+         // STATUS FIESTA (SHAKE27D #9339 : R4 = 37, R5 = 8) expects 0 on #4BFF only, 1 on the 512 us of the
+         // additional lines
+         if (!(last_char_of_line && vcc_ == registers_list_[4] && !adjust_ && !interlace_line_)) status |= 0x01;
          if (!(last_char_of_line && vcc_ == ((registers_list_[6] - 1) & 0x7F))) status |= 0x02;
          if (!(last_char_of_line && vcc_ == ((registers_list_[7] - 1) & 0x7F))) status |= 0x04;
          if (frame_counter_ & 0x10) status |= 0x08;
@@ -725,7 +766,8 @@ void CRTC::ClockBusInterface()
    {
       const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
       unsigned int parity_frame = even_field_ ? 0 : 1;
-      unsigned int parity_c9 = parity_c9_ ? 1 : 0;
+      // During the parity state of a R.F.D. the value of the 3rd microsecond is in C9.0 only (see WriteBus, R8)
+      unsigned int parity_c9 = rfd_parity_ ? (vlc_ & 1) : (parity_c9_ ? 1 : 0);
       if (r8_parity_pending_ == 1)
       {
          if (parity_frame == 0)
@@ -736,7 +778,8 @@ void CRTC::ClockBusInterface()
       {
          parity_frame = parity_c9;
       }
-      parity_c9_ = (parity_c9 != 0);
+      if (!rfd_parity_)
+         parity_c9_ = (parity_c9 != 0);
       vlc_ = (vlc_ & 0x1E) | parity_c9;
       even_field_ = (parity_frame == 0);
       r8_parity_pending_ = 0;
@@ -824,8 +867,15 @@ void CRTC::WriteBus (unsigned short address, unsigned char data, unsigned int t_
                      // of C9 is the ParitéC9 flip-flop (C9 carries the parity, 19.8.2) : it changes with it, in the middle
                      // of the line. The 4th microsecond is clocked on the next character (ClockBusInterface)
                      const unsigned int c4_odd_r9_even = (vcc_ & 1) & ((registers_list_[9] & 1) ^ 1);
+                     // Once a R.F.D. has set the parity state (11.6), the ParitéC9 its C9 == R9 test uses is held to
+                     // the frame end : the R8 write gives its value to C9.0 and, on the 4th microsecond, to ParitéFrame
+                     // (so to the next frame) only. SHAKER D RFD ROUND 2, "IVM ON/OFF AFTER RFD" (#0399 to #039B,
+                     // videos of a real CRTC 1, 2026-11-18) : the rows after the IVM ON/OFF follow VMA', and the R.F.D.
+                     // of the next frame passes ; "BEFORE RFD" (#0396 to #0398) : R12/R13 on every row (PROVISIONAL,
+                     // RealCpc README P9).
                      const unsigned int parity_c9 = (vlc_ & 1) ^ c4_odd_r9_even;
-                     parity_c9_ = (parity_c9 != 0);
+                     if (!rfd_parity_)
+                        parity_c9_ = (parity_c9 != 0);
                      vlc_ = (vlc_ & 0x1E) | parity_c9;
                      r8_parity_pending_ = ivm_after ? 1 : 2;
                   }

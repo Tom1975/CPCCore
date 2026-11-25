@@ -383,6 +383,85 @@ TEST(Compendium_27, HSyncEndDuringTheAcknowledgeKeepsBit5OfR52AtZero)
    }
 }
 
+// 27.2, 40010-simplified sheet VSync : HCNT counts the HSYNC ends from the VSYNC rising edge, which clears U814 to
+// U829 but not U809, its bit 0. On CRTC 1 (VSYNC of 16 lines, starts as soon as R7 = C4), a VSYNC restarted by
+// R7 = 32 on C0 = 0 of the line C4 = 32, C9 = 1 (17 HSYNC ends after the first one) or C9 = 2 (18) : with 17,
+// the bit 0 stayed at 1 and R52 goes back to 0 at the end of the 1st HSYNC ; with 18, of the 2nd. The end of the
+// VSYNC of the GATE ARRAY (26 HSYNC) moves the same way. Real CPC, RealCpc T2 (2026-11-18) : 17 HSYNC 334 or
+// 346, 18 HSYNC 340 (it was 340 or 346, then 346 without the bit 0).
+TEST(Compendium_27, VSyncRestartedAfterAnOddNumberOfHSyncKeepsBit0OfHcnt)
+{
+   for (int hsyncs : { 17, 18 })
+   {
+      SCOPED_TRACE(testing::Message() << hsyncs << " HSYNC");
+      Machine m(CRTC::UM6845R);
+      ASSERT_TRUE(UntilPosition(m, kVSyncLine + hsyncs, 0));
+      std::vector<unsigned char> p = Prologue(false);
+      z80::Append(p, z80::WriteCrtc(7, 32));
+      z80::Append(p, z80::kJrSelf);
+      m.Run(p);
+      const int first = kVSyncLine + hsyncs;
+      ASSERT_TRUE(UntilPosition(m, first, kR2 + 16));
+      EXPECT_TRUE(m.Ga().vsync_);
+      if (hsyncs == 17)
+         EXPECT_EQ(0, m.Ga().interrupt_counter_);
+      else
+         EXPECT_NE(0, m.Ga().interrupt_counter_);
+      ASSERT_TRUE(UntilPosition(m, first + 1, kR2 + 16));
+      EXPECT_EQ(hsyncs == 17 ? 1 : 0, m.Ga().interrupt_counter_);
+      // End of the VSYNC of the GATE ARRAY : 25 HSYNC ends after the restart with 17, 26 with 18
+      ASSERT_TRUE(UntilPosition(m, first + 24, kR2 + 16));
+      EXPECT_EQ(hsyncs == 18, m.Ga().vsync_);
+      ASSERT_TRUE(UntilPosition(m, first + 25, kR2 + 16));
+      EXPECT_FALSE(m.Ga().vsync_);
+   }
+}
+
+// 16.2.3 : SIG_GA_VSYNC, the vertical sync sent to the monitor (C-VSYNC), rises at the end of the 2nd HSYNC counted
+// from the VSYNC rising edge and falls at the end of the 6th : the same HSYNC counter (HCNT) as the end of the VSYNC
+// of the GATE ARRAY (26) and the R52 reset (2). Without HSYNC at the start of the VSYNC it comes later : disquettes_test
+// VSYNCTST (real CPC photo, 2026-11-19), R2 = 100 (no HSYNC) for 8 lines from the VSYNC start : the picture goes up
+// by a character row.
+TEST(Compendium_16, CVSyncFromTheEndOfThe2ndHSyncToTheEndOfThe6th)
+{
+   Machine m(CRTC::UM6845R);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine, kR2 + 16));
+   EXPECT_TRUE(m.Ga().vsync_);
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 1, kR2 + 12));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 1, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 4, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 5, kR2 + 16));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+}
+
+TEST(Compendium_16, CVSyncWaitsForTheHSyncs)
+{
+   Machine m(CRTC::UM6845R);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine - 1, 0));
+   std::vector<unsigned char> p = Prologue(false);
+   z80::Append(p, z80::WriteCrtc(2, 100));
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 7, 0));
+   EXPECT_TRUE(m.Ga().vsync_);
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   p = Prologue(false);
+   z80::Append(p, z80::WriteCrtc(2, kR2));
+   z80::Append(p, z80::kJrSelf);
+   m.Run(p);
+   // HSYNC again from the line + 7 : C-VSYNC at the end of the 2nd one, on the line + 8 (+ 1 without the R2 change)
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 7, kR2 + 16));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 8, kR2 + 12));
+   EXPECT_FALSE(m.Ga().c_vsync_);
+   ASSERT_TRUE(UntilPosition(m, kVSyncLine + 8, kR2 + 16));
+   EXPECT_TRUE(m.Ga().c_vsync_);
+}
+
 /////////////////////////////////////////////////////////////
 // 27.7.2 : reliability of the interrupts
 
@@ -434,4 +513,25 @@ TEST(Compendium_27, InterruptOnTheLastTCycleOfEachInstruction)
          const bool asic = (k.type == CRTC::AMS40489 || k.type == CRTC::AMS40226);
          EXPECT_EQ(asic ? o.crtc34 : o.crtc012, positions);
       }
+}
+
+// Disquettes de test (CLAUDESTRAD, 2026-11-19), photos of real CPCs : INTPOS, INTPOS2, INTPOS3, INTREP, HALTPOS. On a
+// CRTC 1 (with or without M4), a chain of LD A,(nn) misses the interrupt at one of its 4 alignments, which the CRTC 2
+// takes : INTREP "LD A,(nn)" 64 65 66 67 on CRTC 1, 64 65 66 63 on CRTC 2. INC HL, LD (HL),A, LD A,R, NOP, EX (SP),HL :
+// the same on both, and as here. Sugarbox gives 2 3 4 5 on CRTC 0, 1, 2 ; the CRTC 1 needs 3 4 5 6 (the alignment of
+// C0 = 2 takes the interrupt one instruction, 4 us, later). Its HSYNC pin falls 1 pixel later than on CRTC 0, 2
+// (HSyncPinEdge) : that is enough only if the last read of LD A,(nn) samples INT between the pixels 4 and 5, while CP (HL)
+// and DEC DE (#02E3) sample on the T-state starts. No model explains both : not forced, measures asked (RealCpc README,
+// part 0, "INT CRTC 1"). CRTC 0 : only photos with an M4 (it delays INT), which give 3 4 5 6 too.
+TEST(Compendium_27, DISABLED_Crtc1LdANnMissesTheInterruptAtOneAlignment)
+{
+   const std::vector<unsigned char> ld_a_nn = { 0x3A, 0x00, 0x80 };
+   std::set<int> crtc1, crtc2;
+   for (int nops = 0; nops < 4; ++nops)
+   {
+      crtc1.insert(AcknowledgeOnAChainOf(CRTC::UM6845R, "6128", ld_a_nn, nops));
+      crtc2.insert(AcknowledgeOnAChainOf(CRTC::MC6845, "6128", ld_a_nn, nops));
+   }
+   EXPECT_EQ((std::set<int>{ 3, 4, 5, 6 }), crtc1);
+   EXPECT_EQ((std::set<int>{ 2, 3, 4, 5 }), crtc2);
 }

@@ -304,8 +304,8 @@
   "why": "effet moniteur reproduit (coin arrondi, bord biseauté) ; rectangle aux mêmes étiquettes que la photo"
  },
  "00C3": {
-  "verdict": "ko",
-  "why": "Sugarbox affiche une ligne de test de plus (« UPD R9=0, UPD R4=0 … » et son résultat) et donne 3F=01 à la ligne « UPD R4=1 … (01=C4 Ovf) », la photo 3F=00"
+  "verdict": "doute",
+  "why": "2026-11-17, SHAKE27A désassemblé : la page actuelle a un test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 », chaîne en #9E98), affiché aussi par Amspirit-lite et Syntax Error : la photo vient d'une version plus ancienne de SHAKER. Les valeurs C0vsio (CRTC 1 : 3F=01 contre 00) ne sont pas comparables sans la même version ; à refaire sur un vrai CPC avec SHAKER 2.7"
  },
  "0092": {
   "verdict": "ok",
@@ -332,34 +332,16 @@
   "why": "coin bleu présent comme sur la photo ; écart de quelques pixels avec l'ancienne capture, dans le bruit mémoire (capture immédiate, validé utilisateur)"
  },
  "0098": {
-  "verdict": "ko",
-  "why": "R1=0 STORY 3 : Sugarbox répète le texte « CRTC 2 R1 STORIES… » en bas à droite et « 1,0/OUT R1,40) » en bas à gauche, et n'affiche pas la rangée de damiers noirs sous les bandes ; la photo et les 5 émulateurs n'ont pas ce texte et ont le damier",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.8,
-    "w": 1,
-    "h": 0.2,
-    "note": "texte en trop"
-   },
-   {
-    "on": "sb",
-    "x": 0,
-    "y": 0.28,
-    "w": 1,
-    "h": 0.1,
-    "note": "damier absent"
-   }
-  ]
+  "verdict": "ok",
+  "why": "2026-11-17, VMA' du CRTC 2 : R1=0 au début d'une ligne C9=R9 (hors DL) ne charge plus le compteur de la ligne précédente : damier sous les bandes, plus de texte en bas, comme la photo"
  },
  "0099": {
-  "verdict": "ko",
-  "why": "R1>R0, R1=0 sur C0=0 : machine réelle écran blanc avec une bande sombre en haut ; Sugarbox bloc noir plein de lignes de texte (comme sur CRTC 0/1)"
+  "verdict": "doute",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : écran en bordure et trait au milieu comme la photo ; ligne de titre décalée (texte à partir du milieu, « OUT) » à gauche), illisible sur la photo : VMA' du CRTC 2 avec R1=0 (17.4.3) à vérifier"
  },
  "009A": {
-  "verdict": "ko",
-  "why": "R1=63 sur C0=63 : photo bruit bordeaux plein écran avec une bande blanche verticale à gauche ; Sugarbox fond noir sans la bande (comme sur CRTC 0/1)"
+  "verdict": "ok",
+  "why": "2026-11-17, VMA' du CRTC 2 : R1=63 écrit sur C0=63 : impulsion OU seule en fin de caractère (provisoire, README P5) ; rangées identiques au motif dense de la photo, colonne blanche à gauche"
  },
  "009B": {
   "verdict": "ok",
@@ -413,21 +395,11 @@
  },
  "00AD": {
   "verdict": "ko",
-  "why": "R6=0/#7F basculé dans la zone d'ajustement (C4=37, 38) : la trame repart sur l'offset, la photo n'affiche qu'une fois les 2 rangées de texte, la zone d'ajustement doit donc être en BORDER ; Sugarbox y affiche les 2 rangées (#3000, #3028), soit le texte en double. L'ancienne référence ne collait que par coïncidence (trame partie sur #3050). Comportement de R6=0 pendant l'ajustement à établir (2026-11-12)"
+  "why": "R6=0/FF écrits de C0=4 à 32 de chaque ligne additionnelle (R4=36, R5=16). Trace : la ligne DL (C4=36, C9=7) charge VMA' avec R12/R13, les lignes additionnelles (C4=37, 38) affichent #3000/#3028, d'où le texte en double ; R6=0 ne vaut jamais C4. La photo n'affiche le texte qu'une fois. Essayé : DL suivie de lignes additionnelles ne charge pas R12/R13 → 41 KO sur CRTC 2, réfuté. Aucune explication par le 18.2.2 (R6=C4 seulement) : à mesurer"
  },
  "00AE": {
-  "verdict": "ko",
-  "why": "R6=R4+1/FF en V.ADJ : la photo et les 5 émulateurs affichent le titre « CRTC 2 R6 STORIES -LAST LINE- » en haut de la grande zone blanche ; Sugarbox ne l'affiche pas",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.15,
-    "w": 0.8,
-    "h": 0.08,
-    "note": "titre absent"
-   }
-  ]
+  "verdict": "ok",
+  "why": "R6=R4+1/FF en V.ADJ : titre en haut de la zone blanche et texte replié en bas, comme la photo (corrigé par un correctif précédent, revu 2026-11-17)"
  },
  "008A": {
   "verdict": "ok",

@@ -664,30 +664,12 @@
   "why": "effet moniteur reproduit (coin arrondi, bord biseauté, encoche du cadre) ; rectangle aux mêmes étiquettes que la photo"
  },
  "00C3": {
-  "verdict": "ko",
-  "why": "en plus des 2 lignes de résultat supplémentaires (cf. CRTC 0) : Sugarbox donne 3F=01 aux lignes « UPD R4=1 … (01=C4 Ovf) » et « UPD R4=0 … (UPD FROM C0vsio) », la photo, Amspirit 0.953, CPC-EC et WinApe 3F=00"
+  "verdict": "doute",
+  "why": "2026-11-17, SHAKE27A désassemblé : la page actuelle a un test de plus que la photo (« PREV R9=7 R4=1 >> UPD R9=0, UPD R4=0 », chaîne en #9E98), affiché aussi par Amspirit-lite et Syntax Error : la photo vient d'une version plus ancienne de SHAKER. Les valeurs C0vsio (CRTC 1 : 3F=01 contre 00) ne sont pas comparables sans la même version ; à refaire sur un vrai CPC avec SHAKER 2.7"
  },
  "008D": {
-  "verdict": "ko",
-  "why": "LOST VSYNC ON R0=0 : Sugarbox lit #5E (VSYNC perdue) sur les 3 lectures après l'événement, la photo #5F partout (VSYNC gardée) ; seul Amspirit 0.953 est juste",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.2,
-    "w": 0.5,
-    "h": 0.15,
-    "note": "#1E"
-   },
-   {
-    "on": "real",
-    "x": 0.0,
-    "y": 0.05,
-    "w": 0.6,
-    "h": 0.2,
-    "note": "#5F"
-   }
-  ]
+  "verdict": "ok",
+  "why": "LOST VSYNC ON R0=0 : #5F sur les 16 lectures comme la photo ; C3h du CRTC 1 cadencé par la fin de HSYNC (P8), pas de HSYNC tant que R0 < R2"
  },
  "008E": {
   "verdict": "ok",
@@ -731,15 +713,15 @@
  },
  "0098": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : plus de ligne « (L3)AT » sous les bandes, damier directement sous les bandes comme sur la photo"
  },
  "0099": {
-  "verdict": "ko",
-  "why": "R1>R0, R1=0 sur C0=0 : machine réelle écran blanc et une ligne de titre ; Sugarbox bloc noir plein de lignes de texte (comme sur CRTC 0)"
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=0 écrit sur C0=0 : écran en bordure, ligne de titre (C4=0) et trait au milieu comme sur la photo"
  },
  "009A": {
-  "verdict": "ko",
-  "why": "R1=63 sur C0=63 : photo bruit gris plein écran avec une bande blanche verticale à gauche ; Sugarbox bruit saumon sur fond noir, sans la bande (comme sur CRTC 0)"
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=63 écrit sur C0=63 : colonne blanche à gauche et VMA' rechargé à chaque rangée comme sur la photo (teinte du bruit = contenu de la RAM)"
  },
  "009B": {
   "verdict": "ok",

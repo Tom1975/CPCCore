@@ -637,6 +637,8 @@ void MachineState::WriteFdc(Motherboard* board, std::vector<unsigned char>& out)
    out.push_back(f->start_dio_ ? 1 : 0);
    out.push_back(f->start_dio_pending_ ? 1 : 0);
    PutU32(out, f->data_service_ticks_);               // added later : optional when read
+   PutU32(out, f->result_gap_);                       // added later : optional when read
+   out.push_back(f->result_last_ ? 1 : 0);
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -764,6 +766,11 @@ bool MachineState::ReadFdc(Motherboard* board, const unsigned char* p, size_t si
    if (at + 4 <= size)
    {
       f->data_service_ticks_ = GetU32(&p[at]); at += 4;
+   }
+   if (at + 5 <= size)
+   {
+      f->result_gap_ = GetU32(&p[at]); at += 4;
+      f->result_last_ = p[at++] != 0;
    }
 
    // Writer and reader must agree byte for byte; if they ever drift apart this
@@ -936,7 +943,7 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->last_line_ ? 1 : 0);
    out.push_back(c->adjust_ ? 1 : 0);
    out.push_back(c->adjust_confirmed_ ? 1 : 0);
-   out.push_back(c->adjust_end_ ? 1 : 0);
+   out.push_back((c->adjust_end_ ? 1 : 0) | (c->r5_mode_reg_ ? 2 : 0) | (c->adjust_end_pending_ ? 4 : 0));
    out.push_back(c->vsync_allowed_ ? 1 : 0);
    out.push_back(c->c3h_load_ ? 1 : 0);
    out.push_back(c->v_no_sync_ ? 1 : 0);
@@ -946,7 +953,12 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->rfd_ ? 1 : 0);
    out.push_back(c->status_border_r6_ ? 1 : 0);
    out.push_back(c->c9_eq_r9_at_start_ ? 1 : 0);
-   out.push_back(c->hsync_on_line_start_ ? 1 : 0);
+   // bit 0 : HSYNC on the line start ; bit 1 : line start waiting ; bit 2 : C4 overflowed (frame not started) ;
+   // bit 3 : VMA' strobe of the start of the character done
+   out.push_back((c->hsync_on_line_start_ ? 1 : 0) | (c->line_start_pending_ ? 2 : 0) | (c->frame_started_ ? 0 : 4)
+                 | (c->r1_load_at_start_ ? 8 : 0));
+   out.push_back(c->c3h_status_);
+   out.push_back(c->interlace_add_line_ ? 1 : 0);
    out.push_back(c->last_line_eq_ ? 1 : 0);
    out.push_back(c->dlp_ ? 1 : 0);
    out.push_back(c->gdl_reenabled_ ? 1 : 0);
@@ -976,6 +988,7 @@ void MachineState::WriteCrtc(Motherboard* board, std::vector<unsigned char>& out
    out.push_back(c->r8_parity_pending_);              // added later : optional when read
    out.push_back(c->edge_pending_);                   // added later : optional when read
    out.push_back(c->edge_cycle_);                     // added later : optional when read
+   out.push_back((c->hsync_prev_ ? 1 : 0) | (c->vsync_end_pending_ ? 2 : 0));   // added later : optional when read ; bit 2 (4) was a CRTC 1 C3h state, no longer used
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
    out[length_at + 0] = payload_size & 0xFF;
@@ -1029,7 +1042,9 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->last_line_ = p[at++] != 0;
    c->adjust_ = p[at++] != 0;
    c->adjust_confirmed_ = p[at++] != 0;
-   c->adjust_end_ = p[at++] != 0;
+   c->adjust_end_ = (p[at] & 1) != 0;
+   c->r5_mode_reg_ = (p[at] & 2) != 0;
+   c->adjust_end_pending_ = (p[at++] & 4) != 0;
    c->vsync_allowed_ = p[at++] != 0;
    c->c3h_load_ = p[at++] != 0;
    c->v_no_sync_ = p[at++] != 0;
@@ -1039,7 +1054,12 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->rfd_ = p[at++] != 0;
    c->status_border_r6_ = p[at++] != 0;
    c->c9_eq_r9_at_start_ = p[at++] != 0;
-   c->hsync_on_line_start_ = p[at++] != 0;
+   c->hsync_on_line_start_ = (p[at] & 1) != 0;
+   c->line_start_pending_ = (p[at] & 2) != 0;
+   c->r1_load_at_start_ = (p[at] & 8) != 0;
+   c->frame_started_ = (p[at++] & 4) == 0;
+   c->c3h_status_ = p[at++];
+   c->interlace_add_line_ = p[at++] != 0;
    c->last_line_eq_ = p[at++] != 0;
    c->dlp_ = p[at++] != 0;
    c->gdl_reenabled_ = p[at++] != 0;
@@ -1077,6 +1097,11 @@ bool MachineState::ReadCrtc(Motherboard* board, const unsigned char* p, size_t s
    c->r8_parity_pending_ = (size - at >= 1) ? p[at++] : 0;
    c->edge_pending_ = (size - at >= 1) ? p[at++] : 0;
    c->edge_cycle_ = (size - at >= 1) ? p[at++] : 0;
+   {
+      const unsigned char f = (size - at >= 1) ? p[at++] : 0;
+      c->hsync_prev_ = (f & 1) != 0;
+      c->vsync_end_pending_ = (f & 2) != 0;
+   }
 
    return (at == size);
 }
@@ -1244,6 +1269,9 @@ void MachineState::WriteDma(Motherboard* board, std::vector<unsigned char>& out)
       out.push_back(d->interrupt_on_ ? 1 : 0);
       out.push_back(d->prescalar_);
       out.push_back(d->prescalar_counter_);
+      out.push_back(d->fetch_in_);
+      out.push_back(d->exec_in_);
+      out.push_back(d->prescalar_write_ ? 1 : 0);
    }
 
    const unsigned int payload_size = (unsigned int)(out.size() - payload_at);
@@ -1259,7 +1287,10 @@ bool MachineState::ReadDma(Motherboard* board, const unsigned char* p, size_t si
    if (size < 4) return false;
    if (GetU32(&p[at]) != 3) return false;
    at += 4;
-   if (size != at + 3 * 21) return false;
+   // 21 bytes per channel before the DMA sequencer (2026-11-20), 24 with its fetch and execute microseconds
+   // and the latched write of the prescaler
+   const size_t per_channel = (size - at) / 3;
+   if ((per_channel != 21 && per_channel != 24) || size != at + 3 * per_channel) return false;
 
    for (int i = 0; i < 3; ++i)
    {
@@ -1274,6 +1305,9 @@ bool MachineState::ReadDma(Motherboard* board, const unsigned char* p, size_t si
       d->interrupt_on_ = p[at++] != 0;
       d->prescalar_ = p[at++];
       d->prescalar_counter_ = p[at++];
+      d->fetch_in_ = (per_channel == 24) ? p[at++] : 0;
+      d->exec_in_ = (per_channel == 24) ? p[at++] : 0;
+      d->prescalar_write_ = (per_channel == 24) ? (p[at++] != 0) : false;
    }
    return true;
 }

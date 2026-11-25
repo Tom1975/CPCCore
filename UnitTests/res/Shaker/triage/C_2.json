@@ -68,8 +68,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "02BF": {
-  "verdict": "ko",
-  "why": "valeurs différentes : photo 01 partout sur les lignes de résultat, Sugarbox FF et 00 ; suites Y/N décalées ; 2 lignes R9=7 R4=38 en plus chez Sugarbox"
+  "verdict": "doute",
+  "why": "photo d'une autre version de SHAKER (3 lignes de texte différentes : « LASTLINE ACTIVATION ON R9x2 » au lieu de « R9=7 R4=38 C9=C4=0 … ») ; ses 01 sous la HSYNC contredisent le §15.6 (R4/R9 écrits pendant la HSYNC ignorés pour la dernière ligne), que Sugarbox suit (FF sur C0io #2D à #38, HSYNC R2=#2E R3=#0A, SHAKE27C #87F2). RealCpc README partie 3"
  },
  "02C0": {
   "verdict": "ok",
@@ -117,11 +117,11 @@
  },
  "02D1": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, VMA' du CRTC 2 : rangées B, C, D, E, F, F répétée, G, H, I puis titre, comme la photo (l'ancienne référence, décalée de 63 caractères, avait été acceptée à tort)"
  },
  "02D2": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, VMA' du CRTC 2 : rangées B, C, D, E, F, F répétée, G, H, I puis titre, comme la photo (l'ancienne référence, décalée de 63 caractères, avait été acceptée à tort)"
  },
  "02CD": {
   "verdict": "ok",
@@ -132,16 +132,16 @@
   "why": "même image (motifs, positions, texte)"
  },
  "02C9": {
-  "verdict": "ko",
-  "why": "2 dernières lignes : Sugarbox #0B20 et #0B1C, photo et attendu #0080"
+  "verdict": "ok",
+  "why": "2026-11-17, désassemblé (SHAKE27C : boucle de ~14 µs jusqu'à la VSYNC avec R7=0, valeur attendue selon le type en #BF03) : #0004 / #0080 / #0080 comme attendu et sur la photo : R5 écrit avec C5 fait déborder C5 (11.3.1), la branche « ligne interlace » ne concerne plus que la ligne interlace"
  },
  "02CA": {
   "verdict": "doute",
   "why": "pas de photo sur le site pour ce code"
  },
  "02CB": {
-  "verdict": "ko",
-  "why": "1re ligne : Sugarbox #0004, photo et attendu #0084 ; ligne R5=0 ON 2ND LINE : Sugarbox #0080, photo et attendu #0004"
+  "verdict": "ok",
+  "why": "2026-11-17, désassemblé (SHAKE27C : boucle de ~14 µs jusqu'à la VSYNC avec R7=0, valeur attendue selon le type en #BF03) : #0084 (débordement puis ligne interlace) et #0004 (R5=0 écrit sur la ligne interlace : elle termine la trame) comme attendu ; toutes les lignes conformes"
  },
  "02D3": {
   "verdict": "ok",

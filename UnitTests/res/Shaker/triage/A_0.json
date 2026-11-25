@@ -321,67 +321,15 @@
  },
  "0098": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : plus de ligne « (L3)AT » sous les bandes, damier directement sous les bandes comme sur la photo"
  },
  "0099": {
-  "verdict": "ko",
-  "why": "machine réelle : écran blanc, une seule ligne de texte en haut ; Sugarbox : bloc noir plein de lignes de texte",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.18,
-    "w": 0.78,
-    "h": 0.68,
-    "note": "bloc noir de lignes de texte"
-   },
-   {
-    "on": "real",
-    "x": 0.0,
-    "y": 0.15,
-    "w": 1.0,
-    "h": 0.06,
-    "note": "une seule ligne de texte"
-   },
-   {
-    "on": "real",
-    "x": 0.0,
-    "y": 0.53,
-    "w": 1.0,
-    "h": 0.05,
-    "note": "un simple trait"
-   }
-  ]
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=0 écrit sur C0=0 : écran en bordure, ligne de titre (C4=0) et trait au milieu comme sur la photo"
  },
  "009A": {
-  "verdict": "ko",
-  "why": "machine réelle : 2 lignes en haut, 1 en bas à droite sur fond noir ; Sugarbox : écran rempli de lignes",
-  "zones": [
-   {
-    "on": "sb",
-    "x": 0.08,
-    "y": 0.18,
-    "w": 0.78,
-    "h": 0.68,
-    "note": "écran rempli de lignes"
-   },
-   {
-    "on": "real",
-    "x": 0.08,
-    "y": 0.16,
-    "w": 0.75,
-    "h": 0.07,
-    "note": "2 lignes en haut"
-   },
-   {
-    "on": "real",
-    "x": 0.38,
-    "y": 0.64,
-    "w": 0.6,
-    "h": 0.07,
-    "note": "1 ligne en bas à droite"
-   }
-  ]
+  "verdict": "ok",
+  "why": "2026-11-17, C0 == R1 échantillonné en fin de caractère avec le R1 écrit pendant celui-ci (17.3, 17.5.1) : R1=63 écrit sur C0=63 : colonne blanche à gauche et VMA' rechargé à chaque rangée comme sur la photo"
  },
  "009B": {
   "verdict": "ok",

@@ -948,15 +948,15 @@ void VideoGateArray::HandleDMA()
    unsigned char dcsr = memory_->GetDCSR();
    if ((dcsr & 0x1) == 0x1)
    {
-      dma_list_[0].Hbl();
+      if (dma_list_[0].HsyncTick()) { dma_list_[0].Fetch(); dma_list_[0].Execute(); }
    }
    if ((dcsr & 0x2) == 0x2)
    {
-      dma_list_[1].Hbl();
+      if (dma_list_[1].HsyncTick()) { dma_list_[1].Fetch(); dma_list_[1].Execute(); }
    }
    if ((dcsr & 0x4) == 0x4)
    {
-      dma_list_[2].Hbl();
+      if (dma_list_[2].HsyncTick()) { dma_list_[2].Fetch(); dma_list_[2].Execute(); }
    }
 }
 DMA* VideoGateArray::GetDMAChannel(int channel)

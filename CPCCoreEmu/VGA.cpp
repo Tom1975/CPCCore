@@ -176,6 +176,7 @@ void GateArray::Reset()
    h_old_sync_ = false;
    hsync_ = false;
    vsync_ = false;
+   c_vsync_ = false;
 
    last_block_ = nullptr;
    monitor_pending_ = false;
@@ -353,8 +354,10 @@ void GateArray::FinalizeBlock()
       }
       if (p == vsync_rise)
       {
+         // HCNT (40010 sheet 8) : the rising edge (U810) clears U814-U829, not U809, its bit 0. A VSYNC
+         // restarted before the 26th HSYNC, after an odd number of them, counts from 1 (see TickSignals)
+         v26_ = (cblack_vsync_ && v26_ < 26) ? (v26_ & 1) : 0;
          cblack_vsync_ = true;
-         v26_ = 0;
          vsync_black_end_in_ = -1;
       }
       while (next < nb_black_edges_ && black_edges_[next].pixel == p)
@@ -553,7 +556,12 @@ void GateArray::TickSignals()
       }
 
       if (vsync_)
+      {
          vsync_counter_++;
+         // SIG_GA_VSYNC (compendium 16.2.3) : the same HSYNC counter (HCNT) decoded on 2 sets it, on 6 clears it
+         if (vsync_counter_ == 2) c_vsync_ = true;
+         if (vsync_counter_ == 6) c_vsync_ = false;
+      }
 
       if (vsync_ && (vsync_counter_ == 26))
       {
@@ -660,10 +668,16 @@ void GateArray::TickSignals()
 
    if (v_old_sync_ == false && sig_handler_->v_sync_ == true)
    {
-      // Wait for two HSync
-      wait_for_hsync_ = 2;
+      // HCNT (40010 sheet 8, U809 U814 U820 U825 U829) : ripple counter of the HSYNC falling edges, held
+      // by U805 once it reaches 26 HSYNC (HCNTLT28). The VSYNC rising edge (U803/U810, sampled by CCLK)
+      // clears U814 to U829 but not U809, its bit 0 : a VSYNC restarted before the 26th HSYNC, after an
+      // odd number of them, keeps the bit 0 at 1. HCNT then reaches 2 (U806, INTCNTCLR_4 : R52 back to 0)
+      // after 1 HSYNC instead of 2, and 26 (end of the VSYNC of the GATE ARRAY) after 25.
+      // Measured on a real CPC (RealCpc T2, 2026-11-18) : 17 HSYNC 334 or 346, 18 HSYNC 340.
+      const unsigned char hcnt_bit0 = (vsync_ && vsync_counter_ < 26) ? (vsync_counter_ & 1) : 0;
+      wait_for_hsync_ = 2 - hcnt_bit0;
       vsync_ = true;
-      vsync_counter_ = 0;
+      vsync_counter_ = hcnt_bit0;
       vsync_rise_pending_ = true;
 
    }
@@ -671,6 +685,12 @@ void GateArray::TickSignals()
    v_old_sync_ = sig_handler_->v_sync_;
    h_old_sync_ = sig_handler_->h_sync_;
 
+   if (plus_)
+   {
+      // DMA sequencer : the fetches and executions scheduled at a previous HSYNC rise
+      for (int c = 0; c < 3; ++c)
+         dma_list_[c].Clock();
+   }
    if (sig_handler_->hsync_raise_)
    {
       // DMA ?
@@ -1057,10 +1077,11 @@ void GateArray::TickIO()
    }
    // PAL
 
-   // Selected by A15 = 0. A14 must be 1 on the CPC "old" (compendium 5.1 : with A14 = 0 the PAL is
-   // selected on a few CPC only), it can be 0 or 1 with the ASIC of the CPC+.
+   // Selected by A15 = 0 alone, A14 = 0 or 1. Measured on 3 real CPC (CRTC 0, 1, 2 ; disquettes de test, PALA14,
+   // 2026-11-19) : &01C4 selects the bank on all of them, &3FC4 on the CRTC 0 and 2. The compendium (5.1, note *) finds
+   // A14 = 0 selecting the PAL "on some CPC only" : on &3Fxx / &3Exx the CRTC 1 drives the bus too (CSig::Out).
    const unsigned short pal_address = address_bus_->GetShortBus();
-   if (pal_present_ && (pal_address & 0x8000) == 0x0000 && (plus_ || (pal_address & 0x4000) == 0x4000))
+   if (pal_present_ && (pal_address & 0x8000) == 0x0000)
    {
       // todo
       switch (data & 0xE0)
@@ -1189,22 +1210,43 @@ void GateArray::DrawSprites(int * buffer_display)
    }
 }
 
+// DMA sequencer of the ASIC, started by the rise of the HSYNC. PROVISIONAL MODEL (no schematic : model of the
+// measures of plusdma on a real 6128 Plus, 2026-11-20, RealCpc README "1 bis", P12). A slot counter clocked
+// by the microsecond, cleared by the HSYNC rise. From its 3rd microsecond, the RAM goes to the channels that
+// asked for it at the HSYNC (channel enabled in DCSR, not in PAUSE), one microsecond each, channel 0 first
+// (priority encoder) : the 2 bytes of the instruction. The instructions are then executed in the same order,
+// one per microsecond, after the last fetch. Measured, section A (DCSR read after d us, synchro on the PRI) :
+// one channel alone, any of the three, sets its INT flag 3 us after the HSYNC rise ; the 3 channels set
+// theirs 5, 6 and 7 us after it (channel 0, 1, 2). PLUSDMA2 : the INT of channel 0 alone comes 3 us
+// after the PRI.
 void GateArray::HandleDMA()
 {
-   unsigned char dcsr = memory_->GetDCSR();
-   if ((dcsr & 0x1) == 0x1)
+   const unsigned char dcsr = memory_->GetDCSR();
+   bool fetch[3] = { false, false, false };
+   int requests = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[0].Hbl();
+      if ((dcsr & (1 << c)) == 0)
+      {
+         dma_list_[c].ClearPrescalarWrite();
+      }
+      else if (dma_list_[c].HsyncTick())
+      {
+         fetch[c] = true;
+         ++requests;
+      }
    }
-   if ((dcsr & 0x2) == 0x2)
+   int slot = 0;
+   for (int c = 0; c < 3; ++c)
    {
-      dma_list_[1].Hbl();
-   }
-   if ((dcsr & 0x4) == 0x4)
-   {
-      dma_list_[2].Hbl();
+      if (fetch[c])
+      {
+         dma_list_[c].Schedule(2 + slot, 2 + requests + slot);
+         ++slot;
+      }
    }
 }
+
 DMA* GateArray::GetDMAChannel(int channel)
 {
    return &dma_list_[channel];

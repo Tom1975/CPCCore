@@ -491,13 +491,17 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
       //   AE	 1	 CRTC horizontal sync width counter (note 5)
       machine_->GetCRTC()->horinzontal_pulse_ = header[0xAE];
       //   AF	 1	 CRTC vertical sync width counter (note 6)
-      machine_->GetCRTC()->scanline_vbl_ = header[0xAF];
+      // In lines ; the CRTC 1 counts half lines (CRTC_1.cpp) : the count starts on a line start
+      machine_->GetCRTC()->scanline_vbl_ = (machine_->GetCRTC()->type_crtc_ == CRTC::UM6845R)
+         ? ((header[0xAF] << 1) & 0x1F) : header[0xAF];
 
       //   B0-B1	 2
       //   CRTC state flags. (note 7)
       //   Bit	 Function
       //   0	 if "1" VSYNC is active, if "0" VSYNC is inactive (note 8)
       machine_->GetCRTC()->ff4_ = ((header[0xB0]&0x01)==0x01);
+      // CRTC 3/4 : C3h counts from 1 on the first VSYNC line (CRTC_3_4.cpp), the snapshot gives the elapsed lines
+      machine_->GetCRTC()->c3h_status_ = machine_->GetCRTC()->ff4_ ? ((header[0xAF] + 1) & 0x0F) : 0;
       //   1	 if "1" HSYNC is active, if "0" HSYNC is inactive (note 9)
       machine_->GetSig()->h_sync_ = ((header[0xB0]&0x02)==0x02);
       // The .SNA has no separate internal HSYNC / pin : both take the saved state
@@ -1512,7 +1516,13 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
    //   AE	 1	 CRTC horizontal sync width counter (note 5)
    header[0xAE] = machine_->GetCRTC()->horinzontal_pulse_ ;
    //   AF	 1	 CRTC vertical sync width counter (note 6)
-   header[0xAF] = machine_->GetCRTC()->scanline_vbl_ ;
+   {
+      CRTC* crtc = machine_->GetCRTC();
+      const bool c3h = (crtc->type_crtc_ == CRTC::AMS40489 || crtc->type_crtc_ == CRTC::AMS40226);
+      // In lines : the CRTC 1 counts half lines (CRTC_1.cpp)
+      header[0xAF] = c3h ? ((crtc->ff4_ ? (crtc->c3h_status_ - 1) : 0) & 0x0F)
+         : (crtc->type_crtc_ == CRTC::UM6845R) ? (crtc->scanline_vbl_ >> 1) : crtc->scanline_vbl_;
+   }
 
    //   B0-B1	 2
    data = 0;

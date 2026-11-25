@@ -61,18 +61,21 @@ void CRTC::ClockTick34 ()
    // Counter actions, all evaluated when C0 restarts at 0 (Compendium 10.3.4, 11.2.6, 12.5)
    if (hcc_ == 0 )
    {
-      // Vertical sync width counter
-      if (ff4_)    // CE
+      // Vertical sync width counter C3h (16.3), 4 bits : loaded with 1 by the VSYNC start (flip flop below), it
+      // counts the lines. The C3h == R3h comparator, true during the last VSYNC line, resets the VSYNC on the line
+      // start that follows it ; R3h = 0 gives 16 lines (C3h wraps to 0). The counter is enabled by a value other
+      // than 0, or by the VSYNC as long as the comparator does not end it : it runs past the VSYNC up to 0, where it
+      // stops. The same comparator output is the status 1 bit 5 (21.3.4.1, CRTC::ReadRegister).
+      // PROVISIONAL (RealCpc/README.md, P6) : the run past the VSYNC comes from SHAKER D3 #03C8 (R3h = 8 : bit 5 at
+      // 1 on 15 lines), #03C9 (R3h = 7 : 0 on one line)
+      const bool c3h_eq_r3h = (c3h_status_ == (vertical_sync_width_ & 0x0F));
+      if (ff4_ && c3h_eq_r3h)
       {
-         // C3h is a 4-bit counter : R3h=0 (or a fixed 16) ends the VSYNC after 16 lines
-         scanline_vbl_ ++;
-         scanline_vbl_ &= 0x0F;
-
-         if (scanline_vbl_ == (vertical_sync_width_ & 0x0F))
-         {
-            scanline_vbl_ = 0;
-            ff4_reset = true;
-         }
+         ff4_reset = true;
+      }
+      if (c3h_status_ != 0 || (ff4_ && !c3h_eq_r3h))
+      {
+         c3h_status_ = (c3h_status_ + 1) & 0x0F;
       }
 
       // VMA is reloaded from VMA'
@@ -303,20 +306,11 @@ void CRTC::ClockTick34 ()
    {
       ff4_ = false;
    }
-   else
+   else if (ff4_set)
    {
-      if (!ff4_reset && ff4_set)
-      {
-         ff4_ = true;
-         if ((scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
-      }
-      else if (ff4_reset && ff4_set)
-      {
-         // Nothing .
-         int dbg = 1;
-         if (ff4_ && (scanline_vbl_ + 1 == vertical_sync_width_)) status1_ &= ~0x20;
-      }
-      
+      // A VSYNC start (also one that restarts on its end, 16.4.4) loads C3h with 1
+      ff4_ = true;
+      c3h_status_ = 1;
    }
 
 

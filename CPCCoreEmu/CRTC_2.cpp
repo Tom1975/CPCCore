@@ -7,7 +7,9 @@
 // CRTC 2 (MC6845) - Compendium 11.2.5, 12.4, 13.4, 15.4.4, 15.5, 15.6, 16.4.3, 17.4.3, 18.2.2
 //
 // One call is one character clock edge. The frame end is driven by a "Dernière Ligne" (DL) state :
-// - last_line_ (DL)         evaluated at the end of character 0 : C4==R4 with the current R4, but C9==R9
+// - last_line_ (DL)         evaluated at the end of character 0 of a line start (C0 returned to 0 by the C0==R0
+//                           reset ; C0 overflowing 255 -> 0 does not clock it, PROVISIONAL, RealCpc README P11) :
+//                           C4==R4 with the current R4, but C9==R9
 //                           sampled at the start of the character (c9_eq_r9_at_start_ : a R9 written on
 //                           C0=0 is seen too late). Refused if the previous line was already a last line
 //                           (DLP) or if the HSYNC output is active on C0=0. During the line it is also set by a rising
@@ -50,6 +52,28 @@ void CRTC::ClockTick2 ()
    // C4==R7 comparator output during the character that ends (see VSYNC below)
    const bool vsync_eq_in_previous_char = (vcc_ == registers_list_[7]);
 
+   // VMA' : C0 == R1 met only after the start of the character, by a R1 written during it (R1 = C0) : only the OR
+   // strobe of the load is done, at the end of the character (17.4.3 : VMA' is loaded by an AND then an OR).
+   // PROVISIONAL (RealCpc/README.md, P5) : SHAKER R1 STORIES #009A (R1 = 63 written on C0 = 63 on each line, then
+   // R1 = 64) shows identical character rows of an address far from the text : VMA' |= VMA reaches a fixed value.
+   // A full load gives different rows, the AND alone repeats the title row. R1 moved away during C0 == R1 keeps
+   // the load of the start of the character (17.4.3, p186)
+   if (prev == registers_list_[1] && !r1_load_at_start_)
+   {
+      // Same source selection as the strobe of the start of the character (DL, or the last additional line)
+      if (last_line_ || LastAdditionalLine2())
+         bu_ |= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
+      else if (vlc_ == registers_list_[9])
+         bu_ |= ma_;
+   }
+
+   // The character C0 = 0 that ends is a line start (C0 returned to 0 by the C0 == R0 reset) or C0 overflowing
+   // 255 -> 0 in a line whose R0 was written below C0. DL is clocked by the line start only. PROVISIONAL (RealCpc
+   // README P11) : R0ZTEST on a real CRTC 2, R0 = 0 written on C0 = 29 of the last line, R0 = 63 512 or 1024 us later :
+   // the frame ends (1429, 2496 steps of 12 us) although DLP sampled this last line during its HSYNC ; a DL clocked
+   // again on the overflow refuses it (3562, 832)
+   const bool char0_is_line_start = c0_from_reset_;
+
    // Clock tick
    const bool c0_reset = (hcc_ == registers_list_[0]);
    if (c0_reset)
@@ -61,8 +85,9 @@ void CRTC::ClockTick2 ()
       hcc_++;
       ma_++;
    }
+   c0_from_reset_ = c0_reset;
 
-   if (c0_reset && prev == 0)
+   if (c0_reset && prev == 0 && char0_is_line_start)
    {
       // A line of one character (R0 = 0) : its C0==0 position is also its end. The "Derniere Ligne"
       // state is evaluated with the counters of this line, before those of the next one (13.4 : R0 = 0
@@ -87,8 +112,8 @@ void CRTC::ClockTick2 ()
       }
 
       const bool c9_eq_r9 = C9EqualsR9();
-      // Additional interlace line when ParitéR6 is odd, counted as one more R5 line (19.6.3)
-      const unsigned char adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
+      // Additional interlace line when ParitéR6 is odd : one more line after the R5 lines (19.6.3)
+      const bool interlace_pending = InterlaceOn() && parity_r6_;
 
       // FE : the line that ends follows a frame end that produced no additional line. The additional line
       // condition (interlace && ParitéR6) is decoded during it : met there (IVM switched on during the first
@@ -103,28 +128,45 @@ void CRTC::ClockTick2 ()
       }
       else if (adjust_)
       {
-         // The interlace line (the one after the R5 lines) is no longer one when the interlace is switched
-         // off during it : the additional management ends, C9 and C4 count as usual and C4 == R4 can make a
-         // last line again (11.9)
-         if (vertical_adjust_counter_ == registers_list_[5] && !InterlaceOn())
+         if (interlace_add_line_)
          {
-            adjust_ = false;
+            // The interlace line ends the frame whatever R5 (SHAKER C ADD LINE R8 #02CB : R5 = 0 written on it).
+            // It is no longer one when the interlace is switched off during it : the additional management ends,
+            // C9 and C4 count as usual and C4 == R4 can make a last line again (11.9)
+            interlace_add_line_ = false;
+            if (InterlaceOn())
+               new_frame = true;
+            else
+               adjust_ = false;
          }
          else
          {
-            // C5 counts the additional lines (11.2.5)
+            // C5 counts the additional lines ; the C5 + 1 == R5 comparator ends them (11.2.5), so a R5 written
+            // below C5 + 1 makes C5 overflow (11.3.1, SHAKER C ADD LINE R5 ON LAST LINE #02C9, "#0080 expected").
+            // The interlace line follows the R5 lines (SHAKER #02CB : R5 3 -> 1 on the 2nd additional line with
+            // R8 = 3, "#0084 expected" : the overflow, then the interlace line)
             vertical_adjust_counter_ = (vertical_adjust_counter_ + 1) & 0x1F;
-            new_frame = (vertical_adjust_counter_ == adjust_lines);
-            frame_end_no_extra_ = new_frame && (adjust_lines == registers_list_[5]);
+            if (vertical_adjust_counter_ == registers_list_[5])
+            {
+               if (interlace_pending)
+                  interlace_add_line_ = true;
+               else
+               {
+                  new_frame = true;
+                  frame_end_no_extra_ = true;
+               }
+            }
          }
       }
       else if (last_line_)
       {
-         if (adjust_lines != 0)
+         if (registers_list_[5] != 0 || interlace_pending)
          {
-            // The additional lines are displayed before C4 and C9 return to 0
+            // The additional lines are displayed before C4 and C9 return to 0 ; with R5 = 0 the interlace line
+            // comes at once
             adjust_ = true;
             vertical_adjust_counter_ = 0;
+            interlace_add_line_ = (registers_list_[5] == 0);
          }
          else
          {
@@ -133,12 +175,15 @@ void CRTC::ClockTick2 ()
          }
       }
 
+      // The vertical border is lifted by the start of a frame only (frame_started_, ClockDispEnHalvesCrtc02)
+      if (new_frame) frame_started_ = true;
       if (!new_frame)
       {
          // C9 returns to 0 on R9 and increments C4, whatever R4 : only DL returns C4 to 0
          // C9.IVM counts all the time : reset with C9, and when C9 reaches R9/2 (19.8.3)
          if (c9_eq_r9)
          {
+            frame_started_ = false;
             vlc_ = 0;
             vcc_ = (vcc_ + 1) & 0x7F;
             c9_ivm_ = 0;
@@ -155,6 +200,7 @@ void CRTC::ClockTick2 ()
          c9_ivm_ = 0;
          vcc_ = 0;
          adjust_ = false;
+         interlace_add_line_ = false;
 
          // Next frame : ParitéFrame = ParitéR6 (19.5.4)
          even_field_ = !parity_r6_;
@@ -163,13 +209,13 @@ void CRTC::ClockTick2 ()
       // With R1=0, VMA' is loaded (with the DL state of the line that ends) before VMA=VMA' (17.4.3).
       // VMA' takes R12/R13 by two strobes of the C0=R1 character, both gated by DL : an AND (clears the bits
       // at 0) then an OR (sets the bits at 1). On C0=0 the DL state changes between them : on the first line
-      // of a frame only the AND is done, on the VMA' loaded with VMA on C0=0 of the last line (AND bug)
-      if (registers_list_[1] == 0)
+      // of a frame only the AND is done, on the VMA' loaded with VMA on C0=0 of the last line (AND bug).
+      // Without DL, VMA' takes "the VMA of the position C0=0" (17.4.3) : the VMA of the character 0, that is
+      // VMA' itself, not the count of the previous line (SHAKER R1 STORIES #0098 : R1 = 0 at the start of the
+      // lines C9 = R9 does not move the character rows on the photo, R1 = 40 written later on the line loads VMA')
+      if (registers_list_[1] == 0 && last_line_)
       {
-         if (last_line_)
-            bu_ &= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
-         else if (vlc_ == registers_list_[9])
-            bu_ = ma_;
+         bu_ &= registers_list_[13] + ((registers_list_[12] & 0x3F) << 8);
       }
 
       // VMA is loaded with VMA', on the first line of a frame too (17.4.3)
@@ -231,7 +277,7 @@ void CRTC::ClockTick2 ()
    const bool first_line = (vcc_ == 0 && vlc_ == 0);
    // Evaluated on the C0==0 position, at the end of the character (a line of one character, R0 = 0,
    // is evaluated before the next line starts, see above)
-   if (prev == 0 && !c0_reset)
+   if (prev == 0 && !c0_reset && char0_is_line_start)
    {
       last_line_ = line_eq && !dlp_ && !hsync_on_line_start_;
    }
@@ -271,8 +317,8 @@ void CRTC::ClockTick2 ()
    // and the next frame does not start on the offset : SHAKER R5 STORIES #01F6 (R9 7 -> 3 on the additional
    // line 1, R12 written after C0 = R1 of the line C4 = R4), VERTICAL SCROLL #00CB (R5 = R9 + 1 : same photo
    // as the CRTC 1, which takes R12/R13 on the frame start)
-   const unsigned char frame_adjust_lines = registers_list_[5] + ((InterlaceOn() && parity_r6_) ? 1 : 0);
-   const bool adjust_last_line = adjust_ && ((vertical_adjust_counter_ + 1) & 0x1F) == frame_adjust_lines;
+   const bool adjust_last_line = LastAdditionalLine2();
+   r1_load_at_start_ = (hcc_ == registers_list_[1]);
    if (hcc_ == registers_list_[1] && !c0_reset)
    {
       if (last_line_ || adjust_last_line)
@@ -283,27 +329,40 @@ void CRTC::ClockTick2 ()
 
    ClockParityR6();
 
-   // The border is not lifted on C0=0 during a HSYNC (15.5)
-   if (hcc_ == 0 && !hsync_)
-   {
-       ff1_set = true;
-   }
-
-   if (hcc_ == registers_list_[1])
+   // PROVISIONAL (RealCpc/README.md, P3). Horizontal border of the CRTC 2 and HSYNC :
+   // - the C0=0 comparator sets a "line start" latch ; the latch sets the display flip flop (lifts the border)
+   //   only while the HSYNC is not active : a line start met during a HSYNC lifts the border on the character
+   //   where the HSYNC ends ;
+   // - C0=R1, sampled at the end of the character with the R1 written during it (17.3, 17.5.1), resets the flip flop
+   //   (border) and the latch ; during that character the live comparator gates the output (R1BorderNow). A line
+   //   start on the same edge (R1 = R0) wins : the next line is displayed (17.6.1).
+   // 15.5 says "during the HSYNC the C0=0 test is not done". The photos of SHAKER D3 and D4 on CRTC 2 (a second
+   // HSYNC from C0=#3B..#3E that ends on C0=1, #0316 #0321 #032C #0337 #037F #0380) keep the text on these
+   // lines : the test is done, its effect waits for the end of the HSYNC. SHAKER A3 (RVMB, R0=3, R1=3, a HSYNC
+   // of 14 characters) keeps its border margin : the HSYNC ends there on C0=R1.
+   // The screens of 15.6 that stay border (a HSYNC on C0=0 on every line) come from the vertical border : the
+   // last line is cancelled, C4 overflows and the frame never starts again (frame_started_).
+   if (prev == registers_list_[1])
    {
       ff1_reset = true;
+      line_start_pending_ = false;
+   }
+   if (hcc_ == 0)
+   {
+      line_start_pending_ = true;
+   }
+   if (line_start_pending_ && !hsync_)
+   {
+       ff1_set = true;
+       line_start_pending_ = false;
    }
 
    // Flip flop computation
-   if ( ff1_reset && !ff1_set)
-   {
-      ff1_ = false;
-   }
-   else if ( !ff1_reset && ff1_set)
+   if (ff1_set)
    {
       ff1_ = true;
    }
-   else if ( ff1_reset && ff1_set)
+   else if (ff1_reset)
    {
       ff1_ = false;
    }
@@ -319,4 +378,13 @@ void CRTC::ClockTick2 ()
    {
       ff4_ = true;
    }
+}
+
+// CRTC 2 : the line in progress is the last additional line of the frame : the interlace line, or the last R5 line
+// (C5 + 1 == R5) when no interlace line follows it
+bool CRTC::LastAdditionalLine2() const
+{
+   if (!adjust_) return false;
+   if (interlace_add_line_) return true;
+   return ((vertical_adjust_counter_ + 1) & 0x1F) == registers_list_[5] && !(InterlaceOn() && parity_r6_);
 }

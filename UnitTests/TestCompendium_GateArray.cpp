@@ -620,6 +620,9 @@ std::vector<int> ExpectedSplit(int from, int to, unsigned char b, bool crtc1)
 std::vector<int> MeasuredSplit(CRTC::TypeCRTC type, int from, int to, unsigned char byte)
 {
    Machine m(type);
+   // With R3 = 2 the GATE ARRAY sends no C-HSYNC : the line oscillator of the monitor runs free. Set to
+   // 64 us exactly (H-HOLD), the picture keeps its place.
+   m.Engine().GetMonitor()->SetHorizontalHold(0);
    Prepare(m, from, byte);
    // R1 = 63 : the bytes under the HSYNC are displayed.
    std::vector<unsigned char> p = { z80::kDi };
@@ -935,10 +938,11 @@ TEST(Compendium_16, ASecondCrtcVSyncRestartsTheTwentySixLines)
 }
 
 /////////////////////////////////////////////////////////////
-// 17.5 : R1 = 0 written by an OUT (C),r8 started on C0 = &3B .. &3E (R0 = &3F) : taken for the next line
-// (C0 == R1 on its first character : border) up to the start on &3D on CRTC 0, 1, 2 (I/O on &3F), only
-// on &3B on CRTC 3, 4 (their OUT (C),r8 is taken one microsecond later, 4.4.3).
-
+// 17.5 : R1 = 0 written by an OUT (C),r8 started on C0 = &3B .. &3E (R0 = &3F), whose I/O is on its 3rd
+// microsecond. Chronograms p187 : on CRTC 0, 1, 2 the starts &3C, &3D, &3E border the next line (I/O on &3E, &3F
+// and C0 = 0 : the C0 == R1 comparator is sampled at the end of the character, with the R1 written in it), &3F does
+// not (I/O on C0 = 1). On CRTC 3, 4 only &3C does : their OUT (C),r8 is taken one microsecond later (4.4.3) and they
+// compare C0 with R1 at the start of the character.
 namespace
 {
 // Machine on a displayed line, then OUT (C),C (R1 = 0) started after 'nops' NOPs. Returns the C0 the OUT
@@ -987,20 +991,18 @@ void CheckR1Zero(const R1ZeroCase& t)
 }
 }
 
-TEST(Compendium_17, R1ZeroTakenForTheNextLineUpToAnIoOnC0EqualsR0)
+TEST(Compendium_17, R1ZeroTakenForTheNextLineUpToAnIoOnItsFirstCharacter)
 {
-   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::HD6845S, "6128", 0x3D }, R1ZeroCase{ CRTC::UM6845R, "6128", 0x3D },
-                                R1ZeroCase{ CRTC::MC6845, "6128", 0x3D } })
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::HD6845S, "6128", 0x3E }, R1ZeroCase{ CRTC::UM6845R, "6128", 0x3E },
+                                R1ZeroCase{ CRTC::MC6845, "6128", 0x3E } })
       CheckR1Zero(t);
 }
 
-// CRTC 3, 4 : the OUT (C),r8 started on &3C (I/O taken on the 4th microsecond, C0 = &3F = R0) still gives
-// the border in the emulation, too late on the real machine. The ASIC takes an OUT (C),r8 one microsecond
-// later than CRTC 0 (4.4.3, Z80_IoTiming.OutCR8IsOneMicrosecondLaterOnAsicCrtc) ; for R1 = 0 it should be
-// one more : not understood (C0 == R1 evaluated one character ahead would also move 17.3).
-TEST(Compendium_17, DISABLED_R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus4OnTheAsic)
+// CRTC 3, 4 : the OUT (C),r8 started on &3C (I/O taken on the 4th microsecond, C0 = &3F = R0) is the last one
+// that borders the next line (chronograms p187)
+TEST(Compendium_17, R1ZeroTakenOnlyUpToAnOutStartedOnR0Minus3OnTheAsic)
 {
-   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::AMS40489, "6128PLUS", 0x3B }, R1ZeroCase{ CRTC::AMS40226, "6128PLUS", 0x3B } })
+   for (const R1ZeroCase& t : { R1ZeroCase{ CRTC::AMS40489, "6128PLUS", 0x3C }, R1ZeroCase{ CRTC::AMS40226, "6128PLUS", 0x3C } })
       CheckR1Zero(t);
 }
 // 6.1.4, 20.1-20.2 : address of the video RAM read by the GATE ARRAY. R12 bits 5-4 -> A15-A14,

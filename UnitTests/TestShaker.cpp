@@ -236,6 +236,7 @@ std::string ReadFile(const fs::path& p)
 // The scripts are run as distributed (CSL 1.5, wait_ssm), with two changes listed in the report :
 // - CRTC 3 is the CRTC of the ASIC, the scripts run on a 6128 Plus (SHAKER tells CRTC 3 from 4 by the
 //   ASIC). Its cartridge starts on a menu : f1 (keypad) selects BASIC before the disk is inserted.
+// - module B, CRTC 0 : the R9 base 5 of the photos instead of the base 7 (see below).
 // - SHAKER reads the matrix : its "Z" key (R9 base) is line 8 bit 7, the key marked W on the AZERTY of
 //   the 6128 FR. The key marked Z (line 7 bit 3) is read by nothing, the script would be stuck.
 std::string FixScript(std::string text, int crtc, std::vector<std::string>& changes)
@@ -248,6 +249,25 @@ std::string FixScript(std::string text, int crtc, std::vector<std::string>& chan
          text.insert(pos, "key_output '\\(FN1)'\nwait 2000000\n");
          changes.push_back("6128 Plus : key_output '\\(FN1)' (cartridge menu, BASIC) before disk_insert");
       }
+   }
+   // Module D, CRTC 3/4 STATUS FIESTA (#03C0) : once every status test passes the page takes about 56 s ; the 45 s of
+   // the script let the next key fall during it, the following screens come one key late and the last one is lost
+   const std::string fiesta = "wait 45000000 ; 3c0", fiesta_long = "wait 60000000 ; 3c0";
+   const size_t fiesta_pos = text.find(fiesta);
+   if (fiesta_pos != std::string::npos)
+   {
+      text.replace(fiesta_pos, fiesta.size(), fiesta_long);
+      changes.push_back("STATUS FIESTA #03C0 : wait 45 s -> 60 s (the page takes about 56 s when every test passes)");
+   }
+   // Module B, CRTC 0, INTERLACE C4/C9 COUNTERS : the script passes from the base 6 to the base 7 ('X') before the
+   // codes #013B-#018E, #0126-#013A, #03ED-#03F0. SHAKER gives the same codes to the bases 5 and 7 ; the site files
+   // them as R9E57 and their photos show "UPD R9=5" (base 5, 'Z' from the base 6), as the CRTC 2 script does
+   const std::string base7 = "key_output 'X'\t; Passe sur R9 BASE=7 (parity Even)";
+   const size_t base7_pos = (crtc == 0) ? text.find(base7) : std::string::npos;
+   if (base7_pos != std::string::npos)
+   {
+      text.replace(base7_pos, base7.size(), "key_output 'Z'\t; Passe sur R9 BASE=5 (parity Even)");
+      changes.push_back("Module B CRTC 0 : R9 base 5 ('Z') instead of 7 ('X') before #013B, as the photos R9E57 (UPD R9=5) and the CRTC 2 script");
    }
    const std::string key_z = "key_output 'Z'", key_w = "key_output 'W'";
    size_t count = 0;
@@ -553,6 +573,10 @@ TEST(Csl, ShakerZKeyIsTheFrenchW)
    EXPECT_EQ("key_output 'W'\t; base\nkey_output 'X'\nkey_output 'W'\n",
       FixScript("key_output 'Z'\t; base\nkey_output 'X'\nkey_output 'Z'\n", 1, changes));
    EXPECT_EQ(1u, changes.size());
+   changes.clear();
+   EXPECT_EQ("key_output 'W'\t; Passe sur R9 BASE=5 (parity Even)\n",
+      FixScript("key_output 'X'\t; Passe sur R9 BASE=7 (parity Even)\n", 0, changes));
+   EXPECT_EQ(2u, changes.size());
 }
 
 TEST(Csl, WaitRunsEmulatedTime)

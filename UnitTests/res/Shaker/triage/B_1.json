@@ -193,23 +193,23 @@
  },
  "00CB": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CC": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CD": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CE": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CF": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "0192": {
   "verdict": "ok",
@@ -396,24 +396,24 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01CF": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, bande noire), photo et 4 émulateurs stables"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D0": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D1": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D2": {
-  "verdict": "ko",
-  "why": "page en décrochage (haut bruité, barres en bas), photo stable"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01D3": {
-  "verdict": "ko",
-  "why": "bande noire qui coupe les barres et 3e ligne de texte absente ; photo et 4 émulateurs stables"
+  "verdict": "ok",
+  "why": "revu 2026-11-17 : page stable, même motif de barres et même texte que la photo (le décrochage du 1er pré-tri a disparu avec les correctifs CRTC 1)"
  },
  "01F0": {
   "verdict": "ok",
@@ -505,7 +505,7 @@
  },
  "0216": {
   "verdict": "ko",
-  "why": "STATUS : photo 20/00 et R31=#7F, Sugarbox 60/40 et R31=#1F (bit 6 en trop, R31 différent) ; C0=#20 au lieu de #22"
+  "why": "STATUS : le bit 6 (registre crayon optique plein) est corrigé, statuts identiques à la photo (20/00). Reste « READ VALUE » : SHAKER fait IN A,(C) sur &BD1F (port d'écriture : le CRTC voit un cycle d'écriture et ne pilote pas le bus) ; photo #7F, Sugarbox #1F (dernier octet du bus). Bus flottant non modélisé, pas d'explication du bit 7 à 0"
  },
  "01E8": {
   "verdict": "doute",

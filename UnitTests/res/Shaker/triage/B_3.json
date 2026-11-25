@@ -201,59 +201,59 @@
  },
  "00CB": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CC": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CD": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CE": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CF": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "0192": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0193": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0194": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0195": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0196": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0197": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0198": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "0199": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "019A": {
-  "verdict": "ko",
-  "why": "barres en biais en haut de la zone et décalage de la bande de texte ; photo et Amspirit-lite droites. Cause possible : moniteur, à établir"
+  "verdict": "ok",
+  "why": "re-tri 2026-11-17 : même image que la photo (suite des barres selon C9, texte). La rayure de chaque barre dépend de l'instant : R13 alterne toutes les 1,28 s (texte de la page) ; Sugarbox alterne « orange partout » (= rouge de la photo) et « orange puis bleu foncé après la 4e barre » (photo CRTC 0). La barre verte de gauche et la barre partielle de droite sont hors du cadre du tube, comme sur CRTC 1"
  },
  "019B": {
   "verdict": "doute",

@@ -15,7 +15,6 @@
 
 CDisplay::CDisplay () : screenshot_detection_(false), 
                         window_(nullptr), 
-                        renderTexture_(nullptr), 
                         framebuffer_(nullptr), 
                         framebufferArray_(nullptr),
                         screenshot_take_(false),
@@ -28,7 +27,6 @@ CDisplay::CDisplay () : screenshot_detection_(false),
 
 CDisplay::~CDisplay()
 {
-   delete renderTexture_;
    delete framebuffer_;
    delete window_;
    delete[]framebufferArray_;
@@ -70,14 +68,16 @@ void CDisplay::Show ( bool bShow )
 void CDisplay::Init (bool show)
 {
    if (show)
-      window_ = new sf::RenderWindow(sf::VideoMode(680, 500), "My window");
-   framebuffer_ = new sf::Texture();
-   renderTexture_ = new sf::RenderTexture();
-   framebufferArray_ = new int[REAL_DISP_X * REAL_DISP_Y ];
-   if (!framebuffer_->create(REAL_DISP_X, REAL_DISP_Y))
    {
-      // error...
+      window_ = new sf::RenderWindow(sf::VideoMode(680, 500), "My window");
+      framebuffer_ = new sf::Texture();
+      if (!framebuffer_->create(REAL_DISP_X, REAL_DISP_Y))
+      {
+         // error...
+      }
    }
+   framebufferArray_ = new int[REAL_DISP_X * REAL_DISP_Y ];
+   frame_.create(REAL_DISP_X, REAL_DISP_Y);
 
    Reset();
 
@@ -117,7 +117,7 @@ void CDisplay::ScreenshotToFile(const char* pathFile)
    // Save screenshot to file
    sf::Image screen_shot;
    screen_shot.create(680, 500);
-   screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 680, 500 }, true);
+   screen_shot.copy(frame_, 0, 0, { 143, 57, 680, 500 }, true);
    screen_shot.saveToFile(pathFile);
 
 }
@@ -144,7 +144,7 @@ void CDisplay::VSync (bool bDbg)
       // Extract (143, 47, 680, 500) from current image
       sf::Image screen_shot;
       screen_shot.create(680, 500);
-      screen_shot.copy(framebuffer_->copyToImage(), 0, 0, { 143, 57, 680, 500 }, true);
+      screen_shot.copy(frame_, 0, 0, { 143, 57, 680, 500 }, true);
       const unsigned char* screenshot_buffer = screen_shot.getPixelsPtr();
 
       // Compare 
@@ -156,7 +156,7 @@ void CDisplay::VSync (bool bDbg)
          
             ok = false;
       }
-      framebuffer_->update((const sf::Uint8*)framebufferArray_);
+      frame_.create(REAL_DISP_X, REAL_DISP_Y, (const sf::Uint8*)framebufferArray_);
 
       if (ok)
       {
@@ -172,14 +172,14 @@ void CDisplay::VSync (bool bDbg)
    else
    {
       screenshot_found_ = false;
-      framebuffer_->update((const sf::Uint8*)framebufferArray_);
+      frame_.create(REAL_DISP_X, REAL_DISP_Y, (const sf::Uint8*)framebufferArray_);
    }
 
    if (window_)
    {
       if (m_bShow)
       {
-
+         framebuffer_->update(frame_);
          sf::Sprite sprite;
          sprite.setTexture(*framebuffer_);
          sprite.setTextureRect(sf::IntRect(143, 47, 680, 500));

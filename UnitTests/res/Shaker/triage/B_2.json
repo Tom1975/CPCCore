@@ -385,23 +385,23 @@
  },
  "00CB": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CC": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CD": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CE": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "00CF": {
   "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "why": "même image ; le nombre dans le décrochement est un compteur de trames (0 à 3F, +1 par trame) : il dépend de l'instant de la capture, vérifié en capturant #00CB à six instants (09, 2E, 13, 38, 1D, 02)"
  },
  "0191": {
   "verdict": "ok",
@@ -584,8 +584,8 @@
   "why": "même image (motifs, positions, texte)"
  },
  "01CB": {
-  "verdict": "ok",
-  "why": "même image (motifs, positions, texte)"
+  "verdict": "moniteur",
+  "why": "la photo montre un décalage que Sugarbox ne reproduit pas ; peut-être imputable au moniteur (utilisateur, 2026-11-16) ; reste identique"
  },
  "01CF": {
   "verdict": "ok",

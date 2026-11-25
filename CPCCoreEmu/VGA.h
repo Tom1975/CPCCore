@@ -95,6 +95,7 @@ public:
    // Sync is already devided into two usable signals
    bool hsync_;
    bool vsync_;
+   bool c_vsync_;   // SIG_GA_VSYNC : vertical sync sent to the monitor (C-VSYNC), from the end of the 2nd HSYNC to the end of the 6th (16.2.3)
    bool speed_;
 
 //protected:

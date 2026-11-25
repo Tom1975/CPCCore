@@ -79,6 +79,7 @@ add_executable( unitTests
                      TestMachineStateExpansions.cpp
                      TestReset.cpp
                      TestAsicPalette.cpp
+                     TestAsicDma.cpp
 
 )
 
