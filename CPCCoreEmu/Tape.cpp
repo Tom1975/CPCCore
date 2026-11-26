@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <vector>
-//#include "simple_regex.h"
 #include <algorithm>
 #include <memory>
 #include <filesystem>
@@ -1191,7 +1190,6 @@ int CTape::InsertTapeDelayed()
       {
          ret = LoadVOC (current_tape_.c_str());
       }
-      //else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
 
 
       else

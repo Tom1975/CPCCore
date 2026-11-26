@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "DskTypeManager.h"
-//#include "simple_regex.h"
 
 
 
@@ -63,26 +62,21 @@ int DskTypeManager::GetTypeFromFile(const char* str)
       [](unsigned char c) { return std::tolower(c); });
 
    if ( strcmp( ext.c_str(), ".rom") == 0)
-   //if (IsExtensionMatch(str, "rom"))
    {
       return 2;
    }
-   //else if (IsExtensionMatch(str, "raw"))
    else if ( strcmp(ext.c_str(), ".raw" ) ==0)
    {
       return 3;
    }
-   //else if (IsExtensionMatch(str, "tap"))
    else if ( strcmp(ext.c_str(), ".tap" ) ==0)
    {
       return 4;
    }
-   //else if (IsExtensionMatch(str, "bin"))
    else if ( strcmp(ext.c_str(), ".bin" )==0)
    {
       return 6;
    }
-   //else if (IsExtensionMatch(str, "cpr"))
    else if ( strcmp(ext.c_str(), ".cpr" )==0)
    {
       return 7;

@@ -4,7 +4,6 @@
 
 #include "MediaManager.h"
 
-//#include "simple_regex.h"
 #include <stdio.h>
 
 
@@ -211,32 +210,26 @@ int MediaManager::GetTypeFromFile(const char*  str)
 
       const char* ext = extens.c_str();
 
-      //if (IsExtensionMatch(str, "rom"))
       if ( strcmp( ext, ".rom" )==0)
       {
          return_type = MEDIA_ROM;
       }
-      //else if (IsExtensionMatch(str, "raw"))
       if ( strcmp( ext, ".raw" )==0)
       {
          return_type = MEDIA_DISK;
       }
-      //else if (IsExtensionMatch(str,"tap"))
       if ( strcmp( ext, ".tap" )==0)
       {
          return_type = MEDIA_TAPE;
       }
-      //else if (IsExtensionMatch(str,"bin"))
       if ( strcmp( ext, ".bin" )==0)
       {
          return_type = MEDIA_BIN;
       }
-      //else if (IsExtensionMatch(str,"cpr"))
       if ( strcmp( ext, ".cpr" )==0)
       {
          return_type = MEDIA_CPR;
       }
-      //else if (IsExtensionMatch(str, "xpr"))
       if ( strcmp( ext, ".xpr" )==0)
       {
          return_type = MEDIA_XPR;
