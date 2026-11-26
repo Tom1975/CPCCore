@@ -85,11 +85,9 @@ public:
 
    virtual void SetWrite(int side, unsigned int track);
    virtual void DumpTrack(int side, unsigned int track, int rev = 0);
-   virtual void DumpTrackRev(int side, unsigned int track, int rev);
 
    virtual int GetCurrentLoadProgress() { return load_progress_; }
 
-   virtual void CombineWithDisk(IDisk* other_disk);
 
    virtual void CleanSide(int side);
    virtual void CleanDisk();
@@ -149,7 +147,6 @@ public:
    virtual void CreateTrackFromMultiRevolutions();
    virtual bool CreateTrackFromRevolution(int side, int track);
    virtual int CreateTrackFromRevolutionWithSize(int side, int track, int size_of_track);
-   virtual int CreateUnformattedTrack(int side, int track);
 
    unsigned char nb_sides_;
    ILog* log_;
@@ -292,7 +289,6 @@ public:
    unsigned char GetNextByte(MFMTrack* track, unsigned int offset);
    unsigned char GetNextByteForRev(int side, unsigned int track, unsigned int offset, int rev);
 
-   unsigned int AdjustSideOfTrack(unsigned char* bit_field, unsigned int nb_bit_in_flux);
 
    int FindEndOfWeakArea(int side, int track, unsigned int* current_search_rev, unsigned int* next_correct_index,
                          unsigned int nb_used_revolutions, int* rev_to_use, bool revolution_wrecked[16]);

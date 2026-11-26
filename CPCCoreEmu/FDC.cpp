@@ -4403,12 +4403,6 @@ unsigned char FDC::GetStatus1()
    return st1;
 }
 
-void FDC::ResetStatus2()
-{
-   status_2_ = 0;
-}
-
-
 unsigned char FDC::GetStatus2()
 {
    unsigned char st2 = status_2_;

@@ -138,11 +138,6 @@ void EmulatorEngine::FlipDisk ( unsigned int DriveNumber )
    GetFDC()->FlipDisk (DriveNumber);
 }
 
-void EmulatorEngine::ReleaseContainer(DataContainer* /*container*/)
-{
-   media_inserted_.Clear();
-}
-
 DataContainer* EmulatorEngine::CanLoad (const char* file, std::vector<MediaManager::MediaType>list_of_types)
 {
    media_inserted_.Clear ();
@@ -1384,32 +1379,10 @@ bool EmulatorEngine::IsDiskPresent ( int drive )
    return GetFDC()->IsDiskPresent ( drive );
 }
 
-void EmulatorEngine::Accelerate ( bool /*speed_on*/)
-{
-   // TODO : Set it with a switch it can be disabled.
-   /*if ( m_bFastTapeLoading )
-      monitor_.Accelerate ( speed_on );*/
-}
 void EmulatorEngine::Resync()
 {
    motherboard_.Resync();
 }
-void EmulatorEngine::StartPrecise(unsigned int NbCycles)
-{
-   // Run precise cycle through the clock generator line (16 Mhz)
-   for (unsigned int i = 0; i < NbCycles; i++)
-   {
-      // Gate array is the only component on the 16 Mhz line. Shunt this to be quicker
-      GetVGA()->PreciseTick ();
-
-      // Monitor tick : Sample this on 16 Mhz, to be synched with Gate Array.
-      GetMonitor()->Tick ();
-
-      // BUS tick : Handle bus datas
-      //m_Sig.Tick ();
-   }
-}
-
 bool EmulatorEngine::LoadBin(const char* path_file)
 {
    bin_to_load_path_ = path_file;
@@ -1503,10 +1476,6 @@ bool EmulatorEngine::LoadBinInt (const char* path_file)
    }
 
    return return_value;
-}
-
-void EmulatorEngine::UpdateEmulator()
-{
 }
 
 void EmulatorEngine::LoadRom(int rom_number, const char* path)

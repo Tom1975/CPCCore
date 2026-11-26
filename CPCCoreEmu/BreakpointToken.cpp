@@ -36,11 +36,6 @@ Token::Token(TokenType token_type, EmulatorEngine* emulator) :token_type_(token_
    }
 }
 
-std::vector<Token>* Token::GetGroup()
-{
-   return group_token_list_;
-}
-
 size_t Token::FindValue(std::string str, int& token_length)
 {
    // convert to lower

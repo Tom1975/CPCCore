@@ -40,10 +40,7 @@ public:
    void SetDataRecorderR ( bool set );
    virtual bool GetCassetteWriteData () {return tape_write_data_level_; };
 
-   void SetPrinterBusy ( bool set );
    void SetExpSignal ( bool set );
-   void SetScreenState  ( bool set );
-   void SetVbl ( bool set );
    void SetAmstradType( unsigned char type );
 
    void SetPsg( Ay8912 * psg) {psg_ = psg;};

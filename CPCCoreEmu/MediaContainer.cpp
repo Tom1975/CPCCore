@@ -17,30 +17,6 @@ MediaContainer::MediaIterator::~MediaIterator()
 
 }
 
-Media* MediaContainer::MediaIterator::GetFirst()
-{
-   if (container_->media_list_.size() == 0)
-      return nullptr;
-   else return &*container_->media_list_.begin();
-}
-
-Media* MediaContainer::MediaIterator::GetNext()
-{
-   ++it_;
-   return &*it_;
-}
-Media* MediaContainer::MediaIterator::GetCurrent()
-{
-   return &*it_;
-}
-
-bool MediaContainer::MediaIterator::IsDone()
-{
-   if (container_->media_list_.size() == 0) return true;
-   return (it_ == container_->media_list_.end()) ;
-}
-
-
 /////////////////////////////////////////////////////////////////
 // MediaContainer Implementation
 /////////////////////////////////////////////////////////////////

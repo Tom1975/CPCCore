@@ -18,7 +18,6 @@ public:
    virtual ~CClockLine(void);
 
    // Set components
-   void InitLine ( int nb_components = 1 );
    void AddComponent (IClockable* new_component);
 
    // Tick

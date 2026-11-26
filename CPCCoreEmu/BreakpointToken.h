@@ -35,7 +35,6 @@ public:
    Token(TokenType, EmulatorEngine* emulator);
 
    TokenType GetType() { return token_type_;  }
-   std::vector<Token>* GetGroup();
 
    virtual IBreakpointItem* CreateBreakpoint();
 

@@ -32,10 +32,6 @@ public:
       MediaIterator(MediaContainer* container);
       virtual ~MediaIterator();
 
-      virtual Media* GetFirst();
-      virtual Media* GetNext();
-      virtual Media* GetCurrent();
-      virtual bool IsDone();
 
    private:
       MediaContainer* container_;

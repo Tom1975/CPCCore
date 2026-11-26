@@ -1325,15 +1325,6 @@ int CAPSFile::AddDataRecord(StreamRecording* record, unsigned char type, int nb_
    return 0;
 }
 
-int CAPSFile::AddShortStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
-                                   unsigned int offset_end)
-{
-   // Record less than 16 bits - So MFM bits !
-   AddDataRecordInBits(record, 1, (offset_end - offset_begin), &buffer[offset_begin]);
-   record->buffer[record->offset++] = 0x00; // End of data
-   return 0;
-}
-
 bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
                                unsigned int offset_end, unsigned int size_of_track)
 {

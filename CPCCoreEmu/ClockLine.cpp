@@ -15,22 +15,6 @@ CClockLine::~CClockLine(void)
    delete[]component_array_;
 }
 
-void CClockLine::InitLine ( int nbComponents )
-{
-   if ( component_array_ != NULL)
-   {
-      delete []component_array_;
-   }
-
-   nb_components_ = 0;
-   if (nbComponents == 0)
-      size_of_component_array_  = 1;
-   else
-      size_of_component_array_ = nbComponents;
-
-   component_array_ = new IClockable*[size_of_component_array_];
-}
-
 void CClockLine::AddComponent (IClockable* new_component)
 {
    if ( nb_components_ >= size_of_component_array_)

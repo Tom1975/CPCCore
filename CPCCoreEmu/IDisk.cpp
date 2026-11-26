@@ -639,35 +639,6 @@ void IDisk::DumpTrack(int side, unsigned int track, int /*rev*/)
    LOGB(shift)
 }
 
-void IDisk::DumpTrackRev(int side, unsigned int track, int rev)
-{
-   unsigned int index = 0;
-   int shift = 0;
-   while (index < side_[side].tracks[track].revolution[rev].size)
-   {
-      for (int i = 0; i < 2; i++)
-      {
-         unsigned char byte = 0;
-         for (int j = 0; j < 8; j++)
-         {
-            byte <<= 1;
-            unsigned char b = (index + i * 8 + j < side_[side].tracks[track].revolution[rev].size)
-                                 ? side_[side].tracks[track].revolution[rev].bitfield[index + i * 8 + (j * 2)]
-                                 : 0;
-            byte |= b & 0x1;
-
-            if (index + i * 8 + j >= side_[side].tracks[track].revolution[rev].size)
-               shift++;
-         }
-         LOGB(byte)
-      }
-      index += 16;
-   }
-   LOGEOL
-   LOGB(shift)
-}
-
-
 unsigned short IDisk::GetTrackInfo(int side, int track, Track* track_buffer)
 {
    track_buffer->Clear();
@@ -1310,29 +1281,6 @@ int IDisk::CompareForSync(unsigned char* src, unsigned char* src2, int size)
    return found;
 }
 
-unsigned int IDisk::AdjustSideOfTrack(unsigned char* bit_field, unsigned int nb_bit_in_flux)
-{
-   // Check if begining of track can be found at the end of track.
-   // Count the occurence of matching bits.
-   int count = 8;
-   bool found_ok = true;
-   while (found_ok && (nb_bit_in_flux - 1 - count) > (6000 * 16))
-   {
-      if (memcmp(&bit_field[nb_bit_in_flux - 1 - count], bit_field, count) != 0)
-      {
-         count ++;
-      }
-      else
-      {
-         found_ok = false;
-      }
-   }
-
-   if (!found_ok)
-      nb_bit_in_flux -= (count + 1);
-   return nb_bit_in_flux;
-}
-
 unsigned int GetNextFuzzyBits(unsigned char* buffer, unsigned int offset_begin, unsigned int offset_end,
                               bool bSearchForFuzzy)
 {
@@ -1706,26 +1654,6 @@ bool IDisk::CreateTrackFromRevolution(int side, int track)
    }
 
    return (size != 0);
-}
-
-// Ok then...
-// Take the MAX size, from first IDAM to first IDAM in next revolution
-int IDisk::CreateUnformattedTrack(int side, int track)
-{
-   // todo
-   int size = 100000;
-   if (size != 0)
-   {
-      side_[side].tracks[track].size = size;
-      side_[side].tracks[track].bitfield = new unsigned char[side_[side].tracks[track].size + 32];
-
-      for (int i = 0; i < size; i++)
-      {
-         side_[side].tracks[track].bitfield[i] = BIT_WEAK;
-      }
-   }
-
-   return size;
 }
 
 int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrack)
@@ -2849,17 +2777,6 @@ void IDisk::FillTrack(unsigned char* track_buffer, const unsigned char cylinder,
       track_buffer[load_disk_index] = BIT_WEAK;
    }
 }
-
-void IDisk::CombineWithDisk(IDisk* other_disk)
-{
-   CleanSide(1);
-
-   nb_sides_ = 2;
-   side_[1] = other_disk->side_[0];
-   other_disk->side_[0].nb_tracks = 0;
-   other_disk->side_[0].tracks = nullptr;
-}
-
 
 bool ValidName(std::string str)
 {

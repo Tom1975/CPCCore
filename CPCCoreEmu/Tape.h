@@ -195,7 +195,6 @@ public:
    virtual void SetProgress(int progress) { load_progress_ = progress; };
    virtual int GetCurrentProgress() { return load_progress_; }
 
-   void Filtre(double* array, unsigned int nb_samples, double frequency, unsigned int cut_frequency, int num_filter);
    static void Gain(double* array, unsigned int nb_samples, double multiplier);
    static void Shift(double* array, unsigned int nb_samples, double offset);
 
@@ -289,16 +288,12 @@ protected:
    static bool IsArraySquareWave(unsigned char* value_tab, int nb_samples, int nb_channels, int bit_per_sample);
 
 #ifndef NOFILTER
-   void RemoveNoise ( double* array, unsigned int nb_samples, double frequency  );
-   void HighPass ( double* array, unsigned int nb_samples, double frequency );
 
 
    void InitFilter(int type_of_filter, bool lpf, double fe, double fc, int order);
    void Filtrer  ( double* array, unsigned int nb_samples );
-   void FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filter, double fe, double fcb, double fch, int order );
 #endif
 
-   void TraceSamples ( double *chunk,  int nb_samples, double frequency);
 
    // Tape has been changed ?
    bool tape_changed_;
