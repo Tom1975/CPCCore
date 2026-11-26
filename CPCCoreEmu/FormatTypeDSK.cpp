@@ -65,8 +65,8 @@ int FormatTypeDSK::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
    return return_value;
 }
 
-int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "MV - CPC", 8) == 0)
    {
@@ -203,7 +203,7 @@ int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    return FILE_ERROR;
 }
 
-int FormatTypeDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeDSK::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }

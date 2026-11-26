@@ -46,7 +46,7 @@ public:
    virtual int GetPendingSamples() { return -1; }
    // The stream (re)starts only once this many samples wait to be played (0 : at once). Starting
    // with some audio ahead absorbs the irregular arrival of the buffers without any underrun.
-   virtual void SetPrebuffer(unsigned int nb_samples) {}
+   virtual void SetPrebuffer(unsigned int /*nb_samples*/) {}
 };
 
 

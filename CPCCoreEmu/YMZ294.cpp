@@ -55,7 +55,7 @@ void YMZ294::Reset()
    sound_source_.Reinit();
 }
 
-bool YMZ294::Access(unsigned char *data_bus, unsigned char bus_ctrl, unsigned char data)
+bool YMZ294::Access(unsigned char *data_bus, unsigned char bus_ctrl, unsigned char /*data*/)
 {
    // Depends onthe BusCTRL
    if (bus_ctrl & 0x2)     // BDIR = 1

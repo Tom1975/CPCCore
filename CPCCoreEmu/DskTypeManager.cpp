@@ -84,7 +84,7 @@ int DskTypeManager::GetTypeFromFile(const char* str)
    return 0;
 }
 
-int DskTypeManager::GetTypeFromMultipleTypes ( int * type_list, int nb_types )
+int DskTypeManager::GetTypeFromMultipleTypes ( int * /*type_list*/, int /*nb_types*/ )
 {
    return 0;
 }

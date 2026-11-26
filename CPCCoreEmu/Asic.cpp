@@ -120,7 +120,7 @@ void Asic::Out(const unsigned short address, const unsigned char data, unsigned 
    }
 }
 
-void Asic::In(unsigned char* a, unsigned short address)
+void Asic::In(unsigned char* /*a*/, unsigned short address)
 {
    if ((address & 0xC000) == 0x4000
       || (address & 0x8000) == 0x0000

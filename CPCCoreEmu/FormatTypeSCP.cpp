@@ -89,7 +89,7 @@ int FormatTypeSCP::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
 }
 
 int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+                            ILoadingProgress* /*loading_progress*/)
 {
    unsigned char numRevolution;
    unsigned char endTrack;
@@ -221,7 +221,7 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    return OK;
 }
 
-int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    unsigned int checksum = 0;
    int i;
@@ -428,7 +428,7 @@ int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
 }
 
 unsigned int FormatTypeSCP::ComputeTrack(unsigned char* bitfield, const unsigned char* cellbuffer, int sizeOfBuffer,
-                                         int duration)
+                                         int /*duration*/)
 {
 #define CLOCK_MAX_ADJ 10     /* +/- 10% adjustment */
 #define CLOCK_MIN(_c) (((_c) * (100 - CLOCK_MAX_ADJ)) / 100)

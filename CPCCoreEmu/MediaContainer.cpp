@@ -79,7 +79,7 @@ void MediaContainer::AddSourceFile (std::string path)
 }
 
 
-void MediaContainer::BuildFromDirectory(std::string path)
+void MediaContainer::BuildFromDirectory(std::string /*path*/)
 {
    // Check directory content.
    //IContainedElement *newElement = new DirectoryFile(type_manager_, m_CurrentPath.c_str());

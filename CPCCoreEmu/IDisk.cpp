@@ -611,7 +611,7 @@ unsigned char IDisk::GetNextByteForRev(int side, unsigned int track, unsigned in
    return return_value;
 }
 
-void IDisk::DumpTrack(int side, unsigned int track, int rev)
+void IDisk::DumpTrack(int side, unsigned int track, int /*rev*/)
 {
    unsigned int index = 0;
    int shift = 0;

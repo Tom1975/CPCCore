@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 
-IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* log)
+IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* /*log*/)
 {
    IDisk* disk = nullptr;
 
@@ -240,7 +240,7 @@ int MediaManager::GetTypeFromFile(const char*  str)
    return return_type;
 }
 
-int MediaManager::GetTypeFromMultipleTypes(int* type_list, int nb_types)
+int MediaManager::GetTypeFromMultipleTypes(int* /*type_list*/, int /*nb_types*/)
 {
    return MEDIA_UNDEF;
 }

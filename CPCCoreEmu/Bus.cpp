@@ -2,7 +2,7 @@
 #include "Bus.h"
 
 
-Bus::Bus(unsigned int size)
+Bus::Bus(unsigned int /*size*/)
 {
    data_ = 0;
    defined_data_ = 0xffffffff;

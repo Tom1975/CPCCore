@@ -15,8 +15,8 @@ public:
    virtual void In (unsigned char* data, unsigned short address) = 0;
 
    // Write
-   virtual void Set ( unsigned short addr, unsigned char data ) { };
-   virtual bool CanWrite( unsigned short addr) {return false;}
+   virtual void Set ( unsigned short /*addr*/, unsigned char /*data*/ ) { };
+   virtual bool CanWrite( unsigned short /*addr*/) {return false;}
    // M1
    virtual void M1 (){};
    virtual void Reset() {};

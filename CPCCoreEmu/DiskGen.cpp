@@ -113,7 +113,7 @@ bool DiskGen::IsFixedStatus()
 }
 
 
-int DiskGen::GetNbTracks(int side)
+int DiskGen::GetNbTracks(int /*side*/)
 {
    return (disk_present_) ? disk_->GetNumberOfTracks() : 0;
 }
@@ -365,7 +365,7 @@ int DiskGen::LoadDisk(DataContainer* container, ILoadingProgress* loading_progre
    return 0;
 }
 
-IDisk* DiskGen::CreateDisk(const char* path, ILoadingProgress* loading_progress, ILog* log)
+IDisk* DiskGen::CreateDisk(const char* path, ILoadingProgress* loading_progress, ILog* /*log*/)
 {
    IDisk* new_disk = nullptr;
    FormatType* format;
@@ -391,7 +391,7 @@ int DiskGen::GetTypeFromFile(const char* str)
    return (disk_type_manager_ == nullptr) ? 0 : disk_type_manager_->GetTypeFromFile(str);
 }
 
-int DiskGen::GetTypeFromMultipleTypes(int* type_list, int nb_types)
+int DiskGen::GetTypeFromMultipleTypes(int* /*type_list*/, int /*nb_types*/)
 {
    return 0;
 }
@@ -590,7 +590,7 @@ bool FindName(std::vector<std::string>& filename_vector, const char* name, const
 
 
 
-IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int size_of_buffer)
+IDisk::AutorunType DiskGen::GetAutorun(char* buffer, unsigned int /*size_of_buffer*/)
 {
    IDisk::AutorunType ret;
    bool end = false;

@@ -68,7 +68,7 @@ size_t Token::FindRegister(std::string str, int& token_length)
    return std::string::npos;
 }
 
-Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& pos_of_token, int& size_of_token)
+Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& /*pos_of_token*/, int& /*size_of_token*/)
 {
 
    for (auto &it : token_type_list)
@@ -105,7 +105,7 @@ Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, st
    return nullptr;
 }
 
-unsigned int Token::ParseToken(std::string str, std::vector<Token>& token_list)
+unsigned int Token::ParseToken(std::string /*str*/, std::vector<Token>& /*token_list*/)
 {
    /*
    // look at parenthesis

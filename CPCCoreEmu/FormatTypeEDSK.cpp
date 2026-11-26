@@ -114,7 +114,7 @@ int FormatTypeEDSK::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadi
 }
 
 int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                             ILoadingProgress* loading_progress)
+                             ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "EXTENDED", 8) == 0)
    {
@@ -371,7 +371,7 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
    }
 }
 
-int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    FILE* file;
    int res = disk->SmartOpen(&file, file_path, ".DSK");
@@ -1195,7 +1195,7 @@ void FormatTypeEDSK::ConvertDatatoMfm(Sector* sector, unsigned int index_revolut
 }
 
 unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int searchBaseIndex, int index_bit,
-                                               Sector* sector, unsigned int* returned_offset_first_sync_before_idam,
+                                               Sector* sector, unsigned int* /*returned_offset_first_sync_before_idam*/,
                                                bool first_sector)
 {
    // Look for the first data part

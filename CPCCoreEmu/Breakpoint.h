@@ -18,7 +18,7 @@ class IBreakpointItem
 public :
    virtual ~IBreakpointItem() = default;
    virtual bool Break () = 0;
-   virtual bool IsThereBreakOnAdress (unsigned short addr) { return false;}
+   virtual bool IsThereBreakOnAdress (unsigned short /*addr*/) { return false;}
    virtual std::string GetBreakpointFormat() { return ""; };
 };
 

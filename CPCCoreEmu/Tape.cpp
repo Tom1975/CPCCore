@@ -548,7 +548,7 @@ static double valy = 0.9990031660;
 //////////////////////////////////////////////////
 // High pass filter, fc = 500hz
 //////////////////////////////////////////////////
-void CTape::Filtre ( double* array, unsigned int nb_samples, double frequency, unsigned int cut_frequency, int num_filter)
+void CTape::Filtre ( double* array, unsigned int nb_samples, double frequency, unsigned int /*cut_frequency*/, int /*num_filter*/)
 {
 
 #define NZEROS 1
@@ -730,7 +730,7 @@ int CTape::SampleToPPI ( double val )
    }
 }
 
-bool CTape::IsArraySquareWave(unsigned char* value_tab, int nb_samples, int nb_channels, int bit_per_sample)
+bool CTape::IsArraySquareWave(unsigned char* value_tab, int nb_samples, int /*nb_channels*/, int /*bit_per_sample*/)
 {
    // Compute each value.
    double min = 0;

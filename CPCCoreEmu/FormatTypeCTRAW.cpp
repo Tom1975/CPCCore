@@ -101,7 +101,7 @@ int FormatTypeCTRAW::LoadDisk(std::vector<TrackItem> file_list, IDisk*& created_
    }
 }
 
-int FormatTypeCTRAW::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeCTRAW::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }

@@ -971,7 +971,7 @@ int CAPSFile::DecompressData(IDisk* disk, DWORD ctype, DWORD cyl, DWORD head, Da
    return 0;
 }
 
-unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_size, DWORD ctype, DWORD cyl, DWORD head)
+unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_size, DWORD /*ctype*/, DWORD /*cyl*/, DWORD /*head*/)
 {
    unsigned int usize = ExtractInt(&buffer[4]);
 
@@ -1050,7 +1050,7 @@ unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_si
 
 ////////////////////////////
 // Extract CTRAW track
-int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_size, DWORD ctype, DWORD cyl, DWORD head)
+int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_size, DWORD /*ctype*/, DWORD cyl, DWORD head)
 {
    // PACK HEADER
 

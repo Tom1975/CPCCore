@@ -210,7 +210,7 @@ BufferFile::BufferFile(ITypeManager* type_manager): IContainedElement(type_manag
 {
 }
 
-std::vector<SingleElements> BufferFile::GetInnerElements(int type)
+std::vector<SingleElements> BufferFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    return list;
@@ -255,17 +255,17 @@ int SingleFile::GetType()
    return type;
 }
 
-unsigned char* SingleFile::GetBuffer(int index)
+unsigned char* SingleFile::GetBuffer(int /*index*/)
 {
    return buffer_;
 }
 
-int SingleFile::GetSize(int index)
+int SingleFile::GetSize(int /*index*/)
 {
    return buffer_size_;
 }
 
-std::vector<SingleElements> SingleFile::GetInnerElements(int type)
+std::vector<SingleElements> SingleFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    SingleElements element;
@@ -307,7 +307,7 @@ std::vector<SingleElements> ZippedFile::GetInnerElements(int type)
    return list;
 }
 
-unsigned char* ZippedFile::GetBuffer(int index)
+unsigned char* ZippedFile::GetBuffer(int /*index*/)
 {
    // Return first buffer of first file found
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end();)
@@ -318,7 +318,7 @@ unsigned char* ZippedFile::GetBuffer(int index)
    return nullptr;
 }
 
-int ZippedFile::GetSize(int index)
+int ZippedFile::GetSize(int /*index*/)
 {
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end();)
    {
@@ -477,11 +477,11 @@ void ZippedFile::InitUnzip()
 /////////////////////////////////////////////////////////////////
 // DirectoryFile Implementation
 /////////////////////////////////////////////////////////////////
-DirectoryFile::DirectoryFile(ITypeManager* type_manager, const std::string& file): IContainedElement(type_manager)
+DirectoryFile::DirectoryFile(ITypeManager* type_manager, const std::string& /*file*/): IContainedElement(type_manager)
 {
 }
 
-std::vector<SingleElements> DirectoryFile::GetInnerElements(int type)
+std::vector<SingleElements> DirectoryFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    /*SingleElements element;
@@ -602,7 +602,7 @@ std::vector<IContainedElement*> DataContainer::GetFileList()
 }
 
 
-int DataContainer::GetTypeFromDirectory(ITypeManager* manager)
+int DataContainer::GetTypeFromDirectory(ITypeManager* /*manager*/)
 {
    // Check directory content.
    return 0;
@@ -627,7 +627,7 @@ int DataContainer::GetType(ITypeManager* manager)
 }
 
 #ifndef NOZLIB
-int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer, int size)
+int DataContainer::InitUnzip(ITypeManager* /*manager*/, unsigned char* zipped_buffer, int size)
 {
    auto return_value = -1;
 

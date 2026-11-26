@@ -140,8 +140,8 @@ int FormatTypeHFE::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
    return return_value;
 }
 
-int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "HXCPICFE", 8) == 0)
    {
@@ -233,7 +233,7 @@ int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    }
 }
 
-int FormatTypeHFE::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeHFE::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    int ret = 1;
 

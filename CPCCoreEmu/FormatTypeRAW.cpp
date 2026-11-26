@@ -30,7 +30,7 @@ FormatTypeRAW::~FormatTypeRAW()
 {
 }
 
-bool FormatTypeRAW::CanLoad(const char* file_path)
+bool FormatTypeRAW::CanLoad(const char* /*file_path*/)
 {
    return true;
 }
@@ -450,7 +450,7 @@ void FormatTypeRAW::InsertFluxValue(unsigned int FluxValue)
    ++nb_flux_value_;
 }
 
-void FormatTypeRAW::HandleHWInfo(char* info, int size)
+void FormatTypeRAW::HandleHWInfo(char* info, int /*size*/)
 {
    // scan for sck / ick
    char* buffer = strstr(info, "sck=");
@@ -1104,13 +1104,13 @@ int FormatTypeRAW::LoadDisk(std::vector<buffer_item> buffer_list, std::vector<st
    return result;
 }*/
 
-int FormatTypeRAW::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeRAW::LoadDisk(const unsigned char* /*buffer*/, size_t /*size*/, IDisk*& /*created_disk*/,
+                            ILoadingProgress* /*loading_progress*/)
 {
    return NOT_IMPLEMENTED;
 }
 
-int FormatTypeRAW::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeRAW::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }

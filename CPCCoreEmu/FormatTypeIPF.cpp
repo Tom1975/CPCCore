@@ -80,7 +80,7 @@ int FormatTypeIPF::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    }
 }
 
-int FormatTypeIPF::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeIPF::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    FILE* file;
    int res = disk->SmartOpen(&file, file_path, ".IPF");

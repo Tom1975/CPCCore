@@ -59,7 +59,7 @@ void EmulatorEngine::Stop()
    sound_mixer_.StopMixer();
 }
 
-bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
+bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* /*sound*/)
 {
    DataContainer::Init();
 
@@ -138,7 +138,7 @@ void EmulatorEngine::FlipDisk ( unsigned int DriveNumber )
    GetFDC()->FlipDisk (DriveNumber);
 }
 
-void EmulatorEngine::ReleaseContainer(DataContainer* container)
+void EmulatorEngine::ReleaseContainer(DataContainer* /*container*/)
 {
    media_inserted_.Clear();
 }
@@ -1384,7 +1384,7 @@ bool EmulatorEngine::IsDiskPresent ( int drive )
    return GetFDC()->IsDiskPresent ( drive );
 }
 
-void EmulatorEngine::Accelerate ( bool speed_on)
+void EmulatorEngine::Accelerate ( bool /*speed_on*/)
 {
    // TODO : Set it with a switch it can be disabled.
    /*if ( m_bFastTapeLoading )

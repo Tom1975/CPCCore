@@ -92,10 +92,10 @@ public:
    virtual int GetNumberOfElements() { return 1; };
    virtual std::vector<SingleElements> GetInnerElements(int type);
    // Acess to inner datas
-   virtual const char* GetNameOfElement(int index) { return (const char*)nullptr; };
+   virtual const char* GetNameOfElement(int /*index*/) { return (const char*)nullptr; };
 
-   virtual unsigned char* GetBuffer(int index) { return nullptr; };
-   virtual int GetSize(int index) { return 0; };
+   virtual unsigned char* GetBuffer(int /*index*/) { return nullptr; };
+   virtual int GetSize(int /*index*/) { return 0; };
 };
 
 class SingleFile : public IContainedElement
@@ -109,7 +109,7 @@ public:
    virtual std::vector<SingleElements> GetInnerElements(int type);
 
    // Acess to inner datas
-   virtual const char* GetNameOfElement(int index) { return file_name_.c_str(); };
+   virtual const char* GetNameOfElement(int /*index*/) { return file_name_.c_str(); };
    virtual unsigned char* GetBuffer(int index);
    virtual int GetSize(int index);
 
@@ -153,10 +153,10 @@ public:
    virtual std::vector<SingleElements> GetInnerElements(int type);
 
    // Acess to inner datas
-   virtual const char* GetNameOfElement(int index) { return (const char*)nullptr; };
+   virtual const char* GetNameOfElement(int /*index*/) { return (const char*)nullptr; };
 
-   virtual unsigned char* GetBuffer(int index) { return nullptr; };
-   virtual int GetSize(int index) { return 0; };
+   virtual unsigned char* GetBuffer(int /*index*/) { return nullptr; };
+   virtual int GetSize(int /*index*/) { return 0; };
 };
 
 

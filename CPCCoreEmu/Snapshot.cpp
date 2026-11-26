@@ -578,7 +578,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
    }
 }
 
-void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkBRKC(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    // ACE's breakpoints
    int nb_breakpoints = size / 216;
@@ -609,7 +609,7 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkBRKS(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    int nb_breakpoints = size / 5;
   
@@ -629,7 +629,7 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkREMU(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    // Pure ASCII chunk: semicolon-separated tags
    // brk ADDR BANK       — exec breakpoint in RAM at logical address ADDR, bank BANK
@@ -667,7 +667,7 @@ void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkSYMB(unsigned char* /*chunk*/, unsigned char* /*in_buffer*/, int /*size*/)
 {
    // ACE's Symbols
 
@@ -677,7 +677,7 @@ void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, 
    // 2 octets->l'adresse du symbole (en big endian)
 }
 
-void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer, int size )
+void CSnapshot::HandleChunkROMS ( unsigned char* /*chunk*/, unsigned char* in_buffer, int /*size*/ )
 {
    int off = 0;
    // First string... Or first two bytes ?
@@ -710,7 +710,7 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
 
 }
 
-void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkCPCPLUS(unsigned char* /*chunk_header*/, unsigned char* in_buffer, int size)
 {
    if (size != 0x8F8) return; // Wrong size !
 

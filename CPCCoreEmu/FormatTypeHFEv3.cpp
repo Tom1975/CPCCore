@@ -147,8 +147,8 @@ int FormatTypeHFEv3::LoadDisk(const char* file_path, IDisk*& created_disk, ILoad
    return return_value;
 }
 
-int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "HXCHFEV3", 8) == 0)
    {
@@ -289,7 +289,7 @@ int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& 
    }
 }
 
-int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    int ret = 1;
 
