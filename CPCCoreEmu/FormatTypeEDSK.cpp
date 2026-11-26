@@ -540,8 +540,7 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    }
    
    // --- First of all : Seek in the existing sectors for a begining pattern
-   unsigned char *track_byte = new unsigned char [DEFAULT_TRACK_SIZE * 16];
-   memset(track_byte, 0x00, sizeof(track_byte));
+   unsigned char *track_byte = new unsigned char [DEFAULT_TRACK_SIZE * 16]();
 
    int index_iam = 0x80;
    bool begining_found = false;

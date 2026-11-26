@@ -113,6 +113,7 @@ void Ay8912::Access(unsigned char *data_bus, const unsigned char bus_ctrl, const
             enveloppe_stop_ = false;
             enveloppe_up_ = ((volume_enveloppe_shape_ & 0x04) == 0x04);
             enveloppe_volume_ = (enveloppe_up_) ? 0 : 15;
+            break;
          }
 
          case 0x0E: register_[register_address_] = *data_bus;register_14_ = *data_bus; register_replaced_ = false; break;
@@ -182,6 +183,7 @@ void Ay8912::Access(unsigned char *data_bus, const unsigned char bus_ctrl, const
                // Output
                *data_bus = 0xFF;
             }
+            break;
          }
 
          default: *data_bus = 0xFF; break;

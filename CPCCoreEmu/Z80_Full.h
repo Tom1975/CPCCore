@@ -490,7 +490,8 @@ public:
    ListFunction memr_func_dd_;
    ListFunction memr_func_fd_;
 
-   Func tick_functions_[0xAF];
+   // Indexed by machine_cycle_ | t_ : up to M_Z80_WAIT + 0x0F
+   Func tick_functions_[M_Z80_WAIT + 0x10];
 
    // tick generic functions
    //unsigned int DefaultTick();
