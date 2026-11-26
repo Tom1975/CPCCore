@@ -1462,7 +1462,7 @@ int CTape::DecodeCSWBloc ( unsigned char* buffer, unsigned int length, unsigned 
 
 void CTape::AddSample ( unsigned int value,  double frequency , int& lenght)
 {
-   if ( ( value == -1)
+   if ( ( value == ~0u)
       || (tape_array_[nb_inversions_].high == ((value==1)?true:false))
       )
    {
@@ -2913,7 +2913,7 @@ void CTape::SetTapePosition ( unsigned int nb_sec_from_begining)
       unsigned long long nbu_sec = 0;
       int nb_sec = 0;
       unsigned int i;
-      for (i = 0; i < nb_inversions_ && (nb_sec < nb_sec_from_begining); i++)
+      for (i = 0; i < nb_inversions_ && (static_cast<unsigned int>(nb_sec) < nb_sec_from_begining); i++)
       {
          // Size of this inversion / sample rate = nb of samples
          nbu_sec += tape_array_[i].length;
@@ -3527,7 +3527,7 @@ void CTape::SaveAsCdtDrb (const char* filepath)
          remaining = static_cast<unsigned long long>((( l + remaining)* ( mul) - nb_samples) / ( mul));
 
          unsigned char bitBuf = (tape_array_[i].high?1:0);
-         for (int j = 0; j < nb_samples; j++)
+         for (unsigned long long j = 0; j < nb_samples; j++)
          {
 
             // Size of this inversion / sample rate = nb of samples

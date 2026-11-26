@@ -488,7 +488,7 @@ int FormatTypeRAW::ComputeTrack(IDisk*& created_disk, int side, int track)
    created_disk->side_[side].tracks[track].revolution = new IDisk::Revolution[(indexNumber - 1)];
    created_disk->side_[side].tracks[track].nb_revolutions = indexNumber - 1;
 
-   for (int index_revolution = 0; index_revolution < (indexNumber - 1); index_revolution++)
+   for (unsigned int index_revolution = 0; index_revolution < (indexNumber - 1); index_revolution++)
    {
       DecodeFluxFromIndex(index_revolution, created_disk->side_[side].tracks[track].revolution);
    }

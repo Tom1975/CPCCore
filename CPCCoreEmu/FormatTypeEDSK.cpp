@@ -181,7 +181,7 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
                //fread ( track_block, m_Side[i].Tracks [j].TrackSize-0x100, 1, file );
                // Track number
                unsigned int tn = header[0x10];
-               if (tn != j)
+               if (tn != static_cast<unsigned int>(j))
                {
                   // bug...
                   //tn = m_NbTracks-1;
@@ -1210,7 +1210,7 @@ unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int se
          for (int j = i + MFMCHRNSIZE; j < index_bit - 16; j++)
          {
             //if ( memcmp ( &track_byte[j], mfm_data_pattern, sizeof(mfm_data_pattern)) == 0 )
-            int size_of_data_pattern = (sizeof(MFMDataPattern) < (sector->mfm_data_size))
+            int size_of_data_pattern = (sizeof(MFMDataPattern) < static_cast<size_t>(sector->mfm_data_size))
                                        ? sizeof(MFMDataPattern)
                                        : sector->mfm_data_size;
             size_of_data_pattern = (size_of_data_pattern < (index_bit - j)) ? size_of_data_pattern : (index_bit - j);
@@ -1220,7 +1220,7 @@ unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int se
             {
                //j += off;
                // Now compare withe begining of data sections
-               if (index_bit - (j) >= sizeof(MFMDataPattern))
+               if (static_cast<size_t>(index_bit - (j)) >= sizeof(MFMDataPattern))
                {
                   // Compare between last sync bit and what we've got
                   // So : begining at size_of_data_pattern, until index_bit / end of Mfmdata

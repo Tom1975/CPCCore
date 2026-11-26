@@ -302,7 +302,7 @@ int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgre
       unsigned char buffer[0x200];
       memset(buffer, 0xFF, sizeof(buffer));
 
-      Picfileformatheader header = {0xFF};
+      Picfileformatheader header = {};
       memcpy(header.header_signature, "HXCHFEV3", sizeof(header.header_signature));
       header.formatrevision = 0;
       header.number_of_track = disk->side_[0].nb_tracks;

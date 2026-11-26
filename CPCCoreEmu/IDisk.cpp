@@ -1483,7 +1483,7 @@ void IDisk::CreateTrackFromMultiRevolutions()
 // - Si index retourne a 0... Gere ca d'une certaine maniere ... (comment ?)
 // - Reflechir sur taille de piste !!!
 
-#define INC_INDEXEX  for (unsigned int rev = 0; rev < side_[side].tracks[track].nb_revolutions ; rev++){if (index_buffer[rev] != -1) index_buffer[rev]++;if (index_buffer[rev]>=side_[side].tracks[track].revolution[rev].size) index_buffer[rev]=-1;}
+#define INC_INDEXEX  for (unsigned int rev = 0; rev < side_[side].tracks[track].nb_revolutions ; rev++){if (index_buffer[rev] != ~0u) index_buffer[rev]++;if (index_buffer[rev]>=side_[side].tracks[track].revolution[rev].size) index_buffer[rev]=-1;}
 #define RECOVER_SIZE 14
 #define MOVING_AREA 64
 //#define _OldSearch
@@ -1522,10 +1522,10 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
         && (maxRev0 >= (current_search_revolution[refrev] + RECOVER_SIZE)); index++)
    {
       tmp_buffer[refrev] = index + current_search_revolution[refrev];
-      for (unsigned int i = 0; i < nb_used_revolutions; i++) { if (refrev != i) tmp_buffer[i] = -1; }
+      for (unsigned int i = 0; i < nb_used_revolutions; i++) { if (static_cast<unsigned int>(refrev) != i) tmp_buffer[i] = -1; }
       for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
       {
-         if (refrev != rev && !revolution_wrecked[rev])
+         if (static_cast<unsigned int>(refrev) != rev && !revolution_wrecked[rev])
          {
             // Walk every reference until we find something that is same (at least 14 bits correct)
             unsigned int min = (index < MOVING_AREA)
@@ -1765,7 +1765,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
       unsigned int track_size = side_[side].tracks[track].revolution[rev].size;
       unsigned int search_offset = FindNextPattern(track_field, track_size, 0, PATTERN_C2, 6);
 
-      if (search_offset != -1)
+      if (search_offset != ~0u)
       {
          int tmp = search_offset;
          if (search_offset > 16 * 12)
@@ -1777,7 +1777,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
       else
       {
          search_offset = FindNextSector(track_field, track_size, search_offset + 1, 7);
-         if (search_offset != -1)
+         if (search_offset != ~0u)
          {
             // 0x00 sync bytes
             int tmp = search_offset;
@@ -1797,7 +1797,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
       // Next sector
       unsigned int search_next_offset;
       search_next_offset = FindNextSector(track_field, track_size, search_offset + 1, 7);
-      while (search_next_offset != -1)
+      while (search_next_offset != ~0u)
       {
          // 0x00 sync bytes
          search_offset = search_next_offset;
@@ -1991,7 +1991,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
 
          // resync :
          unsigned int index_of_resync = -1;
-         for (unsigned int rev = 0; rev < nb_used_revolutions && index_of_resync == -1; rev++)
+         for (unsigned int rev = 0; rev < nb_used_revolutions && index_of_resync == ~0u; rev++)
          {
             while ((index_for_next_sector < list_sizes[rev].size()) && (list_sizes[rev].at(index_for_next_sector) < index_buffer[rev]))
             {
@@ -2002,7 +2002,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                index_of_resync = index_for_next_sector;
             }
          }
-         if (index_of_resync != -1)
+         if (index_of_resync != ~0u)
          {
             for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
             {
@@ -2020,7 +2020,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                }
                if (nb_used_revolutions == side_[side].tracks[track].nb_revolutions && rev == nb_used_revolutions - 1)
                {
-                  if (!revolution_wrecked[nb_used_revolutions - 1] && index_buffer[nb_used_revolutions - 1] != -1)
+                  if (!revolution_wrecked[nb_used_revolutions - 1] && index_buffer[nb_used_revolutions - 1] != ~0u)
                   {
                      if (index_buffer[nb_used_revolutions - 1] >= list_sizes[nb_used_revolutions - 1].at(
                         list_sizes[nb_used_revolutions - 1].size() - 2))
@@ -2035,7 +2035,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
          int first_revolution_available = -1;
          for (unsigned int rev = 0; rev < nb_used_revolutions && first_revolution_available == -1; rev++)
          {
-            if (index_buffer[rev] != -1 && !revolution_wrecked[rev])
+            if (index_buffer[rev] != ~0u && !revolution_wrecked[rev])
                first_revolution_available = rev;
          }
 
@@ -2053,9 +2053,9 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
 
             for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
             {
-               if (first_revolution_available != rev && !revolution_wrecked[rev])
+               if (static_cast<unsigned int>(first_revolution_available) != rev && !revolution_wrecked[rev])
                {
-                  if (index_buffer[rev] == -1)
+                  if (index_buffer[rev] == ~0u)
                   {
                      ok = false;
                   }
@@ -2078,7 +2078,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
 
             // TODO :
             // revToKeep should be reset when a certain point is meet
-            if (revolution_to_keep != -1 && index_buffer[revolution_to_keep] != -1 && index_buffer[revolution_to_keep] <= keep_rev_end)
+            if (revolution_to_keep != -1 && index_buffer[revolution_to_keep] != ~0u && index_buffer[revolution_to_keep] <= keep_rev_end)
             {
                val = side_[side].tracks[track].revolution[revolution_to_keep].bitfield[index_buffer[revolution_to_keep]];
 
@@ -2095,7 +2095,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                   {
                      for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
                      {
-                        if (rev != revolution_to_keep && !revolution_wrecked[rev])
+                        if (rev != static_cast<unsigned int>(revolution_to_keep) && !revolution_wrecked[rev])
                         {
                            int end_index;
                            if (side_[side].tracks[track].revolution[revolution_to_keep].track_info.GetEndIndexOfSector(
@@ -2114,7 +2114,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                for (unsigned int rev = 0; rev < nb_used_revolutions && correct_revolution == -1; rev++)
                {
                   unsigned int end_of_rev;
-                  if (!revolution_wrecked[rev] && index_buffer[rev] != -1 && side_[side].tracks[track].revolution[rev]
+                  if (!revolution_wrecked[rev] && index_buffer[rev] != ~0u && side_[side].tracks[track].revolution[rev]
                                                                        .track_info.IsBitInACorrectSector(
                                                                           index_buffer[rev] + first_sync_of_track[rev],
                                                                           &end_of_rev))
@@ -2200,7 +2200,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
             {
                if (!revolution_wrecked[rev])
                {
-                  if (index_buffer[rev] != -1)
+                  if (index_buffer[rev] != ~0u)
                   {
                      if (index_next_sync[rev] - index_buffer[rev] > weak_max_size)
                      {
@@ -2239,7 +2239,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
 
                   for (unsigned int rev = 0; rev < nb_used_revolutions && reverse_ok; rev++)
                   {
-                     if (rev != first_revolution_available && !revolution_wrecked[rev])
+                     if (rev != static_cast<unsigned int>(first_revolution_available) && !revolution_wrecked[rev])
                      {
                         if (((index_next_sync[rev] - nb_bits_ok - 1) <= index_buffer[rev])
                            || (val != side_[side].tracks[track].revolution[rev].bitfield[index_next_sync[rev] - nb_bits_ok
@@ -2290,7 +2290,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                      {
                         current_search_revolution[rev] = index_buffer[rev];
                         next_correct_index[rev] = index_next_sync[rev];
-                        if (current_search_revolution[rev] == -1)
+                        if (current_search_revolution[rev] == ~0u)
                            // Nothing to add
                            is_finished = true;
                      }
@@ -2310,7 +2310,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                      unsigned int nb_max_weak_bits = next_correct_index[correct_revolution] - current_search_revolution[correct_revolution];
                      for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
                      {
-                        if (!revolution_wrecked[rev] && rev != correct_revolution)
+                        if (!revolution_wrecked[rev] && rev != static_cast<unsigned int>(correct_revolution))
                         {
                            // Beware ! If on last rev, and nbWeakBits = 0 : This means that last rev has reach end of his track : Consider it as wrecked.
                            if (next_correct_index[rev] - current_search_revolution[rev] == 0 && (rev == nb_used_revolutions - 1))
@@ -2390,7 +2390,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
                // Now, all index are on the pIndexNextSync[rev] index
                for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
                {
-                  if (!revolution_wrecked[rev] && index_buffer[rev] != -1)
+                  if (!revolution_wrecked[rev] && index_buffer[rev] != ~0u)
                   {
                      index_buffer[rev] = index_next_sync[rev];
                      if (index_buffer[rev] >= side_[side].tracks[track].revolution[rev].size)
@@ -2410,7 +2410,7 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
          {
             if (!revolution_wrecked[rev])
             {
-               if (index_buffer[rev] != -1)
+               if (index_buffer[rev] != ~0u)
                {
                   end = false;
                }

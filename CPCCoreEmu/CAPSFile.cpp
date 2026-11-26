@@ -573,8 +573,8 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
             gap_offset = 0;
             // Do we have backward gap ?
             // Read Forward / Backward streams
-            StreamItem backward_stream = {0};
-            StreamItem forward_stream = {0};
+            StreamItem backward_stream = {};
+            StreamItem forward_stream = {};
 
             unsigned int total_gap = 0;
             bool forward_gap = false;
@@ -938,7 +938,7 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
          }
 
          // Check index / size
-         if (index_track != imge_item.start_bit_pos || total_total != disk->side_[imge_item.side].tracks[imge_item.
+         if (index_track != imge_item.start_bit_pos || static_cast<unsigned int>(total_total) != disk->side_[imge_item.side].tracks[imge_item.
             track_number].size)
          {
          }
@@ -1454,7 +1454,7 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
          }
          // Check the next sync byte
          unsigned int next_sync = FindNextSector(buffer, offset_end, offset_begin, 6);
-         if (next_sync == -1)
+         if (next_sync == ~0u)
             next_sync = offset_end;
 
 
@@ -1600,7 +1600,7 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
                   delete[]buffer_data;
                }
                // Add weak rang (if any) : From next_sync to end_of_weak_range
-               if (next_sync != end_of_weak_range)
+               if (next_sync != static_cast<unsigned int>(end_of_weak_range))
                {
                   // Search for next "end opf weak" range
                   int next_weak_bits_index = GetNextFuzzyBits(buffer, offset_begin, end_of_weak_range, false);
@@ -1779,17 +1779,17 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    {
       // Only search the 3 x 0x5224 bytes
       search_offset = FindNextPattern(track_field, disk->side_[side].tracks[tr].size, search_offset, PATTERN_C2, 6);
-      if (search_offset != -1)
+      if (search_offset != ~0u)
       {
-         imge_item.start_bit_pos = (search_offset != -1) ? search_offset : 0;
+         imge_item.start_bit_pos = (search_offset != ~0u) ? search_offset : 0;
          imge_item.start_byte_pos = imge_item.start_bit_pos / 8;
       }
       else
       {
          search_offset = FindNextSector(track_field, disk->side_[side].tracks[tr].size, search_offset + 1, 8);
-         if (search_offset != -1)
+         if (search_offset != ~0u)
          {
-            imge_item.start_bit_pos = (search_offset != -1) ? search_offset : 0;
+            imge_item.start_bit_pos = (search_offset != ~0u) ? search_offset : 0;
             imge_item.start_byte_pos = imge_item.start_bit_pos / 8;
          }
          else
@@ -1822,7 +1822,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          initial_backward_gap++;
       }
 
-      while (search_offset != -1)
+      while (search_offset != ~0u)
       {
          int nb_backward_gap_bytes = 0;
          // Add it : Descriptor, and data
@@ -1837,7 +1837,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          unsigned int search_next_offset = FindNextSector(track_field, disk->side_[side].tracks[tr].size,
                                                           search_offset + 1, 8);
          int end_of_block = 0;
-         if (search_next_offset != -1)
+         if (search_next_offset != ~0u)
          {
             // Next block found : Dont use the '0x00' sync bytes before it - It's the 'backward' gap
             unsigned int offset_gap = search_next_offset - 16;

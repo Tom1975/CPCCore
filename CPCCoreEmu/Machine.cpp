@@ -1489,7 +1489,7 @@ bool EmulatorEngine::LoadBinInt (const char* path_file)
 
       unsigned char * buffer = new unsigned char[size];
 
-      if (fread(buffer, 1, size, file) == size)
+      if (fread(buffer, 1, size, file) == static_cast<size_t>(size))
       {
          return_value= LoadBinInt(buffer, size);
       }

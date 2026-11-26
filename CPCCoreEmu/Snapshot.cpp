@@ -1125,7 +1125,7 @@ void CSnapshot::InitReplay ()
                      (chunk[6]<<16)+
                      (chunk[7]<<24);
          unsigned char* buffer = new unsigned char[size];
-         if ( fread ( buffer, 1, size, f ) == size)
+         if ( fread ( buffer, 1, size, f ) == static_cast<size_t>(size))
          {
             // Handle the chunk
             if (memcmp ( chunk, "MEM", 3) == 0)

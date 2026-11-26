@@ -59,7 +59,7 @@ bool MachineSettings::SetFile(const char* path)
    if (configuration_manager_ == nullptr) return false;
 
    // File is correct if a CRTC conf exist
-   if (configuration_manager_->GetConfigurationInt("Hardware", "Type_CRTC", -1, path) == -1)
+   if (configuration_manager_->GetConfigurationInt("Hardware", "Type_CRTC", -1, path) == ~0u)
       return false;
 
    // A path is set : Try to load standard elements :

@@ -362,7 +362,7 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             data[current_wav_index_++] = (short)left;
             data[current_wav_index_++] = (short)right;
             //if (((current_wav_index_ + 2) * sizeof(short) ) > (unsigned int)current_wav_buffer_->buffer_length_)
-            if (((current_wav_index_ + 2) * sizeof(short) ) > current_wav_buffer_->buffer_length_)
+            if (((current_wav_index_ + 2) * sizeof(short) ) > static_cast<size_t>(current_wav_buffer_->buffer_length_))
             {
                // Play it and set a new one
                sound_->AddBufferToPlay(current_wav_buffer_);
