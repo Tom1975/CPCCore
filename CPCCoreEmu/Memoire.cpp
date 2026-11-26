@@ -393,7 +393,7 @@ unsigned int Memory::UpdateAsicPalette(unsigned char color_index, unsigned char 
       r = 6; g = 6; b = 15; break;
    }
    // Pen or border ?
-   if (color_index >= 0 && color_index < 16)
+   if (color_index < 16)
    {
       // Pen
       asic_io_[0x2400+ color_index*2] = (b | (r << 4));

@@ -415,7 +415,6 @@ int IDisk::AddSyncByteToTrack(unsigned char* track, unsigned int index, unsigned
       seq_sync = 0x4489;
    if (byte == 0xC2)
       seq_sync = 0x5224;
-   else; // ERROR !
 
    for (int i = 0; i < 16; i++)
    {

@@ -444,7 +444,6 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
       // MemEnable - Bit 7 set if used. Bit 0 = Bank C4..C7, Bit 1 = Banks C4..DF
       // Bit 2 = Banks E4..FF, Bit 3 = Full 4M expansion
       // TODO
-      header[0x9A] ;
 
       //   9C	 1	 FDD motor drive state (0=off, 1=on)
       machine_->GetFDC()->SetMotor( (header[0x9c] == 1) );
@@ -1428,7 +1427,7 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
 
    // PPI
    header[0x56] = machine_->GetPPI()->port_a_;
-   header[0x57] = machine_->GetPPI()->port_b_ & 0x7E | (machine_->GetSig()->v_sync_?1:0) ;
+   header[0x57] = (machine_->GetPPI()->port_b_ & 0x7E) | (machine_->GetSig()->v_sync_?1:0) ;
    header[0x58] = machine_->GetPPI()->port_c_;
 
    // PPI Control register
@@ -1477,7 +1476,6 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
    // MemEnable - Bit 7 set if used. Bit 0 = Bank C4..C7, Bit 1 = Banks C4..DF
    // Bit 2 = Banks E4..FF, Bit 3 = Full 4M expansion
    // TODO
-   header[0x9A] ;
 
    //   9C	 1	 FDD motor drive state (0=off, 1=on)
    header[0x9c] = machine_->GetFDC()->IsMotorOn()?1:0;

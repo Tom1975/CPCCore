@@ -116,7 +116,7 @@ PARITY_FLAG(res);q_ |= (res&0x28);af_.b.l = q_;\
 af_.b.h = res;
 
 #define XOR_FLAGS(r)  \
-af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
+af_.b.h= (af_.b.h^(r)); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
 
 
 // Flag tests

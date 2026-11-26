@@ -136,7 +136,7 @@ unsigned int Z80::Opcode_EX()
    unsigned short t = REGW(reg1); 
    REGW(reg1) = REGW(reg2);
    REGW(reg2) = t;
-   NEXT_INSTR((current_opcode_ & 0xFFFF00));
+   NEXT_INSTR;
 }
 
 template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>

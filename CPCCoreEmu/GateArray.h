@@ -65,7 +65,7 @@ public:
    void HandleDMA();
    unsigned short GetSSA() { return ssa_; }
 
-   const bool IsAsicLocked() { return unlocked_ == false; }
+   bool IsAsicLocked() { return unlocked_ == false; }
    void Unlock(bool unlock)
    {
       unlocked_ = unlock;

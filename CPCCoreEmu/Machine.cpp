@@ -1519,7 +1519,6 @@ void EmulatorEngine::LoadRom(int rom_number, const char* path)
 
       if (lSize > 0xffff)
       {
-         Trace("ROM %s tros grosse pour un CPC ... KO !!\n", path);
          fclose(file_rom);
       }
       else

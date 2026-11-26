@@ -532,7 +532,7 @@ void SoundMixer::BeginRecordImp()
       if (GetNewSoundFile(path_file, MAX_PATH))
       {
          // Open a new file
-         fopen_s(&rec_file_, path_file, "wb");
+         if (fopen_s(&rec_file_, path_file, "wb") != 0) rec_file_ = NULL;
 
          if (rec_file_ != NULL)
          {

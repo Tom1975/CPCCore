@@ -1139,7 +1139,7 @@ int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_siz
             // Data block, 15 bit size
             size = (size << 8) | buffer[offset++];
 
-            for (size; size > 0; size--)
+            for (; size > 0; size--)
             {
                track_offset = disk->AddMFMByteToSpecificTrack(head, cyl, rev, track_offset, buffer[offset++], 8);
             }
@@ -1868,10 +1868,10 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          {
             while ((offset_gap > search_offset && memcmp(&track_field[offset_gap], pattern_byte, 16) == 0)
                && (((track_field[offset_gap] & track_field[offset_gap - 1]) != 1) || offset_gap - 1 <= search_offset)
-               && (offset_gap < 1 || ((track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap +
+               && (offset_gap < 1 || (((track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap +
                      1]) == 1)
                   && (offset_gap < 2 || (track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap
-                     - 2]) == 1)
+                     - 2]) == 1))
                )
             )
             {
