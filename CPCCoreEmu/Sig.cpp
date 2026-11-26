@@ -13,7 +13,7 @@
    if (log_) log_->WriteLogByte (str);
 
 
-CSig::CSig(void) : plus_(false), interrupt_io_data_(0xFF)
+CSig::CSig(void) : interrupt_io_data_(0xFF), plus_(false)
 {
    log_ = NULL;
    h_sync_ = false;

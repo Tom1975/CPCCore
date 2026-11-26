@@ -2206,6 +2206,8 @@ void FDC::WriteSectorTick ()
          }
       }
       break;
+   default:
+      break;
    }
 }
 
@@ -2504,6 +2506,8 @@ void FDC::FormatTrackTick ()
          // TODO
          break;
       }
+   default:
+      break;
 
       break;
    }

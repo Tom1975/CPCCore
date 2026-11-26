@@ -60,7 +60,7 @@ unsigned int ListeColors[] =
 };
 
 
-GateArray::GateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
+GateArray::GateArray(void) : unlocked_(false), plus_(false), prev_col_ (0), dma_list_(nullptr)
 {
    dispen_buffered_ = false;
    dispen_buffered_h_ = false;
@@ -814,6 +814,7 @@ unsigned int GateArray::TickVideo()
                   END_OF_DISPLAY
                }
             }
+            [[fallthrough]];
             case 1:
 
                if (plus_)
@@ -882,7 +883,7 @@ unsigned int GateArray::TickVideo()
                   // next byte
                   END_OF_DISPLAY
                }
-
+            [[fallthrough]];
 
             case 2:
             {

@@ -14,7 +14,7 @@ JoystickSettings::~JoystickSettings()
 
 }
 
-JoystickSettings::Shortcut::Shortcut(unsigned int shortcut) : shortcut_(shortcut), virtual_key_(0)
+JoystickSettings::Shortcut::Shortcut(unsigned int shortcut) : virtual_key_(0), shortcut_(shortcut)
 {
 
 }
@@ -89,7 +89,7 @@ void JoystickSettings::JoystickShortcut::Unserialize(std::string param)
 }
 
 //////////////////////////////////////////////////////////
-EmulatorSettings::EmulatorSettings() : sound_(nullptr), configuration_manager_(nullptr), sound_factory_(nullptr)
+EmulatorSettings::EmulatorSettings() : configuration_manager_(nullptr), sound_(nullptr), sound_factory_(nullptr)
 {
 
 }

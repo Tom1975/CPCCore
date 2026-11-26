@@ -92,6 +92,7 @@ SoundMixer::SoundMixer() :
    tape_adjust_volume_(0.02),
    start_recording_(false), 
    stop_recording_(false), 
+   sound_(nullptr),
    sample_number_(0),
 #ifndef NO_MULTITHREAD
    worker_thread_(nullptr),
@@ -99,7 +100,6 @@ SoundMixer::SoundMixer() :
 #else
    finished_(true),
 #endif
-   sound_(nullptr),
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
    tape_(nullptr),

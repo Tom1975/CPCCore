@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "MachineSettings.h"
 
-MachineSettings::MachineSettings() :configuration_manager_(nullptr), loaded_(false)
+MachineSettings::MachineSettings() :loaded_(false), configuration_manager_(nullptr)
 {
    // Default configuration:
    // The default conf is "6128 PLUS FR"

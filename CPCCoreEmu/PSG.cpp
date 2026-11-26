@@ -16,10 +16,10 @@ extern const char * SugarboxPath;
 // CENTER = (MEASURE/2) * 0.313;
 
 Ay8912::Ay8912( SoundMixer *sound_hub, IKeyboardHandler* keyboard_handler) :
+   keyboard_handler_(keyboard_handler), 
    sound_source_(sound_hub), 
    sound_hub_(sound_hub), 
-   directories_(nullptr), 
-   keyboard_handler_(keyboard_handler)
+   directories_(nullptr)
 {
    keyboard_handler_->Init(&register_replaced_);
    sound_ = nullptr;

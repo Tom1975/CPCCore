@@ -546,6 +546,8 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
    case 4:
       machine_->GetCRTC()->vertical_sync_width_ = machine_->GetCRTC()->registers_list_ [3] >> 4;
       break;
+   default:
+      break;
    }
 
    // Memory

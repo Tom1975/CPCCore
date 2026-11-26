@@ -236,6 +236,8 @@ T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_ty
       case REG_BC: return &emulator->GetProc()->bc_.w;
       case REG_DE: return &emulator->GetProc()->de_.w;
       case REG_HL: return &emulator->GetProc()->hl_.w;
+      default:
+         break;
       }
    }
    else
@@ -251,6 +253,8 @@ T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_ty
       case REG_E: return &emulator->GetProc()->de_.b.l;
       case REG_H: return &emulator->GetProc()->hl_.b.h;
       case REG_L: return &emulator->GetProc()->hl_.b.l;
+      default:
+         break;
       }
    }
       

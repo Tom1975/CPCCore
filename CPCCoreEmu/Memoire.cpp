@@ -11,7 +11,8 @@ extern unsigned int ListeColorsIndex[0x100];
 
 
 Memory::Memory(Monitor* monitor) : 
-   lower_rom_available_(false), 
+   current_cartridge_bank_(nullptr), 
+   lower_rom_available_(false),
    expansion_(nullptr),
    ram_dis_(false),
    rom_dis_(false),
@@ -21,11 +22,10 @@ Memory::Memory(Monitor* monitor) :
    extended_pal_(false),
    rom_number_(0),
    plus_(false),
-   asic_io_enabled_(false),
+   asic_io_enabled_(false), 
    rmr2_(0), 
-   last_value_read_(0), 
-   monitor_(monitor),
-   current_cartridge_bank_(nullptr)
+   last_value_read_(0),
+   monitor_(monitor)
 {
    // Default cartirdge
    cart_default_ = new BankCartridge();

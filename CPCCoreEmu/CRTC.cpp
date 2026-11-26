@@ -85,8 +85,8 @@ static unsigned char R8Mask(CRTC::TypeCRTC type_crtc)
    }
 }
 
-CRTC::CRTC(void) : signals_(nullptr), gate_array_(nullptr), ppi_(nullptr), play_back_(nullptr), log_(nullptr), cursor_line_(nullptr),
-   edge_pending_(0), edge_cycle_(0)
+CRTC::CRTC(void) : signals_(nullptr), gate_array_(nullptr), ppi_(nullptr), edge_pending_(0), edge_cycle_(0), play_back_(nullptr),
+   log_(nullptr), cursor_line_(nullptr)
 {
    DefinirTypeCRTC(UM6845R);
 

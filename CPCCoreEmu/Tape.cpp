@@ -102,12 +102,12 @@ size_t WriteInt ( unsigned int i, FILE * file )
 #define RATIO_FREQ (T_STATE_FREQ /T_STATE_FREQ_TZX)
 //#define RATIO_FREQ 1
 
-CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_buffer_size_(0), tape_buffer_to_load_(nullptr), pending_tape_(false),
-   load_progress_(-1),
+CTape::CTape(void) : tape_changed_(false), pending_tape_(false), tape_buffer_to_load_(nullptr), tape_buffer_size_(0), ppi8255_(nullptr),
+   configuration_manager_(nullptr),
+   nb_blocks_ (0),
    size_of_blocklist_(0),
    block_list_(nullptr),
-   nb_blocks_ (0),
-   tape_changed_(false)
+   load_progress_(-1)
 {
    log_ = nullptr;
    nb_inversions_ = 0;

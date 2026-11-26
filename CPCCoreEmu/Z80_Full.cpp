@@ -7,10 +7,10 @@
 
 Z80::Z80(void) : 
    stop_on_fetch_(false), 
-   rw_opcode_(false),
-   log_(nullptr), 
    new_instruction_(true),
-   break_(false),
+   break_(false), 
+   rw_opcode_(false),
+   log_(nullptr),
    count_(0)
 {
 

@@ -67,6 +67,7 @@ int FormatTypeRAW::LoadDiskTrackFromBuffer(IDisk*& created_disk, int side, int t
       {
       case 0x0A:
          GetFromBuffer(buffer, index_pos); // Skip this byte
+         [[fallthrough]];
       case 0x09:
          GetFromBuffer(buffer, index_pos); // Skip this byte
       case 0x08:
@@ -160,6 +161,7 @@ int FormatTypeRAW::LoadTrack(IDisk*& created_disk, const char* file_path, int si
          {
          case 0x0A:
             Get(file); // Skip this byte
+            [[fallthrough]];
          case 0x09:
             Get(file); // Skip this byte
          case 0x08:

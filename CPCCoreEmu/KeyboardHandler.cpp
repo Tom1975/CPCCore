@@ -57,7 +57,7 @@ unsigned int ExtractLine(const char* buffer, int size, std::string& out)
 /// - Association between a character and scan code, to allow pasting to be done properly
 /// </summary>
 
-KeyboardHandler::KeyboardHandler() : directories_(nullptr), register_replaced_(nullptr)
+KeyboardHandler::KeyboardHandler() : register_replaced_(nullptr), directories_(nullptr)
 {
    // The scan code file is loaded by LoadKeyboardMap, once the base directory is known (SetDirectories) :
    // loaded here it was looked for in the current directory, and missing when run from elsewhere

@@ -2,8 +2,8 @@
 #include "Z84C30.h"
 
 
-Z84C30::CTCCounter::CTCCounter() : output_(nullptr), interrupt_(nullptr), prescaler_(0), wait_for_time_constraint_(false),
-                                    control_(0), count_enabled_(false), decrement_(0), time_constant_(0), down_counter_(0)
+Z84C30::CTCCounter::CTCCounter() : control_(0), time_constant_(0), down_counter_(0), prescaler_(0),
+                                    decrement_(0), wait_for_time_constraint_(false), count_enabled_(false), output_(nullptr), interrupt_(nullptr)
 {
 }
 

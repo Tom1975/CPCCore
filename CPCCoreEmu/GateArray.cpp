@@ -60,7 +60,7 @@ static unsigned int ListeColors[] =
 };
 
 
-VideoGateArray::VideoGateArray(void) : unlocked_(false), plus_(false), dma_list_(nullptr), prev_col_ (0)
+VideoGateArray::VideoGateArray(void) : unlocked_(false), plus_(false), prev_col_ (0), dma_list_(nullptr)
 {
    dispen_buffered_ = false;
    dispen_buffered_h_ = false;

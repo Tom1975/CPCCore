@@ -115,7 +115,7 @@ struct AfcFilterStep
 static const AfcFilterStep kFilterPixel(1.0);
 static const AfcFilterStep kFilterBlock(NBPIXELADDED);
 
-Monitor::Monitor(void) : memory_(0), playback_sync_(false),keyboard_(nullptr), horizontal_position_(0), horizontal_hold_(kStandardHorizontalHold)
+Monitor::Monitor(void) : horizontal_hold_(kStandardHorizontalHold), horizontal_position_(0),memory_(0), keyboard_(nullptr), playback_sync_(false)
 {
    playback_ = nullptr;
    int i, b;
@@ -478,6 +478,8 @@ void Monitor::Tick( )
                   }
                   break;
                }
+               default:
+                  break;
             }
 
             int y = (((y_) % (RESY)));

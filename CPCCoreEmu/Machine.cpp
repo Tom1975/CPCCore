@@ -20,9 +20,9 @@ const char* CartPath = "CART";
 #define MAX_SIZE_BUFFER 256
 
 EmulatorEngine::EmulatorEngine() :
-   log_(nullptr), paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
-   do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_), speed_(100)
+   speed_(100), motherboard_(&sound_mixer_, &keyboardhandler_), log_(nullptr), directories_ (nullptr), paste_count_(0),
+   paste_size_(0), current_settings_(nullptr),
+   display_(nullptr), sna_handler_(log_), media_inserted_(&disk_type_manager_), do_snapshot_(false)
 {
    breakpoint_handler_.Init(this);
    fdc_present_ = true;
@@ -1012,6 +1012,7 @@ void EmulatorEngine::HandleSyncro(int run_time)
          real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
       else
          real_time = std::chrono::milliseconds(0);
+      [[fallthrough]];
    case E_CUSTOM:
       real_time = real_time * speed_ / 100;
       if (std::chrono::milliseconds(time_computed_) > real_time)
