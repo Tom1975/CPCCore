@@ -51,7 +51,6 @@ TokenConditionOperation* BreakpointHandler::CreateOperation(Token* token)
 
 IBreakpointItem* BreakpointHandler::ConditionHandling(std::vector<Token*> &token_list)
 {
-   IBreakpointItem* item = nullptr;
    std::vector<Token> out_token_list;
 
    for (size_t i = 0; i < token_list.size(); i++)

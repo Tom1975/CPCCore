@@ -70,7 +70,6 @@ size_t Token::FindRegister(std::string str, int& token_length)
 
 Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& pos_of_token, int& size_of_token)
 {
-   Token* token = nullptr;
 
    for (auto &it : token_type_list)
    {

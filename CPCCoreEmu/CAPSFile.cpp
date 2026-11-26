@@ -974,10 +974,6 @@ int CAPSFile::DecompressData(IDisk* disk, DWORD ctype, DWORD cyl, DWORD head, Da
 unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_size, DWORD ctype, DWORD cyl, DWORD head)
 {
    unsigned int usize = ExtractInt(&buffer[4]);
-   unsigned int ucrc = ExtractInt(&buffer[8]);; // CRC on uncompressed data
-   unsigned int csize = ExtractInt(&buffer[12]);; // compressed size in bytes
-   unsigned int ccrc = ExtractInt(&buffer[16]);; // CRC on compressed data
-   unsigned int hcrc = ExtractInt(&buffer[20]);; // CRC on header calculated as hcrc=0
 
    // density
    unsigned int* buf = new unsigned int[usize >> 2];
@@ -1057,11 +1053,6 @@ unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_si
 int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_size, DWORD ctype, DWORD cyl, DWORD head)
 {
    // PACK HEADER
-   unsigned int usize = ExtractInt(&buffer[4]);
-   unsigned int ucrc = ExtractInt(&buffer[8]);; // CRC on uncompressed data
-   unsigned int csize = ExtractInt(&buffer[12]);; // compressed size in bytes
-   unsigned int ccrc = ExtractInt(&buffer[16]);; // CRC on compressed data
-   unsigned int hcrc = ExtractInt(&buffer[20]);; // CRC on header calculated as hcrc=0
 
 
    delete[]disk->side_[head].tracks[cyl].revolution[0].bitfield;
@@ -1352,7 +1343,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
    unsigned char sync_buf[6] = {0};
    unsigned char buffer_short[2]; // FC, CRC, etc
    int offset = 0;
-   int sector_size = 0;
    // Record eveything between of odfsetBegin and offset_end
    bool byte_size = true;
 
@@ -1517,9 +1507,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
                      buffer_chrn[i] = byte;
                      offset_begin += 16;
                   }
-                  // Keep size for next run
-                  sector_size = (buffer_chrn[3] << 8);
-
                   size_to_add = (byte_size) ? 6 : 6 * 8;
                   AddDataRecord(record, 2, size_to_add, buffer_chrn, byte_size);
                }
@@ -1538,7 +1525,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
 
                int lastbits = (next_sync - offset_begin) % 16;
 
-               int max_size_mfm_test = (next_sync - offset_begin) / 16;
 
                bool mfm_is_correct = true;
                for (unsigned int i = offset_begin; i < next_sync && mfm_is_correct; i += 16)
@@ -1726,9 +1712,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    gap_data.buffer = new unsigned char[128];
    gap_data.size = 128;
 
-   int gap_offset = 0;
    //unsigned char* pData = new unsigned char[128];
-   int max_size_data = 128;
 
    // Block descriptor vector
    std::vector<BlockDescriptor> list_block_descriptor;
@@ -1782,7 +1766,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
       }
    }
 
-   unsigned int startbitpos = 0;
    // Construct DATA associated :
    // Find begining of track
 
@@ -1814,7 +1797,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
             // Not a formatted disk : Generate random data
             imge_item.start_bit_pos = 0;
             imge_item.density = 1;
-            int dbg = 1;
             //goto End;
             abort = true;
          }
@@ -1884,14 +1866,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          // Only if no weak bits in the pattern !
          if (NoWeakBitInPattern(pattern_byte, 16))
          {
-            if (pattern_byte[0] == 0
-               && pattern_byte[15] == 0
-               && (pattern_byte[14] & pattern_byte[1]) == 0
-            )
-            {
-               int dbg = 1;
-            }
-
             while ((offset_gap > search_offset && memcmp(&track_field[offset_gap], pattern_byte, 16) == 0)
                && (((track_field[offset_gap] & track_field[offset_gap - 1]) != 1) || offset_gap - 1 <= search_offset)
                && (offset_gap < 1 || ((track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap +
@@ -1997,14 +1971,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    // Now, update IMGE
    imge_item.track_bits = imge_item.gap_bits + imge_item.data_bits;
 
-   if (side < disk->nb_sides_ && tr < disk->side_[side].nb_tracks)
-   {
-      if (disk->side_[side].tracks[tr].size != imge_item.track_bits)
-      {
-         // error ?
-         int dbg = 1;
-      }
-   }
    // .. To add
 
    // CRC

@@ -10,20 +10,6 @@
 #include "CRC.h"
 #include <stdio.h>
 
-#ifdef PROF
-#define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
-#define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);
-#define PROF_DISPLAY _stprintf(s, _T("Duree displays Frame: %d us\n"), t);OutputDebugString (s);
-
-static __int64 s1, s2, freq;
-static DWORD t;
-static char s [1024];
-#else
-   #define START_CHRONO
-   #define STOP_CHRONO
-   #define PROF_DISPLAY
-#endif
-
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
@@ -654,7 +640,6 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 void EmulatorEngine::LoadConfiguration(const char* config_name_file, SugarboxInitialisation* init)
 {
    delete current_settings_;
-   char tmp_buffer[MAX_SIZE_BUFFER];
    current_settings_ = MachineSettings::CreateSettings(configuration_manager_, config_name_file);
    if (current_settings_ == nullptr)
    {
@@ -1151,7 +1136,6 @@ EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opco
    // immediately count it as "one instruction executed" before actually ticking.
    GetProc()->new_instruction_ = false;
    //
-   bool breakpoint_reached = false;
    DebugRunResult result = DBG_OPCODE_END;
    int run_time = 0;
 

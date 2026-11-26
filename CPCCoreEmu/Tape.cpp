@@ -305,20 +305,7 @@ Filter::Filter(int type_of_filter, bool lpf, double fe, double fc, int order) : 
    memset(coefx_, 0, sizeof(double)*(order + 1));
    memset(coefy_, 0, sizeof(double)*(order + 1));
 
-   volatile short int  cw = 0x27F;
-   volatile short oldcw = 0;
-   oldcw_ = 0;
 
-   // Force 53 bits floating points...
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fstcw oldcw
-      fldcw cw
-   }
-   oldcw_ = oldcw;
-#endif
-#endif
    // Compute gain and coeff.
    switch (type_of_filter)
    {
@@ -338,14 +325,6 @@ Filter::~Filter()
    delete[]coefx_;
    delete[]coefy_;
 
-#ifdef _WIN32
-#ifndef _WIN64
-   volatile short int oldcw = oldcw_;
-   __asm {
-      fldcw oldcw
-   }
-#endif
-#endif
 
 }
 
@@ -364,17 +343,6 @@ void Filter::Init()
 void Filter::Filtrer ( double* array, unsigned int nb_samples )
 {
 
-   // Force 53 bits floating points...
-#ifdef _WIN32
-#ifndef _WIN64
-   volatile short int oldcw = oldcw_;
-   volatile short int  cw = 0x27F;
-   __asm {
-   fstcw oldcw
-   fldcw cw
-   }
-#endif
-#endif
    
    // Lets apply theses values.
    for (unsigned int i = 0; i < nb_samples; i++)
@@ -398,13 +366,6 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
       yv_[order_] = yvout;
       array[i]  = yvout;
    }
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-   fldcw oldcw
-   }
-#endif
-#endif
 }
 
 
@@ -426,22 +387,8 @@ void CTape::FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filt
    memset (xv, 0, sizeof(double)*(order*2+1));
    memset (yv, 0, sizeof(double)*(order*2+1));
 
-   //unsigned int currCtrl;
 
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
 
-#ifdef _WIN32
-#ifndef _WIN64
-   // Force 53 bits floating points...
-   __asm {
-   fstcw oldcw
-   fldcw cw
-   }
-#endif
-#endif
-   // Can be replaced by....
-   //_controlfp_s ( &currCtrl, _PC_53 , _MCW_PC  );
 
    // Compute gain and coeff.
    ComputeBandPass ( type_of_filter, order, fe, fcb, fch, &gain ,  coefx,  coefy);
@@ -490,13 +437,6 @@ void CTape::FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filt
    delete []yv;
    delete []coefx;
    delete []coefy;
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-   fldcw oldcw
-   }
-#endif
-#endif
 }
 
 
@@ -1041,8 +981,6 @@ int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_sample
       // Vt+ = Vcc/2 * (R1+R2) / R2
       // Vt- = Vcc - Vcc/2 * (R1+R2) / R2
       // TODO  : Ajouter le trigger de schmitt inverseur (Vt+ = 4.9 / 2 * (10+47)k/(47k))
-      double vtp = 5 * (10.0/57.0);
-      double vtm = -5 * (10.0/57.0);
    }
 #endif
    // Step 2 : Convert values to this format
@@ -1361,10 +1299,6 @@ void CTape::PushPause (int length )
       current_level_ = true;
 
    }
-   else
-   {
-      int dbg = 1;
-   }
 
 }
 
@@ -1439,7 +1373,6 @@ int CTape::LoadTap(unsigned char* buffer, size_t size)
 int CTape::LoadTap (const char* file_path)
 {
    FILE * file;
-   int ret = -1;
    if (fopen_s (&file, file_path, "rb") == 0)
    {
       // Length ?
@@ -1452,7 +1385,8 @@ int CTape::LoadTap (const char* file_path)
       fread ( tap_buffer, 1, nLength,  file );
       fclose(file);
 
-      ret = LoadTap(tap_buffer, nLength);
+      // The result of LoadTap is not returned: this function always gives 0
+      LoadTap(tap_buffer, nLength);
 
       delete []tap_buffer;
    }
@@ -1712,7 +1646,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
    unsigned int data_length = 0;
    unsigned char* buffer = NULL;
    unsigned char codec_id = 0;
-   unsigned char channel_number = 0;
    unsigned char nb_channels = 1;
    unsigned char bit_per_sample = 8;
 
@@ -1784,7 +1717,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
       case 0x03:  // Silence
       {
          //
-         unsigned short length_silence = GET_WORD((&buffer[0]));
          unsigned char freq_divisor = buffer[2];
          sample_rate_ = 1000000 / (256 - freq_divisor);
          break;
@@ -1806,7 +1738,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
          unsigned short freq_divisor = GET_WORD((&buffer[0]));
          codec_id = buffer[1];
          sample_rate_ = 256000000 / (nb_channels * (65536 - freq_divisor));
-         channel_number = buffer[3];
          extra_info = true;
          break;
       }
@@ -1887,7 +1818,6 @@ int CTape::LoadCSW(unsigned char* buffer, size_t size)
    // Major revision
    unsigned char maj_rev = header[0x17];
    // Minor revision
-   unsigned char min_rev = header[0x18];
 
    // CSW 2
    if (maj_rev == 2)
@@ -1993,7 +1923,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
 
    // TZX Format : Check version
    int maj_rev = header[8];
-   int min_rev = header[9];
 
    // Check revision
    if (maj_rev > 1)
@@ -2235,10 +2164,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
          case 0x14:
          {
 
-            if (current_block_ >= 6915)
-            {
-               int dbg = 1;
-            }
             unsigned char buffer14[0xA];
             if (place_in_file + 10 > size)
             {
@@ -2289,7 +2214,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             }
             else
             {
-               int dbg = 1;
                /*if (m_bCurrentLevel)
                PushPulse ( m_pTapeArray[m_NbInversions].Length );*/
             }
@@ -2326,7 +2250,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             // Compute each samples
             // First one . ?
             //
-            int last_index = 0;
             for (unsigned int i = 0; i < ((data_length - 1) * 8 + UsedBitsLastByte); i++)
             {
                // Inversion ?
@@ -2336,7 +2259,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
                   IncInversions();
                   tape_array_[nb_inversions_].length = 0;
                   tape_array_[nb_inversions_].place = tape_array_[nb_inversions_ - 1].place;
-                  last_index = i;
                }
                tape_array_[nb_inversions_].high = bLevel;
 
@@ -2577,7 +2499,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             memcpy(data_buffer, &buffer[place_in_file], l);
             place_in_file += l;
             block_list_[nb_blocks_-1].description = new char[l + 1];
-            size_t converted_chars = 0;
             strcpy(block_list_[nb_blocks_ - 1].description, (const char*)data_buffer);
             // Save this for display purpose
             break;
@@ -2632,7 +2553,7 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
                if (buffer_index + 2 > data_length) return -2;
 
                // ID
-               unsigned char id = buffer_32[buffer_index++];
+                ++buffer_index; // id
 
                // Size
                unsigned char str_size = buffer_32[buffer_index++];
@@ -2807,12 +2728,6 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
    memcpy(header, &buffer[index_pos], 12);
    index_pos += 12;
 
-   // Keep track of file size
-   int file_size = header[4]
-      + (header[5] << 8)
-      + (header[6] << 16)
-      + (header[7] << 24);
-
    // Check file format
    if (memcmp(&header[8], "WAVE", 4) == 0)
    {
@@ -2837,7 +2752,6 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
             index_pos += format_size;
 
             // Type of format
-            int format = fmt[0] + (fmt[1] << 8);
             unsigned int nb_channels = fmt[2] + (fmt[3] << 8);
             frequency_ = fmt[4]
                + (fmt[5] << 8)
@@ -3281,7 +3195,6 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
                else
                {
                   remaining_reversal_flux_ = 1;
-                  int dbg = 1;
                }
 
             }
@@ -3496,7 +3409,6 @@ void CTape::SaveAsWav (const char* filepath)
       unsigned _int64 total = 0;
       unsigned _int64 current_length = 0;
 #endif
-      unsigned short block_number = 0;
       current_length = tape_array_[current_inversion].length;
       current_length = static_cast<unsigned long long > (current_length * sample_rate);
 
@@ -3614,10 +3526,6 @@ void CTape::SaveAsCdtDrb (const char* filepath)
          remaining = static_cast<unsigned long long>((( l + remaining)* ( mul) - nb_samples) / ( mul));
 
          unsigned char bitBuf = (tape_array_[i].high?1:0);
-         if ( i > nb_inversions_-4)
-         {
-            int dbg = 1;
-         }
          for (int j = 0; j < nb_samples; j++)
          {
 
@@ -3711,7 +3619,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
       size += fwrite ( type==1?"\1":"\2", 1, 1, file  );
 
       // Data size
-      int pos_of_size = size;
       buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0;
       size += fwrite ( buffer, 1, 4, file  );
 
@@ -3722,9 +3629,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
       //size += WriteInt ( 0, file  ); //
       //size = 0;
 
-      unsigned char used_bit_in_lastbye = 8;
-      unsigned char car_buf = 0;
-      int bit_counter = 0;
       unsigned int nb_sample_to_record = 0;
       double ratio = sample_rate / 4000000.0;
 
@@ -3759,10 +3663,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
                      if  (type == 1)
                         size += fwrite ( buffer, 1, 1, file  );
                   }
-               }
-               else
-               {
-                  int dbg = 1;
                }
             }
       // Last byte
@@ -3860,7 +3760,6 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
 
       // Simple RLE
       // Data
-      double ratio = sample_rate / 4000000.0;
       unsigned int nb_sample_to_record = 0;
 
       unsigned char* data_buffer = NULL;
@@ -3918,10 +3817,6 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
                      else
                         data_buffer[index++] = nb_samples&0xFF;
                   }
-               }
-               else
-               {
-                  int dbg = 1;
                }
             }
             //break;

@@ -214,10 +214,6 @@ void Ay8912::TickSound ()
 
    if (counter_a_ >= channel_a_freq_counter_ )
    {
-      if (channel_a_freq_counter_ == 1 && channel_a_volume_ > 0)
-      {
-         int dbg = 1;
-      }
       // Inversion !
       chan_a_high_ ^= 1;
       counter_a_ = 0;

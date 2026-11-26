@@ -360,33 +360,27 @@ public:
    template<OpcodeType type>
    void SetCustomOpcode(unsigned char opcode, std::function<void(unsigned int)> func )
    {
-      Opcode* op;
       ListFunction* fetch;
       unsigned short replaced_opcode = 0;
       switch (type)
       {
       case None:
-         op = &liste_opcodes_[opcode];
          fetch = &fetch_func;
          replaced_opcode = opcode;
          break;
       case CB:
-         op = &liste_opcodes_cb_[opcode];
          fetch = &fetch_func_cb_;
          replaced_opcode = 0xCB00|opcode;
          break;
       case ED:
-         op = &liste_opcodes_ed_[opcode];
          fetch = &fetch_func_ed_;
          replaced_opcode = 0xED00 | opcode;
          break;
       case DD:
-         op = &liste_opcodes_dd_[opcode];
          fetch = &fetch_func_dd_;
          replaced_opcode = 0xDD00 | opcode;
          break;
       case FD:
-         op = &liste_opcodes_fd_[opcode];
          fetch = &fetch_func_fd_;
          replaced_opcode = 0xFD00 | opcode;
          break;

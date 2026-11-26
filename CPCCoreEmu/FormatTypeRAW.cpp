@@ -9,8 +9,6 @@
 #include <stdio.h>
 using namespace std;
 
-#define TXT_OUT_PROF _T("Duree load disk")
-#define PROF
 
 #define DEFAULT_FLUX_SIZE     6500
 
@@ -255,13 +253,9 @@ void FormatTypeRAW::HandleOOB(FILE* file)
       {
          // size should be 8
          // Use it for check ?
-         unsigned int streamPos = GetDualWord(file);
-         unsigned int transfert_time = GetDualWord(file);
+         GetDualWord(file); // stream position
+         GetDualWord(file); // transfer time
          stream_position_ -= 8;
-         if (stream_position_ != streamPos)
-         {
-            int dbg = 1;
-         }
 
          // TODO
          break;
@@ -307,7 +301,7 @@ void FormatTypeRAW::HandleOOB(FILE* file)
       {
          // size should be 8 - TOCHECK ?
          unsigned int stream_pos = GetDualWord(file);
-         unsigned int result_code = GetDualWord(file);
+         GetDualWord(file); // result code
          stream_position_ -= 8;
          if (stream_position_ != stream_pos)
          {
@@ -359,13 +353,9 @@ void FormatTypeRAW::HandleOOB(const unsigned char* buffer, int& pos)
       {
          // size should be 8
          // Use it for check ?
-         unsigned int stream_pos = GetDualWordFromBuffer(buffer, pos);
-         unsigned int transfert_time = GetDualWordFromBuffer(buffer, pos);
+         GetDualWordFromBuffer(buffer, pos); // stream position
+         GetDualWordFromBuffer(buffer, pos); // transfer time
          stream_position_ -= 8;
-         if (stream_position_ != stream_pos)
-         {
-            int dbg = 1;
-         }
          break;
       }
 
@@ -409,7 +399,7 @@ void FormatTypeRAW::HandleOOB(const unsigned char* buffer, int& pos)
       {
          // size should be 8 - TOCHECK ?
          unsigned int stream_pos = GetDualWordFromBuffer(buffer, pos);
-         unsigned int result_code = GetDualWordFromBuffer(buffer, pos);
+         GetDualWordFromBuffer(buffer, pos); // result code
          stream_position_ -= 8;
          if (stream_position_ != stream_pos)
          {
@@ -809,17 +799,10 @@ unsigned int FormatTypeRAW::GetCellWidth(double fluxValue)
    if (cell2 != cell)
    {
       // Compare who's the nearest
-      if (abs(((float)cell) - (fluxValue / clock_average)) < (abs(((float)cell2) - fluxValue)))
-      {
-         // Nothing
-         int dbg = 1;
-      }
-      else
+      if (!(abs(((float)cell) - (fluxValue / clock_average)) < (abs(((float)cell2) - fluxValue))))
       {
          cell = cell2;
       }
-      int dbg = 1;
-      //cell = cell2;
    }
 
    // Adjust with current clock

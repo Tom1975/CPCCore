@@ -262,7 +262,6 @@ int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& 
                         break;
                      default:
                      {
-                        int dbg = 1;
                         break;
                      }
                   }

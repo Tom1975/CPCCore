@@ -772,18 +772,7 @@ void Filtrer(double* pArray, unsigned int nbSamples, int typeOfFilter, bool lpf,
    memset(coefx, 0, sizeof(double)*(order + 1));
    memset(coefy, 0, sizeof(double)*(order + 1));
 
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
 
-   // Force 53 bits floating points...
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fstcw oldcw
-      fldcw cw
-   }
-#endif
-#endif
    // Compute gain and coeff.
    switch (typeOfFilter)
    {
@@ -821,11 +810,4 @@ void Filtrer(double* pArray, unsigned int nbSamples, int typeOfFilter, bool lpf,
    delete[]yv;
    delete[]coefx;
    delete[]coefy;
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fldcw oldcw
-   }
-#endif
-#endif
 }

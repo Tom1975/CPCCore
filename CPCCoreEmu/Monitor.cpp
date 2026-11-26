@@ -6,21 +6,6 @@
 
 #include <cmath>
 
-//#define PROF
-#ifdef PROF
-#define START_CHRONO  if(countLoop==0){QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);}
-#define STOP_CHRONO   if(countLoop==100000000){QueryPerformanceCounter ((LARGE_INTEGER*)&s2);totalcount++;total+=(DWORD)(((s2 - s1) * 1000000) / freq);t=total/totalcount;countLoop=0;_stprintf_s(s, 1024, _T("%s: %d us\n"),TXT_OUT_PROF, t);OutputDebugString (s);}else{countLoop++;}
-
-static __int64 s1, s2, freq, total = 0;
-static DWORD t = 0;
-static char s[1024];
-static int countLoop = 0;
-static int totalcount = 0;
-#else
-#define START_CHRONO
-#define STOP_CHRONO
-#endif
-
 #define NBPIXELADDED 16
 
 
@@ -344,7 +329,6 @@ double Monitor::LinePeriod() const
 void Monitor::Tick( )
 {
 
-   START_CHRONO
 
       ///////////////////////////////////
       // Display : Monitor Part
@@ -533,13 +517,11 @@ void Monitor::Tick( )
 
    if (!playback_sync_)
    {
-      START_CHRONO
 
       // SNR value !
       if (playback_)playback_->Playback();
       playback_sync_ = true;
 
-      STOP_CHRONO
    }
 
    

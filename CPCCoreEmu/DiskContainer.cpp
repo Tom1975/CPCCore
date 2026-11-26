@@ -298,7 +298,6 @@ std::vector<SingleElements> ZippedFile::GetInnerElements(int type)
 {
    std::vector<SingleElements> list;
 
-   int nb_elements = GetNumberOfElements();
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end(); it++)
    {
       (*it)->AddElementsToList(list, type);
@@ -411,9 +410,6 @@ void ZippedFile::InitUnzip()
                {
                   // check version min
                   // Compression method
-                  short min_version = *(short*)&(zipped_buffer[offset_dir + 6]);
-                  short comp_method = *(short*)&(zipped_buffer[offset_dir + 10]);
-                  short ifile_attrib = *(short*)&(zipped_buffer[offset_dir + 36]);
                   int efile_attrib = *(int*)&(zipped_buffer[offset_dir + 38]);
 
                   //
@@ -455,9 +451,6 @@ void ZippedFile::InitUnzip()
                   unsigned char* local_header = &zipped_buffer[off_local_header];
                   if (*(unsigned int*)(&local_header[0]) == 0x04034b50)
                   {
-                     short min_version = *(short*)&(local_header[4]);
-                     short flags = *(short*)&(local_header[6]);
-                     short comp_method = *(short*)&(local_header[8]);
 
                      if (added_element != nullptr)
                      {
@@ -661,9 +654,6 @@ int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer
          {
             // check version min
             // Compression method
-            short min_version = *(short*)&(zipped_buffer[offset_dir + 6]);
-            short comp_method = *(short*)&(zipped_buffer[offset_dir + 10]);
-            short ifile_attrib = *(short*)&(zipped_buffer[offset_dir + 36]);
             int efile_attrib = *(int*)&(zipped_buffer[offset_dir + 38]);
 
             //
@@ -690,16 +680,12 @@ int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer
 
                added_element->offset_ = off_local_header;
                // Update file type count
-               int file_type = manager->GetTypeFromFile(added_element->name_.c_str());
             }
 
             // local file header
             unsigned char* local_header = &zipped_buffer[off_local_header];
             if (*(unsigned int*)(&local_header[0]) == 0x04034b50)
             {
-               short min_version = *(short*)&(local_header[4]);
-               short flags = *(short*)&(local_header[6]);
-               short comp_method = *(short*)&(local_header[8]);
 
                if (added_element != nullptr)
                {

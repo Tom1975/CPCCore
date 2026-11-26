@@ -27,7 +27,6 @@ public:
    void Filtrer(double* array, unsigned int nb_samples);
 
 protected:
-   volatile short int oldcw_;
 
    int order_;
    double *xv_;

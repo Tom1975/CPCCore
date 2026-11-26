@@ -14,24 +14,6 @@ extern unsigned char Mode0Lut[0x100][0x10];
 extern unsigned char Mode1Lut[0x100][0x10];
 extern unsigned char Mode2Lut[0x100][0x10];
 
-#ifdef _DEBUG
-//#define PROF
-#endif
-
-#ifdef PROF
-#define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
-#define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);
-#define PROF_DISPLAY _stprintf(s, _T("Duree displays Frame: %d us\n"), t);OutputDebugString (s);
-
-static __int64 s1, s2, freq;
-static DWORD t;
-static char s[1024];
-#else
-#define START_CHRONO
-#define STOP_CHRONO
-#define PROF_DISPLAY
-#endif
-
 
 static unsigned int ListeColorsIndexConvert[32] =
 {
@@ -111,7 +93,6 @@ VideoGateArray::VideoGateArray(void) : unlocked_(false), plus_(false), dma_list_
    Reset();
    type_gate_array_ = GA_40010;
 
-   START_CHRONO
 }
 
 

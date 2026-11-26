@@ -1469,7 +1469,6 @@ void IDisk::CreateSingleTrackFromMultiRevolutions(int side, int track)
 
 void IDisk::CreateTrackFromMultiRevolutions()
 {
-   //   START_CHRONO
 
    // Create one single track with WEAK informations from
    for (int side = 0; side < nb_sides_; side ++)
@@ -1479,8 +1478,6 @@ void IDisk::CreateTrackFromMultiRevolutions()
          CreateSingleTrackFromMultiRevolutions(side, track);
       }
    }
-   //   STOP_CHRONO
-   //   PROF_DISPLAY
 }
 
 // TODO :
@@ -1592,7 +1589,6 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
       {
          unsigned int count = 0;
          int revolution_count = -1;
-         int bit_corrects[16][16];
          for (unsigned int i = 0; i < nb_used_revolutions; i++)
          {
             for (unsigned int j = i + 1; j < nb_used_revolutions; j++)
@@ -1601,7 +1597,6 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
                {
                   // Comparaison des revolutions i et j
                   bool revolution_comp_ok = true;
-                  bit_corrects[i][j] = 0;
                   unsigned int localcount = 0;
                   // Max comp : pTmp -> pNextCorrectIndex
                   unsigned int max_comp_1 = next_correct_index[i] - tmp_buffer[i];
@@ -1626,7 +1621,6 @@ int IDisk::FindEndOfWeakArea(int side, int track, unsigned int* current_search_r
                      }
                   }
                   if (localcount > min_comp) localcount = min_comp;
-                  bit_corrects[i][j] = localcount;
                   if (count < localcount)
                   {
                      count = localcount;
@@ -2201,18 +2195,12 @@ int IDisk::CreateTrackFromRevolutionWithSize(int side, int track, int sizeOfTrac
             }
 
             // Check size. All same ? Just compare bit to bit !
-            bool is_same_size = true;
             unsigned int weak_max_size = 0;
             unsigned int weak_min_size = side_[side].tracks[track].size - index_write;
             for (unsigned int rev = 0; rev < nb_used_revolutions; rev++)
             {
                if (!revolution_wrecked[rev])
                {
-                  if (rev > 0 && index_buffer[rev - 1] != -1 && index_buffer[rev] != -1)
-                  {
-                     if (index_next_sync[rev - 1] - index_buffer[rev - 1] != index_next_sync[rev] - index_buffer[rev])
-                        is_same_size = false;
-                  }
                   if (index_buffer[rev] != -1)
                   {
                      if (index_next_sync[rev] - index_buffer[rev] > weak_max_size)
@@ -2960,7 +2948,6 @@ std::vector<std::string>  IDisk::GetCat(IDisk::AutorunType& autorun_type, int us
 
    // It's in first track, NB_SECTOR_FOR_CAT firsts sectors, from first_sector to first_sector + NB_SECTOR_FOR_CAT
    // todo : read the proper sectors !
-   int nb_sector_read = 0;
 
    //for (int i = 0; i < NB_SECTOR_FOR_CAT && i < trackInfo.listSector.size(); i++)
    unsigned int index_sector = 0;

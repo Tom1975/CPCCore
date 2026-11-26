@@ -258,10 +258,6 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
                }
 
                // Data
-               if (tn == 0x13)
-               {
-                  int dbg = 1;
-               }
                for (k = 0; k < side_[i].tracks[tn].nb_sector; k++)
                {
                   if (side_[i].tracks[tn].sectors[k].actual_size == 0)
@@ -471,10 +467,6 @@ int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgres
                   for (int cpt = 0; cpt < info_track->list_sector_[sector_index].real_size/*  it->RealSize*/; cpt++)
                   {
                      track_data[offset_data++] = disk->GetNextByte(i, j, index);
-                     if (offset_data > size)
-                     {
-                        int dbg = 1;
-                     }
                      index += 16;
                   }
                }
@@ -715,11 +707,6 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    unsigned int last_end_of_sector = 0;
 
 
-   if (track == 40)
-   {
-      int stop = 1;
-   }
-
    // ---  Each sectors :
    for (unsigned int s = 0; s < side_[side].tracks[track].nb_sector; s++)
    {
@@ -828,11 +815,8 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
             {
                // GAP3 removal :
                // If it is possible : GAP3 are enough
-               int nb_gap = 0;
                if (s > 0)
                {
-                  nb_gap = side_[side].tracks[track].gap3 * 16;
-
                   offset = -offset;
                   if (offset <= /*nb_gap*/(static_cast<int>(index_bit) - static_cast<int>(max_search_index)))
                   {
@@ -1007,7 +991,6 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
       }
 
       unsigned int final_index_begin = index_iam + 16 + 50;
-      unsigned int total_gap = final_index_begin * 16 + final_gap;
 
       if (final_gap < (150)*16 )
       {
@@ -1189,24 +1172,6 @@ void FormatTypeEDSK::ConvertDatatoMfm(Sector* sector, unsigned int index_revolut
    }
 
    sector->mfm_data_size = index_bit;
-
-   bool crc_needed = (size_of_track == theorical_size);
-   // If less
-   if (size_of_track < theorical_size)
-   {
-      // How can we know ?
-      // Compare size of gap with index values.
-      // if there is a diff of "2", add a crc to make it correct
-      // TODO this
-      int dbg = 1;
-      crc_needed = true;
-   }
-   if ((sector->fdc_status_1 & 0x20) == 0x20
-      && (sector->fdc_status_2 & 0x20) == 0x20
-      && (size_of_track == theorical_size)
-   )
-      crc_needed = false;
-
 
    sector->crc_present = true;
 

@@ -230,7 +230,6 @@ int FormatTypeDSK::FillTrack(unsigned char* track_buffer, int side, int track)
    // GAP 1 : 50 byte with 0x4E value
    for (j = 0; j < 50; j++) load_disk_index = IDisk::AddByteToTrack(track_buffer, load_disk_index, 0x4E);
 
-   unsigned int last_valid_data = 0;
 
    // Then, each sectors :
    for (unsigned int s = 0; s < side_[side].tracks[track].nb_sector; s++)
