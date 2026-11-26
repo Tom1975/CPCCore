@@ -308,9 +308,9 @@ int EmulatorEngine::LoadCpr( const char* file_path)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      int ret = LoadCprFromBuffer(buffer, buffer_size);
+      int ret = read_ok ? LoadCprFromBuffer(buffer, buffer_size) : -1;
       delete[]buffer;
       return ret;
    }
@@ -426,9 +426,9 @@ int EmulatorEngine::LoadXpr(const char* file_path)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      int ret = LoadXprFromBuffer(buffer, buffer_size);
+      int ret = read_ok ? LoadXprFromBuffer(buffer, buffer_size) : -1;
       delete[]buffer;
       return ret;
    }
@@ -1524,13 +1524,18 @@ void EmulatorEngine::LoadRom(int rom_number, const char* path)
       }
       else
       {
-         Memory::RamBank rom;
-         fread(rom, 1, lSize, file_rom);
+         // A ROM bank is 16 KB : a bigger file gives its first 16 KB, a smaller one is padded with 0
+         Memory::RamBank rom = {};
+         const size_t to_read = std::min<size_t>(lSize, sizeof(rom));
+         const size_t read_size = fread(rom, 1, to_read, file_rom);
          fclose(file_rom);
-         if (rom_number==-1)
-            GetMem()->LoadLowerROM(rom, sizeof(rom));
-         else
-            GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+         if (read_size == to_read)
+         {
+            if (rom_number==-1)
+               GetMem()->LoadLowerROM(rom, sizeof(rom));
+            else
+               GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+         }
       }
    }
 }

@@ -104,10 +104,10 @@ bool  MediaContainer::BuildFromZippedFile(std::string path)
    if (fopen_s(&f, path.c_str(), "rb") == 0)
    {
       unsigned char zipped_buffer[4];
-      fread(zipped_buffer, 4, 1, f);
+      const bool read_ok = (fread(zipped_buffer, 4, 1, f) == 1);
       fclose(f);
 
-      if (*(unsigned int*)zipped_buffer == 0x04034b50)
+      if (read_ok && *(unsigned int*)zipped_buffer == 0x04034b50)
       {
          //IContainedElement *newElement = new ZippedFile(type_manager_, m_CurrentPath);
          //media_list_.push_back(newElement);

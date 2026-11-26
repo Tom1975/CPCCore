@@ -24,8 +24,7 @@ bool FormatTypeDSK::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x8] = {0};
       // check the 22 first char
-      fread(header, 1, 0x8, file);
-      if (memcmp(header, "MV - CPC", 8) == 0)
+      if (fread(header, 1, 0x8, file) == 0x8 && memcmp(header, "MV - CPC", 8) == 0)
       {
          can_load = true;
       }

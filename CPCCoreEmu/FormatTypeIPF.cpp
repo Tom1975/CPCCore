@@ -22,8 +22,7 @@ bool FormatTypeIPF::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x3] = {0};
       // check the 22 first char
-      fread(header, 1, 0x3, file);
-      if (memcmp(header, "CAPS", 3) == 0)
+      if (fread(header, 1, 0x3, file) == 0x3 && memcmp(header, "CAPS", 3) == 0)
       {
          can_load = true;
       }

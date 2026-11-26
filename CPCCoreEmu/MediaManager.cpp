@@ -194,7 +194,8 @@ int MediaManager::GetTypeFromFile(const char*  str)
    {
       unsigned char buffer [0x100] = {0};
       // check the 22 first char
-      fread(buffer, 1, 0x100, file);
+      // A shorter file leaves the end of the buffer at 0
+      [[maybe_unused]] const size_t read_size = fread(buffer, 1, 0x100, file);
       fclose(file);
 
       return_type = GetTypeFromBuffer(buffer, 0x100);

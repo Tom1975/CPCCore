@@ -1104,7 +1104,8 @@ int CTape::InsertTapeDelayed()
    {
       unsigned char header [23] = {0};
       // check the 12 first char
-      fread ( header , 1, 23, file );
+      // A shorter file leaves the end of the header at 0
+      [[maybe_unused]] const size_t header_size = fread ( header , 1, 23, file );
       fclose (file);
 
       if (  ( memcmp ( header, "ZXTape!", 7) == 0)
@@ -1382,11 +1383,11 @@ int CTape::LoadTap (const char* file_path)
 
       // Read datas
       unsigned char* tap_buffer = new unsigned char[nLength];
-      fread ( tap_buffer, 1, nLength,  file );
+      const bool read_ok = (fread ( tap_buffer, 1, nLength,  file ) == static_cast<size_t>(nLength));
       fclose(file);
 
       // The result of LoadTap is not returned: this function always gives 0
-      LoadTap(tap_buffer, nLength);
+      if (read_ok) LoadTap(tap_buffer, nLength);
 
       delete []tap_buffer;
    }
@@ -1789,9 +1790,9 @@ int CTape::LoadVOC (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadVOC(buffer, buffer_size);
+      if (read_ok) ret = LoadVOC(buffer, buffer_size);
 
       delete[]buffer;
 
@@ -1897,9 +1898,9 @@ int CTape::LoadCSW (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadCSW(buffer, buffer_size);
+      if (read_ok) ret = LoadCSW(buffer, buffer_size);
 
       delete[]buffer;
    }
@@ -2687,9 +2688,9 @@ int CTape::LoadTZX (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadTZX(buffer, buffer_size);
+      if (read_ok) ret = LoadTZX(buffer, buffer_size);
 
       delete[]buffer;
    }
@@ -2889,9 +2890,9 @@ int CTape::LoadWav (const char* filepath)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadWav(buffer, buffer_size);
+      if (read_ok) ret = LoadWav(buffer, buffer_size);
 
       delete[]buffer;
 

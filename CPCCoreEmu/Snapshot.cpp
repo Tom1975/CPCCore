@@ -1087,8 +1087,7 @@ void CSnapshot::InitReplay ()
 
    // Cheack header
    unsigned char header [0x100] = {0};
-   fread (header, 0x100, 1, f);
-   if (strncmp( (char*)header, "RW - SNR", 8) != 0)
+   if (fread (header, 0x100, 1, f) != 1 || strncmp( (char*)header, "RW - SNR", 8) != 0)
    {
       fclose(f);
       if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);

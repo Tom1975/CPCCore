@@ -694,8 +694,9 @@ unsigned char FormatTypeRAW::GetFromBuffer(const unsigned char* buffer, int& pos
 unsigned char FormatTypeRAW::Get(FILE* file)
 {
    stream_position_++;
-   unsigned char c;
-   fread(&c, 1, 1, file);
+   // Past the end of the file, the value is 0
+   unsigned char c = 0;
+   if (fread(&c, 1, 1, file) != 1) c = 0;
 
    return c;
 }
@@ -713,8 +714,8 @@ unsigned short FormatTypeRAW::GetWord(FILE* file)
 {
    unsigned short v = 0;
 
-   unsigned char c[2];
-   fread(&c, 2, 1, file);
+   unsigned char c[2] = {0, 0};
+   if (fread(&c, 2, 1, file) != 1) c[0] = c[1] = 0;
 
    v = c[0];
    v |= (c[1] << 8);
@@ -737,8 +738,8 @@ unsigned long FormatTypeRAW::GetDualWordFromBuffer(const unsigned char* buffer, 
 unsigned long FormatTypeRAW::GetDualWord(FILE* file)
 {
    unsigned long v = 0;
-   unsigned char c[4];
-   fread(&c, 4, 1, file);
+   unsigned char c[4] = {0, 0, 0, 0};
+   if (fread(&c, 4, 1, file) != 1) c[0] = c[1] = c[2] = c[3] = 0;
 
    v = c[0];
    v |= (c[1] << 8);
@@ -756,7 +757,7 @@ void FormatTypeRAW::ReadASCIIFromBuffer(const unsigned char* buffer, int& pos, c
 
 void FormatTypeRAW::ReadASCII(FILE* file, char* info, int size)
 {
-   fread(info, size, 1, file);
+   if (fread(info, size, 1, file) != 1) memset(info, 0, size);
 }
 
 
