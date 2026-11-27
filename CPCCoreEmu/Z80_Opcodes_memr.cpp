@@ -206,20 +206,20 @@ unsigned int Z80::OpcodeMEMR()
    case 0xED7D: if (read_count_ == 0) { t_ = 1; current_address_ = sp_++; ++read_count_; }
                 else { pc_ = current_data_ & 0xFFFF; mem_ptr_.w = pc_; iff1_ = iff2_;  NEXT_INSTR }; break;
 
-   case 0xEDA0: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; current_data_; read_count_ = 0; break; // LDI
+   case 0xEDA0: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; read_count_ = 0; break; // LDI
    case 0xEDA1: CPD_FLAGS(data_); ++hl_.w; --bc_.w; ++mem_ptr_.w; machine_cycle_ = M_Z80_WORK; t_ = 5; break;     // CPI
    case 0xEDA3:  --bc_.b.h; mem_ptr_.w = bc_.w+1; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = bc_.w; break;// OUTI
-   case 0xEDA8: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; current_data_; read_count_ = 0; break; // LDD
+   case 0xEDA8: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; read_count_ = 0; break; // LDD
 
    case 0xEDA9: CPD_FLAGS(data_); --hl_.w; --bc_.w; --mem_ptr_.w; machine_cycle_ = M_Z80_WORK; t_ = 5; break;      // CPD
    case 0xEDAB: mem_ptr_.w = bc_.w; --bc_.b.h; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = bc_.w; break;// OUTD
 
-   case 0xEDB0: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; current_data_;read_count_ = 0;break;   // LDIR
+   case 0xEDB0: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; read_count_ = 0;break;   // LDIR
    case 0xEDB1: CPD_FLAGS(data_); ++hl_.w; --bc_.w; if ((af_.b.h == data_) || (bc_.w == 0)) { ++mem_ptr_.w; machine_cycle_ = M_Z80_WORK; t_ = 5; }
                 else { pc_ -= 2; mem_ptr_.w = pc_ + 1; machine_cycle_ = M_Z80_WORK; t_ = 5 + 5; }break;// CPIR
    case 0xEDB3: --bc_.b.h; mem_ptr_.w = bc_.w+1; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = bc_.w; current_data_ = data_; break;// OTIR
 
-   case 0xEDB8: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; current_data_;read_count_ = 0;break;   // LDDR
+   case 0xEDB8: machine_cycle_ = M_MEMORY_W; t_ = 1; current_address_ = de_.w; read_count_ = 0;break;   // LDDR
    case 0xEDB9: CPD_FLAGS(data_);--hl_.w;--bc_.w; if ((af_.b.h == data_) || (bc_.w == 0)) { --mem_ptr_.w; machine_cycle_ = M_Z80_WORK; t_ = 5; }
                 else { pc_ -= 2; mem_ptr_.w = pc_ + 1; machine_cycle_ = M_Z80_WORK; t_ = 5 + 5; }break;// CPDR
    case 0xEDBB: mem_ptr_.w = bc_.w; --bc_.b.h; machine_cycle_ = M_IO_W; t_ = 1; current_address_ = bc_.w; current_data_ = data_; break;// OTDR

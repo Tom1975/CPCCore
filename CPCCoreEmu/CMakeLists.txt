@@ -62,6 +62,11 @@ IF(MSVC)
    ADD_DEFINITIONS(/arch:SSE2)
    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ot /Ob2 /GL /Gs- /GS- /Gy /Oi /DVERSION=${VERSION} /DBUILD_NUMBER=${BUILD_NUMBER}")
+   # /GL objects need link-time code generation. Without /LTCG on the
+   # executable that links this library, the linker discovers them, restarts
+   # the link with /LTCG and says so. INTERFACE hands the option to every
+   # consumer (unit tests, Sugarbox frontends).
+   target_link_options(CPCCoreEmu INTERFACE $<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>:/LTCG>)
 ENDIF(MSVC)
 
 

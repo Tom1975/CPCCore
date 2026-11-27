@@ -51,7 +51,6 @@ TokenConditionOperation* BreakpointHandler::CreateOperation(Token* token)
 
 IBreakpointItem* BreakpointHandler::ConditionHandling(std::vector<Token*> &token_list)
 {
-   IBreakpointItem* item = nullptr;
    std::vector<Token> out_token_list;
 
    for (size_t i = 0; i < token_list.size(); i++)
@@ -91,7 +90,7 @@ IBreakpointItem* BreakpointHandler::ConditionHandling(std::vector<Token*> &token
    return 0;
 }
 
-int OperationHandling(std::vector<Token*> &token_list)
+int OperationHandling(std::vector<Token*> &/*token_list*/)
 {
    /*
    std::vector<Token> out_token_list;
@@ -128,7 +127,7 @@ int OperationHandling(std::vector<Token*> &token_list)
    return 0;
 }
 
-int ParenthesisHandling(std::vector<Token*> &token_list)
+int ParenthesisHandling(std::vector<Token*> &/*token_list*/)
 {
    // - Parenthesis :
    // P : ( C ) => C
@@ -283,7 +282,7 @@ void BreakpointHandler::ToggleBreakpoint(unsigned short addr)
    AddBreakpoint(breakpoint);
 }
 
-void BreakpointHandler::CreateBreakpoint(int indice, std::vector<std::string> param)
+void BreakpointHandler::CreateBreakpoint(int /*indice*/, std::vector<std::string> param)
 {
    // Separate in tokens : Regroupements, Conditions, Values, Variable, Computation
    std::vector<Token> token_list;

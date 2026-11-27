@@ -10,20 +10,6 @@
 #include "CRC.h"
 #include <stdio.h>
 
-#ifdef PROF
-#define START_CHRONO  QueryPerformanceFrequency((LARGE_INTEGER*)&freq);;QueryPerformanceCounter ((LARGE_INTEGER*)&s1);
-#define STOP_CHRONO   QueryPerformanceCounter ((LARGE_INTEGER*)&s2);t=(DWORD)(((s2 - s1) * 1000000) / freq);
-#define PROF_DISPLAY _stprintf(s, _T("Duree displays Frame: %d us\n"), t);OutputDebugString (s);
-
-static __int64 s1, s2, freq;
-static DWORD t;
-static char s [1024];
-#else
-   #define START_CHRONO
-   #define STOP_CHRONO
-   #define PROF_DISPLAY
-#endif
-
 extern unsigned int ListeColorsIndex[0x100];
 extern unsigned int ListeColorsIndexConvert[32];
 extern unsigned int ListeColors[0x100];
@@ -34,9 +20,9 @@ const char* CartPath = "CART";
 #define MAX_SIZE_BUFFER 256
 
 EmulatorEngine::EmulatorEngine() :
-   log_(nullptr), paste_size_(0), paste_count_(0), sna_handler_(log_), media_inserted_(&disk_type_manager_),
-   do_snapshot_(false), current_settings_(nullptr),
-   directories_ (nullptr), display_(nullptr), motherboard_(&sound_mixer_, &keyboardhandler_), speed_(100)
+   speed_(100), motherboard_(&sound_mixer_, &keyboardhandler_), log_(nullptr), directories_ (nullptr), paste_count_(0),
+   paste_size_(0), current_settings_(nullptr),
+   display_(nullptr), sna_handler_(log_), media_inserted_(&disk_type_manager_), do_snapshot_(false)
 {
    breakpoint_handler_.Init(this);
    fdc_present_ = true;
@@ -73,7 +59,7 @@ void EmulatorEngine::Stop()
    sound_mixer_.StopMixer();
 }
 
-bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* sound)
+bool EmulatorEngine::Init (IDisplay* display, ISoundFactory* /*sound*/)
 {
    DataContainer::Init();
 
@@ -150,11 +136,6 @@ void EmulatorEngine::Eject (unsigned int DriveNumber )
 void EmulatorEngine::FlipDisk ( unsigned int DriveNumber )
 {
    GetFDC()->FlipDisk (DriveNumber);
-}
-
-void EmulatorEngine::ReleaseContainer(DataContainer* container)
-{
-   media_inserted_.Clear();
 }
 
 DataContainer* EmulatorEngine::CanLoad (const char* file, std::vector<MediaManager::MediaType>list_of_types)
@@ -322,9 +303,9 @@ int EmulatorEngine::LoadCpr( const char* file_path)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      int ret = LoadCprFromBuffer(buffer, buffer_size);
+      int ret = read_ok ? LoadCprFromBuffer(buffer, buffer_size) : -1;
       delete[]buffer;
       return ret;
    }
@@ -440,9 +421,9 @@ int EmulatorEngine::LoadXpr(const char* file_path)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      int ret = LoadXprFromBuffer(buffer, buffer_size);
+      int ret = read_ok ? LoadXprFromBuffer(buffer, buffer_size) : -1;
       delete[]buffer;
       return ret;
    }
@@ -654,7 +635,6 @@ void EmulatorEngine::SaveConfiguration (const char* config_name, const char* ini
 void EmulatorEngine::LoadConfiguration(const char* config_name_file, SugarboxInitialisation* init)
 {
    delete current_settings_;
-   char tmp_buffer[MAX_SIZE_BUFFER];
    current_settings_ = MachineSettings::CreateSettings(configuration_manager_, config_name_file);
    if (current_settings_ == nullptr)
    {
@@ -1027,6 +1007,7 @@ void EmulatorEngine::HandleSyncro(int run_time)
          real_time = std::chrono::duration_cast<std::chrono::milliseconds> (time_elapsed_end - time_elapsed_);
       else
          real_time = std::chrono::milliseconds(0);
+      [[fallthrough]];
    case E_CUSTOM:
       real_time = real_time * speed_ / 100;
       if (std::chrono::milliseconds(time_computed_) > real_time)
@@ -1151,7 +1132,6 @@ EmulatorEngine::DebugRunResult EmulatorEngine::RunDebugMode(unsigned int nb_opco
    // immediately count it as "one instruction executed" before actually ticking.
    GetProc()->new_instruction_ = false;
    //
-   bool breakpoint_reached = false;
    DebugRunResult result = DBG_OPCODE_END;
    int run_time = 0;
 
@@ -1399,32 +1379,10 @@ bool EmulatorEngine::IsDiskPresent ( int drive )
    return GetFDC()->IsDiskPresent ( drive );
 }
 
-void EmulatorEngine::Accelerate ( bool speed_on)
-{
-   // TODO : Set it with a switch it can be disabled.
-   /*if ( m_bFastTapeLoading )
-      monitor_.Accelerate ( speed_on );*/
-}
 void EmulatorEngine::Resync()
 {
    motherboard_.Resync();
 }
-void EmulatorEngine::StartPrecise(unsigned int NbCycles)
-{
-   // Run precise cycle through the clock generator line (16 Mhz)
-   for (unsigned int i = 0; i < NbCycles; i++)
-   {
-      // Gate array is the only component on the 16 Mhz line. Shunt this to be quicker
-      GetVGA()->PreciseTick ();
-
-      // Monitor tick : Sample this on 16 Mhz, to be synched with Gate Array.
-      GetMonitor()->Tick ();
-
-      // BUS tick : Handle bus datas
-      //m_Sig.Tick ();
-   }
-}
-
 bool EmulatorEngine::LoadBin(const char* path_file)
 {
    bin_to_load_path_ = path_file;
@@ -1504,7 +1462,7 @@ bool EmulatorEngine::LoadBinInt (const char* path_file)
 
       unsigned char * buffer = new unsigned char[size];
 
-      if (fread(buffer, 1, size, file) == size)
+      if (fread(buffer, 1, size, file) == static_cast<size_t>(size))
       {
          return_value= LoadBinInt(buffer, size);
       }
@@ -1520,10 +1478,6 @@ bool EmulatorEngine::LoadBinInt (const char* path_file)
    return return_value;
 }
 
-void EmulatorEngine::UpdateEmulator()
-{
-}
-
 void EmulatorEngine::LoadRom(int rom_number, const char* path)
 {
    FILE* file_rom = nullptr;
@@ -1535,18 +1489,22 @@ void EmulatorEngine::LoadRom(int rom_number, const char* path)
 
       if (lSize > 0xffff)
       {
-         Trace("ROM %s tros grosse pour un CPC ... KO !!\n", path);
          fclose(file_rom);
       }
       else
       {
-         Memory::RamBank rom;
-         fread(rom, 1, lSize, file_rom);
+         // A ROM bank is 16 KB : a bigger file gives its first 16 KB, a smaller one is padded with 0
+         Memory::RamBank rom = {};
+         const size_t to_read = std::min<size_t>(lSize, sizeof(rom));
+         const size_t read_size = fread(rom, 1, to_read, file_rom);
          fclose(file_rom);
-         if (rom_number==-1)
-            GetMem()->LoadLowerROM(rom, sizeof(rom));
-         else
-            GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+         if (read_size == to_read)
+         {
+            if (rom_number==-1)
+               GetMem()->LoadLowerROM(rom, sizeof(rom));
+            else
+               GetMem()->LoadROM(rom_number, rom, sizeof(rom));
+         }
       }
    }
 }

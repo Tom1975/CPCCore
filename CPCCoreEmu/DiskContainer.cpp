@@ -13,7 +13,7 @@
 /////////////////////////////////////////////////////////////////
 // Node  Implementation
 /////////////////////////////////////////////////////////////////
-NodeFS::NodeFS() : buffer_(nullptr), offset_(0), type_(-1)
+NodeFS::NodeFS() : offset_(0), buffer_(nullptr), type_(-1)
 {
 }
 
@@ -210,7 +210,7 @@ BufferFile::BufferFile(ITypeManager* type_manager): IContainedElement(type_manag
 {
 }
 
-std::vector<SingleElements> BufferFile::GetInnerElements(int type)
+std::vector<SingleElements> BufferFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    return list;
@@ -234,7 +234,8 @@ SingleFile::SingleFile(ITypeManager* type_manager, const std::string& file) : IC
       rewind(f);
       buffer_ = new unsigned char[buffer_size_];
 
-      fread(buffer_, buffer_size_, 1, f);
+      // A short read keeps only what was read
+      buffer_size_ = fread(buffer_, 1, buffer_size_, f);
       fclose(f);
    }
 }
@@ -254,17 +255,17 @@ int SingleFile::GetType()
    return type;
 }
 
-unsigned char* SingleFile::GetBuffer(int index)
+unsigned char* SingleFile::GetBuffer(int /*index*/)
 {
    return buffer_;
 }
 
-int SingleFile::GetSize(int index)
+int SingleFile::GetSize(int /*index*/)
 {
    return buffer_size_;
 }
 
-std::vector<SingleElements> SingleFile::GetInnerElements(int type)
+std::vector<SingleElements> SingleFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    SingleElements element;
@@ -298,7 +299,6 @@ std::vector<SingleElements> ZippedFile::GetInnerElements(int type)
 {
    std::vector<SingleElements> list;
 
-   int nb_elements = GetNumberOfElements();
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end(); it++)
    {
       (*it)->AddElementsToList(list, type);
@@ -307,7 +307,7 @@ std::vector<SingleElements> ZippedFile::GetInnerElements(int type)
    return list;
 }
 
-unsigned char* ZippedFile::GetBuffer(int index)
+unsigned char* ZippedFile::GetBuffer(int /*index*/)
 {
    // Return first buffer of first file found
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end();)
@@ -318,7 +318,7 @@ unsigned char* ZippedFile::GetBuffer(int index)
    return nullptr;
 }
 
-int ZippedFile::GetSize(int index)
+int ZippedFile::GetSize(int /*index*/)
 {
    for (std::vector<NodeFS*>::iterator it = zip_file_.sub_node_.begin(); it != zip_file_.sub_node_.end();)
    {
@@ -383,10 +383,10 @@ void ZippedFile::InitUnzip()
       rewind(f);
       unsigned char* zipped_buffer = new unsigned char[size];
 
-      fread(zipped_buffer, size, 1, f);
+      const bool read_ok = (fread(zipped_buffer, size, 1, f) == 1);
       fclose(f);
 
-      if (*(unsigned int*)zipped_buffer == 0x04034b50)
+      if (read_ok && size >= 4 && *(unsigned int*)zipped_buffer == 0x04034b50)
       {
          int offset_eocd = -1;
          for (int offset = size - 1; offset >= 0; offset--)
@@ -411,9 +411,6 @@ void ZippedFile::InitUnzip()
                {
                   // check version min
                   // Compression method
-                  short min_version = *(short*)&(zipped_buffer[offset_dir + 6]);
-                  short comp_method = *(short*)&(zipped_buffer[offset_dir + 10]);
-                  short ifile_attrib = *(short*)&(zipped_buffer[offset_dir + 36]);
                   int efile_attrib = *(int*)&(zipped_buffer[offset_dir + 38]);
 
                   //
@@ -455,9 +452,6 @@ void ZippedFile::InitUnzip()
                   unsigned char* local_header = &zipped_buffer[off_local_header];
                   if (*(unsigned int*)(&local_header[0]) == 0x04034b50)
                   {
-                     short min_version = *(short*)&(local_header[4]);
-                     short flags = *(short*)&(local_header[6]);
-                     short comp_method = *(short*)&(local_header[8]);
 
                      if (added_element != nullptr)
                      {
@@ -483,11 +477,11 @@ void ZippedFile::InitUnzip()
 /////////////////////////////////////////////////////////////////
 // DirectoryFile Implementation
 /////////////////////////////////////////////////////////////////
-DirectoryFile::DirectoryFile(ITypeManager* type_manager, const std::string& file): IContainedElement(type_manager)
+DirectoryFile::DirectoryFile(ITypeManager* type_manager, const std::string& /*file*/): IContainedElement(type_manager)
 {
 }
 
-std::vector<SingleElements> DirectoryFile::GetInnerElements(int type)
+std::vector<SingleElements> DirectoryFile::GetInnerElements(int /*type*/)
 {
    std::vector<SingleElements> list;
    /*SingleElements element;
@@ -574,10 +568,10 @@ bool DataContainer::BuildFromZippedFile()
    if (fopen_s(&f, current_path_.c_str(), "rb") == 0)
    {
       unsigned char zipped_buffer [4];
-      fread(zipped_buffer, 4, 1, f);
+      const bool read_ok = (fread(zipped_buffer, 4, 1, f) == 1);
       fclose(f);
 
-      if (*(unsigned int*)zipped_buffer == 0x04034b50)
+      if (read_ok && *(unsigned int*)zipped_buffer == 0x04034b50)
       {
          IContainedElement* new_element = new ZippedFile(type_manager_, current_path_);
          file_list_.push_back(new_element);
@@ -608,7 +602,7 @@ std::vector<IContainedElement*> DataContainer::GetFileList()
 }
 
 
-int DataContainer::GetTypeFromDirectory(ITypeManager* manager)
+int DataContainer::GetTypeFromDirectory(ITypeManager* /*manager*/)
 {
    // Check directory content.
    return 0;
@@ -633,7 +627,7 @@ int DataContainer::GetType(ITypeManager* manager)
 }
 
 #ifndef NOZLIB
-int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer, int size)
+int DataContainer::InitUnzip(ITypeManager* /*manager*/, unsigned char* zipped_buffer, int size)
 {
    auto return_value = -1;
 
@@ -661,9 +655,6 @@ int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer
          {
             // check version min
             // Compression method
-            short min_version = *(short*)&(zipped_buffer[offset_dir + 6]);
-            short comp_method = *(short*)&(zipped_buffer[offset_dir + 10]);
-            short ifile_attrib = *(short*)&(zipped_buffer[offset_dir + 36]);
             int efile_attrib = *(int*)&(zipped_buffer[offset_dir + 38]);
 
             //
@@ -690,16 +681,12 @@ int DataContainer::InitUnzip(ITypeManager* manager, unsigned char* zipped_buffer
 
                added_element->offset_ = off_local_header;
                // Update file type count
-               int file_type = manager->GetTypeFromFile(added_element->name_.c_str());
             }
 
             // local file header
             unsigned char* local_header = &zipped_buffer[off_local_header];
             if (*(unsigned int*)(&local_header[0]) == 0x04034b50)
             {
-               short min_version = *(short*)&(local_header[4]);
-               short flags = *(short*)&(local_header[6]);
-               short comp_method = *(short*)&(local_header[8]);
 
                if (added_element != nullptr)
                {
@@ -730,10 +717,10 @@ int DataContainer::GetTypeFromZippedFile(ITypeManager* manager)
       rewind(f);
       unsigned char* zipped_buffer = new unsigned char [size];
 
-      fread(zipped_buffer, size, 1, f);
+      const bool read_ok = (fread(zipped_buffer, size, 1, f) == 1);
       fclose(f);
 
-      if (*(unsigned int*)zipped_buffer == 0x04034b50)
+      if (read_ok && size >= 4 && *(unsigned int*)zipped_buffer == 0x04034b50)
       {
          // Init zip file
          ret = InitUnzip(manager, zipped_buffer, size);
@@ -767,11 +754,11 @@ int DataContainer::GetTypeFromFile(ITypeManager* manager)
 
       auto* header = new unsigned char[size];
 
-      fread(header, size, 1, f);
+      const bool read_ok = (fread(header, size, 1, f) == 1);
       fclose(f);
 
       // Anything from the buffer ?
-      ret = manager->GetTypeFromBuffer(header, size);
+      if (read_ok) ret = manager->GetTypeFromBuffer(header, size);
 
       // No, check with name
       if (ret == 0)

@@ -4,11 +4,10 @@
 //#define CLOCK_DIV 4
 
 
-YMZ294::YMZ294(/*SoundMixer * mixer, */Output output, SoundMixer *sound_hub) : output_(output), /*mixer_(mixer), */channel_a_freq_(1),channel_a_freq_counter_(0), channel_b_freq_(1), channel_b_freq_counter_(0), channel_c_freq_(1), channel_c_freq_counter_(0),
-            mixer_control_register_ (0), noise_frequency_(1), channel_a_volume_(0), channel_b_volume_(0), channel_c_volume_(0), channel_a_high_(0), channel_b_high_(0), channel_c_high_(0),
-            channel_noise_high_ (0), noise_shift_register_(0), volume_enveloppe_frequency_(0), sound_source_(sound_hub)
+YMZ294::YMZ294(Output output, SoundMixer *sound_hub) : output_(output), sound_source_(sound_hub), channel_a_freq_(1),channel_a_freq_counter_(0), channel_b_freq_(1), channel_b_freq_counter_(0), channel_c_freq_(1), channel_c_freq_counter_(0),
+            noise_frequency_(1), mixer_control_register_ (0), channel_a_volume_(0), channel_b_volume_(0), channel_c_volume_(0), volume_enveloppe_frequency_(0), channel_a_high_(0), channel_b_high_(0), channel_c_high_(0),
+            channel_noise_high_ (0), noise_shift_register_(0)
 {
-    //mixer_->AddSoundSource(&sound_source_);
     Reset();
 }
 
@@ -56,7 +55,7 @@ void YMZ294::Reset()
    sound_source_.Reinit();
 }
 
-bool YMZ294::Access(unsigned char *data_bus, unsigned char bus_ctrl, unsigned char data)
+bool YMZ294::Access(unsigned char *data_bus, unsigned char bus_ctrl, unsigned char /*data*/)
 {
    // Depends onthe BusCTRL
    if (bus_ctrl & 0x2)     // BDIR = 1

@@ -80,7 +80,6 @@ private:
    void ReadASCII(FILE* file, char* info, int size);
    void ReadASCIIFromBuffer(const unsigned char* buffer, int& pos, char* info, int size);
 
-   unsigned int GetCellWidth(double flux_value);
 
    bool finished_;
 

@@ -35,9 +35,6 @@ public:
    {
    public:
       JoystickShortcut();
-      unsigned int GetFullAction();
-      void KeyDown(unsigned int vkey);
-      void KeyUp(unsigned int vkey);
 
       std::string Serialize();
       void Unserialize(std::string param);
@@ -82,8 +79,6 @@ public:
 
    ////////////////////////////////////////////////////////////////
    // Joystick description
-   JoystickSettings* GetJoystickSettings();
-   void SetJoystickSettings(JoystickSettings* settings);
 
    ////////////////////////////////////////////////////////////////
    // CPC Power and AMstrad EU acces

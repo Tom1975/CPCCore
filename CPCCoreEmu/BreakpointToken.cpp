@@ -36,11 +36,6 @@ Token::Token(TokenType token_type, EmulatorEngine* emulator) :token_type_(token_
    }
 }
 
-std::vector<Token>* Token::GetGroup()
-{
-   return group_token_list_;
-}
-
 size_t Token::FindValue(std::string str, int& token_length)
 {
    // convert to lower
@@ -68,9 +63,8 @@ size_t Token::FindRegister(std::string str, int& token_length)
    return std::string::npos;
 }
 
-Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& pos_of_token, int& size_of_token)
+Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, std::vector<Token*>& token_list, int& /*pos_of_token*/, int& /*size_of_token*/)
 {
-   Token* token = nullptr;
 
    for (auto &it : token_type_list)
    {
@@ -106,7 +100,7 @@ Token* TokenBuilder::StringToToken(std::string str, EmulatorEngine* emulator, st
    return nullptr;
 }
 
-unsigned int Token::ParseToken(std::string str, std::vector<Token>& token_list)
+unsigned int Token::ParseToken(std::string /*str*/, std::vector<Token>& /*token_list*/)
 {
    /*
    // look at parenthesis
@@ -237,6 +231,8 @@ T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_ty
       case REG_BC: return &emulator->GetProc()->bc_.w;
       case REG_DE: return &emulator->GetProc()->de_.w;
       case REG_HL: return &emulator->GetProc()->hl_.w;
+      default:
+         break;
       }
    }
    else
@@ -252,6 +248,8 @@ T* TokenRegisterValue<T>::GetRegister(TokenRegisterValue<T>::RegisterType reg_ty
       case REG_E: return &emulator->GetProc()->de_.b.l;
       case REG_H: return &emulator->GetProc()->hl_.b.h;
       case REG_L: return &emulator->GetProc()->hl_.b.l;
+      default:
+         break;
       }
    }
       

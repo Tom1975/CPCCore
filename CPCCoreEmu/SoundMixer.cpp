@@ -92,6 +92,7 @@ SoundMixer::SoundMixer() :
    tape_adjust_volume_(0.02),
    start_recording_(false), 
    stop_recording_(false), 
+   sound_(nullptr),
    sample_number_(0),
 #ifndef NO_MULTITHREAD
    worker_thread_(nullptr),
@@ -99,7 +100,6 @@ SoundMixer::SoundMixer() :
 #else
    finished_(true),
 #endif
-   sound_(nullptr),
    current_wav_buffer_(nullptr), 
    current_wav_index_(0),
    tape_(nullptr),
@@ -138,19 +138,6 @@ SoundMixer::SoundMixer() :
    memset(coefx_, 0, sizeof(double)*(ORDER * 2 + 1));
    memset(coefy_, 0, sizeof(double)*(ORDER * 2 + 1));
 
-
-#ifdef _WIN32
-#ifndef _WIN64
-   // Force 53 bits floating points...
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
-   __asm {
-      fstcw oldcw
-      fldcw cw
-   }
-#endif
-#endif
-
 #ifndef NOFILTER
    // Compute gain and coeff.
    switch (TYPE_OF_FILTER)
@@ -161,13 +148,6 @@ SoundMixer::SoundMixer() :
    }
 #endif
 
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fldcw oldcw
-   }
-#endif
-#endif
 }
 
 SoundMixer::~SoundMixer()
@@ -197,22 +177,7 @@ SoundMixer::~SoundMixer()
 
 void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsigned int nb_samples)
 {
-#ifndef NOFILTER
-#ifdef _WIN32
-#ifndef _WIN64
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
-   // Force 53 bits floating points...
-   __asm {
-      fstcw oldcw
-      fldcw cw
-   }
-#endif
-#endif
-#endif
 
-   // Can be replaced by....
-   //_controlfp_s ( &currCtrl, _PC_53 , _MCW_PC  );
 
       // Lets apply theses values.
    for (unsigned int i = 0; i < nb_samples; i++)
@@ -247,13 +212,6 @@ void SoundMixer::FiltrerOnSamples(double* array_left, double* array_right, unsig
       yv_right_[ORDER * 2] = yvout_right;
       array_right[i] = yvout_right;
    }
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fldcw oldcw
-   }
-#endif
-#endif
 }
 
 void PrepareBuffer(SoundMixer* sound_hub)
@@ -404,7 +362,7 @@ void SoundMixer::ConvertToWav(SoundBuffer* buffer_in)
             data[current_wav_index_++] = (short)left;
             data[current_wav_index_++] = (short)right;
             //if (((current_wav_index_ + 2) * sizeof(short) ) > (unsigned int)current_wav_buffer_->buffer_length_)
-            if (((current_wav_index_ + 2) * sizeof(short) ) > current_wav_buffer_->buffer_length_)
+            if (((current_wav_index_ + 2) * sizeof(short) ) > static_cast<size_t>(current_wav_buffer_->buffer_length_))
             {
                // Play it and set a new one
                sound_->AddBufferToPlay(current_wav_buffer_);
@@ -574,7 +532,7 @@ void SoundMixer::BeginRecordImp()
       if (GetNewSoundFile(path_file, MAX_PATH))
       {
          // Open a new file
-         fopen_s(&rec_file_, path_file, "wb");
+         if (fopen_s(&rec_file_, path_file, "wb") != 0) rec_file_ = NULL;
 
          if (rec_file_ != NULL)
          {
@@ -700,29 +658,6 @@ unsigned int SoundMixer::Tick()
    {
       // Synchronize on Sound ?
       // Synchronize
-      int free_buffer = 0;
-      /*while (sync_on_sound_ && free_buffer < NB_BUFFERS / 2)
-      {
-#ifdef  __circle__
-         mutex_sound.Acquire();
-#endif
-         free_buffer = NB_BUFFERS;
-         for (int i = 0; i < NB_BUFFERS; i++)
-         {
-            if (buffer_list_[i].status_ != BufferItem::FREE)
-            {
-               free_buffer--;
-            }
-         }
-#ifdef  __circle__
-         mutex_sound.Release();
-#endif
-         #ifndef NO_MULTITHREAD
-                  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-         #elif __circle
-                  CTimer::Get()->MsDelay(1);
-         #endif
-      } */
       int next_to_play = -1;
       for (int i = 0; i < NB_BUFFERS && next_to_play == -1; i++)
       {

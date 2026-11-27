@@ -501,18 +501,6 @@ void PPI8255::SetDataRecorderR ( bool set )
    }
 }
 
-void PPI8255::SetPrinterBusy ( bool set )
-{
-   if (set)
-   {
-      port_b_ |= 0x40;
-   }
-   else
-   {
-      port_b_ &= 0xBF;
-   }
-}
-
 void PPI8255::SetExpSignal ( bool set )
 {
    if (set)
@@ -522,30 +510,6 @@ void PPI8255::SetExpSignal ( bool set )
    else
    {
       port_b_ &= 0xDF;
-   }
-}
-
-void PPI8255::SetScreenState ( bool set )
-{
-   if (set)
-   {
-      port_b_ |= 0x10;
-   }
-   else
-   {
-      port_b_ &= 0xEF;
-   }
-}
-
-void PPI8255::SetVbl ( bool set )
-{
-   if (set)
-   {
-      port_b_ |= 0x1;
-   }
-   else
-   {
-      port_b_ &= 0xFE;
    }
 }
 

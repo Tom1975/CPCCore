@@ -35,7 +35,6 @@ public:
    Token(TokenType, EmulatorEngine* emulator);
 
    TokenType GetType() { return token_type_;  }
-   std::vector<Token>* GetGroup();
 
    virtual IBreakpointItem* CreateBreakpoint();
 
@@ -156,6 +155,7 @@ public:
    TokenConditionOperation(EmulatorEngine* emulator) :Token(CONDITION, emulator), value_left_(nullptr), value_right_(nullptr) {}
 
    void SetOperationMembers(TokenValue* value_left, TokenValue* value_right);
+   using Token::IsEqual;
    virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right) = 0;
 
 protected:
@@ -167,6 +167,7 @@ class TokenConditionOperationEquality : public TokenConditionOperation
 {
    public:
       TokenConditionOperationEquality(EmulatorEngine* emulator) :TokenConditionOperation(emulator) {}
+      using Token::IsEqual;
       virtual bool IsEqual(TokenValue* value_left, TokenValue* value_right);
       IBreakpointItem* CreateBreakpoint();
 

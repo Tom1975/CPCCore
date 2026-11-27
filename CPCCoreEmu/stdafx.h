@@ -88,8 +88,3 @@ namespace fs = std::filesystem;
 // C RunTime Header Files
 #include <memory.h>
 
-#ifdef _DEBUG
-#define Trace //_tprintf
-#else
-#define Trace //
-#endif

@@ -573,8 +573,8 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
             gap_offset = 0;
             // Do we have backward gap ?
             // Read Forward / Backward streams
-            StreamItem backward_stream = {0};
-            StreamItem forward_stream = {0};
+            StreamItem backward_stream = {};
+            StreamItem forward_stream = {};
 
             unsigned int total_gap = 0;
             bool forward_gap = false;
@@ -938,7 +938,7 @@ bool CAPSFile::DecodeData(DataChunks item, IDisk* disk)
          }
 
          // Check index / size
-         if (index_track != imge_item.start_bit_pos || total_total != disk->side_[imge_item.side].tracks[imge_item.
+         if (index_track != imge_item.start_bit_pos || static_cast<unsigned int>(total_total) != disk->side_[imge_item.side].tracks[imge_item.
             track_number].size)
          {
          }
@@ -971,13 +971,9 @@ int CAPSFile::DecompressData(IDisk* disk, DWORD ctype, DWORD cyl, DWORD head, Da
    return 0;
 }
 
-unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_size, DWORD ctype, DWORD cyl, DWORD head)
+unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_size, DWORD /*ctype*/, DWORD /*cyl*/, DWORD /*head*/)
 {
    unsigned int usize = ExtractInt(&buffer[4]);
-   unsigned int ucrc = ExtractInt(&buffer[8]);; // CRC on uncompressed data
-   unsigned int csize = ExtractInt(&buffer[12]);; // compressed size in bytes
-   unsigned int ccrc = ExtractInt(&buffer[16]);; // CRC on compressed data
-   unsigned int hcrc = ExtractInt(&buffer[20]);; // CRC on header calculated as hcrc=0
 
    // density
    unsigned int* buf = new unsigned int[usize >> 2];
@@ -1054,14 +1050,9 @@ unsigned int* CAPSFile::ExtractDensity(unsigned char* buffer, int density_buf_si
 
 ////////////////////////////
 // Extract CTRAW track
-int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_size, DWORD ctype, DWORD cyl, DWORD head)
+int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_size, DWORD /*ctype*/, DWORD cyl, DWORD head)
 {
    // PACK HEADER
-   unsigned int usize = ExtractInt(&buffer[4]);
-   unsigned int ucrc = ExtractInt(&buffer[8]);; // CRC on uncompressed data
-   unsigned int csize = ExtractInt(&buffer[12]);; // compressed size in bytes
-   unsigned int ccrc = ExtractInt(&buffer[16]);; // CRC on compressed data
-   unsigned int hcrc = ExtractInt(&buffer[20]);; // CRC on header calculated as hcrc=0
 
 
    delete[]disk->side_[head].tracks[cyl].revolution[0].bitfield;
@@ -1148,7 +1139,7 @@ int CAPSFile::ExtractTrack(IDisk* disk, unsigned char* buffer, int track_buf_siz
             // Data block, 15 bit size
             size = (size << 8) | buffer[offset++];
 
-            for (size; size > 0; size--)
+            for (; size > 0; size--)
             {
                track_offset = disk->AddMFMByteToSpecificTrack(head, cyl, rev, track_offset, buffer[offset++], 8);
             }
@@ -1334,15 +1325,6 @@ int CAPSFile::AddDataRecord(StreamRecording* record, unsigned char type, int nb_
    return 0;
 }
 
-int CAPSFile::AddShortStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
-                                   unsigned int offset_end)
-{
-   // Record less than 16 bits - So MFM bits !
-   AddDataRecordInBits(record, 1, (offset_end - offset_begin), &buffer[offset_begin]);
-   record->buffer[record->offset++] = 0x00; // End of data
-   return 0;
-}
-
 bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
                                unsigned int offset_end, unsigned int size_of_track)
 {
@@ -1352,7 +1334,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
    unsigned char sync_buf[6] = {0};
    unsigned char buffer_short[2]; // FC, CRC, etc
    int offset = 0;
-   int sector_size = 0;
    // Record eveything between of odfsetBegin and offset_end
    bool byte_size = true;
 
@@ -1464,7 +1445,7 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
          }
          // Check the next sync byte
          unsigned int next_sync = FindNextSector(buffer, offset_end, offset_begin, 6);
-         if (next_sync == -1)
+         if (next_sync == ~0u)
             next_sync = offset_end;
 
 
@@ -1517,9 +1498,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
                      buffer_chrn[i] = byte;
                      offset_begin += 16;
                   }
-                  // Keep size for next run
-                  sector_size = (buffer_chrn[3] << 8);
-
                   size_to_add = (byte_size) ? 6 : 6 * 8;
                   AddDataRecord(record, 2, size_to_add, buffer_chrn, byte_size);
                }
@@ -1538,7 +1516,6 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
 
                int lastbits = (next_sync - offset_begin) % 16;
 
-               int max_size_mfm_test = (next_sync - offset_begin) / 16;
 
                bool mfm_is_correct = true;
                for (unsigned int i = offset_begin; i < next_sync && mfm_is_correct; i += 16)
@@ -1614,7 +1591,7 @@ bool CAPSFile::AddStreamRecord(StreamRecording* record, unsigned char* buffer, u
                   delete[]buffer_data;
                }
                // Add weak rang (if any) : From next_sync to end_of_weak_range
-               if (next_sync != end_of_weak_range)
+               if (next_sync != static_cast<unsigned int>(end_of_weak_range))
                {
                   // Search for next "end opf weak" range
                   int next_weak_bits_index = GetNextFuzzyBits(buffer, offset_begin, end_of_weak_range, false);
@@ -1726,9 +1703,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    gap_data.buffer = new unsigned char[128];
    gap_data.size = 128;
 
-   int gap_offset = 0;
    //unsigned char* pData = new unsigned char[128];
-   int max_size_data = 128;
 
    // Block descriptor vector
    std::vector<BlockDescriptor> list_block_descriptor;
@@ -1782,7 +1757,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
       }
    }
 
-   unsigned int startbitpos = 0;
    // Construct DATA associated :
    // Find begining of track
 
@@ -1796,17 +1770,17 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    {
       // Only search the 3 x 0x5224 bytes
       search_offset = FindNextPattern(track_field, disk->side_[side].tracks[tr].size, search_offset, PATTERN_C2, 6);
-      if (search_offset != -1)
+      if (search_offset != ~0u)
       {
-         imge_item.start_bit_pos = (search_offset != -1) ? search_offset : 0;
+         imge_item.start_bit_pos = (search_offset != ~0u) ? search_offset : 0;
          imge_item.start_byte_pos = imge_item.start_bit_pos / 8;
       }
       else
       {
          search_offset = FindNextSector(track_field, disk->side_[side].tracks[tr].size, search_offset + 1, 8);
-         if (search_offset != -1)
+         if (search_offset != ~0u)
          {
-            imge_item.start_bit_pos = (search_offset != -1) ? search_offset : 0;
+            imge_item.start_bit_pos = (search_offset != ~0u) ? search_offset : 0;
             imge_item.start_byte_pos = imge_item.start_bit_pos / 8;
          }
          else
@@ -1814,7 +1788,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
             // Not a formatted disk : Generate random data
             imge_item.start_bit_pos = 0;
             imge_item.density = 1;
-            int dbg = 1;
             //goto End;
             abort = true;
          }
@@ -1840,7 +1813,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          initial_backward_gap++;
       }
 
-      while (search_offset != -1)
+      while (search_offset != ~0u)
       {
          int nb_backward_gap_bytes = 0;
          // Add it : Descriptor, and data
@@ -1855,7 +1828,7 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          unsigned int search_next_offset = FindNextSector(track_field, disk->side_[side].tracks[tr].size,
                                                           search_offset + 1, 8);
          int end_of_block = 0;
-         if (search_next_offset != -1)
+         if (search_next_offset != ~0u)
          {
             // Next block found : Dont use the '0x00' sync bytes before it - It's the 'backward' gap
             unsigned int offset_gap = search_next_offset - 16;
@@ -1884,20 +1857,12 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
          // Only if no weak bits in the pattern !
          if (NoWeakBitInPattern(pattern_byte, 16))
          {
-            if (pattern_byte[0] == 0
-               && pattern_byte[15] == 0
-               && (pattern_byte[14] & pattern_byte[1]) == 0
-            )
-            {
-               int dbg = 1;
-            }
-
             while ((offset_gap > search_offset && memcmp(&track_field[offset_gap], pattern_byte, 16) == 0)
                && (((track_field[offset_gap] & track_field[offset_gap - 1]) != 1) || offset_gap - 1 <= search_offset)
-               && (offset_gap < 1 || ((track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap +
+               && (offset_gap < 1 || (((track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap +
                      1]) == 1)
                   && (offset_gap < 2 || (track_field[offset_gap - 1] & track_field[offset_gap] & track_field[offset_gap
-                     - 2]) == 1)
+                     - 2]) == 1))
                )
             )
             {
@@ -1997,14 +1962,6 @@ int CAPSFile::CreateData(IDisk* disk, int side, unsigned int tr, int datakey)
    // Now, update IMGE
    imge_item.track_bits = imge_item.gap_bits + imge_item.data_bits;
 
-   if (side < disk->nb_sides_ && tr < disk->side_[side].nb_tracks)
-   {
-      if (disk->side_[side].tracks[tr].size != imge_item.track_bits)
-      {
-         // error ?
-         int dbg = 1;
-      }
-   }
    // .. To add
 
    // CRC

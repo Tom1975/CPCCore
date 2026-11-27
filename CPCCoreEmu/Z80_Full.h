@@ -116,7 +116,7 @@ PARITY_FLAG(res);q_ |= (res&0x28);af_.b.l = q_;\
 af_.b.h = res;
 
 #define XOR_FLAGS(r)  \
-af_.b.h= (af_.b.h^r); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
+af_.b.h= (af_.b.h^(r)); q_ = (((af_.b.h&0xff)==0)?ZF:0)|(af_.b.h&0x80)|((af_.b.h&0x1)<<2);PARITY_FLAG(af_.b.h);q_ |= (af_.b.h&0x28);af_.b.l=q_;
 
 
 // Flag tests
@@ -360,33 +360,27 @@ public:
    template<OpcodeType type>
    void SetCustomOpcode(unsigned char opcode, std::function<void(unsigned int)> func )
    {
-      Opcode* op;
       ListFunction* fetch;
       unsigned short replaced_opcode = 0;
       switch (type)
       {
       case None:
-         op = &liste_opcodes_[opcode];
          fetch = &fetch_func;
          replaced_opcode = opcode;
          break;
       case CB:
-         op = &liste_opcodes_cb_[opcode];
          fetch = &fetch_func_cb_;
          replaced_opcode = 0xCB00|opcode;
          break;
       case ED:
-         op = &liste_opcodes_ed_[opcode];
          fetch = &fetch_func_ed_;
          replaced_opcode = 0xED00 | opcode;
          break;
       case DD:
-         op = &liste_opcodes_dd_[opcode];
          fetch = &fetch_func_dd_;
          replaced_opcode = 0xDD00 | opcode;
          break;
       case FD:
-         op = &liste_opcodes_fd_[opcode];
          fetch = &fetch_func_fd_;
          replaced_opcode = 0xFD00 | opcode;
          break;
@@ -490,7 +484,8 @@ public:
    ListFunction memr_func_dd_;
    ListFunction memr_func_fd_;
 
-   Func tick_functions_[0xAF];
+   // Indexed by machine_cycle_ | t_ : up to M_Z80_WAIT + 0x0F
+   Func tick_functions_[M_Z80_WAIT + 0x10];
 
    // tick generic functions
    //unsigned int DefaultTick();

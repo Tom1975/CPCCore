@@ -444,7 +444,6 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
       // MemEnable - Bit 7 set if used. Bit 0 = Bank C4..C7, Bit 1 = Banks C4..DF
       // Bit 2 = Banks E4..FF, Bit 3 = Full 4M expansion
       // TODO
-      header[0x9A] ;
 
       //   9C	 1	 FDD motor drive state (0=off, 1=on)
       machine_->GetFDC()->SetMotor( (header[0x9c] == 1) );
@@ -547,6 +546,8 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
    case 4:
       machine_->GetCRTC()->vertical_sync_width_ = machine_->GetCRTC()->registers_list_ [3] >> 4;
       break;
+   default:
+      break;
    }
 
    // Memory
@@ -577,7 +578,7 @@ void CSnapshot::LoadStdSna ( unsigned char * header, const unsigned char* buffer
    }
 }
 
-void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkBRKC(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    // ACE's breakpoints
    int nb_breakpoints = size / 216;
@@ -608,7 +609,7 @@ void CSnapshot::HandleChunkBRKC(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkBRKS(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    int nb_breakpoints = size / 5;
   
@@ -628,7 +629,7 @@ void CSnapshot::HandleChunkBRKS(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkREMU(unsigned char* /*chunk*/, unsigned char* in_buffer, int size)
 {
    // Pure ASCII chunk: semicolon-separated tags
    // brk ADDR BANK       — exec breakpoint in RAM at logical address ADDR, bank BANK
@@ -666,7 +667,7 @@ void CSnapshot::HandleChunkREMU(unsigned char* chunk, unsigned char* in_buffer, 
    }
 }
 
-void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkSYMB(unsigned char* /*chunk*/, unsigned char* /*in_buffer*/, int /*size*/)
 {
    // ACE's Symbols
 
@@ -676,7 +677,7 @@ void CSnapshot::HandleChunkSYMB(unsigned char* chunk, unsigned char* in_buffer, 
    // 2 octets->l'adresse du symbole (en big endian)
 }
 
-void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer, int size )
+void CSnapshot::HandleChunkROMS ( unsigned char* /*chunk*/, unsigned char* in_buffer, int /*size*/ )
 {
    int off = 0;
    // First string... Or first two bytes ?
@@ -709,7 +710,7 @@ void CSnapshot::HandleChunkROMS ( unsigned char* chunk, unsigned char* in_buffer
 
 }
 
-void CSnapshot::HandleChunkCPCPLUS(unsigned char* chunk_header, unsigned char* in_buffer, int size)
+void CSnapshot::HandleChunkCPCPLUS(unsigned char* /*chunk_header*/, unsigned char* in_buffer, int size)
 {
    if (size != 0x8F8) return; // Wrong size !
 
@@ -1086,8 +1087,7 @@ void CSnapshot::InitReplay ()
 
    // Cheack header
    unsigned char header [0x100] = {0};
-   fread (header, 0x100, 1, f);
-   if (strncmp( (char*)header, "RW - SNR", 8) != 0)
+   if (fread (header, 0x100, 1, f) != 1 || strncmp( (char*)header, "RW - SNR", 8) != 0)
    {
       fclose(f);
       if (notifier_) notifier_->ItemLoaded ( snr_filepath_.c_str(), -1, -1);
@@ -1125,7 +1125,7 @@ void CSnapshot::InitReplay ()
                      (chunk[6]<<16)+
                      (chunk[7]<<24);
          unsigned char* buffer = new unsigned char[size];
-         if ( fread ( buffer, 1, size, f ) == size)
+         if ( fread ( buffer, 1, size, f ) == static_cast<size_t>(size))
          {
             // Handle the chunk
             if (memcmp ( chunk, "MEM", 3) == 0)
@@ -1428,7 +1428,7 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
 
    // PPI
    header[0x56] = machine_->GetPPI()->port_a_;
-   header[0x57] = machine_->GetPPI()->port_b_ & 0x7E | (machine_->GetSig()->v_sync_?1:0) ;
+   header[0x57] = (machine_->GetPPI()->port_b_ & 0x7E) | (machine_->GetSig()->v_sync_?1:0) ;
    header[0x58] = machine_->GetPPI()->port_c_;
 
    // PPI Control register
@@ -1477,7 +1477,6 @@ void CSnapshot::WriteSnapshotV3 ( std::vector<unsigned char>& out, unsigned char
    // MemEnable - Bit 7 set if used. Bit 0 = Bank C4..C7, Bit 1 = Banks C4..DF
    // Bit 2 = Banks E4..FF, Bit 3 = Full 4M expansion
    // TODO
-   header[0x9A] ;
 
    //   9C	 1	 FDD motor drive state (0=off, 1=on)
    header[0x9c] = machine_->GetFDC()->IsMotorOn()?1:0;

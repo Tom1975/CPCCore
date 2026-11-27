@@ -106,8 +106,7 @@ bool FormatTypeHFEv3::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x8] = {0};
       // check the 22 first char
-      fread(header, 1, 0x8, file);
-      if (memcmp(header, "HXCHFEV3", 8) == 0)
+      if (fread(header, 1, 0x8, file) == 0x8 && memcmp(header, "HXCHFEV3", 8) == 0)
       {
          can_load = true;
       }
@@ -148,8 +147,8 @@ int FormatTypeHFEv3::LoadDisk(const char* file_path, IDisk*& created_disk, ILoad
    return return_value;
 }
 
-int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "HXCHFEV3", 8) == 0)
    {
@@ -262,7 +261,6 @@ int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& 
                         break;
                      default:
                      {
-                        int dbg = 1;
                         break;
                      }
                   }
@@ -291,7 +289,7 @@ int FormatTypeHFEv3::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& 
    }
 }
 
-int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    int ret = 1;
 
@@ -304,7 +302,7 @@ int FormatTypeHFEv3::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgre
       unsigned char buffer[0x200];
       memset(buffer, 0xFF, sizeof(buffer));
 
-      Picfileformatheader header = {0xFF};
+      Picfileformatheader header = {};
       memcpy(header.header_signature, "HXCHFEV3", sizeof(header.header_signature));
       header.formatrevision = 0;
       header.number_of_track = disk->side_[0].nb_tracks;

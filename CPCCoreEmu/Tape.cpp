@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <vector>
-//#include "simple_regex.h"
 #include <algorithm>
 #include <memory>
 #include <filesystem>
@@ -103,12 +102,12 @@ size_t WriteInt ( unsigned int i, FILE * file )
 #define RATIO_FREQ (T_STATE_FREQ /T_STATE_FREQ_TZX)
 //#define RATIO_FREQ 1
 
-CTape::CTape(void) : ppi8255_(nullptr), configuration_manager_(nullptr), tape_buffer_size_(0), tape_buffer_to_load_(nullptr), pending_tape_(false),
-   load_progress_(-1),
+CTape::CTape(void) : tape_changed_(false), pending_tape_(false), tape_buffer_to_load_(nullptr), tape_buffer_size_(0), ppi8255_(nullptr),
+   configuration_manager_(nullptr),
+   nb_blocks_ (0),
    size_of_blocklist_(0),
    block_list_(nullptr),
-   nb_blocks_ (0),
-   tape_changed_(false)
+   load_progress_(-1)
 {
    log_ = nullptr;
    nb_inversions_ = 0;
@@ -306,20 +305,7 @@ Filter::Filter(int type_of_filter, bool lpf, double fe, double fc, int order) : 
    memset(coefx_, 0, sizeof(double)*(order + 1));
    memset(coefy_, 0, sizeof(double)*(order + 1));
 
-   volatile short int  cw = 0x27F;
-   volatile short oldcw = 0;
-   oldcw_ = 0;
 
-   // Force 53 bits floating points...
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-      fstcw oldcw
-      fldcw cw
-   }
-   oldcw_ = oldcw;
-#endif
-#endif
    // Compute gain and coeff.
    switch (type_of_filter)
    {
@@ -339,14 +325,6 @@ Filter::~Filter()
    delete[]coefx_;
    delete[]coefy_;
 
-#ifdef _WIN32
-#ifndef _WIN64
-   volatile short int oldcw = oldcw_;
-   __asm {
-      fldcw oldcw
-   }
-#endif
-#endif
 
 }
 
@@ -365,17 +343,6 @@ void Filter::Init()
 void Filter::Filtrer ( double* array, unsigned int nb_samples )
 {
 
-   // Force 53 bits floating points...
-#ifdef _WIN32
-#ifndef _WIN64
-   volatile short int oldcw = oldcw_;
-   volatile short int  cw = 0x27F;
-   __asm {
-   fstcw oldcw
-   fldcw cw
-   }
-#endif
-#endif
    
    // Lets apply theses values.
    for (unsigned int i = 0; i < nb_samples; i++)
@@ -399,13 +366,6 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
       yv_[order_] = yvout;
       array[i]  = yvout;
    }
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-   fldcw oldcw
-   }
-#endif
-#endif
 }
 
 
@@ -415,241 +375,10 @@ void Filter::Filtrer ( double* array, unsigned int nb_samples )
 // 01 : Bessel / 02 : Butterworth
 // ...
 
-void CTape::FiltrerPb ( double* array, unsigned int nb_samples, int type_of_filter, double fe, double fcb, double fch, int order )
-{
-
-   double *xv = new double[order*2+1];
-   double *yv = new double[order*2+1];
-   double gain;
-   double * coefx = new double[order*2+1];
-   double * coefy = new double[order*2+1];
-
-   memset (xv, 0, sizeof(double)*(order*2+1));
-   memset (yv, 0, sizeof(double)*(order*2+1));
-
-   //unsigned int currCtrl;
-
-   volatile short int  cw = 0x27F;
-   volatile short int oldcw = 0;
-
-#ifdef _WIN32
-#ifndef _WIN64
-   // Force 53 bits floating points...
-   __asm {
-   fstcw oldcw
-   fldcw cw
-   }
-#endif
-#endif
-   // Can be replaced by....
-   //_controlfp_s ( &currCtrl, _PC_53 , _MCW_PC  );
-
-   // Compute gain and coeff.
-   ComputeBandPass ( type_of_filter, order, fe, fcb, fch, &gain ,  coefx,  coefy);
-
-#ifndef _LIVRAISON_
-   char buff_trace[256];
-   sprintf (buff_trace, "Type %i : Order : %i FE : %0.7f FCB : %0.7f FCH : %0.7f", type_of_filter, order, fe, fcb, fch );
-   LOG (buff_trace)
-   LOGEOL
-   for (int j = 0; j < order*2; j++)
-   {
-      sprintf (buff_trace, "coef x %i : %0.7f - ", j, coefx[j] );
-      LOG (buff_trace)
-      sprintf (buff_trace, "coef y %i : %0.7f", j, coefy[j] );
-      LOG (buff_trace)
-      LOGEOL
-   }
-   sprintf (buff_trace, "gain %0.7f", gain );
-   LOG (buff_trace)
-   LOGEOL
-#endif
-
-   // Lets apply theses values.
-   for (unsigned int i = 0; i < nb_samples; i++)
-   {
-      // Shift values
-      for (int j = 0; j < order*2; j++)
-      {
-         xv[j] = xv[j+1];
-         yv[j] = yv[j+1];
-      }
-
-      xv[order*2] = array[i] / gain;
-      // Compute output/last yv value
-      double yvout = 0;
-      for (int j = 0; j < order*2; j++)
-      {
-         yvout += xv[j] * coefx[j];
-         yvout += yv[j] * coefy[j];
-      }
-      yvout += xv[order*2];
-      yv[order*2] = yvout;
-      array[i]  = yvout;
-   }
-   delete []xv;
-   delete []yv;
-   delete []coefx;
-   delete []coefy;
-#ifdef _WIN32
-#ifndef _WIN64
-   __asm {
-   fldcw oldcw
-   }
-#endif
-#endif
-}
-
-
-//////////////////////////////////////////////////
-// Remove noise Low filter pass (44100 hz / 4100 hz), 3e ordre Butterworth
-void CTape::RemoveNoise ( double* array, unsigned int nb_samples, double frequency )
-{
-
-#define NZEROS_7_RN 3
-#define NPOLES_7_RN 3
-#define GAIN_7_RN   6.656267301e+00
-
-static double xv[NZEROS_7_RN+1], yv[NPOLES_7_RN +1];
-
-
-static double gain;
-static double valx ;
-static double valy0 ;
-static double valy1 ;
-static double valy2 ;
-
-   // Depends on the frequency
-   if (frequency == 44100)
-   {
-      gain = 6.656267301e+00;
-      valy0 = 0.3052373668;
-      valy1 = 1.2708422851;
-      valy2 = 1.8454174372;
-      valx = 3;
-   }
-   else if (frequency == 22050)
-   {
-      gain = 1.206174174e+00;
-      valy0 = 0.0754469872 ;
-      valy1 = 0.4792891682;
-      valy2 = 0.7405880527;
-      valx = 3;
-   }
-   else if (frequency == 48000)
-   {
-      gain = 8.282061910e+00;
-      valy0 = 0.3371022865 ;
-      valy1 = 1.3712197070;
-      valy2 = 1.9375231172 ;
-      valx = 3;
-   }
-
-   // RC Circuit
-   for (unsigned int i = 0; i < nb_samples; i++)
-   {
-      { xv[0] = xv[1]; xv[1] = xv[2]; xv[2] = xv[3];
-        xv[3] = array[i] / gain;
-        yv[0] = yv[1]; yv[1] = yv[2]; yv[2] = yv[3];
-        yv[3] =   (xv[0] + xv[3]) + valx * (xv[1] + xv[2])
-                     + (  valy0 * yv[0]) + ( -valy1 * yv[1])
-                     + (  valy2 * yv[2]);
-        array[i]  = yv[1];
-      }
-   }
-
-}
-
 //////////////////////////////////////////////////
 // High pass filter, fc = 7Hz
 //////////////////////////////////////////////////
 
-void CTape::HighPass ( double* array, unsigned int nb_samples, double frequency )
-{
-
-#define NZEROS_7_HP 1
-#define NPOLES_7_HP 1
-#define GAIN_7_HP   1.000498666e+00
-
-static double xv[NZEROS_7_HP +1], yv[NPOLES_7_HP +1];
-
-static double gain = 1.000498666e+00;
-static double valy = 0.9990031660;
-
-   // Depends on the frequency
-   if (frequency == 44100)
-   {
-      gain = 1.000498666e+00;
-      valy = 0.9990031660;
-   }
-   else if (frequency == 22050)
-   {
-      gain = 1.071358681e+00;
-      valy = 0.8667884395 ;
-   }
-   else if (frequency == 48000)
-   {
-      gain = 1.000458149e+00;
-      valy = 0.9990841217   ;
-   }
-   // RC Circuit
-   for (unsigned int i = 0; i < nb_samples; i++)
-   {
-      { xv[0] = xv[1];
-        xv[1] = array[i] / gain;
-        yv[0] = yv[1];
-        yv[1] =   (xv[1] - xv[0])
-                     + (  valy * yv[0]);
-        array[i]  = yv[1];
-      }
-   }
-}
-
-
-//////////////////////////////////////////////////
-// High pass filter, fc = 500hz
-//////////////////////////////////////////////////
-void CTape::Filtre ( double* array, unsigned int nb_samples, double frequency, unsigned int cut_frequency, int num_filter)
-{
-
-#define NZEROS 1
-#define NPOLES 1
-//#define GAIN   1.035634035e+00
-
-static double xv[NZEROS+1], yv[NPOLES+1];
-
-static double gain = 1.035634035e+00;
-static double valy = 0.9311841169;
-
-   // Depends on the frequency
-   if (frequency == 44100)
-   {
-      gain = 1.035634035e+00;
-      valy = 0.9311841169;
-   }
-   else if (frequency == 22050)
-   {
-      gain = 1.071358681e+00;
-      valy = 0.8667884395 ;
-   }
-   else if (frequency == 48000)
-   {
-      gain = 1.032736610e+00;
-      valy = 0.9366022080  ;
-   }
-
-   // RC Circuit
-   for (unsigned int i = 0; i < nb_samples; i++)
-   {
-      { xv[0] = xv[1];
-        xv[1] = array[i] / gain;
-        yv[0] = yv[1];
-        yv[1] =   (xv[1] - xv[0])
-                     + (  valy * yv[0]);
-        array[i]  = yv[1];
-      }
-   }
-}
 #endif
 
 // So, for your implementation, probably the key thing is to maintain a running average of the last however many input samples
@@ -703,59 +432,6 @@ double CTape::GetSampleValue ( unsigned char *chunk, unsigned int * offset, int 
    return val;
 }
 
-void CTape::TraceSamples ( double *val,  int nb_samples, double Frequency)
-{
-   FILE * file;
-
-   double sample_rate = Frequency;
-
-   if (fopen_s (&file, "trace_wav.wav", "wb") == 0)
-   {
-      int size = 0;
-      size += fwrite ( "RIFF", 1, 4, file  );
-      size += WriteInt ( 0, file  );
-      size += fwrite ( "WAVE", 1, 4, file  );
-
-      int block_size = 0x10;
-      size += fwrite ( "fmt ", 1, 4, file  );
-      size += WriteInt ( block_size, file  );
-
-      size += WriteShort ( 1, file  ); // PCM
-      size += WriteShort ( 1, file  ); // 1 channel
-      size += WriteInt ( (int)sample_rate, file  ); // 11025 Hz
-      size += WriteInt ( (int)sample_rate, file  ); //
-      size += WriteShort ( 1, file  ); //
-      size += WriteShort ( 8, file  ); //
-
-      // Data
-      size += fwrite ( "data ", 1, 4, file  );
-      unsigned int datasizeplace = nb_samples;
-      size += WriteInt ( datasizeplace, file  ); //
-
-      unsigned char car_buf[1];
-      for (int i = 0; i < nb_samples; i++)
-      {
-         // Size of this inversion / sample rate = nb of samples
-
-         // Value
-         if ( val[i] < -1 ) val[i] = -1;
-         if ( val[i] > 1 ) val[i] = 0.99;
-
-         car_buf[0] = static_cast<unsigned char>(val[i] * 128 + 128);
-
-         // Add a sample
-         size += fwrite ( car_buf, 1, 1, file );
-      }
-
-      // Set data size
-
-      // Set file size
-      fseek ( file, 4, SEEK_SET );
-      fwrite ( &size, 1, 4, file );
-      fclose ( file );
-   }
-}
-
 int CTape::SampleToPPI ( double val )
 {
    // Gain : A affiner...
@@ -791,7 +467,7 @@ int CTape::SampleToPPI ( double val )
    }
 }
 
-bool CTape::IsArraySquareWave(unsigned char* value_tab, int nb_samples, int nb_channels, int bit_per_sample)
+bool CTape::IsArraySquareWave(unsigned char* value_tab, int nb_samples, int /*nb_channels*/, int /*bit_per_sample*/)
 {
    // Compute each value.
    double min = 0;
@@ -1042,8 +718,6 @@ int CTape::ConvertSampleArray (bool first_call, double* value_tab, int nb_sample
       // Vt+ = Vcc/2 * (R1+R2) / R2
       // Vt- = Vcc - Vcc/2 * (R1+R2) / R2
       // TODO  : Ajouter le trigger de schmitt inverseur (Vt+ = 4.9 / 2 * (10+47)k/(47k))
-      double vtp = 5 * (10.0/57.0);
-      double vtm = -5 * (10.0/57.0);
    }
 #endif
    // Step 2 : Convert values to this format
@@ -1167,7 +841,8 @@ int CTape::InsertTapeDelayed()
    {
       unsigned char header [23] = {0};
       // check the 12 first char
-      fread ( header , 1, 23, file );
+      // A shorter file leaves the end of the header at 0
+      [[maybe_unused]] const size_t header_size = fread ( header , 1, 23, file );
       fclose (file);
 
       if (  ( memcmp ( header, "ZXTape!", 7) == 0)
@@ -1191,7 +866,6 @@ int CTape::InsertTapeDelayed()
       {
          ret = LoadVOC (current_tape_.c_str());
       }
-      //else if (IsExtensionMatch(current_tape_.c_str(), "tap"))
 
 
       else
@@ -1363,10 +1037,6 @@ void CTape::PushPause (int length )
       current_level_ = true;
 
    }
-   else
-   {
-      int dbg = 1;
-   }
 
 }
 
@@ -1441,7 +1111,6 @@ int CTape::LoadTap(unsigned char* buffer, size_t size)
 int CTape::LoadTap (const char* file_path)
 {
    FILE * file;
-   int ret = -1;
    if (fopen_s (&file, file_path, "rb") == 0)
    {
       // Length ?
@@ -1451,10 +1120,11 @@ int CTape::LoadTap (const char* file_path)
 
       // Read datas
       unsigned char* tap_buffer = new unsigned char[nLength];
-      fread ( tap_buffer, 1, nLength,  file );
+      const bool read_ok = (fread ( tap_buffer, 1, nLength,  file ) == static_cast<size_t>(nLength));
       fclose(file);
 
-      ret = LoadTap(tap_buffer, nLength);
+      // The result of LoadTap is not returned: this function always gives 0
+      if (read_ok) LoadTap(tap_buffer, nLength);
 
       delete []tap_buffer;
    }
@@ -1529,7 +1199,7 @@ int CTape::DecodeCSWBloc ( unsigned char* buffer, unsigned int length, unsigned 
 
 void CTape::AddSample ( unsigned int value,  double frequency , int& lenght)
 {
-   if ( ( value == -1)
+   if ( ( value == ~0u)
       || (tape_array_[nb_inversions_].high == ((value==1)?true:false))
       )
    {
@@ -1714,7 +1384,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
    unsigned int data_length = 0;
    unsigned char* buffer = NULL;
    unsigned char codec_id = 0;
-   unsigned char channel_number = 0;
    unsigned char nb_channels = 1;
    unsigned char bit_per_sample = 8;
 
@@ -1786,7 +1455,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
       case 0x03:  // Silence
       {
          //
-         unsigned short length_silence = GET_WORD((&buffer[0]));
          unsigned char freq_divisor = buffer[2];
          sample_rate_ = 1000000 / (256 - freq_divisor);
          break;
@@ -1808,7 +1476,6 @@ int CTape::LoadVOC(unsigned char* voc_buffer, size_t size)
          unsigned short freq_divisor = GET_WORD((&buffer[0]));
          codec_id = buffer[1];
          sample_rate_ = 256000000 / (nb_channels * (65536 - freq_divisor));
-         channel_number = buffer[3];
          extra_info = true;
          break;
       }
@@ -1860,9 +1527,9 @@ int CTape::LoadVOC (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadVOC(buffer, buffer_size);
+      if (read_ok) ret = LoadVOC(buffer, buffer_size);
 
       delete[]buffer;
 
@@ -1889,7 +1556,6 @@ int CTape::LoadCSW(unsigned char* buffer, size_t size)
    // Major revision
    unsigned char maj_rev = header[0x17];
    // Minor revision
-   unsigned char min_rev = header[0x18];
 
    // CSW 2
    if (maj_rev == 2)
@@ -1969,9 +1635,9 @@ int CTape::LoadCSW (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadCSW(buffer, buffer_size);
+      if (read_ok) ret = LoadCSW(buffer, buffer_size);
 
       delete[]buffer;
    }
@@ -1995,7 +1661,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
 
    // TZX Format : Check version
    int maj_rev = header[8];
-   int min_rev = header[9];
 
    // Check revision
    if (maj_rev > 1)
@@ -2237,10 +1902,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
          case 0x14:
          {
 
-            if (current_block_ >= 6915)
-            {
-               int dbg = 1;
-            }
             unsigned char buffer14[0xA];
             if (place_in_file + 10 > size)
             {
@@ -2291,7 +1952,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             }
             else
             {
-               int dbg = 1;
                /*if (m_bCurrentLevel)
                PushPulse ( m_pTapeArray[m_NbInversions].Length );*/
             }
@@ -2328,7 +1988,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             // Compute each samples
             // First one . ?
             //
-            int last_index = 0;
             for (unsigned int i = 0; i < ((data_length - 1) * 8 + UsedBitsLastByte); i++)
             {
                // Inversion ?
@@ -2338,7 +1997,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
                   IncInversions();
                   tape_array_[nb_inversions_].length = 0;
                   tape_array_[nb_inversions_].place = tape_array_[nb_inversions_ - 1].place;
-                  last_index = i;
                }
                tape_array_[nb_inversions_].high = bLevel;
 
@@ -2579,7 +2237,6 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
             memcpy(data_buffer, &buffer[place_in_file], l);
             place_in_file += l;
             block_list_[nb_blocks_-1].description = new char[l + 1];
-            size_t converted_chars = 0;
             strcpy(block_list_[nb_blocks_ - 1].description, (const char*)data_buffer);
             // Save this for display purpose
             break;
@@ -2634,7 +2291,7 @@ int CTape::LoadTZX(unsigned char* buffer, size_t size)
                if (buffer_index + 2 > data_length) return -2;
 
                // ID
-               unsigned char id = buffer_32[buffer_index++];
+                ++buffer_index; // id
 
                // Size
                unsigned char str_size = buffer_32[buffer_index++];
@@ -2768,9 +2425,9 @@ int CTape::LoadTZX (const char* file)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadTZX(buffer, buffer_size);
+      if (read_ok) ret = LoadTZX(buffer, buffer_size);
 
       delete[]buffer;
    }
@@ -2809,12 +2466,6 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
    memcpy(header, &buffer[index_pos], 12);
    index_pos += 12;
 
-   // Keep track of file size
-   int file_size = header[4]
-      + (header[5] << 8)
-      + (header[6] << 16)
-      + (header[7] << 24);
-
    // Check file format
    if (memcmp(&header[8], "WAVE", 4) == 0)
    {
@@ -2839,7 +2490,6 @@ int CTape::LoadWav(unsigned char* buffer, size_t size)
             index_pos += format_size;
 
             // Type of format
-            int format = fmt[0] + (fmt[1] << 8);
             unsigned int nb_channels = fmt[2] + (fmt[3] << 8);
             frequency_ = fmt[4]
                + (fmt[5] << 8)
@@ -2977,9 +2627,9 @@ int CTape::LoadWav (const char* filepath)
       rewind(f);
       unsigned char* buffer = new unsigned char[buffer_size];
 
-      fread(buffer, buffer_size, 1, f);
+      const bool read_ok = (fread(buffer, buffer_size, 1, f) == 1);
       fclose(f);
-      ret = LoadWav(buffer, buffer_size);
+      if (read_ok) ret = LoadWav(buffer, buffer_size);
 
       delete[]buffer;
 
@@ -3000,7 +2650,7 @@ void CTape::SetTapePosition ( unsigned int nb_sec_from_begining)
       unsigned long long nbu_sec = 0;
       int nb_sec = 0;
       unsigned int i;
-      for (i = 0; i < nb_inversions_ && (nb_sec < nb_sec_from_begining); i++)
+      for (i = 0; i < nb_inversions_ && (static_cast<unsigned int>(nb_sec) < nb_sec_from_begining); i++)
       {
          // Size of this inversion / sample rate = nb of samples
          nbu_sec += tape_array_[i].length;
@@ -3283,7 +2933,6 @@ unsigned int CTape::Tick (/*unsigned int nbTicks*/)
                else
                {
                   remaining_reversal_flux_ = 1;
-                  int dbg = 1;
                }
 
             }
@@ -3498,7 +3147,6 @@ void CTape::SaveAsWav (const char* filepath)
       unsigned _int64 total = 0;
       unsigned _int64 current_length = 0;
 #endif
-      unsigned short block_number = 0;
       current_length = tape_array_[current_inversion].length;
       current_length = static_cast<unsigned long long > (current_length * sample_rate);
 
@@ -3616,11 +3264,7 @@ void CTape::SaveAsCdtDrb (const char* filepath)
          remaining = static_cast<unsigned long long>((( l + remaining)* ( mul) - nb_samples) / ( mul));
 
          unsigned char bitBuf = (tape_array_[i].high?1:0);
-         if ( i > nb_inversions_-4)
-         {
-            int dbg = 1;
-         }
-         for (int j = 0; j < nb_samples; j++)
+         for (unsigned long long j = 0; j < nb_samples; j++)
          {
 
             // Size of this inversion / sample rate = nb of samples
@@ -3713,7 +3357,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
       size += fwrite ( type==1?"\1":"\2", 1, 1, file  );
 
       // Data size
-      int pos_of_size = size;
       buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0;
       size += fwrite ( buffer, 1, 4, file  );
 
@@ -3724,9 +3367,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
       //size += WriteInt ( 0, file  ); //
       //size = 0;
 
-      unsigned char used_bit_in_lastbye = 8;
-      unsigned char car_buf = 0;
-      int bit_counter = 0;
       unsigned int nb_sample_to_record = 0;
       double ratio = sample_rate / 4000000.0;
 
@@ -3761,10 +3401,6 @@ void CTape::SaveAsCdtCSW (const char* filepath)
                      if  (type == 1)
                         size += fwrite ( buffer, 1, 1, file  );
                   }
-               }
-               else
-               {
-                  int dbg = 1;
                }
             }
       // Last byte
@@ -3862,7 +3498,6 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
 
       // Simple RLE
       // Data
-      double ratio = sample_rate / 4000000.0;
       unsigned int nb_sample_to_record = 0;
 
       unsigned char* data_buffer = NULL;
@@ -3920,10 +3555,6 @@ void CTape::SaveAsCSW (const char* filepath, unsigned char type, unsigned char v
                      else
                         data_buffer[index++] = nb_samples&0xFF;
                   }
-               }
-               else
-               {
-                  int dbg = 1;
                }
             }
             //break;

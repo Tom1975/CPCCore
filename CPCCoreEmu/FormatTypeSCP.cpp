@@ -47,8 +47,7 @@ bool FormatTypeSCP::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x3] = {0};
       // check the 22 first char
-      fread(header, 1, 0x3, file);
-      if (memcmp(header, "SCP", 3) == 0)
+      if (fread(header, 1, 0x3, file) == 0x3 && memcmp(header, "SCP", 3) == 0)
       {
          can_load = true;
       }
@@ -90,10 +89,10 @@ int FormatTypeSCP::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
 }
 
 int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+                            ILoadingProgress* /*loading_progress*/)
 {
-   unsigned char version, diskType, numRevolution;
-   unsigned char startTrack, endTrack, flags;
+   unsigned char numRevolution;
+   unsigned char endTrack;
    unsigned int check_sum_computed = 0;
    const unsigned char* header = buffer;
 
@@ -101,15 +100,8 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    {
       IDisk* new_disk = new IDisk();
 
-      version = header[3];
-      diskType = header[4];
       numRevolution = header[5];
-      startTrack = header[6];
       endTrack = header[7];
-      flags = header[8];
-      unsigned char width = header[9];
-      unsigned char nb_heads = header[0x0A];
-      unsigned int checkSum = *((unsigned int*)(&header[0x0C]));
 
       // Check the checksum !
       for (unsigned int crc = 0x10; crc < size; crc++)
@@ -117,11 +109,6 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
          check_sum_computed += header[crc];
       }
       // Compare :
-      if (check_sum_computed != checkSum)
-      {
-         // Something to do ?
-         int dbg = 1;
-      }
 
 
       // Number of side :
@@ -166,7 +153,6 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
             if (track >= new_disk->side_[side].nb_tracks)
             {
                // TODO : Do Something here !
-               int dbg = 1;
                return -1;
             }
 
@@ -235,10 +221,9 @@ int FormatTypeSCP::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    return OK;
 }
 
-int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    unsigned int checksum = 0;
-   int ret = 0;
    int i;
    FILE* file;
    int offset = 0;
@@ -312,7 +297,6 @@ int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
          pTrackBuffer/*[track]*/[offset_track++] = track; // (track<<1)|track%2;
 
          // INDEX TIME = 32 BIT VALUE, TIME IN NANOSECONDS/25ns FOR ONE REVOLUTION
-         unsigned int index_time = tracklength * clock;
          AddIntToBuffer(pTrackBuffer/*[track]*/, 0x04, 0x7A1200); // 200 ms for one revolution - TODO : TO ADJUST ?
 
          // Offset of revolution
@@ -364,8 +348,6 @@ int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
             }
 
             // Adjust bitcell to reach 200ms track
-            double ratio = (double)i / (double)tracklength;
-            double current = clock * (i+1);
             double total_aimed = 200000000.0 / (25.0 * (double)tracklength) * (double)(i+1.0);
 
             unsigned int adujst = (unsigned int)total_aimed - total_flux;
@@ -446,7 +428,7 @@ int FormatTypeSCP::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
 }
 
 unsigned int FormatTypeSCP::ComputeTrack(unsigned char* bitfield, const unsigned char* cellbuffer, int sizeOfBuffer,
-                                         int duration)
+                                         int /*duration*/)
 {
 #define CLOCK_MAX_ADJ 10     /* +/- 10% adjustment */
 #define CLOCK_MIN(_c) (((_c) * (100 - CLOCK_MAX_ADJ)) / 100)

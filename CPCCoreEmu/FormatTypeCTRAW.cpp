@@ -23,8 +23,7 @@ bool FormatTypeCTRAW::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x4] = {0};
       // check the 22 first char
-      fread(header, 1, 0x4, file);
-      if (memcmp(header, "CAPS", 4) == 0)
+      if (fread(header, 1, 0x4, file) == 0x4 && memcmp(header, "CAPS", 4) == 0)
       {
          can_load = true;
       }
@@ -102,7 +101,7 @@ int FormatTypeCTRAW::LoadDisk(std::vector<TrackItem> file_list, IDisk*& created_
    }
 }
 
-int FormatTypeCTRAW::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeCTRAW::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }

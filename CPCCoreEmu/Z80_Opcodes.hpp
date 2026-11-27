@@ -136,7 +136,7 @@ unsigned int Z80::Opcode_EX()
    unsigned short t = REGW(reg1); 
    REGW(reg1) = REGW(reg2);
    REGW(reg2) = t;
-   NEXT_INSTR((current_opcode_ & 0xFFFF00));
+   NEXT_INSTR;
 }
 
 template<Z80::AddressRegisters reg1, Z80::AddressRegisters reg2>
@@ -1023,6 +1023,7 @@ unsigned int Z80::DefaultTick()
       }
       }
    }
+   [[fallthrough]];
    case M_M1_INT + 2:
    case M_M1_INT + 3:
       ++t_; return 1;
@@ -1049,6 +1050,7 @@ unsigned int Z80::DefaultTick()
          return 1;
       }
    }
+   [[fallthrough]];
 
    case M_M1_INT + 7:
    {
@@ -1105,6 +1107,7 @@ unsigned int Z80::DefaultTick()
 
    /////////////////////////////////////////////////
    // FETCH
+   [[fallthrough]];
    case M_FETCH + 1:
    {
       INC_R
@@ -1137,6 +1140,7 @@ unsigned int Z80::DefaultTick()
       if ((current_opcode_ & 0xF7) != 0x37)
          q_ = 0;
    }
+   [[fallthrough]];
    case M_FETCH + 5:
    case M_FETCH + 6:
    case M_FETCH + 7:
@@ -1171,6 +1175,7 @@ unsigned int Z80::DefaultTick()
 
    case M_MEMORY_R + 3:
       current_data_ |= (data_ << (read_count_ * 8));
+      [[fallthrough]];
    case M_MEMORY_R + 4:
    case M_MEMORY_R + 5:
    case M_MEMORY_R + 6:
@@ -1209,6 +1214,7 @@ unsigned int Z80::DefaultTick()
    case M_MEMORY_W + 3:
       memory_->Set(address_, data_);
       // WRITE the data
+      [[fallthrough]];
    case M_MEMORY_W + 4:
    case M_MEMORY_W + 5:
    case M_MEMORY_W + 6:
@@ -1238,6 +1244,7 @@ unsigned int Z80::DefaultTick()
       // VSYNC on its 4th microsecond)
       sig_->In(&data_, (address_ >> 8) & 0xFF, (address_) & 0xFF);
       current_data_ = data_;
+      [[fallthrough]];
    case M_IO_R + 5:
    case M_IO_R + 6:
    case M_IO_R + 7:

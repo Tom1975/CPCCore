@@ -188,8 +188,6 @@ protected:
                            unsigned char* buffer);
    bool AddStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
                         unsigned int offser_end, unsigned int size_of_track);
-   int AddShortStreamRecord(StreamRecording* record, unsigned char* buffer, unsigned int offset_begin,
-                            unsigned int offset_end);
 };
 
 #pragma pack ( pop )

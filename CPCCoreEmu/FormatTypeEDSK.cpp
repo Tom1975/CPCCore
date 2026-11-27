@@ -72,8 +72,7 @@ bool FormatTypeEDSK::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x8] = {0};
       // check the 22 first char
-      fread(header, 1, 0x8, file);
-      if (memcmp(header, "EXTENDED", 8) == 0)
+      if (fread(header, 1, 0x8, file) == 0x8 && memcmp(header, "EXTENDED", 8) == 0)
       {
          can_load = true;
       }
@@ -115,7 +114,7 @@ int FormatTypeEDSK::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadi
 }
 
 int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                             ILoadingProgress* loading_progress)
+                             ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "EXTENDED", 8) == 0)
    {
@@ -182,7 +181,7 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
                //fread ( track_block, m_Side[i].Tracks [j].TrackSize-0x100, 1, file );
                // Track number
                unsigned int tn = header[0x10];
-               if (tn != j)
+               if (tn != static_cast<unsigned int>(j))
                {
                   // bug...
                   //tn = m_NbTracks-1;
@@ -258,10 +257,6 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
                }
 
                // Data
-               if (tn == 0x13)
-               {
-                  int dbg = 1;
-               }
                for (k = 0; k < side_[i].tracks[tn].nb_sector; k++)
                {
                   if (side_[i].tracks[tn].sectors[k].actual_size == 0)
@@ -376,7 +371,7 @@ int FormatTypeEDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& c
    }
 }
 
-int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    FILE* file;
    int res = disk->SmartOpen(&file, file_path, ".DSK");
@@ -471,10 +466,6 @@ int FormatTypeEDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgres
                   for (int cpt = 0; cpt < info_track->list_sector_[sector_index].real_size/*  it->RealSize*/; cpt++)
                   {
                      track_data[offset_data++] = disk->GetNextByte(i, j, index);
-                     if (offset_data > size)
-                     {
-                        int dbg = 1;
-                     }
                      index += 16;
                   }
                }
@@ -540,8 +531,7 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    }
    
    // --- First of all : Seek in the existing sectors for a begining pattern
-   unsigned char *track_byte = new unsigned char [DEFAULT_TRACK_SIZE * 16];
-   memset(track_byte, 0x00, sizeof(track_byte));
+   unsigned char *track_byte = new unsigned char [DEFAULT_TRACK_SIZE * 16]();
 
    int index_iam = 0x80;
    bool begining_found = false;
@@ -716,11 +706,6 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
    unsigned int last_end_of_sector = 0;
 
 
-   if (track == 40)
-   {
-      int stop = 1;
-   }
-
    // ---  Each sectors :
    for (unsigned int s = 0; s < side_[side].tracks[track].nb_sector; s++)
    {
@@ -829,11 +814,8 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
             {
                // GAP3 removal :
                // If it is possible : GAP3 are enough
-               int nb_gap = 0;
                if (s > 0)
                {
-                  nb_gap = side_[side].tracks[track].gap3 * 16;
-
                   offset = -offset;
                   if (offset <= /*nb_gap*/(static_cast<int>(index_bit) - static_cast<int>(max_search_index)))
                   {
@@ -1008,7 +990,6 @@ int FormatTypeEDSK::FillTrackMfm(IDisk* new_disk, int side, int track, unsigned 
       }
 
       unsigned int final_index_begin = index_iam + 16 + 50;
-      unsigned int total_gap = final_index_begin * 16 + final_gap;
 
       if (final_gap < (150)*16 )
       {
@@ -1191,24 +1172,6 @@ void FormatTypeEDSK::ConvertDatatoMfm(Sector* sector, unsigned int index_revolut
 
    sector->mfm_data_size = index_bit;
 
-   bool crc_needed = (size_of_track == theorical_size);
-   // If less
-   if (size_of_track < theorical_size)
-   {
-      // How can we know ?
-      // Compare size of gap with index values.
-      // if there is a diff of "2", add a crc to make it correct
-      // TODO this
-      int dbg = 1;
-      crc_needed = true;
-   }
-   if ((sector->fdc_status_1 & 0x20) == 0x20
-      && (sector->fdc_status_2 & 0x20) == 0x20
-      && (size_of_track == theorical_size)
-   )
-      crc_needed = false;
-
-
    sector->crc_present = true;
 
    //if ( crc_needed )
@@ -1232,7 +1195,7 @@ void FormatTypeEDSK::ConvertDatatoMfm(Sector* sector, unsigned int index_revolut
 }
 
 unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int searchBaseIndex, int index_bit,
-                                               Sector* sector, unsigned int* returned_offset_first_sync_before_idam,
+                                               Sector* sector, unsigned int* /*returned_offset_first_sync_before_idam*/,
                                                bool first_sector)
 {
    // Look for the first data part
@@ -1247,7 +1210,7 @@ unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int se
          for (int j = i + MFMCHRNSIZE; j < index_bit - 16; j++)
          {
             //if ( memcmp ( &track_byte[j], mfm_data_pattern, sizeof(mfm_data_pattern)) == 0 )
-            int size_of_data_pattern = (sizeof(MFMDataPattern) < (sector->mfm_data_size))
+            int size_of_data_pattern = (sizeof(MFMDataPattern) < static_cast<size_t>(sector->mfm_data_size))
                                        ? sizeof(MFMDataPattern)
                                        : sector->mfm_data_size;
             size_of_data_pattern = (size_of_data_pattern < (index_bit - j)) ? size_of_data_pattern : (index_bit - j);
@@ -1257,7 +1220,7 @@ unsigned int FormatTypeEDSK::LookforInterlaced(unsigned char* track_byte, int se
             {
                //j += off;
                // Now compare withe begining of data sections
-               if (index_bit - (j) >= sizeof(MFMDataPattern))
+               if (static_cast<size_t>(index_bit - (j)) >= sizeof(MFMDataPattern))
                {
                   // Compare between last sync bit and what we've got
                   // So : begining at size_of_data_pattern, until index_bit / end of Mfmdata

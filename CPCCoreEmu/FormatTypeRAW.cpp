@@ -9,8 +9,6 @@
 #include <stdio.h>
 using namespace std;
 
-#define TXT_OUT_PROF _T("Duree load disk")
-#define PROF
 
 #define DEFAULT_FLUX_SIZE     6500
 
@@ -32,7 +30,7 @@ FormatTypeRAW::~FormatTypeRAW()
 {
 }
 
-bool FormatTypeRAW::CanLoad(const char* file_path)
+bool FormatTypeRAW::CanLoad(const char* /*file_path*/)
 {
    return true;
 }
@@ -69,6 +67,7 @@ int FormatTypeRAW::LoadDiskTrackFromBuffer(IDisk*& created_disk, int side, int t
       {
       case 0x0A:
          GetFromBuffer(buffer, index_pos); // Skip this byte
+         [[fallthrough]];
       case 0x09:
          GetFromBuffer(buffer, index_pos); // Skip this byte
       case 0x08:
@@ -162,6 +161,7 @@ int FormatTypeRAW::LoadTrack(IDisk*& created_disk, const char* file_path, int si
          {
          case 0x0A:
             Get(file); // Skip this byte
+            [[fallthrough]];
          case 0x09:
             Get(file); // Skip this byte
          case 0x08:
@@ -255,13 +255,9 @@ void FormatTypeRAW::HandleOOB(FILE* file)
       {
          // size should be 8
          // Use it for check ?
-         unsigned int streamPos = GetDualWord(file);
-         unsigned int transfert_time = GetDualWord(file);
+         GetDualWord(file); // stream position
+         GetDualWord(file); // transfer time
          stream_position_ -= 8;
-         if (stream_position_ != streamPos)
-         {
-            int dbg = 1;
-         }
 
          // TODO
          break;
@@ -307,7 +303,7 @@ void FormatTypeRAW::HandleOOB(FILE* file)
       {
          // size should be 8 - TOCHECK ?
          unsigned int stream_pos = GetDualWord(file);
-         unsigned int result_code = GetDualWord(file);
+         GetDualWord(file); // result code
          stream_position_ -= 8;
          if (stream_position_ != stream_pos)
          {
@@ -359,13 +355,9 @@ void FormatTypeRAW::HandleOOB(const unsigned char* buffer, int& pos)
       {
          // size should be 8
          // Use it for check ?
-         unsigned int stream_pos = GetDualWordFromBuffer(buffer, pos);
-         unsigned int transfert_time = GetDualWordFromBuffer(buffer, pos);
+         GetDualWordFromBuffer(buffer, pos); // stream position
+         GetDualWordFromBuffer(buffer, pos); // transfer time
          stream_position_ -= 8;
-         if (stream_position_ != stream_pos)
-         {
-            int dbg = 1;
-         }
          break;
       }
 
@@ -409,7 +401,7 @@ void FormatTypeRAW::HandleOOB(const unsigned char* buffer, int& pos)
       {
          // size should be 8 - TOCHECK ?
          unsigned int stream_pos = GetDualWordFromBuffer(buffer, pos);
-         unsigned int result_code = GetDualWordFromBuffer(buffer, pos);
+         GetDualWordFromBuffer(buffer, pos); // result code
          stream_position_ -= 8;
          if (stream_position_ != stream_pos)
          {
@@ -458,7 +450,7 @@ void FormatTypeRAW::InsertFluxValue(unsigned int FluxValue)
    ++nb_flux_value_;
 }
 
-void FormatTypeRAW::HandleHWInfo(char* info, int size)
+void FormatTypeRAW::HandleHWInfo(char* info, int /*size*/)
 {
    // scan for sck / ick
    char* buffer = strstr(info, "sck=");
@@ -496,7 +488,7 @@ int FormatTypeRAW::ComputeTrack(IDisk*& created_disk, int side, int track)
    created_disk->side_[side].tracks[track].revolution = new IDisk::Revolution[(indexNumber - 1)];
    created_disk->side_[side].tracks[track].nb_revolutions = indexNumber - 1;
 
-   for (int index_revolution = 0; index_revolution < (indexNumber - 1); index_revolution++)
+   for (unsigned int index_revolution = 0; index_revolution < (indexNumber - 1); index_revolution++)
    {
       DecodeFluxFromIndex(index_revolution, created_disk->side_[side].tracks[track].revolution);
    }
@@ -702,8 +694,9 @@ unsigned char FormatTypeRAW::GetFromBuffer(const unsigned char* buffer, int& pos
 unsigned char FormatTypeRAW::Get(FILE* file)
 {
    stream_position_++;
-   unsigned char c;
-   fread(&c, 1, 1, file);
+   // Past the end of the file, the value is 0
+   unsigned char c = 0;
+   if (fread(&c, 1, 1, file) != 1) c = 0;
 
    return c;
 }
@@ -721,8 +714,8 @@ unsigned short FormatTypeRAW::GetWord(FILE* file)
 {
    unsigned short v = 0;
 
-   unsigned char c[2];
-   fread(&c, 2, 1, file);
+   unsigned char c[2] = {0, 0};
+   if (fread(&c, 2, 1, file) != 1) c[0] = c[1] = 0;
 
    v = c[0];
    v |= (c[1] << 8);
@@ -745,8 +738,8 @@ unsigned long FormatTypeRAW::GetDualWordFromBuffer(const unsigned char* buffer, 
 unsigned long FormatTypeRAW::GetDualWord(FILE* file)
 {
    unsigned long v = 0;
-   unsigned char c[4];
-   fread(&c, 4, 1, file);
+   unsigned char c[4] = {0, 0, 0, 0};
+   if (fread(&c, 4, 1, file) != 1) c[0] = c[1] = c[2] = c[3] = 0;
 
    v = c[0];
    v |= (c[1] << 8);
@@ -764,81 +757,9 @@ void FormatTypeRAW::ReadASCIIFromBuffer(const unsigned char* buffer, int& pos, c
 
 void FormatTypeRAW::ReadASCII(FILE* file, char* info, int size)
 {
-   fread(info, size, 1, file);
+   if (fread(info, size, 1, file) != 1) memset(info, 0, size);
 }
 
-
-unsigned int FormatTypeRAW::GetCellWidth(double fluxValue)
-{
-   double realvCellTime = fluxValue / sck_;
-   double celllegnth = realvCellTime * 512000;
-
-   celllegnth = celllegnth / rpm_correction_;
-
-   double clock_average = 1;
-   int clock_count = 0;
-
-   for (int i = 0; i < NB_CLOCK_DATAS; i++)
-   {
-      clock_average += clock_average_datas_[i];
-      clock_count += clock_average_cell_[i];
-   }
-   if (clock_count > 0)
-      clock_average /= clock_count;
-
-   if (clock_average < 0.75)
-   {
-      clock_average = 0.75;
-   }
-   else if (clock_average > 1.25)
-   {
-      clock_average = 1.25;
-   }
-
-
-   unsigned int cell = 1;
-
-   //clock_average = 1.0f;
-   if (clock_count > 0)
-      cell = lround(fluxValue / clock_average);
-   else
-      cell = lround(fluxValue);
-
-   unsigned int cell2 = lround(fluxValue);
-
-   if (cell2 != cell)
-   {
-      // Compare who's the nearest
-      if (abs(((float)cell) - (fluxValue / clock_average)) < (abs(((float)cell2) - fluxValue)))
-      {
-         // Nothing
-         int dbg = 1;
-      }
-      else
-      {
-         cell = cell2;
-      }
-      int dbg = 1;
-      //cell = cell2;
-   }
-
-   // Adjust with current clock
-   clock_average_datas_[clock_average_index_] = fluxValue;
-   clock_average_cell_[clock_average_index_++] = cell;
-   if (clock_average_index_ >= NB_CLOCK_DATAS) clock_average_index_ = 0;
-
-   // Correction ?
-   /*if (cell < 2 && cell > 1)
-   {
-   cell = 2;
-   }
-   if ( cell > 8 )
-   {
-   cell = 8;
-   }*/
-
-   return cell;
-}
 
 int FormatTypeRAW::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadingProgress* loading_progress)
 {
@@ -1118,13 +1039,13 @@ int FormatTypeRAW::LoadDisk(std::vector<buffer_item> buffer_list, std::vector<st
    return result;
 }*/
 
-int FormatTypeRAW::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeRAW::LoadDisk(const unsigned char* /*buffer*/, size_t /*size*/, IDisk*& /*created_disk*/,
+                            ILoadingProgress* /*loading_progress*/)
 {
    return NOT_IMPLEMENTED;
 }
 
-int FormatTypeRAW::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeRAW::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }

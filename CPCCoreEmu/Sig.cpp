@@ -13,7 +13,7 @@
    if (log_) log_->WriteLogByte (str);
 
 
-CSig::CSig(void) : plus_(false), interrupt_io_data_(0xFF)
+CSig::CSig(void) : interrupt_io_data_(0xFF), plus_(false)
 {
    log_ = NULL;
    h_sync_ = false;
@@ -175,11 +175,6 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P, unsigned int t_stat
    }
    data_bus_->SetBus (data_);
 
-   if ( address_ == 256)
-   {
-      int dbg = 1;
-   }
-
    // Is it a PPI call ?
    if ( ((address_ &0x0800) ==0x0000 )
       )   {
@@ -219,10 +214,6 @@ void CSig::Out (unsigned short Addr_P, unsigned char Data_P, unsigned int t_stat
    }
 
    // Magnum Light Phaser
-   if (address_ == 0xFBFE)
-   {
-      int dbg = 1;
-   }
 
    // Is there something on the expansion port ?
    for (int i = 0; i < nb_expansion_; i++)

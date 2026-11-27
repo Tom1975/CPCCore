@@ -14,7 +14,7 @@ JoystickSettings::~JoystickSettings()
 
 }
 
-JoystickSettings::Shortcut::Shortcut(unsigned int shortcut) : shortcut_(shortcut), virtual_key_(0)
+JoystickSettings::Shortcut::Shortcut(unsigned int shortcut) : virtual_key_(0), shortcut_(shortcut)
 {
 
 }
@@ -29,34 +29,6 @@ JoystickSettings::JoystickShortcut::JoystickShortcut() :
    button_3_scancode_(IKeyboardHandler::joy_but3),
    action_(0)
 {
-
-}
-
-unsigned int JoystickSettings::JoystickShortcut::GetFullAction()
-{
-   return action_;
-}
-
-void JoystickSettings::JoystickShortcut::KeyDown(unsigned int vkey)
-{
-   if (left_scancode_.virtual_key_== vkey ) action_ |= left_scancode_.shortcut_;
-   if (right_scancode_.virtual_key_== vkey) action_ |= right_scancode_.shortcut_;
-   if (top_scancode_.virtual_key_== vkey) action_ |= top_scancode_.shortcut_;
-   if (bottom_scancode_.virtual_key_== vkey) action_ |= bottom_scancode_.shortcut_;
-   if (button_1_scancode_.virtual_key_== vkey) action_ |= button_1_scancode_.shortcut_;
-   if (button_2_scancode_.virtual_key_== vkey) action_ |= button_2_scancode_.shortcut_;
-   if (button_3_scancode_.virtual_key_== vkey) action_ |= button_3_scancode_.shortcut_;
-}
-
-void JoystickSettings::JoystickShortcut::KeyUp(unsigned int vkey)
-{
-   if (left_scancode_.virtual_key_ == vkey) action_ &= ~left_scancode_.shortcut_;
-   if (right_scancode_.virtual_key_ == vkey) action_ &= ~right_scancode_.shortcut_;
-   if (top_scancode_.virtual_key_ == vkey) action_ &= ~top_scancode_.shortcut_;
-   if (bottom_scancode_.virtual_key_ == vkey) action_ &= ~bottom_scancode_.shortcut_;
-   if (button_1_scancode_.virtual_key_ == vkey) action_ &= ~button_1_scancode_.shortcut_;
-   if (button_2_scancode_.virtual_key_ == vkey) action_ &= ~button_2_scancode_.shortcut_;
-   if (button_3_scancode_.virtual_key_ == vkey) action_ &= ~button_3_scancode_.shortcut_;
 
 }
 
@@ -89,7 +61,7 @@ void JoystickSettings::JoystickShortcut::Unserialize(std::string param)
 }
 
 //////////////////////////////////////////////////////////
-EmulatorSettings::EmulatorSettings() : sound_(nullptr), configuration_manager_(nullptr), sound_factory_(nullptr)
+EmulatorSettings::EmulatorSettings() : configuration_manager_(nullptr), sound_(nullptr), sound_factory_(nullptr)
 {
 
 }
@@ -109,17 +81,6 @@ EmulatorSettings& EmulatorSettings::operator= (const EmulatorSettings& other)
 
    return *this;
 }
-
-JoystickSettings* EmulatorSettings::GetJoystickSettings()
-{
-   return &joystick_settings_;
-}
-
-void EmulatorSettings::SetJoystickSettings(JoystickSettings* settings)
-{
-   joystick_settings_ = *settings;
-}
-
 
 void EmulatorSettings::Init(IConfiguration * configuration_manager, ISoundFactory* sound_factory)
 {

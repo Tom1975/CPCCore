@@ -112,7 +112,7 @@ void MultifaceII::Out (unsigned short Addr_P, unsigned char Data_P )
 }
 
    // In
-void MultifaceII::In (unsigned char* data, unsigned short address)
+void MultifaceII::In (unsigned char* /*data*/, unsigned short /*address*/)
 {
 }
 

@@ -24,8 +24,7 @@ bool FormatTypeDSK::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x8] = {0};
       // check the 22 first char
-      fread(header, 1, 0x8, file);
-      if (memcmp(header, "MV - CPC", 8) == 0)
+      if (fread(header, 1, 0x8, file) == 0x8 && memcmp(header, "MV - CPC", 8) == 0)
       {
          can_load = true;
       }
@@ -66,8 +65,8 @@ int FormatTypeDSK::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
    return return_value;
 }
 
-int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "MV - CPC", 8) == 0)
    {
@@ -204,7 +203,7 @@ int FormatTypeDSK::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    return FILE_ERROR;
 }
 
-int FormatTypeDSK::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeDSK::SaveDisk(const char* /*file_path*/, IDisk* /*disk*/, ILoadingProgress* /*loading_progress*/) const
 {
    return NOT_IMPLEMENTED;
 }
@@ -230,7 +229,6 @@ int FormatTypeDSK::FillTrack(unsigned char* track_buffer, int side, int track)
    // GAP 1 : 50 byte with 0x4E value
    for (j = 0; j < 50; j++) load_disk_index = IDisk::AddByteToTrack(track_buffer, load_disk_index, 0x4E);
 
-   unsigned int last_valid_data = 0;
 
    // Then, each sectors :
    for (unsigned int s = 0; s < side_[side].tracks[track].nb_sector; s++)

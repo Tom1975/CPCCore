@@ -4,11 +4,10 @@
 
 #include "MediaManager.h"
 
-//#include "simple_regex.h"
 #include <stdio.h>
 
 
-IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* log)
+IDisk* Disk::CreateDisk(ILoadingProgress* loading_progress, ILog* /*log*/)
 {
    IDisk* disk = nullptr;
 
@@ -195,7 +194,8 @@ int MediaManager::GetTypeFromFile(const char*  str)
    {
       unsigned char buffer [0x100] = {0};
       // check the 22 first char
-      fread(buffer, 1, 0x100, file);
+      // A shorter file leaves the end of the buffer at 0
+      [[maybe_unused]] const size_t read_size = fread(buffer, 1, 0x100, file);
       fclose(file);
 
       return_type = GetTypeFromBuffer(buffer, 0x100);
@@ -211,32 +211,26 @@ int MediaManager::GetTypeFromFile(const char*  str)
 
       const char* ext = extens.c_str();
 
-      //if (IsExtensionMatch(str, "rom"))
       if ( strcmp( ext, ".rom" )==0)
       {
          return_type = MEDIA_ROM;
       }
-      //else if (IsExtensionMatch(str, "raw"))
       if ( strcmp( ext, ".raw" )==0)
       {
          return_type = MEDIA_DISK;
       }
-      //else if (IsExtensionMatch(str,"tap"))
       if ( strcmp( ext, ".tap" )==0)
       {
          return_type = MEDIA_TAPE;
       }
-      //else if (IsExtensionMatch(str,"bin"))
       if ( strcmp( ext, ".bin" )==0)
       {
          return_type = MEDIA_BIN;
       }
-      //else if (IsExtensionMatch(str,"cpr"))
       if ( strcmp( ext, ".cpr" )==0)
       {
          return_type = MEDIA_CPR;
       }
-      //else if (IsExtensionMatch(str, "xpr"))
       if ( strcmp( ext, ".xpr" )==0)
       {
          return_type = MEDIA_XPR;
@@ -246,7 +240,7 @@ int MediaManager::GetTypeFromFile(const char*  str)
    return return_type;
 }
 
-int MediaManager::GetTypeFromMultipleTypes(int* type_list, int nb_types)
+int MediaManager::GetTypeFromMultipleTypes(int* /*type_list*/, int /*nb_types*/)
 {
    return MEDIA_UNDEF;
 }

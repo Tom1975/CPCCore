@@ -88,7 +88,6 @@ protected:
 
    void ResetStatus0();
    void ResetStatus1();
-   void ResetStatus2();
 
    unsigned char GetStatus0 ();
    unsigned char GetStatus1();

@@ -2206,6 +2206,8 @@ void FDC::WriteSectorTick ()
          }
       }
       break;
+   default:
+      break;
    }
 }
 
@@ -2504,6 +2506,8 @@ void FDC::FormatTrackTick ()
          // TODO
          break;
       }
+   default:
+      break;
 
       break;
    }
@@ -4398,12 +4402,6 @@ unsigned char FDC::GetStatus1()
 
    return st1;
 }
-
-void FDC::ResetStatus2()
-{
-   status_2_ = 0;
-}
-
 
 unsigned char FDC::GetStatus2()
 {

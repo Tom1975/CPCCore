@@ -2,20 +2,20 @@
 #include "Motherboard.h"
 
 Motherboard::Motherboard(SoundMixer* sound_mixer, IKeyboardHandler* keyboard_handler):
-   generic_breakpoint_(nullptr),
-   supervisor_(nullptr),
-   plus_(false),
-   type_machine_(0),
-   address_bus_(16), data_bus_(8),
-   memory_(&monitor_), 
+   step_in_(false),
+   step_(false),
    keyboardhandler_(keyboard_handler),
+   generic_breakpoint_(nullptr),
+   supervisor_(nullptr), plus_(false),
+   type_machine_(0), 
+   address_bus_(16),
+   data_bus_(8),
+   memory_(&monitor_), 
    psg_(sound_mixer, keyboardhandler_),
-   netlist_int_(&signals_), 
+   netlist_int_(&signals_),
    netlist_nmi_(&signals_.nmi_),
    play_city_(&netlist_int_, &netlist_nmi_, sound_mixer),
-   cursor_line_(&play_city_),
-   step_(false),
-   step_in_(false)
+   cursor_line_(&play_city_)
 {
    breakpoint_index_ = 0;
    memset(breakpoint_list_, 0, sizeof(breakpoint_list_));

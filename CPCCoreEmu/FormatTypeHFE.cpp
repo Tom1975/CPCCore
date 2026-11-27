@@ -99,8 +99,7 @@ bool FormatTypeHFE::CanLoad(const char* file_path)
       // Check for type of file from header
       unsigned char header[0x8] = {0};
       // check the 22 first char
-      fread(header, 1, 0x8, file);
-      if (memcmp(header, "HXCPICFE", 8) == 0)
+      if (fread(header, 1, 0x8, file) == 0x8 && memcmp(header, "HXCPICFE", 8) == 0)
       {
          can_load = true;
       }
@@ -141,8 +140,8 @@ int FormatTypeHFE::LoadDisk(const char* file_path, IDisk*& created_disk, ILoadin
    return return_value;
 }
 
-int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& created_disk,
-                            ILoadingProgress* loading_progress)
+int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t /*size*/, IDisk*& created_disk,
+                            ILoadingProgress* /*loading_progress*/)
 {
    if (memcmp(buffer, "HXCPICFE", 8) == 0)
    {
@@ -234,7 +233,7 @@ int FormatTypeHFE::LoadDisk(const unsigned char* buffer, size_t size, IDisk*& cr
    }
 }
 
-int FormatTypeHFE::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* loading_progress) const
+int FormatTypeHFE::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress* /*loading_progress*/) const
 {
    int ret = 1;
 
@@ -247,7 +246,7 @@ int FormatTypeHFE::SaveDisk(const char* file_path, IDisk* disk, ILoadingProgress
       unsigned char buffer[0x200];
       memset(buffer, 0xFF, sizeof(buffer));
 
-      Picfileformatheader header = {0xFF};
+      Picfileformatheader header = {};
       memcpy(header.header_signature, "HXCPICFE", sizeof(header.header_signature));
       header.formatrevision = 0;
       header.number_of_track = disk->side_[0].nb_tracks;

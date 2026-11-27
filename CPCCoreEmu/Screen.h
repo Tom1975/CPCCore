@@ -27,7 +27,7 @@ public:
    virtual unsigned int ConvertRGB(unsigned int rgb) {
       return rgb;
    };
-   virtual void WindowsToTexture(int &x, int &y) {};
+   virtual void WindowsToTexture(int &/*x*/, int &/*y*/) {};
    virtual void SetScanlines ( int scan ) = 0;
    virtual bool AFrameIsReady  () = 0;
    virtual void Display() = 0;
@@ -73,17 +73,17 @@ public:
    // Capability of device
    virtual bool CanVSync () { return false; }
    virtual bool CanInsertBlackFrame() { return false; }
-   virtual void Activate ( bool on ) {};
+   virtual void Activate ( bool /*on*/ ) {};
 
    // Debug tooling: capture the currently displayed frame as a cropped,
    // de-interlaced RGBA8888 raster (top-left origin, row-major, no padding).
    // Default implementation: unsupported.
-   virtual bool CaptureFrameRGBA (std::vector<unsigned char>& rgba, int& width, int& height) { return false; }
+   virtual bool CaptureFrameRGBA (std::vector<unsigned char>& /*rgba*/, int& /*width*/, int& /*height*/) { return false; }
 
    // Debug tooling: register a callback invoked once per VSync (i.e. once a
    // new frame has been produced), from whichever thread drives emulation.
    // Default implementation: no-op (not every IDisplay implementer supports it).
-   virtual void SetFrameCallback (std::function<void()> callback) {}
+   virtual void SetFrameCallback (std::function<void()> /*callback*/) {}
 
 };
 
